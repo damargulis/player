@@ -26,6 +26,17 @@ export default class Library {
     return this.albums_;
   }
 
+  getArtists(genres) {
+    if (genres && genres.length) {
+      return this.artists_.filter((artist) => {
+        return artist.genreIds.some((genreId) => {
+          return genres.includes(genreId);
+        });
+      });
+    }
+    return this.artists_;
+  }
+
   getAlbumsByIds(ids) {
     return ids.map((id) => this.albums_[id]);
   }

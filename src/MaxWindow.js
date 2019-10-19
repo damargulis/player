@@ -3,6 +3,9 @@ import Header from './Header.js';
 import PlaylistTypePicker from './PlaylistTypePicker.js';
 import AlbumPicker from './AlbumPicker.js';
 import GenrePicker from './GenrePicker.js';
+import ArtistPicker from './ArtistPicker.js';
+import SongPicker  from './SongPicker.js';
+import PlaylistPicker from './PlaylistPicker.js';
 
 export class MaxWindow extends React.Component {
   constructor(props) {
@@ -10,6 +13,7 @@ export class MaxWindow extends React.Component {
 
     this.state = {
       genres: [],
+      playlistType: 'album',
     }
   }
 
@@ -17,6 +21,45 @@ export class MaxWindow extends React.Component {
     this.setState({
       genres
     });
+  }
+
+  setType(type) {
+    this.setState({
+      playlistType: type,
+    });
+  }
+
+  getPicker() {
+    switch (this.state.playlistType) {
+      case 'album':
+        return (
+          <AlbumPicker
+            playAlbum={this.props.playAlbum}
+            albums={this.props.library.getAlbums(this.state.genres)}
+            library={this.props.library}
+          />
+        )
+      case 'artist':
+        return (
+          <ArtistPicker
+            playAlbum={this.props.playAlbum}
+            artists={this.props.library.getArtists(this.state.genres)}
+            library={this.props.library}
+          />
+        )
+      case 'song':
+        return (
+          <SongPicker
+            library={this.props.library}
+          />
+        )
+      case 'playlist':
+        return (
+          <PlaylistPicker library={this.props.library} />
+        )
+      default:
+        return null;
+    }
   }
 
   render() {
@@ -35,17 +78,17 @@ export class MaxWindow extends React.Component {
         />
         <div className="section">
           <div id="sidebar">
-            <PlaylistTypePicker />
+            <PlaylistTypePicker 
+              setType={this.setType.bind(this)}
+            />
             <GenrePicker
               library={this.props.library}
               setGenres={this.setGenres.bind(this)}
             />
           </div>
-          <AlbumPicker
-            playAlbum={this.props.playAlbum}
-            albums={this.props.library.getAlbums(this.state.genres)}
-            library={this.props.library}
-          />
+          {
+            this.getPicker()
+          }
         </div>
       </div>
     )
