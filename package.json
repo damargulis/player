@@ -3,15 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "electron-is-dev": "^1.1.0",
+    "jsmediatags": "^3.9.2",
+    "node-gyp": "^6.0.0",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "react-scripts": "3.1.2"
+    "react-native-fs": "^2.14.1",
+    "react-native-level-fs": "^3.0.1",
+    "rn-nodeify": "^10.1.0"
   },
+  "main": "public/electron.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "rescripts start",
+    "build": "rescripts build",
+    "test": "rescripts test",
+    "eject": "react-scripts eject",
+    "electron-dev": "BROWSER=none yarn start & electron .",
+    "electron-rebuild": "electron-rebuild -f -s -v 1.7.8",
+    "postinstall": "node_modules/.bin/rn-nodeify --install fs --hack"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -27,5 +36,28 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@rescripts/cli": "^0.0.12",
+    "@rescripts/rescript-env": "^0.0.10",
+    "bindings": "^1.5.0",
+    "electron": "^6.0.11",
+    "electron-build": "0.0.3",
+    "electron-builder": "^21.2.0",
+    "electron-rebuild": "^1.8.6",
+    "itunes-data": "^0.1.4",
+    "jimp": "^0.8.4",
+    "libxmljs": "^0.19.7",
+    "music-metadata": "^4.8.0",
+    "musicmetadata": "^2.0.5",
+    "react-scripts": "^3.1.2",
+    "react-virtualized": "^9.21.1",
+    "tslint": "^5.20.0"
+  },
+  "react-native": {
+    "fs": "react-native-level-fs"
+  },
+  "browser": {
+    "fs": "react-native-level-fs"
   }
 }

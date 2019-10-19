@@ -1,22 +1,52 @@
-.App {
-  text-align: center;
+#header {
+  height: 100px;
+  background-color: blue;
+  display: flex;
 }
 
-.App-logo {
-  height: 40vmin;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+#max-window {
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #09d3ac;
+.section {
+  display: flex;
+  height: 100%;
+}
+
+#sidebar {
+  display: flex;
+  width: 100px;
+  flex-direction: column;
+  background-color: red;
+}
+
+#playlist-picker {
+  height: 150px;
+  background-color: yellow;
+}
+
+#genre-picker {
+  height: 100%;
+  background-color: purple;
+}
+
+#main {
+  flex: 3;
+  height: 100%;
+  background-color: orange;
+}
+
+#control-panel {
+
+}
+
+.control-button {
+  height: 100%;
 }
