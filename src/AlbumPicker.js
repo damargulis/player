@@ -1,23 +1,18 @@
 import React from 'react';
 
 import './App.css';
-import { Grid } from 'react-virtualized';
+import { AutoSizer, Grid } from 'react-virtualized';
 import AlbumInfo from './AlbumInfo';
 
 export default class AlbumPicker extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      height: 0,
-      width: 0,
       sortMethod: null,
       reverse: false,
       sortedAlbums: this.sortAlbums(this.props.albums),
     }
     this.numCols = 0;
-
-    this.setSize_ = this.setSize_.bind(this);
-    window.addEventListener('resize', this.setSize_);
 
     this.sortByName = this.sortByName.bind(this);
     this.sortByYear = this.sortByYear.bind(this);
@@ -40,39 +35,13 @@ export default class AlbumPicker extends React.Component {
   
   componentDidUpdate() {
     const sortedAlbums = this.sortAlbums(this.props.albums);
-    if (sortedAlbums.length === this.state.sortedAlbums.length && sortedAlbums.every((album, index) => {
-      return this.state.sortedAlbums[index] === album;
+    if (sortedAlbums.length !== this.state.sortedAlbums.length || sortedAlbums.some((album, index) => {
+      return this.state.sortedAlbums[index] !== album;
     })) {
-    } else {
       this.setState({
         sortedAlbums: sortedAlbums,
       });
     }
-  }
-
-  componentDidMount() {
-    this.setSize_();
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.setSize_);
-  }
-
-  setSize_() {
-    // force recalculation of the size by zeroing out grid
-    // bad performance, should fix this
-    this.setState({
-      height: 0,
-      width: 0,
-    });
-    setTimeout(() => {
-      if (this.divRef) {
-        this.setState({
-          height: this.divRef.clientHeight,
-          width: this.divRef.clientWidth
-        });
-      }
-    }, 100);
   }
 
   cellRenderer({columnIndex, key, rowIndex, style}) {
@@ -114,7 +83,7 @@ export default class AlbumPicker extends React.Component {
 
   render() {
     return (
-      <div id="main" ref={element => this.divRef = element}>
+      <div className="main" ref={element => this.divRef = element}>
       <div id="sortPicker" style={{textAlign: "center"}}>
         <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
         <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist</button>
@@ -128,28 +97,33 @@ export default class AlbumPicker extends React.Component {
   }
 
     getGrid() {
-      if (!this.state.height || !this.state.width) {
-        return null;
-      }
-      this.numCols = Math.floor(this.state.width / 150);
       if (!this.state.sortedAlbums) {
         return null;
       }
       const numAlbums = this.state.sortedAlbums.length;
-      const rows = Math.ceil(numAlbums / this.numCols);
       return (
-        <Grid
-          cellRenderer={this.cellRenderer.bind(this)}
-          columnCount={this.numCols}
-          columnWidth={this.state.width / this.numCols}
-          height={this.state.height}
-          rowCount={rows}
-          rowHeight={150}
-          width={this.state.width}
-        />
+        <AutoSizer>
+        {({height, width}) => {
+          this.numCols = Math.floor(width / 150);
+          const rows = Math.ceil(numAlbums / this.numCols)
+          if (this.numCols <= 0 || numAlbums <= 0) {
+            return null;
+          }
+          return (
+          <Grid
+            cellRenderer={this.cellRenderer.bind(this)}
+            columnCount={this.numCols}
+            columnWidth={width / this.numCols}
+            height={height}
+            rowCount={rows}
+            rowHeight={150}
+            width={width}
+          />
+        )}}
+        </AutoSizer>
     );
   }
 
-};
+}
 
 

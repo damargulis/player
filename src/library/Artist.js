@@ -5,6 +5,7 @@ export default class Artist {
     trackIds = [],
     genreIds = [],
   }) {
+
     /** @type {string} */
     this.name = name;
 

@@ -10,6 +10,7 @@ export default class Album {
     skipCount = 0,
     albumArtFile = null,
   }) {
+
     /** @type {string} */
     this.name = name;
 

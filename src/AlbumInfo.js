@@ -11,7 +11,7 @@ export default class AlbumInfo extends React.Component {
     this.prevent = false;
   }
 
-  onClickAlbum(index) {
+  onClickAlbum() {
     this.timer = setTimeout(() => {
       if (!this.prevent) {
         this.doClickAlbum();
@@ -30,7 +30,7 @@ export default class AlbumInfo extends React.Component {
     this.props.playAlbum(this.props.album)
   }
 
-  doClickAlbum(index) {
+  doClickAlbum() {
   }
 
   render() {

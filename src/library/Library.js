@@ -1,6 +1,7 @@
 
 export default class Library {
   constructor(tracks, albums, artists, genres) {
+
     /** @private @const {!Array<Track>} */
     this.tracks_ = tracks || [];
 
@@ -37,16 +38,23 @@ export default class Library {
     return this.artists_;
   }
 
+  getTracks(genres) {
+    if (genres && genres.length) {
+      return this.tracks_.filter((song) => {
+        return song.genreIds.somg((genreId) => {
+          return genres.includes(genreId);
+        });
+      });
+    }
+    return this.tracks_;
+  }
+
   getAlbumsByIds(ids) {
     return ids.map((id) => this.albums_[id]);
   }
 
   getArtistsByIds(ids) {
     return ids.map((id) => this.artists_[id]);
-  }
-
-  getTracks() {
-    return this.tracks_;
   }
 
   getTrack(id) {

@@ -1,8 +1,7 @@
 import React from 'react';
 
 export default class PlaylistTypePicker extends React.Component {
-  onChange(evt) {
-    console.log(evt);
+  onChange() {
   }
 
   render() {

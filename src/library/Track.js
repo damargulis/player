@@ -11,6 +11,7 @@ export default class Track {
     albumIds = [],
     genreIds = [],
   }) {
+
     /** @type {string} */
     this.name = name;
 

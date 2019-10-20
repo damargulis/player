@@ -51,6 +51,7 @@ export class MaxWindow extends React.Component {
         return (
           <SongPicker
             library={this.props.library}
+            songs={this.props.library.getTracks(this.state.genres)}
           />
         )
       case 'playlist':
