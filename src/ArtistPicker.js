@@ -1,5 +1,5 @@
 import React from 'react';
-import { AutoSizer, Grid } from 'react-virtualized';
+import WrappedGrid from './WrappedGrid';
 
 import ArtistInfo from './ArtistInfo';
 
@@ -16,7 +16,7 @@ export default class ArtistPicker extends React.Component {
 
   sortArtists(artists) {
     return artists.slice().sort((artist1, artist2) => {
-      return artist1.name.localeCompare(artist1.name);
+      return artist1.name.localeCompare(artist2.name);
     });
   }
 
@@ -31,8 +31,7 @@ export default class ArtistPicker extends React.Component {
     }
   }
 
-  cellRenderer({columnIndex, key, rowIndex, style}) {
-    const index = rowIndex * this.numCols + columnIndex;
+  cellRenderer(index, key, style) {
     const artists = this.state.sortedArtists;
     return (
       <ArtistInfo
@@ -50,38 +49,11 @@ export default class ArtistPicker extends React.Component {
   render() {
     return (
       <div className="main">
-      {
-        this.getGrid()
-      }
+        <WrappedGrid
+          items={this.state.sortedArtists}
+          cellRenderer={this.cellRenderer.bind(this)}
+        />
       </div>
-    )
-  }
-
-  getGrid() {
-    if (!this.state.sortedArtists) {
-      return null;
-    }
-    const numArtists = this.state.sortedArtists.length;
-    return (
-      <AutoSizer>
-        {({height, width}) => {
-          this.numCols = Math.floor(width / 150);
-          const rows = Math.ceil(numArtists / this.numCols);
-          if (this.numCols <= 0 || numArtists <= 0) {
-            return null;
-          }
-          return (
-            <Grid
-              cellRenderer={this.cellRenderer.bind(this)}
-              columnCount={this.numCols}
-              columnWidth={width / this.numCols}
-              height={height}
-              rowCount={rows}
-              rowHeight={150}
-              width={width}
-            />
-          )}}
-      </AutoSizer>
     )
   }
 }

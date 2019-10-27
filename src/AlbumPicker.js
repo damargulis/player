@@ -1,8 +1,8 @@
 import React from 'react';
 
 import './App.css';
-import { AutoSizer, Grid } from 'react-virtualized';
 import AlbumInfo from './AlbumInfo';
+import WrappedGrid from './WrappedGrid';
 
 export default class AlbumPicker extends React.Component {
   constructor(props) {
@@ -44,8 +44,7 @@ export default class AlbumPicker extends React.Component {
     }
   }
 
-  cellRenderer({columnIndex, key, rowIndex, style}) {
-    const index = rowIndex * this.numCols + columnIndex;
+  cellRenderer(index, key, style) {
     const albums = this.state.sortedAlbums;
     return (
       <AlbumInfo
@@ -89,39 +88,12 @@ export default class AlbumPicker extends React.Component {
         <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist</button>
         <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
       </div>
-      {
-        this.getGrid()
-      }
+      <WrappedGrid
+        items={this.state.sortedAlbums}
+        cellRenderer={this.cellRenderer.bind(this)}
+      />
       </div>
     )
-  }
-
-    getGrid() {
-      if (!this.state.sortedAlbums) {
-        return null;
-      }
-      const numAlbums = this.state.sortedAlbums.length;
-      return (
-        <AutoSizer>
-        {({height, width}) => {
-          this.numCols = Math.floor(width / 150);
-          const rows = Math.ceil(numAlbums / this.numCols);
-          if (this.numCols <= 0 || numAlbums <= 0) {
-            return null;
-          }
-          return (
-          <Grid
-            cellRenderer={this.cellRenderer.bind(this)}
-            columnCount={this.numCols}
-            columnWidth={width / this.numCols}
-            height={height}
-            rowCount={rows}
-            rowHeight={150}
-            width={width}
-          />
-        )}}
-        </AutoSizer>
-    );
   }
 }
 
