@@ -10,10 +10,13 @@ const isDev = require('electron-is-dev');
 let mainWindow;
 
 ipcMain.on('minimize', (evt) => {
-  mainWindow.setSize(100, 100);
+  mainWindow.setSize(300, 100);
   evt.reply('minimize-reply');
+});
 
-  //mainWindow.webContents.closeDevTools();
+ipcMain.on('maximize', (evt) => {
+  mainWindow.setSize(1430, 800);
+  evt.reply('maximize-reply');
 });
 
 function createLibrary() {

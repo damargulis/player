@@ -68,6 +68,7 @@ export class MaxWindow extends React.Component {
     return (
       <div id="max-window" >
         <Header
+          setTime={this.props.setTime}
           playing={this.props.playing}
           playPause={this.props.playPause}
           nextTrack={this.props.nextTrack}
@@ -77,6 +78,7 @@ export class MaxWindow extends React.Component {
           playlist={this.props.playlist}
           library={this.props.library}
           setVolume={this.props.setVolume}
+          time={this.props.time}
         />
         <div className="section">
           <div id="sidebar">

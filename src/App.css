@@ -1,7 +1,18 @@
 #header {
+  border: solid black 1px;
   height: 100px;
-  background-color: blue;
   display: flex;
+}
+
+#mini-window {
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #max-window {
@@ -21,30 +32,24 @@
 }
 
 #sidebar {
+  border: solid black 1px;
   display: flex;
   width: 100px;
   flex-direction: column;
-  background-color: red;
 }
 
 #playlist-picker {
   height: 150px;
-  background-color: yellow;
 }
 
 #genre-picker {
   height: 100%;
-  background-color: purple;
 }
 
 .main {
+  border: solid black 1px;
   flex: 3;
   height: 100%;
-  background-color: orange;
-}
-
-#control-panel {
-
 }
 
 .control-button {
@@ -54,3 +59,8 @@
 .songRow:focus {
   outline: none;
 }
+
+.track-label {
+  font-size: 14px;
+}
+

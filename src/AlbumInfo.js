@@ -1,7 +1,6 @@
 import React from 'react';
 
 const path = require('path');
-
 export default class AlbumInfo extends React.Component {
   constructor(props) {
     super(props);

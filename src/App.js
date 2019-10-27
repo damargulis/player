@@ -23,9 +23,13 @@ export default class App extends React.Component {
       library: new Library(),
       playlist: new EmptyPlaylist(),
       playing: false,
+      time: 0,
     };
     ipcRenderer.on('minimize-reply', () => {
       this.onMinimize_();
+    });
+    ipcRenderer.on('maximize-reply', () => {
+      this.onMaximize_();
     });
     createLibrary().then((library) => {
       const playlist = new RandomAlbumPlaylist(library);
@@ -37,10 +41,19 @@ export default class App extends React.Component {
 
     this.audio = new Audio();
     this.audio.volume = DEFAULT_VOLUME;
+    this.audio.addEventListener('timeupdate', () => {
+      this.setState({
+        time: this.audio.currentTime,
+      });
+    });
   }
 
   setVolume(volume) {
     this.audio.volume = volume;
+  }
+
+  setTime(time) {
+    this.audio.currentTime = time / 1000;
   }
 
   setSourceAndPlay() {
@@ -75,6 +88,11 @@ export default class App extends React.Component {
     if (track) {
       this.audio.src = new URL(track.filePath);
     }
+  }
+
+  onMaximize_() {
+    console.log('on maximize');
+    this.setState({ mini: false, });
   }
 
   onMinimize_() {
@@ -123,7 +141,7 @@ export default class App extends React.Component {
 
   render() {
     const mini = this.state.mini;
-    return mini ? <MiniWindow/> : <MaxWindow
+    return mini ? <MiniWindow
       playlist={this.state.playlist}
       library={this.state.library}
       nextTrack={this.nextTrack.bind(this)}
@@ -135,6 +153,20 @@ export default class App extends React.Component {
       playPause={this.playPause.bind(this)}
       playing={this.state.playing}
       setVolume={this.setVolume.bind(this)}
+      /> : <MaxWindow
+      playlist={this.state.playlist}
+      library={this.state.library}
+      nextTrack={this.nextTrack.bind(this)}
+      nextAlbum={this.nextAlbum.bind(this)}
+      prevTrack={this.prevTrack.bind(this)}
+      prevAlbum={this.prevAlbum.bind(this)}
+      playAlbum={this.playAlbum.bind(this)}
+      playSong={this.playSong.bind(this)}
+      playPause={this.playPause.bind(this)}
+      playing={this.state.playing}
+      setVolume={this.setVolume.bind(this)}
+      setTime={this.setTime.bind(this)}
+      time={this.state.time}
       />;
   }
 

@@ -6,7 +6,11 @@ const path = require('path');
 export default class InfoPanel extends React.Component {
 
   onImageClick_() {
-    ipcRenderer.send('minimize');
+    if (this.props.small) {
+      ipcRenderer.send('maximize');
+    } else {
+      ipcRenderer.send('minimize');
+    }
   }
 
   render() {
@@ -21,14 +25,19 @@ export default class InfoPanel extends React.Component {
     // meaning like if its playing a specific album, only show that album (and artwork)
     // if on song shuffle, then rotate between all.
     const albumNames = albums.map(album => album.name).join(', ');
+    const imgStyle = this.props.small ? {height: 50, width: 50, padding: 5} : {height: 70, width: 70, padding: 15};
     return (
         <div id="info-panel" style={{display: "flex"}}>
-          <img onClick={() => this.onImageClick_()} src={src} style={{height: 70, width: 70, padding: 15}} alt="album-art"/>
+          <img onClick={() => this.onImageClick_()}
+              src={src}
+              style={imgStyle}
+              alt="album-art"
+          />
           <div>
-            <div id="name">{track ? track.name : 'Track Name'}</div>
-            <div id="author">{artistNames ? artistNames : 'Artist Name'}</div>
-            <div id="album">{albumNames ? albumNames : 'Album Name'}</div>
-            <div id="year">{track ? track.year : 'Year'}</div>
+            <div className="track-label" id="name">{track ? track.name : 'Track Name'}</div>
+            <div className="track-label" id="author">{artistNames ? artistNames : 'Artist Name'}</div>
+            <div className="track-label" id="album">{albumNames ? albumNames : 'Album Name'}</div>
+            <div className="track-label" id="year">{track ? track.year : 'Year'}</div>
           </div>
         </div>
     )

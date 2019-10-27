@@ -2,16 +2,7 @@ import React from 'react';
 
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import 'react-virtualized/styles.css';
-
-function toTime(ms) {
-  const total_seconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(total_seconds / 60);
-  let seconds = total_seconds % 60;
-  if (seconds < 10) {
-    seconds = '0' + seconds;
-  }
-  return `${minutes}:${seconds}`;
-}
+import util from './utils';
 
 export default class SongPicker extends React.Component {
   constructor(props) {
@@ -66,7 +57,8 @@ export default class SongPicker extends React.Component {
       albums: this.props.library.getAlbumsByIds(song.albumIds).map(album => album.name).join(", "),
       genres: this.props.library.getGenresByIds(song.genreIds).join(", "),
       year: song.year,
-      duration: toTime(song.duration),
+      duration: util.toTime(song.duration),
+      playCount: song.playCount,
     }
   }
 
@@ -178,6 +170,11 @@ export default class SongPicker extends React.Component {
             label="Year"
             width={50}
             dataKey="year"
+          />
+          <Column
+            label="Plays"
+            width={80}
+            dataKey="playCount"
           />
             </Table>
         )
