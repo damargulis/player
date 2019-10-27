@@ -41,7 +41,7 @@ export default class Library {
   getTracks(genres) {
     if (genres && genres.length) {
       return this.tracks_.filter((song) => {
-        return song.genreIds.somg((genreId) => {
+        return song.genreIds.some((genreId) => {
           return genres.includes(genreId);
         });
       });
@@ -65,8 +65,16 @@ export default class Library {
     return this.albums_[Math.floor(Math.random() * this.albums_.length)];
   }
 
+  getRandomTrack() {
+    return this.tracks_[Math.floor(Math.random() * this.tracks_.length)];
+  }
+
   getGenres() {
     return this.genres_;
+  }
+
+  getGenresByIds(ids) {
+    return ids.map((id) => this.genres_[id]);
   }
 }
 

@@ -50,3 +50,7 @@
 .control-button {
   height: 100%;
 }
+
+.songRow:focus {
+  outline: none;
+}

@@ -9,6 +9,7 @@ import {createLibrary}  from './library/create_library';
 import Library from './library/Library';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
+import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 
 const {ipcRenderer} = require('electron');
 
@@ -101,8 +102,23 @@ export default class App extends React.Component {
   }
 
   playAlbum(album) {
-    this.state.playlist.addAlbum(album);
-    this.nextAlbum();
+    const playlist = new RandomAlbumPlaylist(this.state.library);
+    playlist.addAlbum(album);
+    this.setState({
+      playlist: playlist,
+    }, () => {
+      this.nextAlbum();
+    });
+  }
+
+  playSong(song) {
+    const playlist = new RandomSongPlaylist(this.state.library);
+    playlist.addSong(song);
+    this.setState({
+      playlist: playlist,
+    }, () => {
+      this.nextTrack();
+    });
   }
 
   render() {
@@ -115,6 +131,7 @@ export default class App extends React.Component {
       prevTrack={this.prevTrack.bind(this)}
       prevAlbum={this.prevAlbum.bind(this)}
       playAlbum={this.playAlbum.bind(this)}
+      playSong={this.playSong.bind(this)}
       playPause={this.playPause.bind(this)}
       playing={this.state.playing}
       setVolume={this.setVolume.bind(this)}

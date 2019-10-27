@@ -83,7 +83,7 @@ export default class AlbumPicker extends React.Component {
 
   render() {
     return (
-      <div className="main" ref={element => this.divRef = element}>
+      <div className="main" >
       <div id="sortPicker" style={{textAlign: "center"}}>
         <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
         <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist</button>
@@ -105,7 +105,7 @@ export default class AlbumPicker extends React.Component {
         <AutoSizer>
         {({height, width}) => {
           this.numCols = Math.floor(width / 150);
-          const rows = Math.ceil(numAlbums / this.numCols)
+          const rows = Math.ceil(numAlbums / this.numCols);
           if (this.numCols <= 0 || numAlbums <= 0) {
             return null;
           }
@@ -123,7 +123,5 @@ export default class AlbumPicker extends React.Component {
         </AutoSizer>
     );
   }
-
 }
-
 
