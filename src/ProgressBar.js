@@ -4,8 +4,6 @@ import util from './utils';
 
 export default class ProgressBar extends React.Component {
   onChange(evt) {
-    console.log('changed');
-    console.log(evt.target.value);
     this.props.setTime(evt.target.value);
   }
 

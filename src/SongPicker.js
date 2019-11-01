@@ -76,25 +76,20 @@ export default class SongPicker extends React.Component {
     return style;
   }
 
-  doShiftClick(index) {
-    console.log('do shift click');
-    console.log(index);
+  doShiftClick() {
   }
 
   doCmdClick(index) {
-    console.log('do cmd click');
     let selected = this.state.selected;
     if (selected.includes(index)) {
-      selected = selected.filter((i) => i !== index);
+      selected = selected.filter((ind) => ind !== index);
     } else {
       selected.push(index);
     }
-    console.log('setting state');
     this.setState({selected});
   }
 
-  onRowClick(evt, index, rowData) {
-    console.log('on row click');
+  onRowClick(evt, index) {
     if (evt.shiftKey) {
       this.doShiftClick(index);
     } else if (evt.metaKey || evt.ctrlKey) {
@@ -104,7 +99,7 @@ export default class SongPicker extends React.Component {
     }
   }
 
-  onRowDoubleClick(evt, index, rowData) {
+  onRowDoubleClick(evt, index) {
     if (!evt.shiftKey && !evt.ctrlKey && !evt.metaKey) {
       this.doDoubleClickSong(index);
     }
@@ -117,8 +112,6 @@ export default class SongPicker extends React.Component {
   }
 
   doDoubleClickSong(index) {
-    console.log('do double click');
-    console.log(index);
     const song = this.state.sortedSongs[index];
     this.props.playSong(song);
   }

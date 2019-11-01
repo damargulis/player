@@ -4,6 +4,7 @@ import Track from './Track';
 import Library from './Library';
 const fs = require('fs')
 const path = require('path');
+const shortid = require('shortid');
 // open to reload from itunes
 //const {execSync} = require('child_process');
 
@@ -49,22 +50,23 @@ function createGenresFromItunesData(tracks) {
   return [...genreSet];
 }
 
-function getAlbumArt(track, artId) {
+function getAlbumArt(track) {
   return new Promise((resolve) => {
     const filePath = decodeURI(track.filePath.slice(7)).replace('%23', '#');
     try {
       const readStream = fs.createReadStream(filePath);
       mm(readStream, (err, data) => {
+        const id = shortid.generate();
         if (err) {
           return;
         }
         if (data.picture[0] && data.picture[0].data) {
-          fs.writeFileSync(`./data/${artId}.png`, data.picture[0].data);
+          fs.writeFileSync(`./data/${id}.png`, data.picture[0].data);
         } else {
           resolve(null);
         }
         readStream.close();
-        resolve(`./data/${artId}.png`);
+        resolve(`./data/${id}.png`);
       });
     } catch (err) {
       resolve(null);
@@ -265,13 +267,11 @@ export function createLibrary() {
       });
 
       const promises = [];
-      let id = -1;
       albumMap.forEach((albumData) => {
-        id++;
         const track = trackMap.get(albumData.tracks[0]);
         const album = albums[albumData.id];
         // TODO: check multiple tracks for album art data?
-        promises.push(getAlbumArt(track, id).then((artFile) => {
+        promises.push(getAlbumArt(track).then((artFile) => {
           album.albumArtFile = artFile;
         }));
       });

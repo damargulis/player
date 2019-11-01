@@ -9,6 +9,7 @@ export default class Album {
     playCount = 0,
     skipCount = 0,
     albumArtFile = null,
+    wikiPage = null,
   }) {
 
     /** @type {string} */
@@ -32,8 +33,11 @@ export default class Album {
     /** @type {number} */
     this.skipCount = skipCount;
 
-    /** @type {string} */
+    /** @type {?string} */
     this.albumArtFile = albumArtFile;
+
+    /** @type {?string} */
+    this.wikiPage = wikiPage;
   }
 }
 

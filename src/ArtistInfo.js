@@ -54,7 +54,7 @@ export default class ArtistInfo extends React.Component {
       <div
         style={newStyle}
       >
-        <div style={{position:"absolute", left: "50%"}}>
+        <div style={{position: "absolute", left: "50%"}}>
           <img style={{paddingTop: "10px", position: "relative", left: "-50%"}} src={src} alt="artist art" width="100" height="100" />
           <div style={{position: "relative", left: "-50%", textAlign: 'center'}}>{this.props.artist.name}</div>
         </div>

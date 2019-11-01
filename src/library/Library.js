@@ -76,5 +76,16 @@ export default class Library {
   getGenresByIds(ids) {
     return ids.map((id) => this.genres_[id]);
   }
+
+  /** adds any genres if they don't already exist. returns array of ids */
+  getGenreIds(genres) {
+    return genres.map((genre) => {
+      if (this.genres_.indexOf(genre) >= 0) {
+        return this.genres_.indexOf(genre);
+      } else {
+        return this.genres_.push(genre) - 1;
+      }
+    });
+  }
 }
 

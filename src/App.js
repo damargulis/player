@@ -6,6 +6,7 @@ import {MaxWindow} from './MaxWindow';
 import {MiniWindow} from './MiniWindow';
 
 import {createLibrary}  from './library/create_library';
+import {runWikiExtension} from './extensions/wiki';
 import Library from './library/Library';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
@@ -31,6 +32,21 @@ export default class App extends React.Component {
     ipcRenderer.on('maximize-reply', () => {
       this.onMaximize_();
     });
+    ipcRenderer.on('run-extension', (type, arg) => {
+      console.log('run extension type: ');
+      console.log(arg);
+      switch (arg) {
+        case 'wikipedia':
+          runWikiExtension(this.state.library).then(() => {
+            console.log('done in app');
+          });
+          break;
+        default:
+          break;
+      }
+    });
+    ipcRenderer.send('extension-ready');
+
     createLibrary().then((library) => {
       const playlist = new RandomAlbumPlaylist(library);
       this.setState({
@@ -45,6 +61,11 @@ export default class App extends React.Component {
       this.setState({
         time: this.audio.currentTime,
       });
+    });
+    this.audio.addEventListener('ended', () => {
+      console.log('song ended!');
+      this.state.playlist.getCurrentTrack().playCount++;
+      this.nextTrack();
     });
   }
 
@@ -91,7 +112,6 @@ export default class App extends React.Component {
   }
 
   onMaximize_() {
-    console.log('on maximize');
     this.setState({ mini: false, });
   }
 

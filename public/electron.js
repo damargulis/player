@@ -1,7 +1,8 @@
 
 //const electron = require('electron');
 //console.log(electron);
-const {app, BrowserWindow, Menu, ipcMain} = require('electron');
+const {app, BrowserWindow, Menu, MenuItem, ipcMain, shell} = require('electron');
+const defaultMenu = require('electron-default-menu');
 
 const path = require('path');
 // shouldn't need package for this ... figure out better way
@@ -18,6 +19,15 @@ ipcMain.on('maximize', (evt) => {
   mainWindow.setSize(1430, 800);
   evt.reply('maximize-reply');
 });
+
+let extEvt;
+ipcMain.on('extension-ready', (evt) => {
+  extEvt = evt;
+});
+
+function runExtension(type) {
+  extEvt.reply('run-extension', type);
+}
 
 function createLibrary() {
   //const libraryFile = "~/Music/iTunes/iTunes\ Music\ Library.xml";
@@ -40,7 +50,19 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
   mainWindow.on('closed', () => mainWindow = null);
-
+  const menu = defaultMenu(app, shell);
+  menu.push(new MenuItem({
+    label: "Extensions",
+    submenu: [
+      {label: "Wikipedia", click: () => runExtension('wikipedia')}
+    ]
+  }));
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
+  //const menu = Menu.getApplicationMenu();
+  //menu.append(new MenuItem({
+  //  label: "Extensions",
+  //}));
+  //Menu.setApplicationMenu(menu);
   // how to set menu:
   //var menu = Menu.buildFromTemplate([
   //  {
