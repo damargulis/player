@@ -53,6 +53,7 @@ export default class ArtistInfo extends React.Component {
     return (
       <div
         style={newStyle}
+        onClick={() => this.props.goToArtist(this.props.artist)}
       >
         <div style={{position: "absolute", left: "50%"}}>
           <img style={{paddingTop: "10px", position: "relative", left: "-50%"}} src={src} alt="artist art" width="100" height="100" />

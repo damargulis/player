@@ -5,7 +5,7 @@ import './App.css';
 import {MaxWindow} from './MaxWindow';
 import {MiniWindow} from './MiniWindow';
 
-import {createLibrary}  from './library/create_library';
+import {loadLibrary, createLibraryFromItunes}  from './library/create_library';
 import {runWikiExtension} from './extensions/wiki';
 import Library from './library/Library';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
@@ -38,6 +38,8 @@ export default class App extends React.Component {
       switch (arg) {
         case 'wikipedia':
           runWikiExtension(this.state.library).then(() => {
+            this.state.library.save('data/library.json');
+            this.setState({library: this.state.library});
             console.log('done in app');
           });
           break;
@@ -47,13 +49,22 @@ export default class App extends React.Component {
     });
     ipcRenderer.send('extension-ready');
 
-    createLibrary().then((library) => {
+    loadLibrary('data/library.json').then((library) => {
       const playlist = new RandomAlbumPlaylist(library);
       this.setState({
         library: library,
-        playlist: playlist
+        playlist: playlist,
       });
-    })
+    }).catch((err) => {
+      createLibraryFromItunes().then((library) => {
+        const playlist = new RandomAlbumPlaylist(library);
+        library.save('data/library.json');
+        this.setState({
+          library: library,
+          playlist: playlist
+        });
+      });
+    });
 
     this.audio = new Audio();
     this.audio.volume = DEFAULT_VOLUME;

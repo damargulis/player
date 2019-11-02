@@ -1,5 +1,6 @@
 import React from 'react';
 import WrappedGrid from './WrappedGrid';
+import ArtistPage from './ArtistPage';
 
 import ArtistInfo from './ArtistInfo';
 
@@ -8,6 +9,7 @@ export default class ArtistPicker extends React.Component {
     super(props);
     this.state = {
       sortedArtists: this.sortArtists(this.props.artists),
+      selectedArtist: null,
     }
 
     this.numCols = 0;
@@ -31,10 +33,18 @@ export default class ArtistPicker extends React.Component {
     }
   }
 
+  goToArtist(artist) {
+    console.log('go to artist');
+    this.setState({
+      selectedArtist: artist
+    });
+  }
+
   cellRenderer(index, key, style) {
     const artists = this.state.sortedArtists;
     return (
       <ArtistInfo
+        goToArtist={(artist) => this.goToArtist(artist)}
         library={this.props.library}
         index={index}
         key={key}
@@ -44,9 +54,24 @@ export default class ArtistPicker extends React.Component {
     )
   }
 
+  goBack() {
+    this.setState({
+      selectedArtist: null,
+    });
+  }
+
   // reuse the grid from album view?
   // source pictures from wikipedia, rotate album covers as backup
   render() {
+    if (this.state.selectedArtist) {
+      return (
+        <ArtistPage
+          library={this.props.library}
+          artist={this.state.selectedArtist}
+          goBack={this.goBack.bind(this)}
+        />
+      )
+    }
     return (
       <div className="main">
         <WrappedGrid

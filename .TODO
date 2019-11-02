@@ -1,0 +1,1 @@
+introduce interface for media controls instead of passing random ones every where, pass entire library, playlist combo

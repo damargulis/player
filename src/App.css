@@ -56,8 +56,12 @@
   height: 100%;
 }
 
-.songRow:focus {
+*:focus {
   outline: none;
+}
+
+.songRow {
+  border-bottom: solid black 1px;
 }
 
 .track-label {

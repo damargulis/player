@@ -11,7 +11,9 @@ export default class SongPicker extends React.Component {
       sortMethod: null,
       reverse: false,
       sortedSongs: this.sortSongs(this.props.songs),
+      // TODO: change to a set
       selected: [],
+      lastSelected: null,
     }
 
   }
@@ -76,7 +78,20 @@ export default class SongPicker extends React.Component {
     return style;
   }
 
-  doShiftClick() {
+  doShiftClick(index) {
+    if (this.state.lastSelected == null) {
+      this.doClickSong(index);
+      return;
+    }
+    let selected = this.state.selected;
+    const min = Math.min(index, this.state.lastSelected);
+    const max = Math.max(index, this.state.lastSelected);
+    for (let i = min; i <= max; i++) {
+      if (!selected.includes(i)) {
+        selected.push(i);
+      }
+    }
+    this.setState({selected});
   }
 
   doCmdClick(index) {
@@ -108,6 +123,7 @@ export default class SongPicker extends React.Component {
   doClickSong(index) {
     this.setState({
       selected: [index],
+      lastSelected: index,
     });
   }
 
@@ -117,6 +133,7 @@ export default class SongPicker extends React.Component {
   }
 
   render() {
+    debugger;
     return (
       <div className="main">
         <AutoSizer>

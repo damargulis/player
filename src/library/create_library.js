@@ -6,7 +6,7 @@ const fs = require('fs')
 const path = require('path');
 const shortid = require('shortid');
 // open to reload from itunes
-//const {execSync} = require('child_process');
+const {execSync} = require('child_process');
 
 const mm = require('musicmetadata');
 
@@ -128,22 +128,31 @@ function createTracksFromItunesData(tracks) {
   return trackMap;
 }
 
-export function createLibrary() {
-  // reload itunes data -> json
-  //execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
-  //  stdio: 'inherit'
-  //});
-  return new Promise((resolve) => {
-    //const libraryFile = "file:///Users/damargulis/Music/iTunes/iTunes Music Library.xml";
-    //const parser = new itunes.parser();
-    //const stream = fs.createReadStream(new URL(libraryFile));
-    //const trackData = new Map();
+export function loadLibrary(libraryFile) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(libraryFile, (err, data) => {
+      if (err) {
+        return reject(err);
+      }
+      const libraryData = JSON.parse(data);
+      const tracks = libraryData.tracks_.map((trackData) => new Track(trackData));
+      const albums = libraryData.albums_.map((albumData) => new Album(albumData));
+      const artists = libraryData.artists_.map((artistData) => new Artist(artistData));
+      const genres = libraryData.genres_;
+      return resolve(new Library(tracks, albums, artists, genres));
+    });
+  })
+}
 
-    //parser.on("track", (track) => {
-    //  trackData.set(track["Persistent ID"], track);
-    //});
-    //parser.on('end', () => {
-      /** {!Array<string>} */
+export function createLibraryFromItunes() {
+  // reload itunes data -> json
+  // TODO: delete tracks.json?
+  // TODO: prompt user for itunes file if not one saved
+  // create data dir if not exist ?
+  execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
+    stdio: 'inherit'
+  });
+  return new Promise((resolve) => {
       const trackFile = './data/tracks.json';
       const trackFileData = fs.readFileSync(trackFile);
       const rawTrackData = JSON.parse(trackFileData);

@@ -26,10 +26,11 @@ export default class AlbumInfo extends React.Component {
   }
 
   doDoubleClickAlbum() {
-    this.props.playAlbum(this.props.album)
+    this.props.playAlbum(this.props.album);
   }
 
   doClickAlbum() {
+    this.props.goToAlbum(this.props.album);
   }
 
   render() {
@@ -44,6 +45,9 @@ export default class AlbumInfo extends React.Component {
       return (
         <div style={this.props.stlye} />
       )
+    }
+    if (this.props.album.errors.length > 0) {
+      newStyle.backgroundColor = 'red';
     }
     const file = this.props.album && this.props.album.albumArtFile;
     const src = file ? new URL('file://' + path.resolve(file)) : null;

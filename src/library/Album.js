@@ -10,6 +10,7 @@ export default class Album {
     skipCount = 0,
     albumArtFile = null,
     wikiPage = null,
+    errors = [],
   }) {
 
     /** @type {string} */
@@ -38,6 +39,9 @@ export default class Album {
 
     /** @type {?string} */
     this.wikiPage = wikiPage;
+
+    /** @type {!Array<string>} */
+    this.errors = errors;
   }
 }
 
