@@ -11,25 +11,22 @@ export default class ArtistPage extends React.Component {
         <div className="info">
           <img src={src} alt="artist art" width="100" height="100" />
           <div>{this.props.artist && this.props.artist.name}</div>
+          <button onClick={this.props.goBack}>Back</button>
         </div>
         </div>
-        <div className="artistPageBody" style={{flexDirection: "column", display: "flex"}}>
-          <div className="container">
-            <div style={{height: "250px"}}>
-              <AlbumPicker
-                albums={this.props.library.getAlbumsByArtist(this.props.artist)}
-                library={this.props.library}
-              />
-            </div>
+        <div className="artistPageBody" style={{height: "100%"}}>
+          <div className="container" style={{height: "50%"}}>
+            <AlbumPicker
+              albums={this.props.library.getAlbumsByArtist(this.props.artist)}
+              library={this.props.library}
+            />
           </div> 
-          <div className="container">
-            <div style={{height: "500px"}}>
-              <SongPicker
-            library={this.props.library}
-            songs={this.props.library.getArtistTracks(this.props.artist)}
-                
-              />
-            </div>
+          <div className="container" style={{height: "50%"}}>
+            <SongPicker
+          library={this.props.library}
+          songs={this.props.library.getArtistTracks(this.props.artist)}
+              
+            />
           </div> 
         </div>
       </div>

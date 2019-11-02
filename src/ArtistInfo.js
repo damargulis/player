@@ -16,8 +16,8 @@ export default class ArtistInfo extends React.Component {
     if (!this.props.artist) {
       return;
     }
-    setTimeout(() => {
-      const time = Math.random() * 1000 + 4000;
+    const time = 10000;
+    const timeoutId = setTimeout(() => {
       const id = setInterval(() => {
         this.setState({
           currentImg: (this.state.currentImg + 1) % this.props.artist.albumIds.length,
@@ -26,7 +26,10 @@ export default class ArtistInfo extends React.Component {
       this.setState({
         timerId: id,
       });
-    }, Math.random() * 5000);
+    }, Math.random() * time);
+    this.setState({
+      timerId: timeoutId
+    });
   }
 
   componentWillUnmount() {

@@ -5,7 +5,7 @@ const path = require('path');
 
 export default class AlbumPicker extends React.Component {
   getErrors() {
-    if (!this.props.album.errors) {
+    if (!this.props.album.errors.length) {
       return null;
     }
     return (
