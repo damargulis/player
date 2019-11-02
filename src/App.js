@@ -33,14 +33,11 @@ export default class App extends React.Component {
       this.onMaximize_();
     });
     ipcRenderer.on('run-extension', (type, arg) => {
-      console.log('run extension type: ');
-      console.log(arg);
       switch (arg) {
         case 'wikipedia':
           runWikiExtension(this.state.library).then(() => {
             this.state.library.save('data/library.json');
             this.setState({library: this.state.library});
-            console.log('done in app');
           });
           break;
         default:
@@ -55,7 +52,7 @@ export default class App extends React.Component {
         library: library,
         playlist: playlist,
       });
-    }).catch((err) => {
+    }).catch(() => {
       createLibraryFromItunes().then((library) => {
         const playlist = new RandomAlbumPlaylist(library);
         library.save('data/library.json');
@@ -74,7 +71,6 @@ export default class App extends React.Component {
       });
     });
     this.audio.addEventListener('ended', () => {
-      console.log('song ended!');
       this.state.playlist.getCurrentTrack().playCount++;
       this.nextTrack();
     });

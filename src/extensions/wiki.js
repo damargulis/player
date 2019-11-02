@@ -6,7 +6,7 @@ const shortid = require('shortid');
 
 const BASE_URL = "https://en.wikipedia.org/api/rest_v1/page/html/";
 
-/** Remove any text between parenthesis and turn any extra whitespace into a regular space */
+/* Remove any text between parenthesis and turn any extra whitespace into a regular space */
 function sanitize(string) {
   return string.replace(/\s*\[.*?\]\s*/g, "").replace(/\s+/g, " ");
 }
@@ -14,8 +14,8 @@ function sanitize(string) {
 function getLeafNodes(rootNode) {
   if (rootNode.childNodes.length > 0) {
     const children = [];
-    for (let i = 0; i < rootNode.childNodes.length; i++) {
-      children.push(...getLeafNodes(rootNode.childNodes[i]));
+    for (let ind = 0; ind < rootNode.childNodes.length; ind++) {
+      children.push(...getLeafNodes(rootNode.childNodes[ind]));
     }
     return children;
   }
@@ -49,8 +49,8 @@ function capitalize(word) {
 }
 
 function formatGenre(genre) {
-  genre = genre.trim().split(' ').map((word) => capitalize(word)).join(' ');
-  return genre.split('-').map((word) => capitalize(word)).join('-');
+  const genreString = genre.trim().split(' ').map((word) => capitalize(word)).join(' ');
+  return genreString.split('-').map((word) => capitalize(word)).join('-');
 }
 
 function getAllWikiOptions(album, artist) {
@@ -83,26 +83,25 @@ function isRightLink(link, album, artist) {
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
     return infoBox && infoBox.textContent.toLowerCase().includes("by " + artist.name.toLowerCase());
-  }).catch((err) => {
+  }).catch(() => {
     return false;
   });
 }
 
-async function searchForWikiPage(album, library) {
+function searchForWikiPage(album, library) {
   const artist = library.getArtistsByIds(album.artistIds)[0];
   const options = getAllWikiOptions(album, artist);
-  const correct = findAsync(options, async (option) => {
-    return await isRightLink(option, album, artist);
+  const correct = findAsync(options, (option) => {
+    return isRightLink(option, album, artist);
   });
   return correct;
 }
 
-async function modifyAlbum(album, library) {
+function modifyAlbum(album, library) {
   if (!album.wikiPage) {
-    album.wikiPage = await searchForWikiPage(album, library);
+    album.wikiPage = searchForWikiPage(album, library);
   }
   if (album.wikiPage) {
-    //console.log("Modifying: " + album.name);
     return rp(album.wikiPage).then((htmlString) => {
       try {
         const parser = new DOMParser();
@@ -117,8 +116,7 @@ async function modifyAlbum(album, library) {
             const data = row.getElementsByTagName('td')[0];
             switch (name) {
               case 'Genre':
-                const genres = getGenres(data);
-                album.genreIds = library.getGenreIds(genres);
+                album.genreIds = library.getGenreIds(getGenres(data));
                 break;
               case 'Released':
                 album.year = getYear(data);
@@ -127,8 +125,8 @@ async function modifyAlbum(album, library) {
                 break;
             }
           } catch (err) {
-            console.log("GOT ERR:");
-            console.log(err);
+            // handled
+
           }
         }
 
@@ -144,40 +142,30 @@ async function modifyAlbum(album, library) {
             const id = shortid.generate()
             album.albumArtFile = './data/' + id + '.png';
           }
-          fs.writeFile(album.albumArtFile, data, 'binary', (err) => err ? console.log(err) : "");
+          fs.writeFile(album.albumArtFile, data, 'binary');
         });
-
       } catch (err) {
         // TODO: add error to album on each error -- make each error different / possible all at once
-        console.log(err);
+        return err;
       }
-    }).catch((err) => {
+    }).catch(() => {
         // TODO: add error to album for no wiki page
     });
-  } else {
-    console.log("Failed to find wiki page for: " + album.name);
-    return Promise.resolve();
   }
+  return Promise.resolve();
 }
 
 export function runWikiExtension(library) {
-  console.log('running wiki');
-  console.log(library);
-
   const albums = library.getAlbums()
   let index = 0;
-  var producer = () => {
+  // set up debug mode -- 1 when in debug, then either const or some func based on comp/network
+  const pool = new PromisePool(() => {
     const album = albums[index];
     index++;
     if (!album) {
       return null
-    } else {
-      return modifyAlbum(album, library);
     }
-  };
-  // set up debug mode -- 1 when in debug, then either const or some func based on comp/network
-  const pool = new PromisePool(producer, /* numConcurrent= */ 1);
-  return pool.start().then(() => {
-    console.log('done');
-  });
+    return modifyAlbum(album, library);
+  }, /* numConcurrent= */ 1);
+  return pool.start();
 }

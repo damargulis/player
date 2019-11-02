@@ -51,7 +51,6 @@ export default class AlbumPicker extends React.Component {
     this.setState({
       selectedAlbum: album
     });
-    console.log(album);
   }
 
   cellRenderer(index, key, style) {
@@ -92,17 +91,13 @@ export default class AlbumPicker extends React.Component {
   }
 
   goBack() {
-    console.log('selected album null');
     this.setState({
       selectedAlbum: null,
     });
   }
 
   render() {
-    console.log('render album picker');
-    console.log(this.state);
     if (this.state.selectedAlbum) {
-      console.log('return album page');
       return (
         <AlbumPage
           library={this.props.library}

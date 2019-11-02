@@ -34,7 +34,6 @@ export default class ArtistPicker extends React.Component {
   }
 
   goToArtist(artist) {
-    console.log('go to artist');
     this.setState({
       selectedArtist: artist
     });

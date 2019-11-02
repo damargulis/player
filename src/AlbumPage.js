@@ -40,7 +40,7 @@ export default class AlbumPicker extends React.Component {
     // todo: set playSong to play an album playlist of by artist ?
     return (
       <div className="main">
-        <div className="albumPageHeader" style={{display:"flex"}}>
+        <div className="albumPageHeader" style={{display: "flex"}}>
         <div className="info">
           <img src={src} alt="album art" width="100" height="100" />
           <div>{this.props.album && this.props.album.name}</div>

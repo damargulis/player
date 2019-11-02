@@ -7,7 +7,7 @@ export default class ArtistPage extends React.Component {
     const src = "";
     return (
       <div className="main">
-        <div className="artistPageHeader" style={{display:"flex"}}>
+        <div className="artistPageHeader" style={{display: "flex"}}>
         <div className="info">
           <img src={src} alt="artist art" width="100" height="100" />
           <div>{this.props.artist && this.props.artist.name}</div>

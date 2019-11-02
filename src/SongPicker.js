@@ -86,9 +86,9 @@ export default class SongPicker extends React.Component {
     let selected = this.state.selected;
     const min = Math.min(index, this.state.lastSelected);
     const max = Math.max(index, this.state.lastSelected);
-    for (let i = min; i <= max; i++) {
-      if (!selected.includes(i)) {
-        selected.push(i);
+    for (let ind = min; ind <= max; ind++) {
+      if (!selected.includes(ind)) {
+        selected.push(ind);
       }
     }
     this.setState({selected});
@@ -133,7 +133,6 @@ export default class SongPicker extends React.Component {
   }
 
   render() {
-    debugger;
     return (
       <div className="main">
         <AutoSizer>
