@@ -1,6 +1,7 @@
 import React from 'react';
 import util from './utils';
 import {AutoSizer, Column, Table} from 'react-virtualized';
+import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 
 import 'react-virtualized/styles.css';
 
@@ -132,7 +133,9 @@ export default class SongPicker extends React.Component {
 
   doDoubleClickSong(index) {
     const song = this.state.sortedSongs[index];
-    this.props.playSong(song);
+    const playlist = new RandomSongPlaylist(this.state.sortedSongs);
+    playlist.addSong(song);
+    this.props.setPlaylistAndPlay(playlist);
   }
 
   render() {

@@ -13,6 +13,36 @@ export default class InfoPanel extends React.Component {
     }
   }
 
+  getArtistLinks() {
+    const {track, library} = this.props;
+    const artists = track && library
+      ? library.getArtistsByIds(track.artistIds) : [];
+    return artists.map((artist, index) => {
+      return (
+        <div key={index}>
+          <a onClick={() => this.props.goToArtist(artist)}>
+            {artist.name}
+          </a>
+        </div>
+      )
+    });
+  }
+
+  getAlbumLinks() {
+    const {track, library} = this.props;
+    const albums = track && library
+      ? library.getAlbumsByIds(track.albumIds) : [];
+    return albums.map((album, index) => {
+      return (
+        <div key={index}>
+          <a onClick={() => this.props.goToAlbum(album)}>
+            {album.name}
+          </a>
+        </div>
+      )
+    });
+  }
+
   render() {
     const {track, library} = this.props;
     const albums = track && library
@@ -21,9 +51,6 @@ export default class InfoPanel extends React.Component {
     const imageSrc = album && album.albumArtFile 
       ? new URL('file://' + path.resolve(album.albumArtFile)) : null;
     const src = imageSrc;
-    const artists = track && library
-      ? library.getArtistsByIds(track.artistIds) : [];
-    const artistNames = artists.map(artist => artist.name).join(', ');
     // TODO: make rotate instead -- conditionally on playlist type??
     // meaning like if its playing a specific album, only show that album
     // (and artwork)
@@ -43,10 +70,14 @@ export default class InfoPanel extends React.Component {
               {track ? track.name : 'Track Name'}
             </div>
             <div className="track-label" id="author">
-              {artistNames ? artistNames : 'Artist Name'}
+      {
+        this.getArtistLinks()
+      }
             </div>
             <div className="track-label" id="album">
-              {albumNames ? albumNames : 'Album Name'}
+      {
+        this.getAlbumLinks()
+      }
             </div>
             <div className="track-label" id="year">
               {track ? track.year : 'Year'}

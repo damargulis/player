@@ -164,6 +164,10 @@ export default class App extends React.Component {
     });
   }
 
+  setPlaylistAndPlay(playlist) {
+    this.setState({playlist}, () => this.nextTrack());
+  }
+
   render() {
     const mini = this.state.mini;
     return mini ? <MiniWindow
@@ -179,6 +183,7 @@ export default class App extends React.Component {
       playing={this.state.playing}
       setVolume={this.setVolume.bind(this)}
       /> : <MaxWindow
+      setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
       playlist={this.state.playlist}
       library={this.state.library}
       nextTrack={this.nextTrack.bind(this)}

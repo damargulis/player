@@ -109,6 +109,7 @@ export default class MaxWindow extends React.Component {
         return (
           <SongPicker
             playSong={this.props.playSong}
+            setPlaylistAndPlay={this.props.setPlaylistAndPlay}
             library={this.props.library}
             songs={this.props.library.getTracks(this.state.genres)}
           />
@@ -140,6 +141,8 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           setVolume={this.props.setVolume}
           time={this.props.time}
+          goToArtist={this.goToArtist.bind(this)}
+          goToAlbum={this.goToAlbum.bind(this)}
         />
         <div className="section">
           <div id="sidebar">

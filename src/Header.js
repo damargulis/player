@@ -18,6 +18,8 @@ export default class Header extends React.Component {
             setVolume={this.props.setVolume}
           />
           <InfoPanel
+              goToArtist={this.props.goToArtist}
+              goToAlbum={this.props.goToAlbum}
               library={this.props.library}
               track={this.props.playlist.getCurrentTrack()}
           />

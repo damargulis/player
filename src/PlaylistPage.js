@@ -15,6 +15,7 @@ export default class PlaylistPage extends React.Component {
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>
           <SongPicker
+        playSong={this.props.playSong}
         library={this.props.library}
         songs={this.props.library.getArtistTracks(this.props.playlist)}
           />

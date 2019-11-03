@@ -68,3 +68,8 @@
   font-size: 14px;
 }
 
+a:hover{
+  text-decoration: underline;
+  color: blue;
+  cursor: pointer;
+}

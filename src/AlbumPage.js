@@ -38,9 +38,9 @@ export default class AlbumPicker extends React.Component {
     return artists.map((artist, index) => {
       return (
         <div key={index}>
-          <button onClick={() => this.props.goToArtist(artist)}>
+          <a onClick={() => this.props.goToArtist(artist)}>
             {artist.name}
-          </button>
+          </a>
         </div>
       )
     });

@@ -1,6 +1,6 @@
 export default class RandomSongPlaylist {
-  constructor(library) {
-    this.library_ = library;
+  constructor(tracks) {
+    this.tracks_ = tracks;
 
     this.playlist_ = [];
 
@@ -12,9 +12,10 @@ export default class RandomSongPlaylist {
   }
 
   nextTrack() {
+    // todo: switch to play through and reshuffle on repeat only
     this.currentTrack_++;
     if (this.playlist_.length <= this.currentTrack_) {
-      this.playlist_.push(this.library_.getRandomTrack());
+      this.playlist_.push(this.tracks_[Math.floor(Math.random() * this.tracks_.length)]);
     }
     return this.getCurrentTrack();
   }

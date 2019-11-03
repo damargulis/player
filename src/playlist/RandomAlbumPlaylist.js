@@ -1,6 +1,6 @@
 
 export default class RandomAlbumPlaylist {
-  constructor(library) {
+  constructor(library, albums = []) {
     this.library_ = library;
 
     this.playlist_ = [];
@@ -8,6 +8,8 @@ export default class RandomAlbumPlaylist {
     this.currentAlbum_ = -1;
 
     this.currentTrack_ = -1;
+
+    this.albums_ = albums;
   }
 
   getCurrentAlbum() {
@@ -26,7 +28,12 @@ export default class RandomAlbumPlaylist {
     this.currentAlbum_++;
     this.currentTrack_ = 0;
     if (this.playlist_.length <= this.currentAlbum_) {
-      this.playlist_.push(this.library_.getRandomAlbum());
+      if (this.albums) {
+        this.playlist_.push(this.albums_[
+          Math.floor(Math.random() * this.albums_.length)]);
+      } else {
+        this.playlist_.push(this.library_.getRandomAlbum());
+      }
     }
     return this.getCurrentTrack();
   }
