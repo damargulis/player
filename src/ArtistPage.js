@@ -19,6 +19,7 @@ export default class ArtistPage extends React.Component {
             <AlbumPicker
               albums={this.props.library.getAlbumsByArtist(this.props.artist)}
               library={this.props.library}
+              goToAlbum={this.props.goToAlbum}
             />
           </div> 
           <div className="container" style={{height: "50%"}}>

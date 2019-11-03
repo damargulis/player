@@ -3,13 +3,11 @@ import React from 'react';
 import './App.css';
 import AlbumInfo from './AlbumInfo';
 import WrappedGrid from './WrappedGrid';
-import AlbumPage from './AlbumPage';
 
 export default class AlbumPicker extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedAlbum: null,
       sortMethod: null,
       reverse: false,
       sortedAlbums: this.sortAlbums(this.props.albums),
@@ -47,10 +45,7 @@ export default class AlbumPicker extends React.Component {
   }
 
   goToAlbum(album) {
-    
-    this.setState({
-      selectedAlbum: album
-    });
+    this.props.goToAlbum(album);
   }
 
   cellRenderer(index, key, style) {
@@ -90,22 +85,7 @@ export default class AlbumPicker extends React.Component {
     }
   }
 
-  goBack() {
-    this.setState({
-      selectedAlbum: null,
-    });
-  }
-
   render() {
-    if (this.state.selectedAlbum) {
-      return (
-        <AlbumPage
-          library={this.props.library}
-          album={this.state.selectedAlbum}
-          goBack={this.goBack.bind(this)}
-        />
-      )
-    }
     return (
       <div className="main" >
       <div id="sortPicker" style={{textAlign: "center"}}>

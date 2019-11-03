@@ -1,11 +1,14 @@
 import React from 'react';
+import ArtistPage from './ArtistPage';
 import Header from './Header.js';
 import PlaylistTypePicker from './PlaylistTypePicker.js';
 import AlbumPicker from './AlbumPicker.js';
+import AlbumPage from './AlbumPage';
 import GenrePicker from './GenrePicker.js';
 import ArtistPicker from './ArtistPicker.js';
 import SongPicker  from './SongPicker.js';
 import PlaylistPicker from './PlaylistPicker.js';
+import PlaylistPage from './PlaylistPage.js';
 
 export class MaxWindow extends React.Component {
   constructor(props) {
@@ -14,6 +17,7 @@ export class MaxWindow extends React.Component {
     this.state = {
       genres: [],
       playlistType: 'album',
+      scenes: [],
     }
   }
 
@@ -26,10 +30,59 @@ export class MaxWindow extends React.Component {
   setType(type) {
     this.setState({
       playlistType: type,
+      scenes: [],
     });
   }
 
+  goBack() {
+    const scenes = this.state.scenes;
+    scenes.pop();
+    this.setState({
+      scenes,
+    });
+  }
+
+  goToAlbum(album) {
+    const scenes = this.state.scenes;
+    scenes.push(
+      <AlbumPage
+        library={this.props.library}
+        album={album}
+        goBack={this.goBack.bind(this)
+        }/>
+    );
+    this.setState({scenes});
+  }
+
+  goToArtist(artist) {
+    const scenes = this.state.scenes;
+    scenes.push(
+        <ArtistPage
+          library={this.props.library}
+          artist={artist}
+          goBack={this.goBack.bind(this)}
+          goToAlbum={this.goToAlbum.bind(this)}
+        />
+    );
+    this.setState({scenes});
+  }
+
+  goToPlaylist(playlist) {
+    const scenes = this.state.scenes;
+    scenes.push(
+      <PlaylistPage
+        library={this.props.library}
+        playlist={playlist}
+        goBack={this.goBack.bind(this)}
+      />
+    );
+    this.setState({scenes});
+  }
+
   getPicker() {
+    if (this.state.scenes.length) {
+      return this.state.scenes[this.state.scenes.length - 1]
+    }
     switch (this.state.playlistType) {
       case 'album':
         return (
@@ -37,6 +90,7 @@ export class MaxWindow extends React.Component {
             playAlbum={this.props.playAlbum}
             albums={this.props.library.getAlbums(this.state.genres)}
             library={this.props.library}
+            goToAlbum={this.goToAlbum.bind(this)}
           />
         )
       case 'artist':
@@ -45,6 +99,7 @@ export class MaxWindow extends React.Component {
             playAlbum={this.props.playAlbum}
             artists={this.props.library.getArtists(this.state.genres)}
             library={this.props.library}
+            goToArtist={this.goToArtist.bind(this)}
           />
         )
       case 'song':
@@ -57,7 +112,10 @@ export class MaxWindow extends React.Component {
         )
       case 'playlist':
         return (
-          <PlaylistPicker library={this.props.library} />
+          <PlaylistPicker
+            library={this.props.library}
+            goToPlaylist={this.goToPlaylist.bind(this)}
+          />
         )
       default:
         return null;
