@@ -20,10 +20,12 @@ export default class ArtistPage extends React.Component {
               albums={this.props.library.getAlbumsByArtist(this.props.artist)}
               library={this.props.library}
               goToAlbum={this.props.goToAlbum}
+              playAlbum={this.props.playAlbum}
             />
           </div> 
           <div className="container" style={{height: "50%"}}>
             <SongPicker
+          playSong={this.props.playSong}
           library={this.props.library}
           songs={this.props.library.getArtistTracks(this.props.artist)}
               

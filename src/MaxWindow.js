@@ -63,6 +63,8 @@ export default class MaxWindow extends React.Component {
           artist={artist}
           goBack={this.goBack.bind(this)}
           goToAlbum={this.goToAlbum.bind(this)}
+          playAlbum={this.props.playAlbum}
+          playSong={this.props.playSong}
         />
     );
     this.setState({scenes});

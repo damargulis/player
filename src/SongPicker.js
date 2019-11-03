@@ -107,10 +107,10 @@ export default class SongPicker extends React.Component {
     this.setState({selected});
   }
 
-  onRowClick({evt, index}) {
-    if (evt.shiftKey) {
+  onRowClick({event, index}) {
+    if (event.shiftKey) {
       this.doShiftClick(index);
-    } else if (evt.metaKey || evt.ctrlKey) {
+    } else if (event.metaKey || event.ctrlKey) {
       this.doCmdClick(index);
     } else {
       this.doClickSong(index);
