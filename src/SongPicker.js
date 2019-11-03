@@ -117,8 +117,8 @@ export default class SongPicker extends React.Component {
     }
   }
 
-  onRowDoubleClick({evt, index}) {
-    if (!evt.shiftKey && !evt.ctrlKey && !evt.metaKey) {
+  onRowDoubleClick({event, index}) {
+    if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
       this.doDoubleClickSong(index);
     }
   }
