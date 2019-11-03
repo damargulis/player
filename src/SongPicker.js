@@ -20,7 +20,8 @@ export default class SongPicker extends React.Component {
 
   componentDidUpdate() {
     const sortedSongs = this.sortSongs(this.props.songs);
-    if (sortedSongs.length !== this.state.sortedSongs.length || sortedSongs.some((song, index) => {
+    if (sortedSongs.length !== this.state.sortedSongs.length ||
+      sortedSongs.some((song, index) => {
       return this.state.sortedSongs[index] !== song;
     })) {
       const selectedNow = this.state.selected.map((index) => {
@@ -55,8 +56,10 @@ export default class SongPicker extends React.Component {
     // TODO: make album (maybe artist?) rotate
     return {
       name: song.name,
-      artists: this.props.library.getArtistsByIds(song.artistIds).map(artist => artist.name).join(', '),
-      albums: this.props.library.getAlbumsByIds(song.albumIds).map(album => album.name).join(", "),
+      artists: this.props.library.getArtistsByIds(song.artistIds)
+        .map(artist => artist.name).join(', '),
+      albums: this.props.library.getAlbumsByIds(song.albumIds)
+        .map(album => album.name).join(", "),
       genres: this.props.library.getGenresByIds(song.genreIds).join(", "),
       year: song.year,
       duration: util.toTime(song.duration),
@@ -64,7 +67,7 @@ export default class SongPicker extends React.Component {
     }
   }
 
-  getRowStyle(index) {
+  getRowStyle({index}) {
     const style = {};
     style.borderTop = 'solid black 1px';
     style.backgroundColor = index % 2 === 0 ? 'white' : 'lightgray';
@@ -104,7 +107,7 @@ export default class SongPicker extends React.Component {
     this.setState({selected});
   }
 
-  onRowClick(evt, index) {
+  onRowClick({evt, index}) {
     if (evt.shiftKey) {
       this.doShiftClick(index);
     } else if (evt.metaKey || evt.ctrlKey) {
@@ -114,7 +117,7 @@ export default class SongPicker extends React.Component {
     }
   }
 
-  onRowDoubleClick(evt, index) {
+  onRowDoubleClick({evt, index}) {
     if (!evt.shiftKey && !evt.ctrlKey && !evt.metaKey) {
       this.doDoubleClickSong(index);
     }
@@ -145,9 +148,9 @@ export default class SongPicker extends React.Component {
               rowGetter={({index}) => this.getSongData(index)}
               rowHeight={20}
               width={width}
-              rowStyle={({index}) => this.getRowStyle(index)}
-              onRowClick={({event, index, rowData}) => this.onRowClick(event, index, rowData)}
-              onRowDoubleClick={({event, index, rowData}) => this.onRowDoubleClick(event, index, rowData)}
+              rowStyle={this.getRowStyle.bind(this)}
+              onRowClick={this.onRowClick.bind(this)}
+              onRowDoubleClick={this.onRowDoubleClick.bind(this)}
               rowClassName="songRow"
             >
           <Column

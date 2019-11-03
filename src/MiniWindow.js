@@ -7,7 +7,11 @@ export default class MiniWindow extends React.Component {
   render() {
     return (
       <div id="mini-window">
-        <InfoPanel small={true} library={this.props.library} track={this.props.playlist.getCurrentTrack()}/>
+        <InfoPanel
+          small={true}
+          library={this.props.library}
+          track={this.props.playlist.getCurrentTrack()}
+        />
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel
               playing={this.props.playing}

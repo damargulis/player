@@ -29,14 +29,32 @@ export default class AlbumPicker extends React.Component {
     );
   }
 
+  getArtistLinks() {
+    if (!this.props.album) {
+      return null;
+    }
+    const artists = this.props.library.getArtistsByIds(
+      this.props.album.artistIds);
+    return artists.map((artist, index) => {
+      return (
+        <div key={index}>
+          <button onClick={() => this.props.goToArtist(artist)}>
+            {artist.name}
+          </button>
+        </div>
+      )
+    });
+  }
+
   render() {
     // todo use albumInfo or combine logic
     // ya know actually separate conscers and shit
     const file = this.props.album && this.props.album.albumArtFile;
     const src = file ? new URL('file://' + path.resolve(file)) : null;
-    const artist = this.props.library.getArtistsByIds(this.props.album.artistIds).map((artist) => {
-      return artist.name;
-    }).join(", ");
+    //const artist = this.props.library.getArtistsByIds(
+    //  this.props.album.artistIds).map((artist) => {
+    //  return artist.name;
+    //}).join(", ");
     // todo: set playSong to play an album playlist of by artist ?
     return (
       <div className="main">
@@ -44,7 +62,7 @@ export default class AlbumPicker extends React.Component {
         <div className="info">
           <img src={src} alt="album art" width="100" height="100" />
           <div>{this.props.album && this.props.album.name}</div>
-          <div>{artist}</div>
+          {this.getArtistLinks()}
           <button onClick={this.props.goBack}>Back</button>
         </div>
       {

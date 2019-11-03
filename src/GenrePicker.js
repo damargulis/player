@@ -25,7 +25,9 @@ export default class GenrePicker extends React.Component {
   render() {
     return (
         <div id="genre-picker">
-          <select onChange={this.onChange.bind(this)} multiple size={10} style={{height: '100%', width: '100%'}}>
+          <select onChange={this.onChange.bind(this)} multiple size={10}
+            style={{height: '100%', width: '100%'}}
+          >
       {
         this.getOptions()
       }

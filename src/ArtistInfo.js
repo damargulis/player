@@ -20,7 +20,8 @@ export default class ArtistInfo extends React.Component {
     const timeoutId = setTimeout(() => {
       const id = setInterval(() => {
         this.setState({
-          currentImg: (this.state.currentImg + 1) % this.props.artist.albumIds.length,
+          currentImg:
+            (this.state.currentImg + 1) % this.props.artist.albumIds.length,
         })
       }, time);
       this.setState({
@@ -49,7 +50,8 @@ export default class ArtistInfo extends React.Component {
       paddingRight: (this.props.style.width - 150) / 2,
       width: 150
     };
-    const albums = this.props.library.getAlbumsByIds(this.props.artist.albumIds);
+    const albums = this.props.library.getAlbumsByIds(
+      this.props.artist.albumIds);
     const album = albums[this.state.currentImg];
     const file = album && album.albumArtFile;
     const src = file ? new URL('file://' + path.resolve(file)) : null;
@@ -59,8 +61,14 @@ export default class ArtistInfo extends React.Component {
         onClick={() => this.props.goToArtist(this.props.artist)}
       >
         <div style={{position: "absolute", left: "50%"}}>
-          <img style={{paddingTop: "10px", position: "relative", left: "-50%"}} src={src} alt="artist art" width="100" height="100" />
-          <div style={{position: "relative", left: "-50%", textAlign: 'center'}}>{this.props.artist.name}</div>
+          <img
+            style={{paddingTop: "10px", position: "relative", left: "-50%"}}
+            src={src} alt="artist art" width="100" height="100"
+          />
+          <div
+            style={{position: "relative", left: "-50%", textAlign: 'center'}}>
+            {this.props.artist.name}
+          </div>
         </div>
       </div>
     )

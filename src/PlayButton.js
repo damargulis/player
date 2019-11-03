@@ -7,7 +7,9 @@ export default class PlayButton extends React.Component {
 
   render() {
     return (
-          <button onClick={this.onClick.bind(this)} className="control-button">{this.props.playing ? 'Pause' : 'Play'} </button>
+        <button onClick={this.onClick.bind(this)} className="control-button">
+          {this.props.playing ? 'Pause' : 'Play'}
+        </button>
     )
   }
 }

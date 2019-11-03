@@ -35,7 +35,8 @@ export default class AlbumPicker extends React.Component {
   
   componentDidUpdate() {
     const sortedAlbums = this.sortAlbums(this.props.albums);
-    if (sortedAlbums.length !== this.state.sortedAlbums.length || sortedAlbums.some((album, index) => {
+    if (sortedAlbums.length !== this.state.sortedAlbums.length ||
+      sortedAlbums.some((album, index) => {
       return this.state.sortedAlbums[index] !== album;
     })) {
       this.setState({
@@ -68,8 +69,10 @@ export default class AlbumPicker extends React.Component {
   }
 
   sortByArtist(album1, album2) {
-    const artist1 = this.props.library.getArtistsByIds(album1.artistIds).map(artist => artist.name).join(",");
-    const artist2 = this.props.library.getArtistsByIds(album2.artistIds).map(artist => artist.name).join(",");
+    const artist1 = this.props.library.getArtistsByIds(album1.artistIds)
+      .map(artist => artist.name).join(",");
+    const artist2 = this.props.library.getArtistsByIds(album2.artistIds)
+      .map(artist => artist.name).join(",");
     return artist1.localeCompare(artist2);
   }
 
@@ -90,7 +93,8 @@ export default class AlbumPicker extends React.Component {
       <div className="main" >
       <div id="sortPicker" style={{textAlign: "center"}}>
         <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
-        <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist</button>
+        <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
+        </button>
         <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
       </div>
       <WrappedGrid

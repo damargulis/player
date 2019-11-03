@@ -23,7 +23,8 @@ export default class PlaylistPicker extends React.Component {
       width: 150
     };
     return (
-      <div onClick={() => this.props.goToPlaylist(playlist)} key={key} style={newStyle} >
+      <div onClick={() => this.props.goToPlaylist(playlist)}
+        key={key} style={newStyle} >
         {playlist.name}
       </div>
     );

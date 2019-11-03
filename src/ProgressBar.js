@@ -12,7 +12,13 @@ export default class ProgressBar extends React.Component {
     return (
       <div>
         <span>{util.toTime(this.props.time * 1000)}</span>
-        <input onChange={this.onChange.bind(this)} type="range" value={this.props.time * 1000} min={0} max={totalDuration} />
+        <input
+          onChange={this.onChange.bind(this)}
+          type="range"
+          value={this.props.time * 1000}
+          min={0}
+          max={totalDuration}
+        />
         <span>{util.toTime(totalDuration)}</span>
       </div>
     )

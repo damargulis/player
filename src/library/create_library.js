@@ -137,11 +137,15 @@ export function loadLibrary(libraryFile) {
         return reject(err);
       }
       const libraryData = JSON.parse(data);
-      const tracks = libraryData.tracks_.map((trackData) => new Track(trackData));
-      const albums = libraryData.albums_.map((albumData) => new Album(albumData));
-      const artists = libraryData.artists_.map((artistData) => new Artist(artistData));
+      const tracks = libraryData.tracks_.map(
+        (trackData) => new Track(trackData));
+      const albums = libraryData.albums_.map(
+        (albumData) => new Album(albumData));
+      const artists = libraryData.artists_.map(
+        (artistData) => new Artist(artistData));
       const genres = libraryData.genres_;
-      const playlists = libraryData.playlists_.map((playlistData) => new Playlist(playlistData));
+      const playlists = libraryData.playlists_.map(
+        (playlistData) => new Playlist(playlistData));
       return resolve(new Library(tracks, albums, artists, genres, playlists));
     });
   })
@@ -152,11 +156,14 @@ export function createLibraryFromItunes() {
   // TODO: delete tracks.json?
   // TODO: prompt user for itunes file if not one saved
   // create data dir if not exist ?
-  // switch to only use playlists (master playlist contains all songs, no need to run this twice)
-  execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
+  // switch to only use playlists
+  // (master playlist contains all songs, no need to run this twice)
+  execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ' +
+    '~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
     stdio: 'inherit'
   });
-  execSync('./node_modules/itunes-data/cli.js --playlists data/playlists.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
+  execSync('./node_modules/itunes-data/cli.js --playlists ' +
+    'data/playlists.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
     stdio: 'inherit'
   });
   return new Promise((resolve) => {

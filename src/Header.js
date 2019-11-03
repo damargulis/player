@@ -17,8 +17,15 @@ export default class Header extends React.Component {
             playlist={this.props.playlist}
             setVolume={this.props.setVolume}
           />
-          <InfoPanel library={this.props.library} track={this.props.playlist.getCurrentTrack()}/>
-          <ProgressBar setTime={this.props.setTime} time={this.props.time} track={this.props.playlist.getCurrentTrack()}/>
+          <InfoPanel
+              library={this.props.library}
+              track={this.props.playlist.getCurrentTrack()}
+          />
+          <ProgressBar
+            setTime={this.props.setTime}
+            time={this.props.time}
+            track={this.props.playlist.getCurrentTrack()}
+          />
         </div>
     )
   }

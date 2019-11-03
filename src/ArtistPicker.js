@@ -22,7 +22,8 @@ export default class ArtistPicker extends React.Component {
 
   componentDidUpdate() {
     const sortedArtists = this.sortArtists(this.props.artists);
-    if (sortedArtists.length !== this.state.sortedArtists.length || sortedArtists.some((artist, index) => {
+    if (sortedArtists.length !== this.state.sortedArtists.length ||
+      sortedArtists.some((artist, index) => {
       return this.state.sortedArtists[index] !== artist;
     })) {
       this.setState({

@@ -48,8 +48,9 @@ export default class MaxWindow extends React.Component {
       <AlbumPage
         library={this.props.library}
         album={album}
-        goBack={this.goBack.bind(this)
-        }/>
+        goBack={this.goBack.bind(this)}
+        goToArtist={this.goToArtist.bind(this)}
+        />
     );
     this.setState({scenes});
   }

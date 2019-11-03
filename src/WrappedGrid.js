@@ -9,6 +9,11 @@ export default class WrappedGrid extends React.Component {
     this.numCols = 0;
   }
 
+  cellRenderer({columnIndex, key, rowIndex, style}) {
+    return this.props.cellRenderer(
+      rowIndex * this.numCols + columnIndex, key, style);
+  }
+
   render() {
     if (!this.props.items) {
       return null;
@@ -25,7 +30,7 @@ export default class WrappedGrid extends React.Component {
         }
         return (
           <Grid
-            cellRenderer={({columnIndex, key, rowIndex, style}) => this.props.cellRenderer(rowIndex * this.numCols + columnIndex, key, style)}
+            cellRenderer={this.cellRenderer.bind(this)}
             columnCount={this.numCols}
             columnWidth={width / this.numCols}
             height={height}

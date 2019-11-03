@@ -6,7 +6,8 @@ const shortid = require('shortid');
 
 const BASE_URL = "https://en.wikipedia.org/api/rest_v1/page/html/";
 
-/* Remove any text between parenthesis and turn any extra whitespace into a regular space */
+// Remove any text between parenthesis and turn any extra
+// whitespace into a regular space
 function sanitize(string) {
   return string.replace(/\s*\[.*?\]\s*/g, "").replace(/\s+/g, " ");
 }
@@ -34,8 +35,10 @@ function getYear(rootNode) {
 
 function getGenres(rootNode) {
   const leafNodes = getLeafNodes(rootNode);
-  // filter out ", ", " ", ".", and any other weird symbols that might be accidental
-  const textNodes = leafNodes.filter((node) => node.textContent && node.textContent.length > 2);
+  // filter out ", ", " ", ".", and any other weird symbols that might be
+  // accidental
+  const textNodes = leafNodes.filter(
+    (node) => node.textContent && node.textContent.length > 2);
   const text = textNodes.map((node) => sanitize(node.textContent))
   return text.map((genre) => formatGenre(genre)).filter(Boolean);
 
@@ -49,7 +52,8 @@ function capitalize(word) {
 }
 
 function formatGenre(genre) {
-  const genreString = genre.trim().split(' ').map((word) => capitalize(word)).join(' ');
+  const genreString = genre.trim().split(' ').map(
+  (word) => capitalize(word)).join(' ');
   return genreString.split('-').map((word) => capitalize(word)).join('-');
 }
 
@@ -82,7 +86,8 @@ function isRightLink(link, album, artist) {
     const doc = parser.parseFromString(htmlString, 'text/html');
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
-    return infoBox && infoBox.textContent.toLowerCase().includes("by " + artist.name.toLowerCase());
+    return infoBox && infoBox.textContent.toLowerCase().includes(
+      "by " + artist.name.toLowerCase());
   }).catch(() => {
     return false;
   });
@@ -145,7 +150,8 @@ function modifyAlbum(album, library) {
           fs.writeFile(album.albumArtFile, data, 'binary');
         });
       } catch (err) {
-        // TODO: add error to album on each error -- make each error different / possible all at once
+        // TODO: add error to album on each error -- make each error different
+        // possible all at once
         return err;
       }
     }).catch(() => {
@@ -158,7 +164,8 @@ function modifyAlbum(album, library) {
 export default function runWikiExtension(library) {
   const albums = library.getAlbums()
   let index = 0;
-  // set up debug mode -- 1 when in debug, then either const or some func based on comp/network
+  // set up debug mode -- 1 when in debug, then either const or some func
+  // based on comp/network
   const pool = new PromisePool(() => {
     const album = albums[index];
     index++;
