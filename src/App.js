@@ -55,6 +55,7 @@ export default class App extends React.Component {
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
         const playlist = new RandomAlbumPlaylist(library);
+        debugger;
         library.save('data/library.json');
         this.setState({
           library: library,

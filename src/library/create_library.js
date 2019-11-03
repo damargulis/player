@@ -1,6 +1,7 @@
 import Album from './Album';
 import Artist from './Artist';
 import Track from './Track';
+import Playlist from './Playlist';
 import Library from './Library';
 const fs = require('fs')
 const path = require('path');
@@ -139,7 +140,8 @@ export function loadLibrary(libraryFile) {
       const albums = libraryData.albums_.map((albumData) => new Album(albumData));
       const artists = libraryData.artists_.map((artistData) => new Artist(artistData));
       const genres = libraryData.genres_;
-      return resolve(new Library(tracks, albums, artists, genres));
+      const playlists = libraryData.playlists_.map((playlistData) => new Playlist(playlistData));
+      return resolve(new Library(tracks, albums, artists, genres, playlists));
     });
   })
 }
@@ -149,13 +151,23 @@ export function createLibraryFromItunes() {
   // TODO: delete tracks.json?
   // TODO: prompt user for itunes file if not one saved
   // create data dir if not exist ?
+  // switch to only use playlists (master playlist contains all songs, no need to run this twice)
   execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
+    stdio: 'inherit'
+  });
+  execSync('./node_modules/itunes-data/cli.js --playlists data/playlists.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
     stdio: 'inherit'
   });
   return new Promise((resolve) => {
       const trackFile = './data/tracks.json';
+      const playlistFile = './data/playlists.json';
       const trackFileData = fs.readFileSync(trackFile);
+      const playlistFileData = fs.readFileSync(playlistFile);
       const rawTrackData = JSON.parse(trackFileData);
+      const rawPlaylistFileData = JSON.parse(playlistFileData);
+      const realPlaylists = rawPlaylistFileData.filter((playlist) => {
+        return !(playlist.Name === "Library" || playlist['Smart Criteria']);
+      });
       const trackData = new Map();
       rawTrackData.forEach((track) => {
         trackData.set(track['Persistent ID'], track);
@@ -274,6 +286,12 @@ export function createLibraryFromItunes() {
           return trackData.id;
         });
       });
+      const playlists = realPlaylists.map((playlist) => {
+        const trackIds = playlist.Tracks.map((track) => {
+          return trackMap.get(track['Persistent ID']).id;
+        });
+        return new Playlist({name: playlist.Name, trackIds: trackIds});
+      });
 
       const promises = [];
       albumMap.forEach((albumData) => {
@@ -285,7 +303,7 @@ export function createLibraryFromItunes() {
         }));
       });
       Promise.all(promises).then(() => {
-        resolve(new Library(tracks, albums, artists, genreArray));
+        resolve(new Library(tracks, albums, artists, genreArray, playlists));
       });
     });
     //stream.pipe(parser);

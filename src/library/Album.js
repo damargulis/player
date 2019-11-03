@@ -16,7 +16,7 @@ export default class Album {
     /** @type {string} */
     this.name = name;
 
-    /** @type {!Array<nunmber>} */
+    /** @type {!Array<number>} */
     this.trackIds = trackIds;
 
     /** @type {!Array<nunmber>} */
