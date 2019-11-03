@@ -1,8 +1,8 @@
 import React from 'react';
-
-import {AutoSizer, Column, Table} from 'react-virtualized';
-import 'react-virtualized/styles.css';
 import util from './utils';
+import {AutoSizer, Column, Table} from 'react-virtualized';
+
+import 'react-virtualized/styles.css';
 
 export default class SongPicker extends React.Component {
   constructor(props) {

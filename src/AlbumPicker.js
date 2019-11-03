@@ -1,8 +1,8 @@
+import AlbumInfo from './AlbumInfo';
 import React from 'react';
+import WrappedGrid from './WrappedGrid';
 
 import './App.css';
-import AlbumInfo from './AlbumInfo';
-import WrappedGrid from './WrappedGrid';
 
 export default class AlbumPicker extends React.Component {
   constructor(props) {

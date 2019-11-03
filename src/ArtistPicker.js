@@ -1,7 +1,7 @@
+import ArtistInfo from './ArtistInfo';
 import React from 'react';
 import WrappedGrid from './WrappedGrid';
 
-import ArtistInfo from './ArtistInfo';
 
 export default class ArtistPicker extends React.Component {
   constructor(props) {

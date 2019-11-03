@@ -1,8 +1,7 @@
-
 import React from 'react';
+import { AutoSizer, Grid } from 'react-virtualized';
 
 import './App.css';
-import { AutoSizer, Grid } from 'react-virtualized';
 
 export default class WrappedGrid extends React.Component {
   constructor(props) {

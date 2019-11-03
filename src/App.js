@@ -1,16 +1,14 @@
-import React from 'react';
-//import logo from './logo.svg';
-import './App.css';
-
-import {MaxWindow} from './MaxWindow';
-import {MiniWindow} from './MiniWindow';
-
-import {loadLibrary, createLibraryFromItunes}  from './library/create_library';
-import {runWikiExtension} from './extensions/wiki';
-import Library from './library/Library';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import Library from './library/Library';
+import MaxWindow from './MaxWindow';
+import MiniWindow from './MiniWindow';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
+import React from 'react';
+import runWikiExtension from './extensions/wiki';
+import {createLibraryFromItunes, loadLibrary}  from './library/create_library';
+
+import './App.css';
 
 const {ipcRenderer} = require('electron');
 
@@ -55,7 +53,6 @@ export default class App extends React.Component {
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
         const playlist = new RandomAlbumPlaylist(library);
-        debugger;
         library.save('data/library.json');
         this.setState({
           library: library,

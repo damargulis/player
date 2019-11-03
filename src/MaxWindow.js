@@ -1,16 +1,16 @@
-import React from 'react';
-import ArtistPage from './ArtistPage';
-import Header from './Header.js';
-import PlaylistTypePicker from './PlaylistTypePicker.js';
-import AlbumPicker from './AlbumPicker.js';
 import AlbumPage from './AlbumPage';
-import GenrePicker from './GenrePicker.js';
+import AlbumPicker from './AlbumPicker.js';
+import ArtistPage from './ArtistPage';
 import ArtistPicker from './ArtistPicker.js';
-import SongPicker  from './SongPicker.js';
-import PlaylistPicker from './PlaylistPicker.js';
+import GenrePicker from './GenrePicker.js';
+import Header from './Header.js';
 import PlaylistPage from './PlaylistPage.js';
+import PlaylistPicker from './PlaylistPicker.js';
+import PlaylistTypePicker from './PlaylistTypePicker.js';
+import React from 'react';
+import SongPicker  from './SongPicker.js';
 
-export class MaxWindow extends React.Component {
+export default class MaxWindow extends React.Component {
   constructor(props) {
     super(props);
 

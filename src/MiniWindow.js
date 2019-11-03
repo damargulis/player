@@ -1,8 +1,8 @@
-import React from 'react';
 import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
+import React from 'react';
 
-export class MiniWindow extends React.Component {
+export default class MiniWindow extends React.Component {
 
   render() {
     return (

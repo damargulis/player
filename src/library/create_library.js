@@ -1,8 +1,9 @@
 import Album from './Album';
 import Artist from './Artist';
-import Track from './Track';
-import Playlist from './Playlist';
 import Library from './Library';
+import Playlist from './Playlist';
+import Track from './Track';
+
 const fs = require('fs')
 const path = require('path');
 const shortid = require('shortid');

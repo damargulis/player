@@ -1,6 +1,6 @@
+import AlbumPicker from './AlbumPicker.js';
 import React from 'react';
 import SongPicker  from './SongPicker.js';
-import AlbumPicker from './AlbumPicker.js';
 
 export default class ArtistPage extends React.Component {
   render() {

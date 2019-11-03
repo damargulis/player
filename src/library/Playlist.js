@@ -1,6 +1,7 @@
 
 export default class Playlist {
   constructor({name, trackIds}) {
+
     /** @string */
     this.name = name;
 

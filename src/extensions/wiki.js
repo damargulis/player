@@ -155,7 +155,7 @@ function modifyAlbum(album, library) {
   return Promise.resolve();
 }
 
-export function runWikiExtension(library) {
+export default function runWikiExtension(library) {
   const albums = library.getAlbums()
   let index = 0;
   // set up debug mode -- 1 when in debug, then either const or some func based on comp/network
