@@ -59,16 +59,16 @@ export default class AlbumPicker extends React.Component {
     return (
       <div className="main">
         <div className="albumPageHeader" style={{display: "flex"}}>
-        <div className="info">
-          <img src={src} alt="album art" width="100" height="100" />
-          <div>{this.props.album && this.props.album.name}</div>
-          {this.getArtistLinks()}
-          <button onClick={this.props.goBack}>Back</button>
+          <div className="info">
+            <img src={src} alt="album art" width="100" height="100" />
+            <div>{this.props.album && this.props.album.name}</div>
+            {this.getArtistLinks()}
+            <button onClick={this.props.goBack}>Back</button>
+          </div>
+          {
+            this.getErrors() 
+          }
         </div>
-      {
-        this.getErrors() 
-      }
-      </div>
         <SongPicker
           songs={this.props.library.getAlbumTracks(this.props.album)}
           library={this.props.library}

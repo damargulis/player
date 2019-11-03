@@ -1,4 +1,9 @@
 
+/**
+ * Formats a duration to a time "minutes:seconds"
+ * @param {number} ms Time in milliseconds.
+ * @return {string} The formatted time
+ */
 function toTime(ms) {
   const totalSeconds = Math.floor(ms / 1000)
   const minutes = Math.floor(totalSeconds / 60);

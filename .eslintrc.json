@@ -101,7 +101,7 @@
             "error",
             "beside"
         ],
-        "indent": "off",
+        "indent": ["error", 2],
         "indent-legacy": "off",
         "init-declarations": "error",
         "react/jsx-uses-vars": 2,
@@ -271,7 +271,7 @@
             "as-needed"
         ],
         "require-await": "error",
-        "require-jsdoc": "off",
+        "require-jsdoc": "error",
         "require-unicode-regexp": "off",
         "rest-spread-spacing": [
             "error",

@@ -8,11 +8,11 @@ export default class ArtistPage extends React.Component {
     return (
       <div className="main">
         <div className="artistPageHeader" style={{display: "flex"}}>
-        <div className="info">
-          <img src={src} alt="artist art" width="100" height="100" />
-          <div>{this.props.artist && this.props.artist.name}</div>
-          <button onClick={this.props.goBack}>Back</button>
-        </div>
+          <div className="info">
+            <img src={src} alt="artist art" width="100" height="100" />
+            <div>{this.props.artist && this.props.artist.name}</div>
+            <button onClick={this.props.goBack}>Back</button>
+          </div>
         </div>
         <div className="artistPageBody" style={{height: "100%"}}>
           <div className="container" style={{height: "50%"}}>
@@ -25,9 +25,9 @@ export default class ArtistPage extends React.Component {
           </div> 
           <div className="container" style={{height: "50%"}}>
             <SongPicker
-          playSong={this.props.playSong}
-          library={this.props.library}
-          songs={this.props.library.getArtistTracks(this.props.artist)}
+              playSong={this.props.playSong}
+              library={this.props.library}
+              songs={this.props.library.getArtistTracks(this.props.artist)}
               
             />
           </div> 

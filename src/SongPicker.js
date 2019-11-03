@@ -1,7 +1,7 @@
+import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import util from './utils';
 import {AutoSizer, Column, Table} from 'react-virtualized';
-import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 
 import 'react-virtualized/styles.css';
 
@@ -23,8 +23,8 @@ export default class SongPicker extends React.Component {
     const sortedSongs = this.sortSongs(this.props.songs);
     if (sortedSongs.length !== this.state.sortedSongs.length ||
       sortedSongs.some((song, index) => {
-      return this.state.sortedSongs[index] !== song;
-    })) {
+        return this.state.sortedSongs[index] !== song;
+      })) {
       const selectedNow = this.state.selected.map((index) => {
         return this.state.sortedSongs[index];
       });
@@ -142,58 +142,58 @@ export default class SongPicker extends React.Component {
     return (
       <div className="main">
         <AutoSizer>
-      {({height, width}) => {
-        return (
-            <Table
-              headerHeight={30}
-              height={height}
-              rowCount={this.state.sortedSongs.length}
-              rowGetter={({index}) => this.getSongData(index)}
-              rowHeight={20}
-              width={width}
-              rowStyle={this.getRowStyle.bind(this)}
-              onRowClick={this.onRowClick.bind(this)}
-              onRowDoubleClick={this.onRowDoubleClick.bind(this)}
-              rowClassName="songRow"
-            >
-          <Column
-            label="Name"
-            width={300}
-            dataKey="name"
-          />
-          <Column
-            label="Time"
-            width={50}
-            dataKey="duration"
-          />
-          <Column
-            label="Artists"
-            width={150}
-            dataKey="artists"
-          />
-          <Column
-            label="Albums"
-            width={150}
-            dataKey="albums"
-          />
-          <Column
-            label="Genres"
-            width={100}
-            dataKey="genres"
-          />
-          <Column
-            label="Year"
-            width={50}
-            dataKey="year"
-          />
-          <Column
-            label="Plays"
-            width={80}
-            dataKey="playCount"
-          />
-            </Table>
-        )
-      }}
+          {({height, width}) => {
+            return (
+              <Table
+                headerHeight={30}
+                height={height}
+                rowCount={this.state.sortedSongs.length}
+                rowGetter={({index}) => this.getSongData(index)}
+                rowHeight={20}
+                width={width}
+                rowStyle={this.getRowStyle.bind(this)}
+                onRowClick={this.onRowClick.bind(this)}
+                onRowDoubleClick={this.onRowDoubleClick.bind(this)}
+                rowClassName="songRow"
+              >
+                <Column
+                  label="Name"
+                  width={300}
+                  dataKey="name"
+                />
+                <Column
+                  label="Time"
+                  width={50}
+                  dataKey="duration"
+                />
+                <Column
+                  label="Artists"
+                  width={150}
+                  dataKey="artists"
+                />
+                <Column
+                  label="Albums"
+                  width={150}
+                  dataKey="albums"
+                />
+                <Column
+                  label="Genres"
+                  width={100}
+                  dataKey="genres"
+                />
+                <Column
+                  label="Year"
+                  width={50}
+                  dataKey="year"
+                />
+                <Column
+                  label="Plays"
+                  width={80}
+                  dataKey="playCount"
+                />
+              </Table>
+            )
+          }}
         </AutoSizer>
       </div>
     )

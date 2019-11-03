@@ -55,35 +55,34 @@ export default class InfoPanel extends React.Component {
     // meaning like if its playing a specific album, only show that album
     // (and artwork)
     // if on song shuffle, then rotate between all.
-    const albumNames = albums.map(album => album.name).join(', ');
     const imgStyle = this.props.small ?  {height: 50, width: 50, padding: 5}
       : {height: 70, width: 70, padding: 15};
     return (
-        <div id="info-panel" style={{display: "flex"}}>
-          <img onClick={() => this.onImageClick_()}
-              src={src}
-              style={imgStyle}
-              alt="album-art"
-          />
-          <div>
-            <div className="track-label" id="name">
-              {track ? track.name : 'Track Name'}
-            </div>
-            <div className="track-label" id="author">
-      {
-        this.getArtistLinks()
-      }
-            </div>
-            <div className="track-label" id="album">
-      {
-        this.getAlbumLinks()
-      }
-            </div>
-            <div className="track-label" id="year">
-              {track ? track.year : 'Year'}
-            </div>
+      <div id="info-panel" style={{display: "flex"}}>
+        <img onClick={() => this.onImageClick_()}
+          src={src}
+          style={imgStyle}
+          alt="album-art"
+        />
+        <div>
+          <div className="track-label" id="name">
+            {track ? track.name : 'Track Name'}
+          </div>
+          <div className="track-label" id="author">
+            {
+              this.getArtistLinks()
+            }
+          </div>
+          <div className="track-label" id="album">
+            {
+              this.getAlbumLinks()
+            }
+          </div>
+          <div className="track-label" id="year">
+            {track ? track.year : 'Year'}
           </div>
         </div>
+      </div>
     )
   }
 }

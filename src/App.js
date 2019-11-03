@@ -32,14 +32,14 @@ export default class App extends React.Component {
     });
     ipcRenderer.on('run-extension', (type, arg) => {
       switch (arg) {
-        case 'wikipedia':
-          runWikiExtension(this.state.library).then(() => {
-            this.state.library.save('data/library.json');
-            this.setState({library: this.state.library});
-          });
-          break;
-        default:
-          break;
+      case 'wikipedia':
+        runWikiExtension(this.state.library).then(() => {
+          this.state.library.save('data/library.json');
+          this.setState({library: this.state.library});
+        });
+        break;
+      default:
+        break;
       }
     });
     ipcRenderer.send('extension-ready');
@@ -182,7 +182,7 @@ export default class App extends React.Component {
       playPause={this.playPause.bind(this)}
       playing={this.state.playing}
       setVolume={this.setVolume.bind(this)}
-      /> : <MaxWindow
+    /> : <MaxWindow
       setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
       playlist={this.state.playlist}
       library={this.state.library}
@@ -197,7 +197,7 @@ export default class App extends React.Component {
       setVolume={this.setVolume.bind(this)}
       setTime={this.setTime.bind(this)}
       time={this.state.time}
-      />;
+    />;
   }
 
 }

@@ -37,8 +37,8 @@ export default class AlbumPicker extends React.Component {
     const sortedAlbums = this.sortAlbums(this.props.albums);
     if (sortedAlbums.length !== this.state.sortedAlbums.length ||
       sortedAlbums.some((album, index) => {
-      return this.state.sortedAlbums[index] !== album;
-    })) {
+        return this.state.sortedAlbums[index] !== album;
+      })) {
       this.setState({
         sortedAlbums: sortedAlbums,
       });
@@ -91,16 +91,16 @@ export default class AlbumPicker extends React.Component {
   render() {
     return (
       <div className="main" >
-      <div id="sortPicker" style={{textAlign: "center"}}>
-        <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
-        <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
-        </button>
-        <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
-      </div>
-      <WrappedGrid
-        items={this.state.sortedAlbums}
-        cellRenderer={this.cellRenderer.bind(this)}
-      />
+        <div id="sortPicker" style={{textAlign: "center"}}>
+          <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
+          <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
+          </button>
+          <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
+        </div>
+        <WrappedGrid
+          items={this.state.sortedAlbums}
+          cellRenderer={this.cellRenderer.bind(this)}
+        />
       </div>
     )
   }

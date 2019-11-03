@@ -15,7 +15,8 @@ export default class RandomSongPlaylist {
     // todo: switch to play through and reshuffle on repeat only
     this.currentTrack_++;
     if (this.playlist_.length <= this.currentTrack_) {
-      this.playlist_.push(this.tracks_[Math.floor(Math.random() * this.tracks_.length)]);
+      this.playlist_.push(this.tracks_[
+        Math.floor(Math.random() * this.tracks_.length)]);
     }
     return this.getCurrentTrack();
   }

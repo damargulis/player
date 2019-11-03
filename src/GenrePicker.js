@@ -17,22 +17,22 @@ export default class GenrePicker extends React.Component {
   onChange(evt) {
     const options = [];
     for (let option of evt.target.selectedOptions) {
-       options.push(parseInt(option.value));
+      options.push(parseInt(option.value));
     }
     this.props.setGenres(options);
   }
 
   render() {
     return (
-        <div id="genre-picker">
-          <select onChange={this.onChange.bind(this)} multiple size={10}
-            style={{height: '100%', width: '100%'}}
-          >
-      {
-        this.getOptions()
-      }
-          </select>
-        </div>
+      <div id="genre-picker">
+        <select onChange={this.onChange.bind(this)} multiple size={10}
+          style={{height: '100%', width: '100%'}}
+        >
+          {
+            this.getOptions()
+          }
+        </select>
+      </div>
     );
   }
 }

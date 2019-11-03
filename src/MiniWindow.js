@@ -14,15 +14,15 @@ export default class MiniWindow extends React.Component {
         />
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel
-              playing={this.props.playing}
-              playPause={this.props.playPause}
-              nextAlbum={this.props.nextAlbum}
-              nextTrack={this.props.nextTrack}
-              prevAlbum={this.props.prevAlbum}
-              prevTrack={this.props.prevTrack}
-              playlist={this.props.playlist}
-              setVolume={this.props.setVolume}
-              track={this.props.track}/>
+            playing={this.props.playing}
+            playPause={this.props.playPause}
+            nextAlbum={this.props.nextAlbum}
+            nextTrack={this.props.nextTrack}
+            prevAlbum={this.props.prevAlbum}
+            prevTrack={this.props.prevTrack}
+            playlist={this.props.playlist}
+            setVolume={this.props.setVolume}
+            track={this.props.track}/>
         </div>
       </div>
     )

@@ -21,25 +21,25 @@ export default class WrappedGrid extends React.Component {
     const numItems = this.props.items.length;
     return (
       <AutoSizer>
-      {({height, width}) => {
+        {({height, width}) => {
         // TODO: make 150 a prop (w/ default?)
-        this.numCols = Math.floor(width / 150);
-        const rows = Math.ceil(numItems / this.numCols);
-        if (this.numCols <= 0 || this.numCols <= 0) {
-          return null;
-        }
-        return (
-          <Grid
-            cellRenderer={this.cellRenderer.bind(this)}
-            columnCount={this.numCols}
-            columnWidth={width / this.numCols}
-            height={height}
-            rowCount={rows}
-            rowHeight={150}
-            width={width}
-          />
-        )
-      }}
+          this.numCols = Math.floor(width / 150);
+          const rows = Math.ceil(numItems / this.numCols);
+          if (this.numCols <= 0 || this.numCols <= 0) {
+            return null;
+          }
+          return (
+            <Grid
+              cellRenderer={this.cellRenderer.bind(this)}
+              columnCount={this.numCols}
+              columnWidth={width / this.numCols}
+              height={height}
+              rowCount={rows}
+              rowHeight={150}
+              width={width}
+            />
+          )
+        }}
       </AutoSizer>
     );
   }
