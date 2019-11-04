@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@types/react": "^16.9.11",
+    "@types/react-dom": "^16.9.3",
     "electron-is-dev": "^1.1.0",
     "jsmediatags": "^3.9.2",
     "node-gyp": "^6.0.0",
@@ -40,6 +42,7 @@
   "devDependencies": {
     "@rescripts/cli": "^0.0.12",
     "@rescripts/rescript-env": "^0.0.10",
+    "awesome-typescript-loader": "^5.2.1",
     "bindings": "^1.5.0",
     "electron": "^6.0.11",
     "electron-build": "0.0.3",
@@ -59,8 +62,10 @@
     "request-promise": "^4.2.4",
     "request-promise-native": "^1.0.7",
     "shortid": "^2.2.15",
+    "source-map-loader": "^0.2.4",
     "timers": "^0.1.1",
-    "tslint": "^5.20.0"
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.4"
   },
   "react-native": {
     "fs": "react-native-level-fs"

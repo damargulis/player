@@ -74,6 +74,7 @@ export default class MaxWindow extends React.Component {
     const scenes = this.state.scenes;
     scenes.push(
       <PlaylistPage
+        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         library={this.props.library}
         playlist={playlist}
         goBack={this.goBack.bind(this)}
@@ -117,6 +118,7 @@ export default class MaxWindow extends React.Component {
     case 'playlist':
       return (
         <PlaylistPicker
+          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           library={this.props.library}
           goToPlaylist={this.goToPlaylist.bind(this)}
         />
