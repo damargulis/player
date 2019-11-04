@@ -9,6 +9,7 @@ import PlaylistPicker from './PlaylistPicker.js';
 import PlaylistTypePicker from './PlaylistTypePicker.js';
 import React from 'react';
 import SongPicker  from './SongPicker.js';
+const {ipcRenderer} = require('electron');
 
 export default class MaxWindow extends React.Component {
   constructor(props) {
@@ -19,6 +20,24 @@ export default class MaxWindow extends React.Component {
       playlistType: 'album',
       scenes: [],
     }
+
+    ipcRenderer.on('toAlbum', (evt, data) => {
+      console.log('to album maxwin');
+      setTimeout(() => {
+        console.log('going to album');
+        this.goToAlbum(data.album);
+      });
+    });
+    this.onArtistMessage = this.onArtistMessage.bind(this);
+    ipcRenderer.on('toArtist', this.onArtistMessage);
+  }
+
+  onArtistMessage(evt, data) {
+    this.goToArtist(data.artist);
+  }
+
+  componentWillUnmount() {
+    ipcRenderer.removeListener('toArtist', this.onArtistMessage);
   }
 
   setGenres(genres) {
@@ -43,15 +62,18 @@ export default class MaxWindow extends React.Component {
   }
 
   goToAlbum(album) {
+    console.log('in go to album');
     const scenes = this.state.scenes;
     scenes.push(
       <AlbumPage
+        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         library={this.props.library}
         album={album}
         goBack={this.goBack.bind(this)}
         goToArtist={this.goToArtist.bind(this)}
       />
     );
+    console.log('setting state');
     this.setState({scenes});
   }
 
@@ -59,11 +81,11 @@ export default class MaxWindow extends React.Component {
     const scenes = this.state.scenes;
     scenes.push(
       <ArtistPage
+        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         library={this.props.library}
         artist={artist}
         goBack={this.goBack.bind(this)}
         goToAlbum={this.goToAlbum.bind(this)}
-        playAlbum={this.props.playAlbum}
         playSong={this.props.playSong}
       />
     );
@@ -91,7 +113,7 @@ export default class MaxWindow extends React.Component {
     case 'album':
       return (
         <AlbumPicker
-          playAlbum={this.props.playAlbum}
+          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           albums={this.props.library.getAlbums(this.state.genres)}
           library={this.props.library}
           goToAlbum={this.goToAlbum.bind(this)}

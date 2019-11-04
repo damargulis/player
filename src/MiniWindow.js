@@ -2,12 +2,23 @@ import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
 import React from 'react';
 
+const {ipcRenderer} = require('electron');
+
 export default class MiniWindow extends React.Component {
+  goToArtist(artist) {
+    ipcRenderer.send('goToArtist', {artist: artist});
+  }
+
+  goToAlbum(album) {
+    ipcRenderer.send('goToAlbum', {album: album});
+  }
 
   render() {
     return (
       <div id="mini-window">
         <InfoPanel
+          goToArtist={this.goToArtist.bind(this)}
+          goToAlbum={this.goToAlbum.bind(this)}
           small={true}
           library={this.props.library}
           track={this.props.playlist.getCurrentTrack()}

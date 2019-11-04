@@ -10,15 +10,29 @@ const isDev = require('electron-is-dev');
 
 let mainWindow;
 
+ipcMain.on('goToArtist', (evt, data) => {
+  maximize();
+  evt.reply('toArtist', data);
+});
+
+ipcMain.on('goToAlbum', (evt, data) => {
+  maximize();
+  evt.reply('toAlbum', data);
+});
+
 ipcMain.on('minimize', (evt) => {
   mainWindow.setSize(300, 100);
   evt.reply('minimize-reply');
 });
 
 ipcMain.on('maximize', (evt) => {
-  mainWindow.setSize(1430, 800);
+  maximize();
   evt.reply('maximize-reply');
 });
+
+function maximize() {
+  mainWindow.setSize(1430, 800);
+}
 
 let extEvt;
 ipcMain.on('extension-ready', (evt) => {

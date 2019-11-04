@@ -1,4 +1,5 @@
 import AlbumInfo from './AlbumInfo';
+import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
 import WrappedGrid from './WrappedGrid';
 
@@ -49,11 +50,17 @@ export default class AlbumPicker extends React.Component {
     this.props.goToAlbum(album);
   }
 
+  playAlbum(album) {
+    const playlist = new RandomAlbumPlaylist(this.props.library, this.state.sortedAlbums);
+    playlist.addAlbum(album);
+    this.props.setPlaylistAndPlay(playlist);
+  }
+
   cellRenderer(index, key, style) {
     const albums = this.state.sortedAlbums;
     return (
       <AlbumInfo
-        playAlbum={this.props.playAlbum}
+        playAlbum={this.playAlbum.bind(this)}
         goToAlbum={(album) => this.goToAlbum(album)}
         library={this.props.library}
         index={index}

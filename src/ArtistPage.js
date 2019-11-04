@@ -17,15 +17,15 @@ export default class ArtistPage extends React.Component {
         <div className="artistPageBody" style={{height: "100%"}}>
           <div className="container" style={{height: "50%"}}>
             <AlbumPicker
+              setPlaylistAndPlay={this.props.setPlaylistAndPlay}
               albums={this.props.library.getAlbumsByArtist(this.props.artist)}
               library={this.props.library}
               goToAlbum={this.props.goToAlbum}
-              playAlbum={this.props.playAlbum}
             />
           </div> 
           <div className="container" style={{height: "50%"}}>
             <SongPicker
-              playSong={this.props.playSong}
+              setPlaylistAndPlay={this.props.setPlaylistAndPlay}
               library={this.props.library}
               songs={this.props.library.getArtistTracks(this.props.artist)}
               

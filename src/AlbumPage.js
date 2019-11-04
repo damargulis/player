@@ -70,6 +70,7 @@ export default class AlbumPicker extends React.Component {
           }
         </div>
         <SongPicker
+          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           songs={this.props.library.getAlbumTracks(this.props.album)}
           library={this.props.library}
         />

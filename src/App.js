@@ -30,6 +30,18 @@ export default class App extends React.Component {
     ipcRenderer.on('maximize-reply', () => {
       this.onMaximize_();
     });
+    ipcRenderer.on('toAlbum', (evt, data) => {
+      console.log('to album');
+      this.onMaximize_();
+      console.log(evt);
+      console.log(data);
+    });
+    ipcRenderer.on('toArtist', (evt, data) => {
+      console.log('to Artist');
+      this.onMaximize_();
+      console.log(evt);
+      console.log(data);
+    });
     ipcRenderer.on('run-extension', (type, arg) => {
       switch (arg) {
       case 'wikipedia':
@@ -170,6 +182,46 @@ export default class App extends React.Component {
 
   render() {
     const mini = this.state.mini;
+    // both kept on so that the subscriptions in max window stay, otherwise
+    // message comes in before max window gets reattached
+    // fix this better?
+    return (
+      <div>
+        <div style={{display: mini ? "initial" : "none"}}>
+          <MiniWindow
+            playlist={this.state.playlist}
+            library={this.state.library}
+            nextTrack={this.nextTrack.bind(this)}
+            nextAlbum={this.nextAlbum.bind(this)}
+            prevTrack={this.prevTrack.bind(this)}
+            prevAlbum={this.prevAlbum.bind(this)}
+            playAlbum={this.playAlbum.bind(this)}
+            playSong={this.playSong.bind(this)}
+            playPause={this.playPause.bind(this)}
+            playing={this.state.playing}
+            setVolume={this.setVolume.bind(this)}
+        />
+        </div>
+        <div style={{display: mini ? "none" : "initial"}}>
+          <MaxWindow
+        setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
+        playlist={this.state.playlist}
+        library={this.state.library}
+        nextTrack={this.nextTrack.bind(this)}
+        nextAlbum={this.nextAlbum.bind(this)}
+        prevTrack={this.prevTrack.bind(this)}
+        prevAlbum={this.prevAlbum.bind(this)}
+        playAlbum={this.playAlbum.bind(this)}
+        playSong={this.playSong.bind(this)}
+        playPause={this.playPause.bind(this)}
+        playing={this.state.playing}
+        setVolume={this.setVolume.bind(this)}
+        setTime={this.setTime.bind(this)}
+        time={this.state.time}
+    />
+        </div>
+      </div>
+    );
     return mini ? <MiniWindow
       playlist={this.state.playlist}
       library={this.state.library}
