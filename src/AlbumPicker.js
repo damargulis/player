@@ -51,7 +51,8 @@ export default class AlbumPicker extends React.Component {
   }
 
   playAlbum(album) {
-    const playlist = new RandomAlbumPlaylist(this.props.library, this.state.sortedAlbums);
+    const playlist = new RandomAlbumPlaylist(
+      this.props.library, this.state.sortedAlbums);
     playlist.addAlbum(album);
     this.props.setPlaylistAndPlay(playlist);
   }

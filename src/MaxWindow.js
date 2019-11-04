@@ -22,9 +22,7 @@ export default class MaxWindow extends React.Component {
     }
 
     ipcRenderer.on('toAlbum', (evt, data) => {
-      console.log('to album maxwin');
       setTimeout(() => {
-        console.log('going to album');
         this.goToAlbum(data.album);
       });
     });
@@ -62,7 +60,6 @@ export default class MaxWindow extends React.Component {
   }
 
   goToAlbum(album) {
-    console.log('in go to album');
     const scenes = this.state.scenes;
     scenes.push(
       <AlbumPage
@@ -73,7 +70,6 @@ export default class MaxWindow extends React.Component {
         goToArtist={this.goToArtist.bind(this)}
       />
     );
-    console.log('setting state');
     this.setState({scenes});
   }
 
