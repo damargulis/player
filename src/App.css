@@ -68,7 +68,7 @@
   font-size: 14px;
 }
 
-a:hover{
+.link:hover{
   text-decoration: underline;
   color: blue;
   cursor: pointer;

@@ -26,6 +26,8 @@ export default class ArtistInfo extends React.Component {
       }, time);
       this.setState({
         timerId: id,
+        currentImg:
+          (this.state.currentImg + 1) % this.props.artist.albumIds.length,
       });
     }, Math.random() * time);
     this.setState({
@@ -50,6 +52,9 @@ export default class ArtistInfo extends React.Component {
       paddingRight: (this.props.style.width - 150) / 2,
       width: 150
     };
+    if (this.props.artist.errors.length > 0) {
+      newStyle.backgroundColor = 'red';
+    }
     const albums = this.props.library.getAlbumsByIds(
       this.props.artist.albumIds);
     const album = albums[this.state.currentImg];

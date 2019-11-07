@@ -4,6 +4,7 @@ export default class Artist {
     albumIds = [],
     trackIds = [],
     genreIds = [],
+    errors = [],
   }) {
 
     /** @type {string} */
@@ -17,6 +18,9 @@ export default class Artist {
 
     /** @type {!Array<number>} */
     this.genreIds = genreIds;
+
+    /** @type {!Array<string>} */
+    this.errors = errors;
   }
 }
 

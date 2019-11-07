@@ -18,9 +18,9 @@ export default class AlbumPicker extends React.Component {
       >
         <div> Errors: </div>
         {
-          this.props.album.errors.map((error) => {
+          this.props.album.errors.map((error, index) => {
             return (
-              <div>{error}</div>
+              <div key={index}>{error}</div>
             )
           })
         }
@@ -38,9 +38,9 @@ export default class AlbumPicker extends React.Component {
     return artists.map((artist, index) => {
       return (
         <div key={index}>
-          <a onClick={() => this.props.goToArtist(artist)}>
+          <div className="link" onClick={() => this.props.goToArtist(artist)}>
             {artist.name}
-          </a>
+          </div>
         </div>
       )
     });

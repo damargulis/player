@@ -105,7 +105,10 @@ export default class SongPicker extends React.Component {
     } else {
       selected.push(index);
     }
-    this.setState({selected});
+    this.setState({
+      lastSelected: index,
+      selected: selected
+    });
   }
 
   onRowClick({event, index}) {

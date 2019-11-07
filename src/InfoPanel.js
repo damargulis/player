@@ -20,9 +20,9 @@ export default class InfoPanel extends React.Component {
     return artists.map((artist, index) => {
       return (
         <div key={index}>
-          <a onClick={() => this.props.goToArtist(artist)}>
+          <div className="link" onClick={() => this.props.goToArtist(artist)}>
             {artist.name}
-          </a>
+          </div>
         </div>
       )
     });
@@ -35,9 +35,9 @@ export default class InfoPanel extends React.Component {
     return albums.map((album, index) => {
       return (
         <div key={index}>
-          <a onClick={() => this.props.goToAlbum(album)}>
+          <div className="link" onClick={() => this.props.goToAlbum(album)}>
             {album.name}
-          </a>
+          </div>
         </div>
       )
     });

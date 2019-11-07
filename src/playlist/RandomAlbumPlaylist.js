@@ -28,7 +28,7 @@ export default class RandomAlbumPlaylist {
     this.currentAlbum_++;
     this.currentTrack_ = 0;
     if (this.playlist_.length <= this.currentAlbum_) {
-      if (this.albums_) {
+      if (this.albums_.length) {
         this.playlist_.push(this.albums_[
           Math.floor(Math.random() * this.albums_.length)]);
       } else {

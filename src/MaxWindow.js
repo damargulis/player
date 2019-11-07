@@ -62,6 +62,7 @@ export default class MaxWindow extends React.Component {
   goToAlbum(album) {
     const scenes = this.state.scenes;
     scenes.push(
+      (genres) => (
       <AlbumPage
         setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         library={this.props.library}
@@ -69,6 +70,7 @@ export default class MaxWindow extends React.Component {
         goBack={this.goBack.bind(this)}
         goToArtist={this.goToArtist.bind(this)}
       />
+      )
     );
     this.setState({scenes});
   }
@@ -76,6 +78,7 @@ export default class MaxWindow extends React.Component {
   goToArtist(artist) {
     const scenes = this.state.scenes;
     scenes.push(
+      (genres) => (
       <ArtistPage
         setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         library={this.props.library}
@@ -84,6 +87,7 @@ export default class MaxWindow extends React.Component {
         goToAlbum={this.goToAlbum.bind(this)}
         playSong={this.props.playSong}
       />
+      )
     );
     this.setState({scenes});
   }
@@ -91,19 +95,22 @@ export default class MaxWindow extends React.Component {
   goToPlaylist(playlist) {
     const scenes = this.state.scenes;
     scenes.push(
+      (genres) => (
       <PlaylistPage
         setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         library={this.props.library}
         playlist={playlist}
         goBack={this.goBack.bind(this)}
+        genres={genres}
       />
+      )
     );
     this.setState({scenes});
   }
 
   getPicker() {
     if (this.state.scenes.length) {
-      return this.state.scenes[this.state.scenes.length - 1]
+      return this.state.scenes[this.state.scenes.length - 1](this.state.genres);
     }
     switch (this.state.playlistType) {
     case 'album':
