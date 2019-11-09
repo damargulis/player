@@ -27,7 +27,6 @@ export function sanitize(string) {
  * @return {!Array<string>} A list of the genres for the album.
  */
 export function getGenres(rootNode) {
-  debugger;
   const leafNodes = getLeafNodes(rootNode);
   // filter out ", ", " ", ".", and any other weird symbols that might be
   // accidental

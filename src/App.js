@@ -40,13 +40,9 @@ export default class App extends React.Component {
       switch (arg) {
       case 'wikipedia':
         runWikiExtension(this.state.library).then(() => {
-          console.log("Finished!");
           this.state.library.save();
           this.setState({library: this.state.library});
-        }).catch((err) => {
-          console.log("err");
-          console.log(err);
-        });
+        }).catch(() => {});
         break;
       default:
         break;

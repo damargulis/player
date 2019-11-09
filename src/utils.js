@@ -15,6 +15,12 @@ export function toTime(ms) {
   return `${minutes}:${seconds}`;
 }
 
+/**
+ * Turns a file path into a URL object that can be used as a src attr in an img
+ * tag.
+ * @param {string} fileName The relative path to the file.
+ * @return {!URL} A URL object pointing to the file.
+ */
 export function getImgSrc(fileName) {
   return fileName ? new URL('file://' + path.resolve(fileName)) : null;
 }

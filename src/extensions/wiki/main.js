@@ -21,7 +21,6 @@ export default function runWikiExtension(library) {
     return modifyAlbum(album, library);
   }, /* numConcurrent= */ 5);
   return pool.start().then(() => {
-    console.log('starting artists');
     const artists = library.getArtists();
     let artistIndex = 0;
     const artistPool = new PromisePool(() => {

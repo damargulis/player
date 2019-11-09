@@ -7,7 +7,6 @@ const path = require('path');
 export default class AlbumPicker extends React.Component {
   runWiki() {
     modifyAlbum(this.props.album, this.props.library).then(() => {
-      console.log('modified, saving');
       this.props.library.save();
     });
   }
@@ -72,7 +71,9 @@ export default class AlbumPicker extends React.Component {
             <div>{this.props.album && this.props.album.name}</div>
             {this.getArtistLinks()}
             <button onClick={this.props.goBack}>Back</button>
-            <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
+            <button onClick={this.runWiki.bind(this)}>
+              Run Wiki Extension
+            </button>
           </div>
           {
             this.getErrors() 

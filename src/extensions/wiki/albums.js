@@ -1,4 +1,4 @@
-import {getGenres, sanitize, findAsync} from './utils';
+import {findAsync, getGenres, sanitize} from './utils';
 
 const rp = require('request-promise-native');
 const moment = require('moment');
@@ -91,7 +91,6 @@ export default async function modifyAlbum(album, library) {
     album.wikiPage = await searchForWikiPage(album, library);
   }
   if (album.wikiPage) {
-    console.log('modifying: ' + album.name);
     return rp(album.wikiPage).then((htmlString) => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlString, 'text/html');
@@ -114,9 +113,7 @@ export default async function modifyAlbum(album, library) {
             break;
           }
         } catch (err) {
-          // handled
-          console.log('non fatal error on: ' + album.name);
-
+          album.errors.push("Non fatal: " + err);
         }
       }
 
@@ -135,12 +132,9 @@ export default async function modifyAlbum(album, library) {
         fs.writeFileSync(album.albumArtFile, data, 'binary');
       });
     }).catch(() => {
-      console.log("error on: " + album.name);
-      // TODO: add error to album for no wiki page
+      album.errors.push("Wikipedia: Parsing error");
     });
-  } else {
-    console.log("No wiki page found for: " + album.name);
-    album.errors.push("No wiki page found");
-  }
+  } 
+  album.errors.push("No wiki page found");
   return Promise.resolve();
 }

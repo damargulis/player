@@ -62,14 +62,14 @@ export default class MaxWindow extends React.Component {
   goToAlbum(album) {
     const scenes = this.state.scenes;
     scenes.push(
-      (genres) => (
-      <AlbumPage
-        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-        library={this.props.library}
-        album={album}
-        goBack={this.goBack.bind(this)}
-        goToArtist={this.goToArtist.bind(this)}
-      />
+      () => (
+        <AlbumPage
+          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
+          library={this.props.library}
+          album={album}
+          goBack={this.goBack.bind(this)}
+          goToArtist={this.goToArtist.bind(this)}
+        />
       )
     );
     this.setState({scenes});
@@ -78,15 +78,15 @@ export default class MaxWindow extends React.Component {
   goToArtist(artist) {
     const scenes = this.state.scenes;
     scenes.push(
-      (genres) => (
-      <ArtistPage
-        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-        library={this.props.library}
-        artist={artist}
-        goBack={this.goBack.bind(this)}
-        goToAlbum={this.goToAlbum.bind(this)}
-        playSong={this.props.playSong}
-      />
+      () => (
+        <ArtistPage
+          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
+          library={this.props.library}
+          artist={artist}
+          goBack={this.goBack.bind(this)}
+          goToAlbum={this.goToAlbum.bind(this)}
+          playSong={this.props.playSong}
+        />
       )
     );
     this.setState({scenes});
@@ -96,13 +96,13 @@ export default class MaxWindow extends React.Component {
     const scenes = this.state.scenes;
     scenes.push(
       (genres) => (
-      <PlaylistPage
-        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-        library={this.props.library}
-        playlist={playlist}
-        goBack={this.goBack.bind(this)}
-        genres={genres}
-      />
+        <PlaylistPage
+          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
+          library={this.props.library}
+          playlist={playlist}
+          goBack={this.goBack.bind(this)}
+          genres={genres}
+        />
       )
     );
     this.setState({scenes});

@@ -4,7 +4,8 @@ import SongPicker  from './SongPicker.js';
 export default class PlaylistPage extends React.Component {
   render() {
     const src = "";
-    const allPlaylistSongs = this.props.library.getArtistTracks(this.props.playlist);
+    const allPlaylistSongs = this.props.library.getArtistTracks(
+      this.props.playlist);
     const songs = allPlaylistSongs.filter((song) => {
       if (this.props.genres.length) {
         return song.genreIds.some((genreId) => {

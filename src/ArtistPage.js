@@ -1,13 +1,12 @@
 import AlbumPicker from './AlbumPicker.js';
 import React from 'react';
 import SongPicker  from './SongPicker.js';
-import modifyArtist from './extensions/wiki/artists';
 import {getImgSrc} from './utils';
+import modifyArtist from './extensions/wiki/artists';
 
 export default class ArtistPage extends React.Component {
   runWiki() {
     modifyArtist(this.props.artist, this.props.library).then(() => {
-      console.log('modified, saving');
       this.props.library.save();
     });
   }
@@ -21,7 +20,9 @@ export default class ArtistPage extends React.Component {
             <img src={src} alt="artist art" width="100" height="100" />
             <div>{this.props.artist && this.props.artist.name}</div>
             <button onClick={this.props.goBack}>Back</button>
-            <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
+            <button onClick={this.runWiki.bind(this)}>
+              Run Wiki Extension
+            </button>
           </div>
         </div>
         <div className="artistPageBody" style={{height: "100%"}}>
