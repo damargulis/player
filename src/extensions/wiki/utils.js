@@ -18,7 +18,7 @@ function capitalize(word) {
  * @return {string} The sanitized string.
  */
 export function sanitize(string) {
-  return string.replace(/\s*\[.*?\]\s*/g, "").replace(/\s+/g, " ");
+  return string.replace(/\s*[\[\(].*?[\]\)]\s*/g, "").replace(/\s+/g, " ");
 }
 
 /**
@@ -27,13 +27,14 @@ export function sanitize(string) {
  * @return {!Array<string>} A list of the genres for the album.
  */
 export function getGenres(rootNode) {
+  debugger;
   const leafNodes = getLeafNodes(rootNode);
   // filter out ", ", " ", ".", and any other weird symbols that might be
   // accidental
-  const textNodes = leafNodes.filter(
-    (node) => node.textContent && node.textContent.length > 2);
-  const text = textNodes.map((node) => sanitize(node.textContent))
-  return text.map((genre) => formatGenre(genre)).filter(Boolean).filter(
+  const textNodes = leafNodes.filter((node) => node.textContent);
+  const text = textNodes.map((node) => node.textContent.split(',')).flat();
+  const sanitized = text.map((genre) => sanitize(genre))
+  return sanitized.map((genre) => formatGenre(genre)).filter(Boolean).filter(
     (genre) => genre.length > 1);
 
 }

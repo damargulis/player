@@ -1,6 +1,6 @@
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
-import util from './utils';
+import {toTime} from './utils';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 
 import 'react-virtualized/styles.css';
@@ -63,7 +63,7 @@ export default class SongPicker extends React.Component {
         .map(album => album.name).join(", "),
       genres: this.props.library.getGenresByIds(song.genreIds).join(", "),
       year: song.year,
-      duration: util.toTime(song.duration),
+      duration: toTime(song.duration),
       playCount: song.playCount,
     }
   }

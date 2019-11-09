@@ -1,6 +1,8 @@
 import {getGenres, findAsync} from './utils';
 
 const rp = require('request-promise-native');
+const fs = require('fs');
+const shortid = require('shortid');
 
 
 // TODO: move to common constants
@@ -67,6 +69,7 @@ export default async function modifyArtist(artist, library) {
         const data = row.getElementsByTagName('td')[0];
         switch (name) {
           case 'Genres':
+            debugger;
             console.groupCollapsed("Changing artist genres for: " + artist.name);
             // instead of change, add?
             console.log(library.getGenresByIds(artist.genreIds));
@@ -82,5 +85,25 @@ export default async function modifyArtist(artist, library) {
         artist.errors.push("non fatel: " + err);
       }
     }
-  })
+    const pics = infoBox.getElementsByTagName('img');
+    //TODO: take multiple pictures (rotate them elsewhere in the app)
+    const pic = pics[0];
+    const options = {
+      url: pic && pic.src,
+      encoding: 'binary',
+    };
+    return rp(options).then((data) => {
+      if (!artist.artFile) {
+        const id = shortid.generate();
+        artist.artFile = './data/' + id + '.png';
+      }
+      fs.writeFileSync(artist.artFile, data, 'binary');
+    }).catch((err) => {
+      console.log("error creating artist pic?");
+      console.log(err);
+    });
+  }).catch((err) => {
+    console.log("other error?");
+    console.log(err);
+  });
 }

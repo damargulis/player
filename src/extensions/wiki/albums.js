@@ -93,54 +93,47 @@ export default async function modifyAlbum(album, library) {
   if (album.wikiPage) {
     console.log('modifying: ' + album.name);
     return rp(album.wikiPage).then((htmlString) => {
-      try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlString, 'text/html');
-        const infoBoxes = doc.getElementsByClassName('infobox');
-        const infoBox = infoBoxes[0];
-        const rows = infoBox.getElementsByTagName('tr');
-        for (const row of rows) {
-          try {
-            const headers = row.getElementsByTagName('th');
-            const name = headers[0] && headers[0].textContent;
-            const data = row.getElementsByTagName('td')[0];
-            switch (name) {
-            case 'Genre':
-              album.genreIds = library.getGenreIds(getGenres(data));
-              break;
-            case 'Released':
-              album.year = getYear(data);
-              break;
-            default:
-              break;
-            }
-          } catch (err) {
-            // handled
-            console.log('non fatal error on: ' + album.name);
-
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+      const infoBoxes = doc.getElementsByClassName('infobox');
+      const infoBox = infoBoxes[0];
+      const rows = infoBox.getElementsByTagName('tr');
+      for (const row of rows) {
+        try {
+          const headers = row.getElementsByTagName('th');
+          const name = headers[0] && headers[0].textContent;
+          const data = row.getElementsByTagName('td')[0];
+          switch (name) {
+          case 'Genre':
+            album.genreIds = library.getGenreIds(getGenres(data));
+            break;
+          case 'Released':
+            album.year = getYear(data);
+            break;
+          default:
+            break;
           }
-        }
+        } catch (err) {
+          // handled
+          console.log('non fatal error on: ' + album.name);
 
-        const pics = infoBox.getElementsByTagName('img');
-        //TODO: take multiple pictures (rotate them elsewhere in the app)
-        const pic = pics[0];
-        const options = {
-          url: pic.src,
-          encoding: 'binary',
         }
-        return rp(options).then((data) => {
-          if (!album.albumArtFile) {
-            const id = shortid.generate()
-            album.albumArtFile = './data/' + id + '.png';
-          }
-          fs.writeFileSync(album.albumArtFile, data, 'binary');
-        });
-      } catch (err) {
-        console.log("error on: " + album.name);
-        // TODO: add error to album on each error -- make each error different
-        // possible all at once
-        return err;
       }
+
+      const pics = infoBox.getElementsByTagName('img');
+      //TODO: take multiple pictures (rotate them elsewhere in the app)
+      const pic = pics[0];
+      const options = {
+        url: pic.src,
+        encoding: 'binary',
+      }
+      return rp(options).then((data) => {
+        if (!album.albumArtFile) {
+          const id = shortid.generate()
+          album.albumArtFile = './data/' + id + '.png';
+        }
+        fs.writeFileSync(album.albumArtFile, data, 'binary');
+      });
     }).catch(() => {
       console.log("error on: " + album.name);
       // TODO: add error to album for no wiki page

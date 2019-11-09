@@ -1,6 +1,5 @@
 import React from 'react';
-
-const path = require('path');
+import {getImgSrc} from './utils';
 
 export default class ArtistInfo extends React.Component {
   constructor(props) {
@@ -19,11 +18,17 @@ export default class ArtistInfo extends React.Component {
     const time = 10000;
     const timeoutId = setTimeout(() => {
       const id = setInterval(() => {
+        if (!this.props.artist) {
+          return;
+        }
         this.setState({
           currentImg:
             (this.state.currentImg + 1) % this.props.artist.albumIds.length,
         })
       }, time);
+      if (!this.props.artist) {
+        return;
+      }
       this.setState({
         timerId: id,
         currentImg:
@@ -55,11 +60,15 @@ export default class ArtistInfo extends React.Component {
     if (this.props.artist.errors.length > 0) {
       newStyle.backgroundColor = 'red';
     }
-    const albums = this.props.library.getAlbumsByIds(
-      this.props.artist.albumIds);
-    const album = albums[this.state.currentImg];
-    const file = album && album.albumArtFile;
-    const src = file ? new URL('file://' + path.resolve(file)) : null;
+    // add in into the rotation instead?
+    let file = this.props.artist.artFile;
+    if (!file) {
+      const albums = this.props.library.getAlbumsByIds(
+        this.props.artist.albumIds);
+      const album = albums[this.state.currentImg];
+      file = album && album.albumArtFile;
+    }
+    const src = getImgSrc(file);
     return (
       <div
         style={newStyle}

@@ -41,7 +41,7 @@ export default class App extends React.Component {
       case 'wikipedia':
         runWikiExtension(this.state.library).then(() => {
           console.log("Finished!");
-          this.state.library.save('data/library.json');
+          this.state.library.save();
           this.setState({library: this.state.library});
         }).catch((err) => {
           console.log("err");
@@ -63,7 +63,7 @@ export default class App extends React.Component {
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
         const playlist = new RandomAlbumPlaylist(library);
-        library.save('data/library.json');
+        library.save();
         this.setState({
           library: library,
           playlist: playlist

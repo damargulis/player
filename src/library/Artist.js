@@ -5,6 +5,7 @@ export default class Artist {
     trackIds = [],
     genreIds = [],
     errors = [],
+    artFile = null,
   }) {
 
     /** @type {string} */
@@ -21,6 +22,9 @@ export default class Artist {
 
     /** @type {!Array<string>} */
     this.errors = errors;
+
+    /** @type {?string} */
+    this.artFile = artFile;
   }
 }
 

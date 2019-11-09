@@ -1,6 +1,6 @@
 import React from 'react';
 
-import util from './utils';
+import {toTime} from './utils';
 
 export default class ProgressBar extends React.Component {
   onChange(evt) {
@@ -11,7 +11,7 @@ export default class ProgressBar extends React.Component {
     const totalDuration = this.props.track ? this.props.track.duration : 0;
     return (
       <div>
-        <span>{util.toTime(this.props.time * 1000)}</span>
+        <span>{toTime(this.props.time * 1000)}</span>
         <input
           onChange={this.onChange.bind(this)}
           type="range"
@@ -19,7 +19,7 @@ export default class ProgressBar extends React.Component {
           min={0}
           max={totalDuration}
         />
-        <span>{util.toTime(totalDuration)}</span>
+        <span>{toTime(totalDuration)}</span>
       </div>
     )
   }

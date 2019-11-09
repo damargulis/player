@@ -13,15 +13,15 @@ export default function runWikiExtension(library) {
   // set up debug mode -- 1 when in debug, then either const or some func
   // based on comp/network
   const pool = new PromisePool(() => {
-    return null;
     const album = albums[index];
     index++;
     if (!album) {
       return null
     }
     return modifyAlbum(album, library);
-  }, /* numConcurrent= */ 10);
+  }, /* numConcurrent= */ 5);
   return pool.start().then(() => {
+    console.log('starting artists');
     const artists = library.getArtists();
     let artistIndex = 0;
     const artistPool = new PromisePool(() => {
@@ -31,7 +31,7 @@ export default function runWikiExtension(library) {
         return null;
       }
       return modifyArtist(artist, library);
-    }, /* numConcurrent= */ 10);
+    }, /* numConcurrent= */ 5);
     return artistPool.start();
   });
 }
