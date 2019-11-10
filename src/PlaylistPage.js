@@ -1,6 +1,6 @@
+import NavigationBar from './NavigationBar';
 import React from 'react';
 import SongPicker from './SongPicker.js';
-import NavigationBar from './NavigationBar';
 
 export default class PlaylistPage extends React.Component {
   render() {

@@ -1,7 +1,7 @@
+import NavigationBar from './NavigationBar';
 import React from 'react';
 import SongPicker from './SongPicker.js';
 import modifyAlbum from './extensions/wiki/albums';
-import NavigationBar from './NavigationBar';
 
 const path = require('path');
 

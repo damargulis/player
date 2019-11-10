@@ -10,6 +10,6 @@ export default class NavigationBar extends React.Component {
           disabled={!this.props.canGoForward}
         >&gt;</button>
       </div>
-    )
+    );
   }
 }

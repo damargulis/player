@@ -1,9 +1,9 @@
 import AlbumPicker from './AlbumPicker.js';
+import NavigationBar from './NavigationBar';
 import React from 'react';
 import SongPicker from './SongPicker.js';
 import {getImgSrc} from './utils';
 import modifyArtist from './extensions/wiki/artists';
-import NavigationBar from './NavigationBar';
 
 export default class ArtistPage extends React.Component {
   runWiki() {
