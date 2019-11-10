@@ -20,7 +20,7 @@ function getYear(rootNode) {
     str = str.slice(0, str.indexOf("("));
   }
   const time = moment(str);
-  return time.year()
+  return time.year();
 }
 
 /**
@@ -123,10 +123,10 @@ export default async function modifyAlbum(album, library) {
       const options = {
         url: pic.src,
         encoding: 'binary',
-      }
+      };
       return rp(options).then((data) => {
         if (!album.albumArtFile) {
-          const id = shortid.generate()
+          const id = shortid.generate();
           album.albumArtFile = './data/' + id + '.png';
         }
         fs.writeFileSync(album.albumArtFile, data, 'binary');
@@ -134,7 +134,7 @@ export default async function modifyAlbum(album, library) {
     }).catch(() => {
       album.errors.push("Wikipedia: Parsing error");
     });
-  } 
+  }
   album.errors.push("No wiki page found");
   return Promise.resolve();
 }

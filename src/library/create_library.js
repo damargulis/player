@@ -4,12 +4,23 @@ import Library from './Library';
 import Playlist from './Playlist';
 import Track from './Track';
 
-const fs = require('fs')
+const fs = require('fs');
 const path = require('path');
 const shortid = require('shortid');
 const {execSync} = require('child_process');
 
 const mm = require('musicmetadata');
+
+/**
+ * Gets the genres for a single itunes track. Genres are expected to be in the
+ * "Comments" attribution, formatted as a comma separated, quoted list.
+ * i.e. "Rock", "Indie Rock", "Folk Rock"
+ * @param {!Object} trackData The itunes track data.
+ * @return {!Array<string>} An array of the genres for the track.
+ */
+function getGenres(trackData) {
+  return trackData.Comments.split(', ').map(genre => genre.slice(1, -1));
+}
 
 /**
  * Returns the file path levels up from the path given.
@@ -48,17 +59,6 @@ function createArtistsFromItunesData(tracks) {
     }
   });
   return artistMap;
-}
-
-/**
- * Gets the genres for a single itunes track. Genres are expected to be in the
- * "Comments" attribution, formatted as a comma separated, quoted list.
- * i.e. "Rock", "Indie Rock", "Folk Rock"
- * @param {!Object} trackData The itunes track data.
- * @return {!Array<string>} An array of the genres for the track.
- */
-function getGenres(trackData) {
-  return trackData.Comments.split(', ').map(genre => genre.slice(1, -1));
 }
 
 /**
@@ -194,10 +194,11 @@ export function loadLibrary(libraryFile) {
         (artistData) => new Artist(artistData));
       const genres = libraryData.genres_;
       const playlists = libraryData.playlists_.map(
-        (playlistData) => new Playlist(playlistData));
+        (playlistData) => new Playlist(playlistData)
+      );
       return resolve(new Library(tracks, albums, artists, genres, playlists));
     });
-  })
+  });
 }
 
 /**
@@ -241,7 +242,7 @@ export function createLibraryFromItunes() {
     /** {map<path,data>} */
     const albumMap = createAlbumsFromItunesData(trackData);
 
-    /** {map<pid,data>} */ 
+    /** {map<pid,data>} */
     const trackMap = createTracksFromItunesData(trackData);
 
 
@@ -257,14 +258,14 @@ export function createLibraryFromItunes() {
     genreArray.forEach((genre, index) => {
       genreMap.set(genre, index);
     });
-    const artists = []
+    const artists = [];
     artistMap.forEach((artistData) => {
       artists.push(new Artist({
         name: artistData.name,
       }));
       artistData.id = artists.length - 1;
     });
-    const albums = []
+    const albums = [];
     albumMap.forEach((albumData) => {
       albums.push(new Album({
         name: albumData.name,
@@ -274,16 +275,16 @@ export function createLibraryFromItunes() {
       albumData.id = albums.length - 1;
     });
     const tracks = [];
-    trackMap.forEach((trackData) => {
+    trackMap.forEach((data) => {
       tracks.push(new Track({
-        name: trackData.name,
-        duration: trackData.duration,
-        filePath: trackData.filePath,
-        year: trackData.year,
-        playCount: trackData.playCount,
-        skipCount: trackData.skipCount,
+        name: data.name,
+        duration: data.duration,
+        filePath: data.filePath,
+        year: data.year,
+        playCount: data.playCount,
+        skipCount: data.skipCount,
       }));
-      trackData.id = tracks.length - 1;
+      data.id = tracks.length - 1;
     });
     // set genre ids
     albumMap.forEach((albumData) => {
@@ -300,9 +301,9 @@ export function createLibraryFromItunes() {
         artist.genreIds.push(genreId);
       });
     });
-    trackMap.forEach((trackData) => {
-      const track = tracks[trackData.id];
-      trackData.genres.forEach((genreName) => {
+    trackMap.forEach((data) => {
+      const track = tracks[data.id];
+      data.genres.forEach((genreName) => {
         const genreId = genreMap.get(genreName);
         track.genreIds.push(genreId);
       });
@@ -314,17 +315,17 @@ export function createLibraryFromItunes() {
       const artistData = artistMap.get(albumData.artistPath);
       album.artistIds.push(artistData.id);
     });
-    trackMap.forEach((trackData) => {
-      const track = tracks[trackData.id];
-      const artistLocation = upLevels(trackData.filePath, 2);
+    trackMap.forEach((data) => {
+      const track = tracks[data.id];
+      const artistLocation = upLevels(data.filePath, 2);
       const artistData = artistMap.get(artistLocation);
       track.artistIds.push(artistData.id);
     });
 
     // set album ids
-    trackMap.forEach((trackData) => {
-      const track = tracks[trackData.id];
-      const albumLocation = upLevels(trackData.filePath);
+    trackMap.forEach((data) => {
+      const track = tracks[data.id];
+      const albumLocation = upLevels(data.filePath);
       const albumData = albumMap.get(albumLocation);
       track.albumIds.push(albumData.id);
     });
@@ -334,17 +335,17 @@ export function createLibraryFromItunes() {
       artist.albumIds.push(albumData.id);
     });
     // set track ids
-    trackMap.forEach((trackData) => {
-      const artistLocation = upLevels(trackData.filePath, 2);
+    trackMap.forEach((data) => {
+      const artistLocation = upLevels(data.filePath, 2);
       const artistData = artistMap.get(artistLocation);
       const artist = artists[artistData.id];
-      artist.trackIds.push(trackData.id);
+      artist.trackIds.push(data.id);
     });
     albumMap.forEach((albumData) => {
       const album = albums[albumData.id];
       album.trackIds = albumData.tracks.map((trackPid) => {
-        const trackData = trackMap.get(trackPid);
-        return trackData.id;
+        const data = trackMap.get(trackPid);
+        return data.id;
       });
     });
     const playlists = realPlaylists.map((playlist) => {
@@ -352,7 +353,7 @@ export function createLibraryFromItunes() {
         .map((track) => {
           return trackMap.get(track['Persistent ID']).id;
         });
-      return new Playlist({name: playlist.Name, trackIds: trackIds});
+      return new Playlist({name: playlist.Name, trackIds});
     });
 
     const promises = [];

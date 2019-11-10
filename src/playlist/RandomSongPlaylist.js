@@ -46,5 +46,4 @@ export default class RandomSongPlaylist {
     this.playlist_ = this.playlist_.slice(0, this.currentTrack_ + 1);
     this.playlist_.push(song);
   }
-
 }

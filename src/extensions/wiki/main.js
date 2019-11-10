@@ -8,7 +8,7 @@ const PromisePool = require('es6-promise-pool');
  * @return {!Promise} A promise which resolve when the extension has finished.
  */
 export default function runWikiExtension(library) {
-  const albums = library.getAlbums()
+  const albums = library.getAlbums();
   let index = 0;
   // set up debug mode -- 1 when in debug, then either const or some func
   // based on comp/network
@@ -16,7 +16,7 @@ export default function runWikiExtension(library) {
     const album = albums[index];
     index++;
     if (!album) {
-      return null
+      return null;
     }
     return modifyAlbum(album, library);
   }, /* numConcurrent= */ 5);

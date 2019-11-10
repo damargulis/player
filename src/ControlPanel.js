@@ -34,6 +34,6 @@ export default class ControlPanel extends React.Component {
           onClick={this.props.nextAlbum}
           className="control-button">&gt;|</button>
       </div>
-    )
+    );
   }
 }

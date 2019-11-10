@@ -6,7 +6,7 @@ export default class PlaylistPicker extends React.Component {
     super(props);
     this.state = {
       playlists: this.props.library.getPlaylists(),
-    }
+    };
   }
 
   cellRenderer(index, key, style) {
@@ -14,7 +14,7 @@ export default class PlaylistPicker extends React.Component {
     if (!playlist) {
       return (
         <div key={key} style={style} />
-      )
+      );
     }
     const newStyle = {
       ...style,
@@ -38,6 +38,6 @@ export default class PlaylistPicker extends React.Component {
           cellRenderer={this.cellRenderer.bind(this)}
         />
       </div>
-    )
+    );
   }
 }

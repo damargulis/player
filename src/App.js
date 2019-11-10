@@ -6,7 +6,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import runWikiExtension from './extensions/wiki/main';
-import {createLibraryFromItunes, loadLibrary}  from './library/create_library';
+import {createLibraryFromItunes, loadLibrary} from './library/create_library';
 
 import './App.css';
 
@@ -53,16 +53,16 @@ export default class App extends React.Component {
     loadLibrary('data/library.json').then((library) => {
       const playlist = new RandomAlbumPlaylist(library);
       this.setState({
-        library: library,
-        playlist: playlist,
+        library,
+        playlist,
       });
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
         const playlist = new RandomAlbumPlaylist(library);
         library.save();
         this.setState({
-          library: library,
-          playlist: playlist
+          library,
+          playlist
         });
       });
     });
@@ -123,11 +123,11 @@ export default class App extends React.Component {
   }
 
   onMaximize_() {
-    this.setState({ mini: false, });
+    this.setState({ mini: false });
   }
 
   onMinimize_() {
-    this.setState({ mini: true, });
+    this.setState({ mini: true });
   }
 
   nextTrack() {
@@ -154,7 +154,7 @@ export default class App extends React.Component {
     const playlist = new RandomAlbumPlaylist(this.state.library);
     playlist.addAlbum(album);
     this.setState({
-      playlist: playlist,
+      playlist,
     }, () => {
       this.nextAlbum();
     });
@@ -164,7 +164,7 @@ export default class App extends React.Component {
     const playlist = new RandomSongPlaylist(this.state.library);
     playlist.addSong(song);
     this.setState({
-      playlist: playlist,
+      playlist,
     }, () => {
       this.nextTrack();
     });
@@ -217,6 +217,5 @@ export default class App extends React.Component {
       </div>
     );
   }
-
 }
 

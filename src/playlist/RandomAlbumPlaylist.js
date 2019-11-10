@@ -19,7 +19,7 @@ export default class RandomAlbumPlaylist {
   getCurrentTrack() {
     const album = this.getCurrentAlbum();
     if (!album || !album.trackIds[this.currentTrack_]) {
-      return null
+      return null;
     }
     return this.library_.getTrack(album.trackIds[this.currentTrack_]);
   }
@@ -81,6 +81,5 @@ export default class RandomAlbumPlaylist {
     this.playlist_ = this.playlist_.slice(0, this.currentAlbum_ + 1);
     this.playlist_.push(album);
   }
-
 }
 

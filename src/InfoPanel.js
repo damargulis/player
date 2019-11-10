@@ -4,7 +4,6 @@ const {ipcRenderer} = require('electron');
 const path = require('path');
 
 export default class InfoPanel extends React.Component {
-
   onImageClick_() {
     if (this.props.small) {
       ipcRenderer.send('maximize');
@@ -24,7 +23,7 @@ export default class InfoPanel extends React.Component {
             {artist.name}
           </div>
         </div>
-      )
+      );
     });
   }
 
@@ -39,7 +38,7 @@ export default class InfoPanel extends React.Component {
             {album.name}
           </div>
         </div>
-      )
+      );
     });
   }
 
@@ -48,14 +47,14 @@ export default class InfoPanel extends React.Component {
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
     const album = albums[0];
-    const imageSrc = album && album.albumArtFile 
+    const imageSrc = album && album.albumArtFile
       ? new URL('file://' + path.resolve(album.albumArtFile)) : null;
     const src = imageSrc;
     // TODO: make rotate instead -- conditionally on playlist type??
     // meaning like if its playing a specific album, only show that album
     // (and artwork)
     // if on song shuffle, then rotate between all.
-    const imgStyle = this.props.small ?  {height: 50, width: 50, padding: 5}
+    const imgStyle = this.props.small ? {height: 50, width: 50, padding: 5}
       : {height: 70, width: 70, padding: 15};
     return (
       <div id="info-panel" style={{display: "flex"}}>
@@ -83,6 +82,6 @@ export default class InfoPanel extends React.Component {
           </div>
         </div>
       </div>
-    )
+    );
   }
 }

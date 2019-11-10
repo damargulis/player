@@ -21,6 +21,6 @@ export default class ProgressBar extends React.Component {
         />
         <span>{toTime(totalDuration)}</span>
       </div>
-    )
+    );
   }
 }

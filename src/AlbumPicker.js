@@ -12,7 +12,7 @@ export default class AlbumPicker extends React.Component {
       sortMethod: null,
       reverse: false,
       sortedAlbums: this.sortAlbums(this.props.albums),
-    }
+    };
     this.numCols = 0;
 
     this.sortByName = this.sortByName.bind(this);
@@ -33,7 +33,7 @@ export default class AlbumPicker extends React.Component {
       return album1.name.localeCompare(album2.name);
     });
   }
-  
+
   componentDidUpdate() {
     const sortedAlbums = this.sortAlbums(this.props.albums);
     if (sortedAlbums.length !== this.state.sortedAlbums.length ||
@@ -41,7 +41,7 @@ export default class AlbumPicker extends React.Component {
         return this.state.sortedAlbums[index] !== album;
       })) {
       this.setState({
-        sortedAlbums: sortedAlbums,
+        sortedAlbums,
       });
     }
   }
@@ -69,11 +69,11 @@ export default class AlbumPicker extends React.Component {
         style={style}
         album={albums[index]}
       />
-    )
+    );
   }
 
   sortByName(album1, album2) {
-    return album1.name.localeCompare(album2.name)
+    return album1.name.localeCompare(album2.name);
   }
 
   sortByArtist(album1, album2) {
@@ -110,7 +110,7 @@ export default class AlbumPicker extends React.Component {
           cellRenderer={this.cellRenderer.bind(this)}
         />
       </div>
-    )
+    );
   }
 }
 

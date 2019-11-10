@@ -7,7 +7,6 @@ export default class Artist {
     errors = [],
     artFile = null,
   }) {
-
     /** @type {string} */
     this.name = name;
 

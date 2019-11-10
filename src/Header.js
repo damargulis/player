@@ -29,6 +29,6 @@ export default class Header extends React.Component {
           track={this.props.playlist.getCurrentTrack()}
         />
       </div>
-    )
+    );
   }
 }

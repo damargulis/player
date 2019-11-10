@@ -1,7 +1,6 @@
-const fs = require('fs'); 
+const fs = require('fs');
 export default class Library {
   constructor(tracks, albums, artists, genres, playlists) {
-
     /** @private @const {!Array<Track>} */
     this.tracks_ = tracks || [];
 
@@ -15,7 +14,7 @@ export default class Library {
     this.genres_ = genres || [];
 
     /** @private @const {!Array<Playlist} */
-    this.playlists_  = playlists || [];
+    this.playlists_ = playlists || [];
   }
 
   getAlbums(genres) {

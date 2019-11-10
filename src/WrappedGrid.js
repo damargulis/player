@@ -38,10 +38,9 @@ export default class WrappedGrid extends React.Component {
               rowHeight={150}
               width={width}
             />
-          )
+          );
         }}
       </AutoSizer>
     );
   }
-
 }

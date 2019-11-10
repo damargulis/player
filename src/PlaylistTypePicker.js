@@ -19,7 +19,7 @@ export default class PlaylistTypePicker extends React.Component {
             style={{padding: '5px'}}>Playlists</option>
         </select>
       </div>
-    )
+    );
   }
 }
 

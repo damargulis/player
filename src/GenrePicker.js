@@ -6,7 +6,7 @@ export default class GenrePicker extends React.Component {
       return {
         html: <option value={index} key={index}>{genre}</option>,
         value: genre,
-      }
+      };
     }).sort((option1, option2) => {
       return option1.value.localeCompare(option2.value);
     }).map((option) => {
@@ -16,7 +16,7 @@ export default class GenrePicker extends React.Component {
 
   onChange(evt) {
     const options = [];
-    for (let option of evt.target.selectedOptions) {
+    for (const option of evt.target.selectedOptions) {
       options.push(parseInt(option.value));
     }
     this.props.setGenres(options);

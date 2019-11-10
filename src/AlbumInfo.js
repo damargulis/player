@@ -44,14 +44,14 @@ export default class AlbumInfo extends React.Component {
     if (!this.props.album) {
       return (
         <div style={this.props.stlye} />
-      )
+      );
     }
     if (this.props.album.errors.length > 0) {
       newStyle.backgroundColor = 'red';
     }
     const file = this.props.album && this.props.album.albumArtFile;
     const src = file ? new URL('file://' + path.resolve(file)) : null;
-    const artist = this.props.library.getArtistsByIds(
+    const artists = this.props.library.getArtistsByIds(
       this.props.album.artistIds).map((artist) => {
       return artist.name;
     }).join(", ");
@@ -77,10 +77,10 @@ export default class AlbumInfo extends React.Component {
           <div
             style={{position: "relative", left: "-50%", textAlign: 'center'}}
           >
-            {artist}
+            {artists}
           </div>
         </div>
       </div>
-    )
+    );
   }
 }

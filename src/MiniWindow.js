@@ -6,11 +6,11 @@ const {ipcRenderer} = require('electron');
 
 export default class MiniWindow extends React.Component {
   goToArtist(artist) {
-    ipcRenderer.send('goToArtist', {artist: artist});
+    ipcRenderer.send('goToArtist', {artist});
   }
 
   goToAlbum(album) {
-    ipcRenderer.send('goToAlbum', {album: album});
+    ipcRenderer.send('goToAlbum', {album});
   }
 
   render() {
@@ -36,6 +36,6 @@ export default class MiniWindow extends React.Component {
             track={this.props.track}/>
         </div>
       </div>
-    )
+    );
   }
 }

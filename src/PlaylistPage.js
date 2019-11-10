@@ -1,5 +1,5 @@
 import React from 'react';
-import SongPicker  from './SongPicker.js';
+import SongPicker from './SongPicker.js';
 
 export default class PlaylistPage extends React.Component {
   render() {

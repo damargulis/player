@@ -1,5 +1,5 @@
 import React from 'react';
-import SongPicker  from './SongPicker.js';
+import SongPicker from './SongPicker.js';
 import modifyAlbum from './extensions/wiki/albums';
 
 const path = require('path');
@@ -28,7 +28,7 @@ export default class AlbumPicker extends React.Component {
           this.props.album.errors.map((error, index) => {
             return (
               <div key={index}>{error}</div>
-            )
+            );
           })
         }
       </div>
@@ -49,7 +49,7 @@ export default class AlbumPicker extends React.Component {
             {artist.name}
           </div>
         </div>
-      )
+      );
     });
   }
 
@@ -82,7 +82,7 @@ export default class AlbumPicker extends React.Component {
             </button>
           </div>
           {
-            this.getErrors() 
+            this.getErrors()
           }
         </div>
         <SongPicker
@@ -90,8 +90,8 @@ export default class AlbumPicker extends React.Component {
           songs={this.props.library.getAlbumTracks(this.props.album)}
           library={this.props.library}
         />
-          
+
       </div>
-    )
+    );
   }
 }

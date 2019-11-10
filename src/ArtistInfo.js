@@ -7,8 +7,7 @@ export default class ArtistInfo extends React.Component {
     this.state = {
       currentImg: 0,
       timerId: null,
-    }
-
+    };
   }
 
   componentDidMount() {
@@ -24,7 +23,7 @@ export default class ArtistInfo extends React.Component {
         this.setState({
           currentImg:
             (this.state.currentImg + 1) % this.props.artist.albumIds.length,
-        })
+        });
       }, time);
       if (!this.props.artist) {
         return;
@@ -48,7 +47,7 @@ export default class ArtistInfo extends React.Component {
     if (!this.props.artist) {
       return (
         <div style={this.props.stlye} />
-      )
+      );
     }
     // recenter with new width filling full space
     const newStyle = {
@@ -85,6 +84,6 @@ export default class ArtistInfo extends React.Component {
           </div>
         </div>
       </div>
-    )
+    );
   }
 }

@@ -1,6 +1,6 @@
 import AlbumPicker from './AlbumPicker.js';
 import React from 'react';
-import SongPicker  from './SongPicker.js';
+import SongPicker from './SongPicker.js';
 import {getImgSrc} from './utils';
 import modifyArtist from './extensions/wiki/artists';
 
@@ -42,18 +42,18 @@ export default class ArtistPage extends React.Component {
                 library={this.props.library}
                 goToAlbum={this.props.goToAlbum}
               />
-            </div> 
+            </div>
             <div className="container" style={{height: "50%"}}>
               <SongPicker
                 setPlaylistAndPlay={this.props.setPlaylistAndPlay}
                 library={this.props.library}
                 songs={this.props.library.getArtistTracks(this.props.artist)}
-              
+
               />
-            </div> 
+            </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 }

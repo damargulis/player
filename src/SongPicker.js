@@ -14,13 +14,13 @@ export default class SongPicker extends React.Component {
     const songs = this.sortSongs(sortBy, sortDirection);
 
     this.state = {
-      sortBy: sortBy,
-      songs: songs,
+      sortBy,
+      songs,
       // TODO: change to a set
       selected: [],
       lastSelected: null,
-      sortDirection: sortDirection,
-    }
+      sortDirection,
+    };
   }
 
   sortSongs(sortBy, sortDirection) {
@@ -95,7 +95,7 @@ export default class SongPicker extends React.Component {
       year: song.year,
       duration: toTime(song.duration),
       playCount: song.playCount,
-    }
+    };
   }
 
   getRowStyle({index}) {
@@ -117,7 +117,7 @@ export default class SongPicker extends React.Component {
       this.doClickSong(index);
       return;
     }
-    let selected = this.state.selected;
+    const selected = this.state.selected;
     const min = Math.min(index, this.state.lastSelected);
     const max = Math.max(index, this.state.lastSelected);
     for (let ind = min; ind <= max; ind++) {
@@ -137,7 +137,7 @@ export default class SongPicker extends React.Component {
     }
     this.setState({
       lastSelected: index,
-      selected: selected
+      selected
     });
   }
 
@@ -239,10 +239,10 @@ export default class SongPicker extends React.Component {
                   dataKey="playCount"
                 />
               </Table>
-            )
+            );
           }}
         </AutoSizer>
       </div>
-    )
+    );
   }
 }

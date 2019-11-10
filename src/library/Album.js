@@ -12,7 +12,6 @@ export default class Album {
     wikiPage = null,
     errors = [],
   }) {
-
     /** @type {string} */
     this.name = name;
 

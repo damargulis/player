@@ -8,10 +8,9 @@ export default class ArtistPicker extends React.Component {
     super(props);
     this.state = {
       sortedArtists: this.sortArtists(this.props.artists),
-    }
+    };
 
     this.numCols = 0;
-
   }
 
   sortArtists(artists) {
@@ -27,7 +26,7 @@ export default class ArtistPicker extends React.Component {
         return this.state.sortedArtists[index] !== artist;
       })) {
       this.setState({
-        sortedArtists: sortedArtists,
+        sortedArtists,
       });
     }
   }
@@ -47,7 +46,7 @@ export default class ArtistPicker extends React.Component {
         style={style}
         artist={artists[index]}
       />
-    )
+    );
   }
 
   // reuse the grid from album view?
@@ -60,6 +59,6 @@ export default class ArtistPicker extends React.Component {
           cellRenderer={this.cellRenderer.bind(this)}
         />
       </div>
-    )
+    );
   }
 }

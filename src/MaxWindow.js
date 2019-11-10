@@ -8,7 +8,7 @@ import PlaylistPage from './PlaylistPage.js';
 import PlaylistPicker from './PlaylistPicker.js';
 import PlaylistTypePicker from './PlaylistTypePicker.js';
 import React from 'react';
-import SongPicker  from './SongPicker.js';
+import SongPicker from './SongPicker.js';
 const {ipcRenderer} = require('electron');
 
 export default class MaxWindow extends React.Component {
@@ -20,7 +20,7 @@ export default class MaxWindow extends React.Component {
       playlistType: 'album',
       scenes: [],
       curScene: -1,
-    }
+    };
 
     ipcRenderer.on('toAlbum', (evt, data) => {
       setTimeout(() => {
@@ -72,17 +72,16 @@ export default class MaxWindow extends React.Component {
   goToAlbum(album) {
     const scenes = this.state.scenes;
     scenes.push(
-      () => (
-        <AlbumPage
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-          library={this.props.library}
-          album={album}
-          goBack={this.goBack.bind(this)}
-          goForward={this.goForward.bind(this)}
-          canGoForward={this.canGoForward()}
-          goToArtist={this.goToArtist.bind(this)}
-        />
-      )
+      () => <AlbumPage
+        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
+        library={this.props.library}
+        album={album}
+        goBack={this.goBack.bind(this)}
+        goForward={this.goForward.bind(this)}
+        canGoForward={this.canGoForward()}
+        goToArtist={this.goToArtist.bind(this)}
+      />
+
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
@@ -91,18 +90,17 @@ export default class MaxWindow extends React.Component {
   goToArtist(artist) {
     const scenes = this.state.scenes;
     scenes.push(
-      () => (
-        <ArtistPage
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-          library={this.props.library}
-          artist={artist}
-          goBack={this.goBack.bind(this)}
-          goForward={this.goForward.bind(this)}
-          canGoForward={this.canGoForward()}
-          goToAlbum={this.goToAlbum.bind(this)}
-          playSong={this.props.playSong}
-        />
-      )
+      () => <ArtistPage
+        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
+        library={this.props.library}
+        artist={artist}
+        goBack={this.goBack.bind(this)}
+        goForward={this.goForward.bind(this)}
+        canGoForward={this.canGoForward()}
+        goToAlbum={this.goToAlbum.bind(this)}
+        playSong={this.props.playSong}
+      />
+
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
@@ -111,17 +109,16 @@ export default class MaxWindow extends React.Component {
   goToPlaylist(playlist) {
     const scenes = this.state.scenes;
     scenes.push(
-      (genres) => (
-        <PlaylistPage
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-          library={this.props.library}
-          playlist={playlist}
-          goBack={this.goBack.bind(this)}
-          goForward={this.goForward.bind(this)}
-          canGoForward={this.canGoForward()}
-          genres={genres}
-        />
-      )
+      (genres) => <PlaylistPage
+        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
+        library={this.props.library}
+        playlist={playlist}
+        goBack={this.goBack.bind(this)}
+        goForward={this.goForward.bind(this)}
+        canGoForward={this.canGoForward()}
+        genres={genres}
+      />
+
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
@@ -140,7 +137,7 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           goToAlbum={this.goToAlbum.bind(this)}
         />
-      )
+      );
     case 'artist':
       return (
         <ArtistPicker
@@ -149,7 +146,7 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           goToArtist={this.goToArtist.bind(this)}
         />
-      )
+      );
     case 'song':
       return (
         <SongPicker
@@ -158,7 +155,7 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           songs={this.props.library.getTracks(this.state.genres)}
         />
-      )
+      );
     case 'playlist':
       return (
         <PlaylistPicker
@@ -166,7 +163,7 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           goToPlaylist={this.goToPlaylist.bind(this)}
         />
-      )
+      );
     default:
       return null;
     }
@@ -192,7 +189,7 @@ export default class MaxWindow extends React.Component {
         />
         <div className="section">
           <div id="sidebar">
-            <PlaylistTypePicker 
+            <PlaylistTypePicker
               setType={this.setType.bind(this)}
             />
             <GenrePicker
@@ -205,7 +202,7 @@ export default class MaxWindow extends React.Component {
           }
         </div>
       </div>
-    )
+    );
   }
 }
 
