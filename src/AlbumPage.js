@@ -2,6 +2,7 @@ import NavigationBar from './NavigationBar';
 import React from 'react';
 import SongPicker from './SongPicker.js';
 import modifyAlbum from './extensions/wiki/albums';
+import {toTime} from './utils';
 
 const path = require('path');
 
@@ -54,6 +55,12 @@ export default class AlbumPicker extends React.Component {
     });
   }
 
+  getTotalTime() {
+    const songs = this.props.library.getAlbumTracks(this.props.album);
+    const duration = songs.reduce((total, song) => total + song.duration, 0);
+    return toTime(duration);
+  }
+
   render() {
     // todo use albumInfo or combine logic
     // ya know actually separate conscers and shit
@@ -76,6 +83,7 @@ export default class AlbumPicker extends React.Component {
             <img src={src} alt="album art" width="100" height="100" />
             <div>{this.props.album && this.props.album.name}</div>
             {this.getArtistLinks()}
+            <div>Total Time: {this.getTotalTime()}</div>
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>
