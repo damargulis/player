@@ -21,6 +21,7 @@ export default class PlaylistPage extends React.Component {
             <img src={src} alt="playlist" width="100" height="100" />
             <div>{this.props.playlist && this.props.playlist.name}</div>
             <button onClick={this.props.goBack}>Back</button>
+            <button disabled={!this.props.canGoForward} onClick={this.props.goForward}>Forward</button>
           </div>
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>

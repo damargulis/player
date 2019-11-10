@@ -19,6 +19,7 @@ export default class MaxWindow extends React.Component {
       genres: [],
       playlistType: 'album',
       scenes: [],
+      curScene: -1,
     }
 
     ipcRenderer.on('toAlbum', (evt, data) => {
@@ -48,15 +49,24 @@ export default class MaxWindow extends React.Component {
     this.setState({
       playlistType: type,
       scenes: [],
+      curScene: -1,
     });
   }
 
   goBack() {
-    const scenes = this.state.scenes;
-    scenes.pop();
     this.setState({
-      scenes,
+      curScene: this.state.curScene - 1,
     });
+  }
+
+  goForward() {
+    this.setState({
+      curScene: this.state.curScene + 1,
+    });
+  }
+
+  canGoForward() {
+    return this.state.curScene < this.state.scenes.length - 1;
   }
 
   goToAlbum(album) {
@@ -68,11 +78,14 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           album={album}
           goBack={this.goBack.bind(this)}
+          goForward={this.goForward.bind(this)}
+          canGoForward={this.canGoForward()}
           goToArtist={this.goToArtist.bind(this)}
         />
       )
     );
-    this.setState({scenes});
+    const curScene = this.state.curScene += 1;
+    this.setState({scenes, curScene});
   }
 
   goToArtist(artist) {
@@ -84,12 +97,15 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           artist={artist}
           goBack={this.goBack.bind(this)}
+          goForward={this.goForward.bind(this)}
+          canGoForward={this.canGoForward()}
           goToAlbum={this.goToAlbum.bind(this)}
           playSong={this.props.playSong}
         />
       )
     );
-    this.setState({scenes});
+    const curScene = this.state.curScene += 1;
+    this.setState({scenes, curScene});
   }
 
   goToPlaylist(playlist) {
@@ -101,16 +117,19 @@ export default class MaxWindow extends React.Component {
           library={this.props.library}
           playlist={playlist}
           goBack={this.goBack.bind(this)}
+          goForward={this.goForward.bind(this)}
+          canGoForward={this.canGoForward()}
           genres={genres}
         />
       )
     );
-    this.setState({scenes});
+    const curScene = this.state.curScene += 1;
+    this.setState({scenes, curScene});
   }
 
   getPicker() {
-    if (this.state.scenes.length) {
-      return this.state.scenes[this.state.scenes.length - 1](this.state.genres);
+    if (this.state.curScene >= 0) {
+      return this.state.scenes[this.state.curScene](this.state.genres);
     }
     switch (this.state.playlistType) {
     case 'album':
