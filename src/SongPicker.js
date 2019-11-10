@@ -26,55 +26,55 @@ export default class SongPicker extends React.Component {
   sortSongs(sortBy, sortDirection) {
     let songs = this.props.songs.slice();
     switch (sortBy) {
-      case 'name':
-        songs = songs.sort((song1, song2) => {
-          return song1.name.localeCompare(song2.name);
-        });
-        break;
-      case 'duration':
-        songs = songs.sort((song1, song2) => {
-          return song1.duration - song2.duration;
-        });
-        break;
-      case 'year':
-        songs = songs.sort((song1, song2) => {
-          return song1.year - song2.year;
-        });
-        break;
-      case 'playCount':
-        songs = songs.sort((song1, song2) => {
-          return song1.playCount - song2.playCount;
-        });
-        break;
-      case 'artists':
-        songs = songs.sort((song1, song2) => {
-          const artists1 = this.props.library.getArtistsByIds(song1.artistIds)
-            .map(artist => artist.name).join(', ');
-          const artists2 = this.props.library.getArtistsByIds(song2.artistIds)
-            .map(artist => artist.name).join(', ');
-          return artists1.localeCompare(artists2);
-        });
-        break;
-      case 'albums':
-        songs = songs.sort((song1, song2) => {
-          const albums1 = this.props.library.getAlbumsByIds(song1.albumIds)
-            .map(album => album.name).join(', ');
-          const albums2 = this.props.library.getAlbumsByIds(song2.albumIds)
-            .map(album => album.name).join(', ');
-          return albums1.localeCompare(albums2);
-        });
-        break;
-      case 'genres':
-        songs = songs.sort((song1, song2) => {
-          const genres1 = this.props.library.getGenresByIds(song1.genreIds)
-            .join(', ');
-          const genres2 = this.props.library.getGenresByIds(song2.genreIds)
-            .join(', ');
-          return genres1.localeCompare(genres2);
-        });
-        break;
-      default:
-        break;
+    case 'name':
+      songs = songs.sort((song1, song2) => {
+        return song1.name.localeCompare(song2.name);
+      });
+      break;
+    case 'duration':
+      songs = songs.sort((song1, song2) => {
+        return song1.duration - song2.duration;
+      });
+      break;
+    case 'year':
+      songs = songs.sort((song1, song2) => {
+        return song1.year - song2.year;
+      });
+      break;
+    case 'playCount':
+      songs = songs.sort((song1, song2) => {
+        return song1.playCount - song2.playCount;
+      });
+      break;
+    case 'artists':
+      songs = songs.sort((song1, song2) => {
+        const artists1 = this.props.library.getArtistsByIds(song1.artistIds)
+          .map(artist => artist.name).join(', ');
+        const artists2 = this.props.library.getArtistsByIds(song2.artistIds)
+          .map(artist => artist.name).join(', ');
+        return artists1.localeCompare(artists2);
+      });
+      break;
+    case 'albums':
+      songs = songs.sort((song1, song2) => {
+        const albums1 = this.props.library.getAlbumsByIds(song1.albumIds)
+          .map(album => album.name).join(', ');
+        const albums2 = this.props.library.getAlbumsByIds(song2.albumIds)
+          .map(album => album.name).join(', ');
+        return albums1.localeCompare(albums2);
+      });
+      break;
+    case 'genres':
+      songs = songs.sort((song1, song2) => {
+        const genres1 = this.props.library.getGenresByIds(song1.genreIds)
+          .join(', ');
+        const genres2 = this.props.library.getGenresByIds(song2.genreIds)
+          .join(', ');
+        return genres1.localeCompare(genres2);
+      });
+      break;
+    default:
+      break;
     }
     if (sortDirection === 'DESC') {
       songs = songs.reverse();
@@ -171,7 +171,7 @@ export default class SongPicker extends React.Component {
     this.props.setPlaylistAndPlay(playlist);
   }
 
-  sort({defaultSortDirection, event, sortBy, sortDirection}) {
+  sort({sortBy, sortDirection}) {
     const songs = this.sortSongs(sortBy, sortDirection);
     const selectedNow = this.state.selected.map((index) => {
       return this.state.songs[index];

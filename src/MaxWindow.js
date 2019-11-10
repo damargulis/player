@@ -84,7 +84,7 @@ export default class MaxWindow extends React.Component {
         />
       )
     );
-    const curScene = this.state.curScene += 1;
+    const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
   }
 
@@ -104,7 +104,7 @@ export default class MaxWindow extends React.Component {
         />
       )
     );
-    const curScene = this.state.curScene += 1;
+    const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
   }
 
@@ -123,7 +123,7 @@ export default class MaxWindow extends React.Component {
         />
       )
     );
-    const curScene = this.state.curScene += 1;
+    const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
   }
 

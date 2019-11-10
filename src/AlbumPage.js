@@ -71,7 +71,12 @@ export default class AlbumPicker extends React.Component {
             <div>{this.props.album && this.props.album.name}</div>
             {this.getArtistLinks()}
             <button onClick={this.props.goBack}>Back</button>
-            <button disabled={!this.props.canGoForward} onClick={this.props.goForward}>Forward</button>
+            <button
+              disabled={!this.props.canGoForward}
+              onClick={this.props.goForward}
+            >
+              Forward
+            </button>
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>

@@ -349,9 +349,9 @@ export function createLibraryFromItunes() {
     });
     const playlists = realPlaylists.map((playlist) => {
       const trackIds = playlist.Tracks.filter((track) => track != null)
-        .map((track, index) => {
-        return trackMap.get(track['Persistent ID']).id;
-      });
+        .map((track) => {
+          return trackMap.get(track['Persistent ID']).id;
+        });
       return new Playlist({name: playlist.Name, trackIds: trackIds});
     });
 
