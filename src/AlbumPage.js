@@ -1,6 +1,7 @@
 import React from 'react';
 import SongPicker from './SongPicker.js';
 import modifyAlbum from './extensions/wiki/albums';
+import NavigationBar from './NavigationBar';
 
 const path = require('path');
 
@@ -67,16 +68,14 @@ export default class AlbumPicker extends React.Component {
       <div className="main">
         <div className="albumPageHeader" style={{display: "flex"}}>
           <div className="info">
+            <NavigationBar
+              goBack={this.props.goBack}
+              goForward={this.props.goForward}
+              canGoForward={this.props.canGoForward}
+            />
             <img src={src} alt="album art" width="100" height="100" />
             <div>{this.props.album && this.props.album.name}</div>
             {this.getArtistLinks()}
-            <button onClick={this.props.goBack}>Back</button>
-            <button
-              disabled={!this.props.canGoForward}
-              onClick={this.props.goForward}
-            >
-              Forward
-            </button>
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>

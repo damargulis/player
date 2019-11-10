@@ -70,7 +70,7 @@ export default class MaxWindow extends React.Component {
   }
 
   goToAlbum(album) {
-    const scenes = this.state.scenes;
+    const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <AlbumPage
         setPlaylistAndPlay={this.props.setPlaylistAndPlay}
@@ -81,14 +81,13 @@ export default class MaxWindow extends React.Component {
         canGoForward={this.canGoForward()}
         goToArtist={this.goToArtist.bind(this)}
       />
-
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
   }
 
   goToArtist(artist) {
-    const scenes = this.state.scenes;
+    const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <ArtistPage
         setPlaylistAndPlay={this.props.setPlaylistAndPlay}
@@ -107,7 +106,7 @@ export default class MaxWindow extends React.Component {
   }
 
   goToPlaylist(playlist) {
-    const scenes = this.state.scenes;
+    const scenes = this.state.scenes.slice(this.state.curScene + 1);
     scenes.push(
       (genres) => <PlaylistPage
         setPlaylistAndPlay={this.props.setPlaylistAndPlay}

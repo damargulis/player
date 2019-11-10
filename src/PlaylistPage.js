@@ -1,5 +1,6 @@
 import React from 'react';
 import SongPicker from './SongPicker.js';
+import NavigationBar from './NavigationBar';
 
 export default class PlaylistPage extends React.Component {
   render() {
@@ -18,15 +19,13 @@ export default class PlaylistPage extends React.Component {
       <div className="main">
         <div className="playlistPageHeader" style={{display: "flex"}}>
           <div className="info">
+            <NavigationBar
+              goBack={this.props.goBack}
+              goForward={this.props.goForward}
+              canGoForward={this.props.canGoForward}
+            />
             <img src={src} alt="playlist" width="100" height="100" />
             <div>{this.props.playlist && this.props.playlist.name}</div>
-            <button onClick={this.props.goBack}>Back</button>
-            <button
-              disabled={!this.props.canGoForward}
-              onClick={this.props.goForward}
-            >
-              Forward
-            </button>
           </div>
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>
