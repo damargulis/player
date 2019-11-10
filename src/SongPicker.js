@@ -26,6 +26,8 @@ export default class SongPicker extends React.Component {
   sortSongs(sortBy, sortDirection) {
     let songs = this.props.songs.slice();
     switch (sortBy) {
+    case 'index':
+      break;
     case 'name':
       songs = songs.sort((song1, song2) => {
         return song1.name.localeCompare(song2.name);
@@ -86,6 +88,7 @@ export default class SongPicker extends React.Component {
     const song = this.state.songs[index];
     // TODO: make album (maybe artist?) rotate
     return {
+      index: this.props.songs.indexOf(song),
       name: song.name,
       artists: this.props.library.getArtistsByIds(song.artistIds)
         .map(artist => artist.name).join(', '),
@@ -203,6 +206,11 @@ export default class SongPicker extends React.Component {
                 sortDirection={this.state.sortDirection}
                 rowClassName="songRow"
               >
+                <Column
+                  label="Index"
+                  width={50}
+                  dataKey="index"
+                />
                 <Column
                   label="Name"
                   width={300}
