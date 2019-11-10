@@ -15,6 +15,7 @@ export default class ArtistPage extends React.Component {
     const src = getImgSrc(this.props.artist.artFile);
     return (
       <div className="main">
+        <div className="pageHolder" style={{display: "flex", flexDirection: "column", height: "100%"}}>
         <div className="artistPageHeader" style={{display: "flex"}}>
           <div className="info">
             <img src={src} alt="artist art" width="100" height="100" />
@@ -42,6 +43,7 @@ export default class ArtistPage extends React.Component {
               
             />
           </div> 
+        </div>
         </div>
       </div>
     )

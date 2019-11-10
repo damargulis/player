@@ -7,7 +7,6 @@ import Track from './Track';
 const fs = require('fs')
 const path = require('path');
 const shortid = require('shortid');
-// open to reload from itunes
 const {execSync} = require('child_process');
 
 const mm = require('musicmetadata');
@@ -349,7 +348,8 @@ export function createLibraryFromItunes() {
       });
     });
     const playlists = realPlaylists.map((playlist) => {
-      const trackIds = playlist.Tracks.map((track) => {
+      const trackIds = playlist.Tracks.filter((track) => track != null)
+        .map((track, index) => {
         return trackMap.get(track['Persistent ID']).id;
       });
       return new Playlist({name: playlist.Name, trackIds: trackIds});
@@ -368,7 +368,5 @@ export function createLibraryFromItunes() {
       resolve(new Library(tracks, albums, artists, genreArray, playlists));
     });
   });
-  //stream.pipe(parser);
-  //});
 }
 

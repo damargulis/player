@@ -8,52 +8,82 @@ import 'react-virtualized/styles.css';
 export default class SongPicker extends React.Component {
   constructor(props) {
     super(props);
+
+    const sortDirection = 'ASC';
+    const sortBy = 'name';
+    const songs = this.sortSongs(sortBy, sortDirection);
+
     this.state = {
-      sortMethod: null,
-      reverse: false,
-      sortedSongs: this.sortSongs(this.props.songs),
+      sortBy: sortBy,
+      songs: songs,
       // TODO: change to a set
       selected: [],
       lastSelected: null,
-    }
-
-  }
-
-  componentDidUpdate() {
-    const sortedSongs = this.sortSongs(this.props.songs);
-    if (sortedSongs.length !== this.state.sortedSongs.length ||
-      sortedSongs.some((song, index) => {
-        return this.state.sortedSongs[index] !== song;
-      })) {
-      const selectedNow = this.state.selected.map((index) => {
-        return this.state.sortedSongs[index];
-      });
-      const selectedNext = selectedNow.map((song) => {
-        return sortedSongs.indexOf(song);
-      });
-      this.setState({
-        sortedSongs: sortedSongs,
-        selected: selectedNext,
-      });
+      sortDirection: sortDirection,
     }
   }
 
-  sortSongs(songs) {
-    if (this.state && this.state.sortMethod) {
-      return songs.slice().sort((song1, song2) => {
-        if (this.state.reverse) {
-          return this.state.sortMethod(song2, song1);
-        }
-        return this.state.sortMethod(song1, song2);
-      });
+  sortSongs(sortBy, sortDirection) {
+    let songs = this.props.songs.slice();
+    switch (sortBy) {
+      case 'name':
+        songs = songs.sort((song1, song2) => {
+          return song1.name.localeCompare(song2.name);
+        });
+        break;
+      case 'duration':
+        songs = songs.sort((song1, song2) => {
+          return song1.duration - song2.duration;
+        });
+        break;
+      case 'year':
+        songs = songs.sort((song1, song2) => {
+          return song1.year - song2.year;
+        });
+        break;
+      case 'playCount':
+        songs = songs.sort((song1, song2) => {
+          return song1.playCount - song2.playCount;
+        });
+        break;
+      case 'artists':
+        songs = songs.sort((song1, song2) => {
+          const artists1 = this.props.library.getArtistsByIds(song1.artistIds)
+            .map(artist => artist.name).join(', ');
+          const artists2 = this.props.library.getArtistsByIds(song2.artistIds)
+            .map(artist => artist.name).join(', ');
+          return artists1.localeCompare(artists2);
+        });
+        break;
+      case 'albums':
+        songs = songs.sort((song1, song2) => {
+          const albums1 = this.props.library.getAlbumsByIds(song1.albumIds)
+            .map(album => album.name).join(', ');
+          const albums2 = this.props.library.getAlbumsByIds(song2.albumIds)
+            .map(album => album.name).join(', ');
+          return albums1.localeCompare(albums2);
+        });
+        break;
+      case 'genres':
+        songs = songs.sort((song1, song2) => {
+          const genres1 = this.props.library.getGenresByIds(song1.genreIds)
+            .join(', ');
+          const genres2 = this.props.library.getGenresByIds(song2.genreIds)
+            .join(', ');
+          return genres1.localeCompare(genres2);
+        });
+        break;
+      default:
+        break;
     }
-    return songs.slice().sort((song1, song2) => {
-      return song1.name.localeCompare(song2.name);
-    });
+    if (sortDirection === 'DESC') {
+      songs = songs.reverse();
+    }
+    return songs;
   }
 
   getSongData(index) {
-    const song = this.state.sortedSongs[index];
+    const song = this.state.songs[index];
     // TODO: make album (maybe artist?) rotate
     return {
       name: song.name,
@@ -135,10 +165,21 @@ export default class SongPicker extends React.Component {
   }
 
   doDoubleClickSong(index) {
-    const song = this.state.sortedSongs[index];
-    const playlist = new RandomSongPlaylist(this.state.sortedSongs);
+    const song = this.state.songs[index];
+    const playlist = new RandomSongPlaylist(this.state.songs);
     playlist.addSong(song);
     this.props.setPlaylistAndPlay(playlist);
+  }
+
+  sort({defaultSortDirection, event, sortBy, sortDirection}) {
+    const songs = this.sortSongs(sortBy, sortDirection);
+    const selectedNow = this.state.selected.map((index) => {
+      return this.state.songs[index];
+    });
+    const selected = selectedNow.map((song) => {
+      return songs.indexOf(song);
+    });
+    this.setState({sortBy, sortDirection, songs, selected});
   }
 
   render() {
@@ -150,13 +191,16 @@ export default class SongPicker extends React.Component {
               <Table
                 headerHeight={30}
                 height={height}
-                rowCount={this.state.sortedSongs.length}
+                rowCount={this.state.songs.length}
                 rowGetter={({index}) => this.getSongData(index)}
                 rowHeight={20}
                 width={width}
                 rowStyle={this.getRowStyle.bind(this)}
                 onRowClick={this.onRowClick.bind(this)}
                 onRowDoubleClick={this.onRowDoubleClick.bind(this)}
+                sortBy={this.state.sortBy}
+                sort={this.sort.bind(this)}
+                sortDirection={this.state.sortDirection}
                 rowClassName="songRow"
               >
                 <Column
