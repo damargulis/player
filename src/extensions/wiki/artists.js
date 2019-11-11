@@ -1,12 +1,10 @@
+import {BASE_URL} from './constants';
 import {findAsync, getGenres} from './utils';
 
 const rp = require('request-promise-native');
 const fs = require('fs');
 const shortid = require('shortid');
 
-
-// TODO: move to common constants
-const BASE_URL = "https://en.wikipedia.org/api/rest_v1/page/html/";
 
 /**
  * Returns all possible wikipedia link names for an artist.

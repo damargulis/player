@@ -1,12 +1,10 @@
+import {BASE_URL} from './constants';
 import {findAsync, getGenres, sanitize} from './utils';
 
 const rp = require('request-promise-native');
 const moment = require('moment');
 const fs = require('fs');
 const shortid = require('shortid');
-
-
-const BASE_URL = "https://en.wikipedia.org/api/rest_v1/page/html/";
 
 /**
  * Gets the year from a year node on a wiki page.
