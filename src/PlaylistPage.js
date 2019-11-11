@@ -1,8 +1,16 @@
 import NavigationBar from './NavigationBar';
 import React from 'react';
 import SongPicker from './SongPicker.js';
+import {toTime} from './utils';
 
 export default class PlaylistPage extends React.Component {
+  getTotalTime() {
+    const songs = this.props.library.getArtistTracks(
+      this.props.playlist);
+    const duration = songs.reduce((total, song) => total + song.duration, 0);
+    return toTime(duration);
+  }
+
   render() {
     const src = "";
     const allPlaylistSongs = this.props.library.getArtistTracks(
@@ -26,6 +34,7 @@ export default class PlaylistPage extends React.Component {
             />
             <img src={src} alt="playlist" width="100" height="100" />
             <div>{this.props.playlist && this.props.playlist.name}</div>
+            <div>Total Time: {this.getTotalTime()}</div>
           </div>
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>
