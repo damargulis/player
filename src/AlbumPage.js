@@ -1,3 +1,4 @@
+import EditableAttribute from './EditableAttribute';
 import NavigationBar from './NavigationBar';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
@@ -89,7 +90,13 @@ export default class AlbumPicker extends React.Component {
               canGoForward={this.props.canGoForward}
             />
             <img src={src} alt="album art" width="100" height="100" />
-            <div>{this.props.album && this.props.album.name}</div>
+            <EditableAttribute
+              attr={this.props.album && this.props.album.name}
+              onSave={(value) => {
+                this.props.album.name = value;
+                this.props.library.save();
+              }}
+            />
             {this.getArtistLinks()}
             <div>Total Time: {this.getTotalTime()}</div>
             <div>{this.props.album.year}</div>
