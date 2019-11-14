@@ -8,6 +8,7 @@ export default class ArtistPicker extends React.Component {
     super(props);
     this.state = {
       sortedArtists: this.sortArtists(this.props.artists),
+      withErrors: false,
     };
 
     this.numCols = 0;
@@ -36,7 +37,10 @@ export default class ArtistPicker extends React.Component {
   }
 
   cellRenderer(index, key, style) {
-    const artists = this.state.sortedArtists;
+    const artists = this.state.withErrors
+      ? this.state.sortedArtists.filter((artist) => {
+        return artist.errors.length > 0;
+      }) : this.state.sortedArtists;
     return (
       <ArtistInfo
         goToArtist={(artist) => this.goToArtist(artist)}
@@ -49,13 +53,24 @@ export default class ArtistPicker extends React.Component {
     );
   }
 
+  withErrors() {
+    this.setState({
+      withErrors: !this.state.withErrors,
+    });
+  }
+
   // reuse the grid from album view?
   // source pictures from wikipedia, rotate album covers as backup
   render() {
+    const items = this.state.withErrors
+      ? this.state.sortedArtists.filter((artist) => {
+        return artist.errors.length > 0;
+      }) : this.state.sortedArtists;
     return (
       <div className="main">
+        <button onClick={() => this.withErrors()}>With Errors Only</button>
         <WrappedGrid
-          items={this.state.sortedArtists}
+          items={items}
           cellRenderer={this.cellRenderer.bind(this)}
         />
       </div>

@@ -28,7 +28,7 @@ function getYear(rootNode) {
  * @return {!Array<string>} The possible wikipedia page links.
  */
 function getAllWikiOptions(album, artist) {
-  const albumName = album.name.replace(/ /g, "_");
+  const albumName = album.name.replace('#', 'Number ').replace(/ /g, "_");
   const artistName = artist.name.replace(/ /g, "_");
   return [
     BASE_URL + albumName,
@@ -39,7 +39,8 @@ function getAllWikiOptions(album, artist) {
     BASE_URL + albumName + "_(song)",
     BASE_URL + albumName + "_(" + artistName + "_song)",
     BASE_URL + albumName + "_(" + artistName + "_mixtape)",
-    BASE_URL + albumName + "_(" + artistName + "_EP)"
+    BASE_URL + albumName + "_(" + artistName + "_EP)",
+    BASE_URL + albumName + "_(" + album.year + "_album)",
   ];
 }
 
@@ -78,61 +79,77 @@ function searchForWikiPage(album, library) {
 }
 
 /**
+ * Modifys an album based on the data found on its wikipedia page.
+ * @param {!Album} album The album to modify.
+ * @param {!Library} library The library the album is from.
+ * @return {!Promise} A promise resolving once finished.
+ */
+function modifyAlbum(album, library) {
+  return rp(album.wikiPage).then((htmlString) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    const infoBoxes = doc.getElementsByClassName('infobox');
+    const infoBox = infoBoxes[0];
+    const rows = infoBox.getElementsByTagName('tr');
+    for (const row of rows) {
+      try {
+        const headers = row.getElementsByTagName('th');
+        const name = headers[0] && headers[0].textContent;
+        const data = row.getElementsByTagName('td')[0];
+        switch (name) {
+        case 'Genre':
+          album.genreIds = library.getGenreIds(getGenres(data));
+          break;
+        case 'Released':
+          album.year = getYear(data);
+          break;
+        default:
+          break;
+        }
+      } catch (err) {
+        album.errors.push("Non fatal: " + err);
+      }
+    }
+
+    const pics = infoBox.getElementsByTagName('img');
+    //TODO: take multiple pictures (rotate them elsewhere in the app)
+    const pic = pics[0];
+    const options = {
+      url: pic.src,
+      encoding: 'binary',
+    };
+    return rp(options).then((data) => {
+      if (!album.albumArtFile) {
+        const id = shortid.generate();
+        album.albumArtFile = './data/' + id + '.png';
+      }
+      fs.writeFileSync(album.albumArtFile, data, 'binary');
+      // TODO: bad -- should only remove errors that have beens solved..
+      album.errors = [];
+    });
+  }).catch(() => {
+    album.errors.push("Wikipedia: Parsing error");
+  });
+}
+
+/**
  * Runs the extension to modify an album with the wikipedia data. Will try to
  * find a wikipedia page if one doesn't already exist.
  * @param {!Album} album The album to modify
  * @param {!Library} library The base library to modify.
  * @return {!Promise} A promise that resolves once finished.
  */
-export default async function modifyAlbum(album, library) {
+export default function runAlbumModifier(album, library) {
   if (!album.wikiPage) {
-    album.wikiPage = await searchForWikiPage(album, library);
-  }
-  if (album.wikiPage) {
-    return rp(album.wikiPage).then((htmlString) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlString, 'text/html');
-      const infoBoxes = doc.getElementsByClassName('infobox');
-      const infoBox = infoBoxes[0];
-      const rows = infoBox.getElementsByTagName('tr');
-      for (const row of rows) {
-        try {
-          const headers = row.getElementsByTagName('th');
-          const name = headers[0] && headers[0].textContent;
-          const data = row.getElementsByTagName('td')[0];
-          switch (name) {
-          case 'Genre':
-            album.genreIds = library.getGenreIds(getGenres(data));
-            break;
-          case 'Released':
-            album.year = getYear(data);
-            break;
-          default:
-            break;
-          }
-        } catch (err) {
-          album.errors.push("Non fatal: " + err);
-        }
+    return searchForWikiPage(album, library).then((wikiPage) => {
+      if (wikiPage) {
+        album.wikiPage = wikiPage;
+        return modifyAlbum(album, library);
       }
-
-      const pics = infoBox.getElementsByTagName('img');
-      //TODO: take multiple pictures (rotate them elsewhere in the app)
-      const pic = pics[0];
-      const options = {
-        url: pic.src,
-        encoding: 'binary',
-      };
-      return rp(options).then((data) => {
-        if (!album.albumArtFile) {
-          const id = shortid.generate();
-          album.albumArtFile = './data/' + id + '.png';
-        }
-        fs.writeFileSync(album.albumArtFile, data, 'binary');
-      });
-    }).catch(() => {
-      album.errors.push("Wikipedia: Parsing error");
+      // add error for no wiki page
+      return Promise.resolve();
     });
   }
-  album.errors.push("No wiki page found");
-  return Promise.resolve();
+  return modifyAlbum(album, library);
 }
+

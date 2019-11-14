@@ -12,6 +12,7 @@ export default class AlbumPicker extends React.Component {
       sortMethod: null,
       reverse: false,
       sortedAlbums: this.sortAlbums(this.props.albums),
+      withErrors: false,
     };
     this.numCols = 0;
 
@@ -58,7 +59,10 @@ export default class AlbumPicker extends React.Component {
   }
 
   cellRenderer(index, key, style) {
-    const albums = this.state.sortedAlbums;
+    const albums = this.state.withErrors
+      ? this.state.sortedAlbums.filter((album) => {
+        return album.errors.length > 0;
+      }) : this.state.sortedAlbums;
     return (
       <AlbumInfo
         playAlbum={this.playAlbum.bind(this)}
@@ -96,7 +100,17 @@ export default class AlbumPicker extends React.Component {
     }
   }
 
+  withErrors() {
+    this.setState({
+      withErrors: !this.state.withErrors,
+    });
+  }
+
   render() {
+    const items = this.state.withErrors
+      ? this.state.sortedAlbums.filter((album) => {
+        return album.errors.length > 0;
+      }) : this.state.sortedAlbums;
     return (
       <div className="main" >
         <div id="sortPicker" style={{textAlign: "center"}}>
@@ -104,9 +118,10 @@ export default class AlbumPicker extends React.Component {
           <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
           </button>
           <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
+          <button onClick={() => this.withErrors()}>With Errors Only</button>
         </div>
         <WrappedGrid
-          items={this.state.sortedAlbums}
+          items={items}
           cellRenderer={this.cellRenderer.bind(this)}
         />
       </div>

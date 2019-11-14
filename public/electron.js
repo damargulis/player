@@ -1,6 +1,3 @@
-
-//const electron = require('electron');
-//console.log(electron);
 const {app, BrowserWindow, Menu, MenuItem, ipcMain, shell} = require('electron');
 const defaultMenu = require('electron-default-menu');
 
@@ -34,22 +31,51 @@ function maximize() {
   mainWindow.setSize(1430, 800);
 }
 
+// TODO: change name to be playerEvt or something since its used for more than
+// just extensions
 let extEvt;
 ipcMain.on('extension-ready', (evt) => {
   extEvt = evt;
 });
 
-function runExtension(type) {
-  extEvt.reply('run-extension', type);
+let extensionWindow;
+
+let extensionEvt;
+ipcMain.on('extension-monitor-ready', (evt) => {
+  extensionEvt = evt;
+});
+
+ipcMain.on('extension-update', (evt, arg) => {
+  // TODO: turn into a queue
+  if (extensionEvt) {
+    extensionEvt.reply(arg.type, arg);
+  }
+});
+
+ipcMain.on('extension-close', (evt, arg) => {
+  if (extensionWindow) {
+    extensionWindow.close();
+  }
+});
+
+function resetLibrary() {
+  extEvt.reply('reset-library');
 }
 
-function createLibrary() {
-  //const libraryFile = "~/Music/iTunes/iTunes\ Music\ Library.xml";
-
+function runExtension(type) {
+  extEvt.reply('run-extension', type);
+  extensionWindow = new BrowserWindow({
+    width: 500,
+    height: 250,
+    webPreferences: {
+      nodeIntegration: true,
+      webSecutiry: false,
+    },
+  });
+  extensionWindow.loadURL(`file://${path.join(__dirname, './extension_monitor.html')}`);
 }
 
 function createWindow() {
-  createLibrary();
   mainWindow = new BrowserWindow({
     width: 1430,
     height: 800,
@@ -65,6 +91,12 @@ function createWindow() {
   }
   mainWindow.on('closed', () => mainWindow = null);
   const menu = defaultMenu(app, shell);
+  menu.push(new MenuItem({
+    label: "Library",
+    submenu: [
+      {label: "Reset from itunes", click: () => resetLibrary()},
+    ]
+  }));
   menu.push(new MenuItem({
     label: "Extensions",
     submenu: [

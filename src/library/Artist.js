@@ -6,6 +6,7 @@ export default class Artist {
     genreIds = [],
     errors = [],
     artFile = null,
+    wikiPage = null,
   }) {
     /** @type {string} */
     this.name = name;
@@ -24,6 +25,9 @@ export default class Artist {
 
     /** @type {?string} */
     this.artFile = artFile;
+
+    /** @type {?string} */
+    this.wikiPage = wikiPage;
   }
 }
 

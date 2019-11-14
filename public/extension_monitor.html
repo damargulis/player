@@ -1,0 +1,64 @@
+<html>
+  <head>
+    <title>Extension Monitor</title>
+  </head>
+  <body>
+    <div id="log"></div>
+    <div><span id="percent">0</span>% Complete</div>
+    <div style="height: 20px; border: solid black 1px" id="outer">
+      <span style="background-color: red; display: block; height: 20px; width: 0%" id="inner"></span>
+    </div>
+  <script>
+
+const electron = window.require('electron');
+const logDiv = document.getElementById('log');
+const percentSpan = document.getElementById('percent');
+const inner = document.getElementById('inner');
+const outer = document.getElementById('outer');
+
+function close() {
+  electron.ipcRenderer.send('extension-close');
+}
+
+electron.ipcRenderer.on('done', () => {
+  const button = document.createElement('button');
+  button.textContent = 'Done';
+  button.addEventListener('click', () => {
+    close();
+  });
+  document.body.innerHTML = '';
+  document.body.appendChild(button);
+});
+
+electron.ipcRenderer.on('start-album', (evt, arg) => {
+  const msg = document.createElement('div');
+  msg.textContent = "Modifying: " + arg.name + " by: " + arg.artist;
+  msg.id = arg.id;
+  logDiv.appendChild(msg);
+});
+
+electron.ipcRenderer.on('start-artist', (evt, arg) => {
+  const msg = document.createElement('div');
+  msg.textContent = "Modifying: " + arg.name;
+  msg.id = arg.id;
+  logDiv.appendChild(msg);
+});
+
+electron.ipcRenderer.on('end-album', (evt, arg) => {
+  const msg = document.getElementById(arg.id);
+  msg.remove();
+  percentSpan.textContent = arg.percent;
+  inner.style.width = arg.percent + "%";
+});
+
+electron.ipcRenderer.on('end-artist', (evt, arg) => {
+  const msg = document.getElementById(arg.id);
+  msg.remove();
+  percentSpan.textContent = arg.percent;
+  inner.style.width = arg.percent + "%";
+});
+
+electron.ipcRenderer.send('extension-monitor-ready');
+  </script>
+  </body>
+</html>

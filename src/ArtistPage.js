@@ -12,6 +12,31 @@ export default class ArtistPage extends React.Component {
     });
   }
 
+  getErrors() {
+    if (!this.props.artist.errors.length) {
+      return null;
+    }
+    return (
+      <div style={{
+        border: "solid red 1px",
+        marginTop: "10px",
+        marginBottom: "10px",
+        marginLeft: "100px",
+      }}
+      >
+        <div> Errors: </div>
+        {
+          this.props.artist.errors.map((error, index) => {
+            return (
+              <div key={index}>{error}</div>
+            );
+          })
+        }
+      </div>
+
+    );
+  }
+
   render() {
     const src = getImgSrc(this.props.artist.artFile);
     return (
@@ -32,6 +57,9 @@ export default class ArtistPage extends React.Component {
               Run Wiki Extension
               </button>
             </div>
+            {
+              this.getErrors()
+            }
           </div>
           <div className="artistPageBody" style={{height: "100%"}}>
             <div className="container" style={{height: "50%"}}>

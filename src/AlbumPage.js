@@ -1,4 +1,5 @@
 import NavigationBar from './NavigationBar';
+import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
 import SongPicker from './SongPicker.js';
 import modifyAlbum from './extensions/wiki/albums';
@@ -61,6 +62,13 @@ export default class AlbumPicker extends React.Component {
     return toTime(duration);
   }
 
+  playAlbum() {
+    const playlist = new RandomAlbumPlaylist(
+      this.props.library, [this.props.album]);
+    playlist.addAlbum(this.props.album);
+    this.props.setPlaylistAndPlay(playlist);
+  }
+
   render() {
     // todo use albumInfo or combine logic
     // ya know actually separate conscers and shit
@@ -88,11 +96,18 @@ export default class AlbumPicker extends React.Component {
               Run Wiki Extension
             </button>
           </div>
+          <div style={{position: 'relative'}}>
+            <button
+              onClick={this.playAlbum.bind(this)}
+              style={{position: 'absolute', top: '50%', translate: 'translateY(-50%)'}}
+            >Play Album</button>
+          </div>
           {
             this.getErrors()
           }
         </div>
         <SongPicker
+          sortBy="index"
           setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           songs={this.props.library.getAlbumTracks(this.props.album)}
           library={this.props.library}

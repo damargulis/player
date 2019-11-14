@@ -149,6 +149,7 @@ export default class MaxWindow extends React.Component {
     case 'song':
       return (
         <SongPicker
+          genres={this.state.genres}
           playSong={this.props.playSong}
           setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           library={this.props.library}

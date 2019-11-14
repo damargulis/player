@@ -6,7 +6,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import runWikiExtension from './extensions/wiki/main';
-import {createLibraryFromItunes, loadLibrary} from './library/create_library';
+import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
 
 import './App.css';
 
@@ -38,15 +38,27 @@ export default class App extends React.Component {
     });
     ipcRenderer.on('run-extension', (type, arg) => {
       switch (arg) {
-      case 'wikipedia':
-        runWikiExtension(this.state.library).then(() => {
-          this.state.library.save();
-          this.setState({library: this.state.library});
-        }).catch(() => {});
-        break;
-      default:
-        break;
+        case 'wikipedia':
+          runWikiExtension(this.state.library).then(() => {
+            this.state.library.save();
+            this.setState({library: this.state.library});
+          }).catch(() => {});
+          break;
+        default:
+          break;
       }
+    });
+    ipcRenderer.on('reset-library', () => {
+      deleteLibrary().then(() => {
+        createLibraryFromItunes().then((library) => {
+          const playlist = new RandomAlbumPlaylist(library);
+          library.save();
+          this.setState({
+            library,
+            playlist
+          });
+        });
+      })
     });
     ipcRenderer.send('extension-ready');
 

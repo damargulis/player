@@ -10,7 +10,7 @@ export default class SongPicker extends React.Component {
     super(props);
 
     const sortDirection = 'ASC';
-    const sortBy = 'name';
+    const sortBy = this.props.sortBy || 'name';
     const songs = this.sortSongs(sortBy, sortDirection);
 
     this.state = {
@@ -21,6 +21,12 @@ export default class SongPicker extends React.Component {
       lastSelected: null,
       sortDirection,
     };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.genres !== this.props.genres) {
+      this.sort(this.state);
+    }
   }
 
   sortSongs(sortBy, sortDirection) {
@@ -88,7 +94,7 @@ export default class SongPicker extends React.Component {
     const song = this.state.songs[index];
     // TODO: make album (maybe artist?) rotate
     return {
-      index: this.props.songs.indexOf(song),
+      index: this.props.songs.indexOf(song) + 1,
       name: song.name,
       artists: this.props.library.getArtistsByIds(song.artistIds)
         .map(artist => artist.name).join(', '),
@@ -181,7 +187,7 @@ export default class SongPicker extends React.Component {
     });
     const selected = selectedNow.map((song) => {
       return songs.indexOf(song);
-    });
+    }).filter((num) => num >= 0);
     this.setState({sortBy, sortDirection, songs, selected});
   }
 

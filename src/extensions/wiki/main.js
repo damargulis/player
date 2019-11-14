@@ -1,6 +1,7 @@
 import modifyAlbum from './albums';
 import modifyArtist from './artists';
 const PromisePool = require('es6-promise-pool');
+const {ipcRenderer} = require('electron');
 
 /**
  * Runs the wikipedia extension against an entire library.
@@ -10,27 +11,60 @@ const PromisePool = require('es6-promise-pool');
 export default function runWikiExtension(library) {
   const albums = library.getAlbums();
   let index = 0;
+  let finished = 0;
   // set up debug mode -- 1 when in debug, then either const or some func
   // based on comp/network
   const pool = new PromisePool(() => {
     const album = albums[index];
-    index++;
     if (!album) {
       return null;
     }
-    return modifyAlbum(album, library);
-  }, /* numConcurrent= */ 5);
+    const id = index++;
+    const artist = library.getArtistsByIds(album.artistIds).map((artist) => artist.name)
+      .join(", ");
+    ipcRenderer.send('extension-update', {
+      'type': 'start-album',
+      'name': album.name,
+      'id': id,
+      'artist': artist,
+    });
+    return modifyAlbum(album, library).then(() => {
+      finished++
+      ipcRenderer.send('extension-update', {
+        'type': 'end-album',
+        'id': id,
+        'percent': (finished / albums.length) * 100,
+      });
+    });
+  }, /* numConcurrent= */ 7);
   return pool.start().then(() => {
     const artists = library.getArtists();
     let artistIndex = 0;
+    let artistsFinished = 0;
     const artistPool = new PromisePool(() => {
       const artist = artists[artistIndex];
-      artistIndex++;
       if (!artist) {
         return null;
       }
-      return modifyArtist(artist, library);
-    }, /* numConcurrent= */ 5);
-    return artistPool.start();
+      const artistId = artistIndex++;
+      ipcRenderer.send('extension-update', {
+        'type': 'start-artist',
+        'name': artist.name,
+        'id': artistId,
+      });
+      return modifyArtist(artist, library).then(() => {
+        artistsFinished++;
+        ipcRenderer.send('extension-update', {
+          'type': 'end-artist',
+          'id': artistId,
+          'percent': (artistsFinished / artists.length) * 100,
+        });
+      });
+    }, /* numConcurrent= */ 7);
+    return artistPool.start().then(() => {
+      ipcRenderer.send('extension-update', {
+        'type': 'done',
+      });
+    });
   });
 }

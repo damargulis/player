@@ -201,6 +201,28 @@ export function loadLibrary(libraryFile) {
   });
 }
 
+function deleteRecursive(filepath) {
+  if (!fs.existsSync(path)) {
+    return;
+  }
+  fs.readDirSync(path).forEach((file, index) => {
+    const curPath = path.join(filepath, file);
+    if (fs.lstatSync(curPath).isDirectory()) {
+      deleteRecursive(curPath);
+    } else {
+      fs.unlinkSync(curPath);
+    }
+  });
+  fs.rmdirSync(path);
+}
+
+export function deleteLibrary() {
+  return new Promise((resolve) => {
+    deleteRecursive('./data/');
+    resolve();
+  });
+}
+
 /**
  * Reads a library from an itunes manifest file and turns it into a library.
  * @return {!Promise<!Library>} a promise returning the created library.
@@ -212,15 +234,19 @@ export function createLibraryFromItunes() {
   // create data dir if not exist ?
   // switch to only use playlists
   // (master playlist contains all songs, no need to run this twice)
-  execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ' +
-    '~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
-    stdio: 'inherit'
-  });
-  execSync('./node_modules/itunes-data/cli.js --playlists ' +
-    'data/playlists.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
-    stdio: 'inherit'
-  });
+
   return new Promise((resolve) => {
+    if (!fs.existsSync('./data')) {
+      fs.mkdirSync('./data');
+    }
+    execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ' +
+      '~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
+      stdio: 'inherit'
+    });
+    execSync('./node_modules/itunes-data/cli.js --playlists ' +
+      'data/playlists.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
+      stdio: 'inherit'
+    });
     const trackFile = './data/tracks.json';
     const playlistFile = './data/playlists.json';
     const trackFileData = fs.readFileSync(trackFile);
