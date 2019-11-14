@@ -1,5 +1,7 @@
 import React from 'react';
 
+// TODO: make this a part of the pages only when its needed, send in available
+// genres as a prop
 export default class GenrePicker extends React.Component {
   getOptions() {
     return this.props.library.getGenres().map((genre, index) => {

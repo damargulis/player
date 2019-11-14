@@ -92,6 +92,7 @@ export default class AlbumPicker extends React.Component {
             <div>{this.props.album && this.props.album.name}</div>
             {this.getArtistLinks()}
             <div>Total Time: {this.getTotalTime()}</div>
+            <div>{this.props.album.year}</div>
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>
