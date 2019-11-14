@@ -201,11 +201,16 @@ export function loadLibrary(libraryFile) {
   });
 }
 
+/**
+ * Deletes a directory and all its contents.
+ * @param {string} filepath The path to the directory to delete.
+ * @return {null} nothing
+ */
 function deleteRecursive(filepath) {
   if (!fs.existsSync(path)) {
     return;
   }
-  fs.readDirSync(path).forEach((file, index) => {
+  fs.readDirSync(path).forEach((file) => {
     const curPath = path.join(filepath, file);
     if (fs.lstatSync(curPath).isDirectory()) {
       deleteRecursive(curPath);
@@ -216,6 +221,10 @@ function deleteRecursive(filepath) {
   fs.rmdirSync(path);
 }
 
+/**
+ * Deletes the data directory.
+ * @return {!Promise} a promise resolving once completed.
+ */
 export function deleteLibrary() {
   return new Promise((resolve) => {
     deleteRecursive('./data/');

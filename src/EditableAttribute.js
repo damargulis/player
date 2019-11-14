@@ -7,7 +7,7 @@ export default class EditableAttribute extends React.Component {
     this.state = {
       editing: false,
       value: props.attr,
-    }
+    };
 
     this.input = React.createRef();
   }
@@ -42,19 +42,19 @@ export default class EditableAttribute extends React.Component {
   render() {
     return (
       <div>
-          <input 
-            style={{display: this.state.editing ? '' : 'none'}}
-            ref={this.input}
-            onChange={this.onChange.bind(this)}
-            onKeyUp={this.onKeyUp.bind(this)}
-            onBlur={this.save.bind(this)}
-            value={this.state.value}
-          ></input>
+        <input
+          style={{display: this.state.editing ? '' : 'none'}}
+          ref={this.input}
+          onChange={this.onChange.bind(this)}
+          onKeyUp={this.onKeyUp.bind(this)}
+          onBlur={this.save.bind(this)}
+          value={this.state.value}
+        ></input>
         <div style={{display: this.state.editing ? 'none' : ''}}>
           {this.state.value}
           <button onClick={this.edit.bind(this)}>Edit</button>
         </div>
       </div>
-    )
+    );
   }
 }

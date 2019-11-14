@@ -6,7 +6,11 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import runWikiExtension from './extensions/wiki/main';
-import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
+import {
+  createLibraryFromItunes,
+  deleteLibrary,
+  loadLibrary
+} from './library/create_library';
 
 import './App.css';
 
@@ -38,14 +42,14 @@ export default class App extends React.Component {
     });
     ipcRenderer.on('run-extension', (type, arg) => {
       switch (arg) {
-        case 'wikipedia':
-          runWikiExtension(this.state.library).then(() => {
-            this.state.library.save();
-            this.setState({library: this.state.library});
-          }).catch(() => {});
-          break;
-        default:
-          break;
+      case 'wikipedia':
+        runWikiExtension(this.state.library).then(() => {
+          this.state.library.save();
+          this.setState({library: this.state.library});
+        }).catch(() => {});
+        break;
+      default:
+        break;
       }
     });
     ipcRenderer.on('reset-library', () => {
@@ -58,7 +62,7 @@ export default class App extends React.Component {
             playlist
           });
         });
-      })
+      });
     });
     ipcRenderer.send('extension-ready');
 

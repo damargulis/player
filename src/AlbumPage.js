@@ -107,7 +107,11 @@ export default class AlbumPicker extends React.Component {
           <div style={{position: 'relative'}}>
             <button
               onClick={this.playAlbum.bind(this)}
-              style={{position: 'absolute', top: '50%', translate: 'translateY(-50%)'}}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                translate: 'translateY(-50%)'
+              }}
             >Play Album</button>
           </div>
           {

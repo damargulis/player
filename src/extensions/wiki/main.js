@@ -20,20 +20,21 @@ export default function runWikiExtension(library) {
       return null;
     }
     const id = index++;
-    const artist = library.getArtistsByIds(album.artistIds).map((artist) => artist.name)
+    const artist = library.getArtistsByIds(album.artistIds)
+      .map((artistData) => artistData.name)
       .join(", ");
     ipcRenderer.send('extension-update', {
       'type': 'start-album',
       'name': album.name,
-      'id': id,
-      'artist': artist,
+      id,
+      artist,
     });
     return modifyAlbum(album, library).then(() => {
-      finished++
+      finished++;
       ipcRenderer.send('extension-update', {
         'type': 'end-album',
-        'id': id,
-        'percent': (finished / albums.length) * 100,
+        id,
+        'percent': finished / albums.length * 100,
       });
     });
   }, /* numConcurrent= */ 7);
@@ -57,7 +58,7 @@ export default function runWikiExtension(library) {
         ipcRenderer.send('extension-update', {
           'type': 'end-artist',
           'id': artistId,
-          'percent': (artistsFinished / artists.length) * 100,
+          'percent': artistsFinished / artists.length * 100,
         });
       });
     }, /* numConcurrent= */ 7);
