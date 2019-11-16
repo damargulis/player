@@ -52,7 +52,7 @@ export function sanitize(string) {
  * @param {!Node} rootNode The root node of the genre data.
  * @return {!Array<string>} A list of the genres for the album.
  */
-export function getGenres(rootNode) {
+function getGenres(rootNode) {
   const leafNodes = getLeafNodes(rootNode);
   // filter out ", ", " ", ".", and any other weird symbols that might be
   // accidental
@@ -61,6 +61,23 @@ export function getGenres(rootNode) {
   const sanitized = text.map((genre) => sanitize(genre));
   return sanitized.map((genre) => formatGenre(genre)).filter(Boolean).filter(
     (genre) => genre.length > 1);
+}
+
+/**
+ * Gets the genres from the infobox rows.
+ * @param {!Array<!HTMLNode>} rows The rows of a wikipedia infobox.
+ * @return {!Array<string>} The genres found.
+ */
+export function getGenresByRow(rows) {
+  for (const row of rows) {
+    const headers = row.getElementsByTagName('th');
+    const name = headers[0] && headers[0].textContent;
+    if (name === 'Genre' || name === 'Genres') {
+      const data = row.getElementsByTagName('td')[0];
+      return getGenres(data);
+    }
+  }
+  return [];
 }
 
 /**

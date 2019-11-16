@@ -1,18 +1,17 @@
 import {BASE_URL} from './constants';
-import {findAsync, getDoc, getGenres, sanitize} from './utils';
+import {
+  ALBUM_ART_ERROR,
+  GENRE_ERROR,
+  NO_PAGE_ERROR,
+  PARSER_ERROR,
+  YEAR_ERROR
+} from './errors';
+import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
 
 const rp = require('request-promise-native');
 const moment = require('moment');
 const fs = require('fs');
 const shortid = require('shortid');
-
-const ERROR_BASE = "Wikipedia Modifier: ";
-
-const ALBUM_ART_ERROR = ERROR_BASE + "No album art found.";
-const GENRE_ERROR = ERROR_BASE + "No genres found.";
-const NO_PAGE_ERROR = ERROR_BASE + "No page found.";
-const PARSER_ERROR = ERROR_BASE + "Parser error.";
-const YEAR_ERROR = ERROR_BASE + "No year found.";
 
 /**
  * Gets the year from a year node on a wiki page.
@@ -44,23 +43,6 @@ function getYearByRow(rows) {
     }
   }
   return null;
-}
-
-/**
- * Gets the genres from the infobox rows.
- * @param {!Array<!HTMLNode>} rows The rows of a wikipedia infobox.
- * @return {!Array<string>} The genres found.
- */
-function getGenresByRow(rows) {
-  for (const row of rows) {
-    const headers = row.getElementsByTagName('th');
-    const name = headers[0] && headers[0].textContent;
-    if (name === 'Genre') {
-      const data = row.getElementsByTagName('td')[0];
-      return getGenres(data);
-    }
-  }
-  return [];
 }
 
 /**
@@ -152,7 +134,7 @@ function modifyAlbum(album, library) {
     //TODO: take multiple pictures (rotate them elsewhere in the app)
     const pic = pics[0];
     const options = {
-      url: pic.src,
+      url: pic && pic.src,
       encoding: 'binary',
     };
     return rp(options).then((data) => {
