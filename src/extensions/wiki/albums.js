@@ -1,10 +1,18 @@
 import {BASE_URL} from './constants';
-import {findAsync, getGenres, sanitize} from './utils';
+import {findAsync, getGenres, getDoc, sanitize} from './utils';
 
 const rp = require('request-promise-native');
 const moment = require('moment');
 const fs = require('fs');
 const shortid = require('shortid');
+
+const ERROR_BASE = "Wikipedia Modifier: ";
+
+const ALBUM_ART_ERROR = ERROR_BASE + "No album art found.";
+const GENRE_ERROR = ERROR_BASE + "No genres found.";
+const NO_PAGE_ERROR = ERROR_BASE + "No page found.";
+const PARSER_ERROR = ERROR_BASE + "Parser error.";
+const YEAR_ERROR = ERROR_BASE + "No year found.";
 
 /**
  * Gets the year from a year node on a wiki page.
@@ -19,6 +27,28 @@ function getYear(rootNode) {
   }
   const time = moment(str);
   return time.year();
+}
+
+function getYearByRow(rows) {
+  for (const row of rows) {
+    const headers = row.getElementsByTagName('th');
+    const name = headers[0] && headers[0].textContent;
+    if (name === "Released") {
+      const data = row.getElementsByTagName('td')[0];
+      return getYear(data);
+    }
+  }
+}
+
+function getGenresByRow(rows) {
+  for (const row of rows) {
+    const headers = row.getElementsByTagName('th');
+    const name = headers[0] && headers[0].textContent;
+    if (name === 'Genre') {
+      const data = row.getElementsByTagName('td')[0];
+      return getGenres(data);
+    }
+  }
 }
 
 /**
@@ -86,29 +116,24 @@ function searchForWikiPage(album, library) {
  */
 function modifyAlbum(album, library) {
   return rp(album.wikiPage).then((htmlString) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
+    album.removeError(PARSER_ERROR);
+    const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
     const rows = infoBox.getElementsByTagName('tr');
-    for (const row of rows) {
-      try {
-        const headers = row.getElementsByTagName('th');
-        const name = headers[0] && headers[0].textContent;
-        const data = row.getElementsByTagName('td')[0];
-        switch (name) {
-        case 'Genre':
-          album.genreIds = library.getGenreIds(getGenres(data));
-          break;
-        case 'Released':
-          album.year = getYear(data);
-          break;
-        default:
-          break;
-        }
-      } catch (err) {
-        album.errors.push("Non fatal: " + err);
-      }
+    const year = getYearByRow(rows);
+    if (year) {
+      album.year = year;
+      album.removeError(YEAR_ERROR);
+    } else {
+      album.addError(YEAR_ERROR);
+    }
+    const genres = getGenresByRow(rows);
+    if (genres && genres.length) {
+      album.genreIds = library.getGenreIds(genres);
+      album.removeError(GENRE_ERROR);
+    } else {
+      album.addError(GENRE_ERROR);
     }
 
     const pics = infoBox.getElementsByTagName('img');
@@ -124,11 +149,14 @@ function modifyAlbum(album, library) {
         album.albumArtFile = './data/' + id + '.png';
       }
       fs.writeFileSync(album.albumArtFile, data, 'binary');
-      // TODO: bad -- should only remove errors that have beens solved..
-      album.errors = [];
+      album.removeError(ALBUM_ART_ERROR);
+    }).catch((err) => {
+      album.addError(ALBUM_ART_ERROR);
+      return Promise.resolve();
     });
-  }).catch(() => {
-    album.errors.push("Wikipedia: Parsing error");
+  }).catch((err) => {
+    album.addError(PARSER_ERROR);
+    return Promise.resolve();
   });
 }
 
@@ -143,10 +171,12 @@ export default function runAlbumModifier(album, library) {
   if (!album.wikiPage) {
     return searchForWikiPage(album, library).then((wikiPage) => {
       if (wikiPage) {
+        album.removeError(NO_PAGE_ERROR);
         album.wikiPage = wikiPage;
         return modifyAlbum(album, library);
       }
       // add error for no wiki page
+      album.addError(NO_PAGE_ERROR);
       return Promise.resolve();
     });
   }

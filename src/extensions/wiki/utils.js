@@ -78,3 +78,14 @@ export async function findAsync(arr, asyncCallback) {
   const index = results.findIndex(result => result);
   return arr[index];
 }
+
+// maybe move into extensions/utils.js?
+/**
+ * Parses an html string into a doc node.
+ * @param {string} htmlString The html of the page as a string.
+ * @return {!HTMLNode} The document node.
+ */
+export function getDoc(htmlString) {
+  const parser = new DOMParser();
+  return parser.parseFromString(htmlString, 'text/html');
+}

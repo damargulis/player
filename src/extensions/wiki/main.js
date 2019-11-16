@@ -3,6 +3,8 @@ import modifyArtist from './artists';
 const PromisePool = require('es6-promise-pool');
 const {ipcRenderer} = require('electron');
 
+const CONCURRENT = 7;
+
 /**
  * Runs the wikipedia extension against an entire library.
  * @param {!Library} library The library to run wiki extension on.
@@ -37,7 +39,7 @@ export default function runWikiExtension(library) {
         'percent': finished / albums.length * 100,
       });
     });
-  }, /* numConcurrent= */ 7);
+  }, CONCURRENT);
   return pool.start().then(() => {
     const artists = library.getArtists();
     let artistIndex = 0;
@@ -61,7 +63,7 @@ export default function runWikiExtension(library) {
           'percent': artistsFinished / artists.length * 100,
         });
       });
-    }, /* numConcurrent= */ 7);
+    }, CONCURRENT);
     return artistPool.start().then(() => {
       ipcRenderer.send('extension-update', {
         'type': 'done',
