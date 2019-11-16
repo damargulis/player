@@ -204,7 +204,6 @@ export function loadLibrary(libraryFile) {
 /**
  * Deletes a directory and all its contents.
  * @param {string} filepath The path to the directory to delete.
- * @return {null} nothing
  */
 function deleteRecursive(filepath) {
   if (!fs.existsSync(path)) {

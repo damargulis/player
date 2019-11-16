@@ -1,5 +1,5 @@
 import {BASE_URL} from './constants';
-import {findAsync, getGenres, getDoc, sanitize} from './utils';
+import {findAsync, getDoc, getGenres, sanitize} from './utils';
 
 const rp = require('request-promise-native');
 const moment = require('moment');
@@ -29,6 +29,11 @@ function getYear(rootNode) {
   return time.year();
 }
 
+/**
+ * Gets the release year found in the infobox.
+ * @param {!Array<!HTMLNode>} rows The rows of a wikipedia infobox.
+ * @return {?number} The first release year found, or null if none is found.
+ */
 function getYearByRow(rows) {
   for (const row of rows) {
     const headers = row.getElementsByTagName('th');
@@ -38,8 +43,14 @@ function getYearByRow(rows) {
       return getYear(data);
     }
   }
+  return null;
 }
 
+/**
+ * Gets the genres from the infobox rows.
+ * @param {!Array<!HTMLNode>} rows The rows of a wikipedia infobox.
+ * @return {!Array<string>} The genres found.
+ */
 function getGenresByRow(rows) {
   for (const row of rows) {
     const headers = row.getElementsByTagName('th');
@@ -49,6 +60,7 @@ function getGenresByRow(rows) {
       return getGenres(data);
     }
   }
+  return [];
 }
 
 /**
@@ -150,11 +162,11 @@ function modifyAlbum(album, library) {
       }
       fs.writeFileSync(album.albumArtFile, data, 'binary');
       album.removeError(ALBUM_ART_ERROR);
-    }).catch((err) => {
+    }).catch(() => {
       album.addError(ALBUM_ART_ERROR);
       return Promise.resolve();
     });
-  }).catch((err) => {
+  }).catch(() => {
     album.addError(PARSER_ERROR);
     return Promise.resolve();
   });
