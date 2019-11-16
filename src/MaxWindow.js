@@ -106,7 +106,7 @@ export default class MaxWindow extends React.Component {
   }
 
   goToPlaylist(playlist) {
-    const scenes = this.state.scenes.slice(this.state.curScene + 1);
+    const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       (genres) => <PlaylistPage
         setPlaylistAndPlay={this.props.setPlaylistAndPlay}
