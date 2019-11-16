@@ -16,15 +16,19 @@ export default class InfoPanel extends React.Component {
     const {track, library} = this.props;
     const artists = track && library
       ? library.getArtistsByIds(track.artistIds) : [];
-    return artists.map((artist, index) => {
-      return (
-        <div key={index}>
-          <div className="link" onClick={() => this.props.goToArtist(artist)}>
-            {artist.name}
+    if (artists.length) {
+      return artists.map((artist, index) => {
+        return (
+          <div key={index}>
+            <div className="link" onClick={() => this.props.goToArtist(artist)}>
+              {artist.name}
+            </div>
           </div>
-        </div>
-      );
-    });
+        );
+      });
+    } else {
+      return "Artists";
+    }
   }
 
   getAlbumLinks() {
