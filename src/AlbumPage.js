@@ -11,9 +11,7 @@ const path = require('path');
 export default class AlbumPicker extends React.Component {
   runWiki() {
     modifyAlbum(this.props.album, this.props.library).then(() => {
-      console.log('finsihed');
       this.props.library.save().then(() => {
-        console.log('done saving');
         this.forceUpdate();
       });
     });
@@ -75,8 +73,6 @@ export default class AlbumPicker extends React.Component {
   }
 
   render() {
-    console.log('rendering');
-    console.log('year: ' + this.props.album.year);
     // todo use albumInfo or combine logic
     // ya know actually separate conscers and shit
     const file = this.props.album && this.props.album.albumArtFile;
