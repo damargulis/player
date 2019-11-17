@@ -26,9 +26,8 @@ export default class InfoPanel extends React.Component {
           </div>
         );
       });
-    } else {
-      return "Artists";
     }
+    return "Artists";
   }
 
   getAlbumLinks() {

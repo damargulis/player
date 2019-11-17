@@ -1,11 +1,18 @@
-const {app, BrowserWindow, Menu, MenuItem, ipcMain, shell} = require('electron');
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  MenuItem,
+  ipcMain,
+  shell
+} = require('electron');
 const defaultMenu = require('electron-default-menu');
 
 const path = require('path');
 // shouldn't need package for this ... figure out better way
 const isDev = require('electron-is-dev');
 
-let mainWindow;
+let mainWindow = null;
 
 ipcMain.on('goToArtist', (evt, data) => {
   maximize();
@@ -45,11 +52,16 @@ ipcMain.on('extension-monitor-ready', (evt) => {
   extensionEvt = evt;
 });
 
+const messageQueue = [];
+
 ipcMain.on('extension-update', (evt, arg) => {
-  // TODO: turn into a queue
+  messageQueue.push(arg);
   if (extensionEvt) {
-    extensionEvt.reply(arg.type, arg);
-  }
+    while (messageQueue.length) {
+      const msg = messageQueue.shift();
+      extensionEvt.reply(msg.type, msg);
+    }
+  } 
 });
 
 ipcMain.on('extension-close', (evt, arg) => {
@@ -64,6 +76,7 @@ function resetLibrary() {
 
 function runExtension(type) {
   extEvt.reply('run-extension', type);
+  extensionEvt = null;
   extensionWindow = new BrowserWindow({
     width: 500,
     height: 250,

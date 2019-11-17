@@ -3,71 +3,97 @@ import modifyArtist from './artists';
 const PromisePool = require('es6-promise-pool');
 const {ipcRenderer} = require('electron');
 
+// TODO: set num by isDev
 const CONCURRENT = 7;
 
 /**
- * Runs the wikipedia extension against an entire library.
- * @param {!Library} library The library to run wiki extension on.
- * @return {!Promise} A promise which resolve when the extension has finished.
+ * Returns a pool of modifiers to run.
+ * @param {!Library} library Library to modify.
+ * @param {!Array<T>} items Array of items to modify.
+ * @param {string} prefix An identifying string to use as a prefix in html.
+ * @param {!function(T):string} getName A function that takes int he item to
+ *  modify and returns its name
+ * @param {!function(T):Promise} modifyFunc The modification function to run.
+ * @return {!PromisePool} The pool to run
  */
-export default function runWikiExtension(library) {
-  const albums = library.getAlbums();
+function getPool(library, items, prefix, getName, modifyFunc) {
   let index = 0;
-  let finished = 0;
-  // set up debug mode -- 1 when in debug, then either const or some func
-  // based on comp/network
-  const pool = new PromisePool(() => {
-    const album = albums[index];
-    if (!album) {
+  ipcRenderer.send('extension-update', {
+    'type': 'start-section',
+    'items': items.length,
+  });
+  return new PromisePool(() => {
+    const item = items[index];
+    if (!item) {
       return null;
     }
     const id = index++;
-    const artist = library.getArtistsByIds(album.artistIds)
-      .map((artistData) => artistData.name)
-      .join(", ");
+    const name = getName(item);
     ipcRenderer.send('extension-update', {
-      'type': 'start-album',
-      'name': album.name,
-      id,
-      artist,
+      'type': 'start-item',
+      'id': prefix + id,
+      name,
     });
-    return modifyAlbum(album, library).then(() => {
-      finished++;
+    return modifyFunc(item, library).then(() => {
       ipcRenderer.send('extension-update', {
-        'type': 'end-album',
-        id,
-        'percent': finished / albums.length * 100,
+        'type': 'end-item',
+        'id': prefix + id,
+        name,
       });
     });
   }, CONCURRENT);
-  return pool.start().then(() => {
-    const artists = library.getArtists();
-    let artistIndex = 0;
-    let artistsFinished = 0;
-    const artistPool = new PromisePool(() => {
-      const artist = artists[artistIndex];
-      if (!artist) {
-        return null;
-      }
-      const artistId = artistIndex++;
-      ipcRenderer.send('extension-update', {
-        'type': 'start-artist',
-        'name': artist.name,
-        'id': artistId,
-      });
-      return modifyArtist(artist, library).then(() => {
-        artistsFinished++;
-        ipcRenderer.send('extension-update', {
-          'type': 'end-artist',
-          'id': artistId,
-          'percent': artistsFinished / artists.length * 100,
-        });
-      });
-    }, CONCURRENT);
-    return artistPool.start().then(() => {
+}
+
+/**
+ * Gets a promise pool of album modifications.
+ * @param {!Libray} library The library to modify.
+ * @return {!PromisePool} The pool to run.
+ */
+function getAlbumsPool(library) {
+  return getPool(
+    library,
+    library.getAlbums(),
+    'album-',
+    (album) => {
+      const artist = library.getArtistsByIds(album.artistIds)
+        .map((artistData) => artistData.name)
+        .join(", ");
+      return album.name + "by: " + artist;
+    },
+    modifyAlbum
+  );
+}
+
+/**
+ * Gets a promise pool of artist modifications.
+ * @param {!Library} library The library rto modify.
+ * @return {!PromisePool} The pool to run.
+ */
+function getArtistPool(library) {
+  return getPool(
+    library,
+    library.getArtists(),
+    'artist-',
+    (artist) => {
+      return artist.name;
+    },
+    modifyArtist
+  );
+}
+
+/**
+ * Runs the entire wikipedia extension.
+ * @param {!Library} library The library to modify.
+ * @return {!Promise} A promise resolving once finished.
+ */
+export default function runWikiExtension(library) {
+  const albumPool = getAlbumsPool(library);
+  const artistPool = getArtistPool(library);
+  return albumPool.start()
+    .then(() => artistPool.start())
+    .then(() => {
       ipcRenderer.send('extension-update', {
         'type': 'done',
       });
     });
-  });
 }

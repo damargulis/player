@@ -16,6 +16,9 @@ const percentSpan = document.getElementById('percent');
 const inner = document.getElementById('inner');
 const outer = document.getElementById('outer');
 
+let totalItems = 0;
+let itemsFinished = 0;
+
 function close() {
   electron.ipcRenderer.send('extension-close');
 }
@@ -30,32 +33,24 @@ electron.ipcRenderer.on('done', () => {
   document.body.appendChild(button);
 });
 
-electron.ipcRenderer.on('start-album', (evt, arg) => {
-  const msg = document.createElement('div');
-  msg.textContent = "Modifying: " + arg.name + " by: " + arg.artist;
-  msg.id = arg.id;
-  logDiv.appendChild(msg);
+electron.ipcRenderer.on('start-section', (evt, arg) => {
+  totalItems += arg.items;
 });
 
-electron.ipcRenderer.on('start-artist', (evt, arg) => {
+electron.ipcRenderer.on('start-item', (evt, arg) => {
   const msg = document.createElement('div');
   msg.textContent = "Modifying: " + arg.name;
   msg.id = arg.id;
   logDiv.appendChild(msg);
 });
 
-electron.ipcRenderer.on('end-album', (evt, arg) => {
+electron.ipcRenderer.on('end-item', (evt, arg) => {
   const msg = document.getElementById(arg.id);
   msg.remove();
-  percentSpan.textContent = arg.percent;
-  inner.style.width = arg.percent + "%";
-});
-
-electron.ipcRenderer.on('end-artist', (evt, arg) => {
-  const msg = document.getElementById(arg.id);
-  msg.remove();
-  percentSpan.textContent = arg.percent;
-  inner.style.width = arg.percent + "%";
+  itemsFinished++;
+  const percent = (itemsFinished / totalItems) * 100;
+  percentSpan.textContent = percent.toFixed(4);
+  inner.style.width = percent + "%";
 });
 
 electron.ipcRenderer.send('extension-monitor-ready');
