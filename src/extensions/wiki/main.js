@@ -53,7 +53,7 @@ function getAlbumsPool(library) {
   return getPool(
     library,
     library.getAlbums(),
-    'album-',
+    /* prefix= */ 'album-',
     (album) => {
       const artist = library.getArtistsByIds(album.artistIds)
         .map((artistData) => artistData.name)
@@ -73,7 +73,7 @@ function getArtistPool(library) {
   return getPool(
     library,
     library.getArtists(),
-    'artist-',
+    /* prefix= */ 'artist-',
     (artist) => {
       return artist.name;
     },
