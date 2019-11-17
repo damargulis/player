@@ -1,4 +1,5 @@
 import AlbumPicker from './AlbumPicker.js';
+import EditableAttribute from './EditableAttribute';
 import NavigationBar from './NavigationBar';
 import React from 'react';
 import SongPicker from './SongPicker.js';
@@ -52,7 +53,13 @@ export default class ArtistPage extends React.Component {
             />
             <div className="info">
               <img src={src} alt="artist art" width="100" height="100" />
-              <div>{this.props.artist && this.props.artist.name}</div>
+              <EditableAttribute
+                attr={this.props.artist && this.props.artist.name}
+                onSave={(value) => {
+                  this.props.artist.name = value;
+                  this.props.library.save();
+                }}
+              />
               <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
               </button>

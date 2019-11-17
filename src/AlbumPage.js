@@ -11,7 +11,11 @@ const path = require('path');
 export default class AlbumPicker extends React.Component {
   runWiki() {
     modifyAlbum(this.props.album, this.props.library).then(() => {
-      this.props.library.save();
+      console.log('finsihed');
+      this.props.library.save().then(() => {
+        console.log('done saving');
+        this.forceUpdate();
+      });
     });
   }
 
@@ -71,6 +75,8 @@ export default class AlbumPicker extends React.Component {
   }
 
   render() {
+    console.log('rendering');
+    console.log('year: ' + this.props.album.year);
     // todo use albumInfo or combine logic
     // ya know actually separate conscers and shit
     const file = this.props.album && this.props.album.albumArtFile;
@@ -80,6 +86,7 @@ export default class AlbumPicker extends React.Component {
     //  return artist.name;
     //}).join(", ");
     // todo: set playSong to play an album playlist of by artist ?
+    // TODO: add validation to edit year
     return (
       <div className="main">
         <div className="albumPageHeader" style={{display: "flex"}}>
@@ -99,7 +106,13 @@ export default class AlbumPicker extends React.Component {
             />
             {this.getArtistLinks()}
             <div>Total Time: {this.getTotalTime()}</div>
-            <div>{this.props.album.year}</div>
+            <EditableAttribute
+              attr={this.props.album.year}
+              onSave={(value) => {
+                this.props.album.year = value;
+                this.props.library.save();
+              }}
+            />
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>

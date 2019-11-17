@@ -12,6 +12,14 @@ export default class EditableAttribute extends React.Component {
     this.input = React.createRef();
   }
 
+  componentDidUpdate(prevProps) {
+    console.log('editable updated');
+    if (this.props.attr != prevProps.attr) {
+      console.log('and setting state');
+      this.setState({value: this.props.attr});
+    }
+  }
+
   edit() {
     this.setState({
       editing: true,
