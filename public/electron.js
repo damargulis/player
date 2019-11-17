@@ -13,6 +13,11 @@ const path = require('path');
 const isDev = require('electron-is-dev');
 
 let mainWindow = null;
+let extensionWindow = null;
+// TODO: change name to be playerEvt or something since its used for more than
+// just extensions
+let extEvt = null;
+let extensionEvt = null;
 
 ipcMain.on('goToArtist', (evt, data) => {
   maximize();
@@ -34,20 +39,14 @@ ipcMain.on('maximize', (evt) => {
   evt.reply('maximize-reply');
 });
 
+/** Maximize the main window. */
 function maximize() {
   mainWindow.setSize(1430, 800);
 }
-
-// TODO: change name to be playerEvt or something since its used for more than
-// just extensions
-let extEvt;
 ipcMain.on('extension-ready', (evt) => {
   extEvt = evt;
 });
 
-let extensionWindow;
-
-let extensionEvt;
 ipcMain.on('extension-monitor-ready', (evt) => {
   extensionEvt = evt;
 });
@@ -61,19 +60,24 @@ ipcMain.on('extension-update', (evt, arg) => {
       const msg = messageQueue.shift();
       extensionEvt.reply(msg.type, msg);
     }
-  } 
+  }
 });
 
-ipcMain.on('extension-close', (evt, arg) => {
+ipcMain.on('extension-close', () => {
   if (extensionWindow) {
     extensionWindow.close();
   }
 });
 
+/** Forward event to reset the library from main to the App. */
 function resetLibrary() {
   extEvt.reply('reset-library');
 }
 
+/**
+ * Start running an extension.
+ * @param {string} type The type of extension to run.
+ */
 function runExtension(type) {
   extEvt.reply('run-extension', type);
   extensionEvt = null;
@@ -85,9 +89,11 @@ function runExtension(type) {
       webSecutiry: false,
     },
   });
-  extensionWindow.loadURL(`file://${path.join(__dirname, './extension_monitor.html')}`);
+  extensionWindow.loadURL(
+    `file://${path.join(__dirname, './extension_monitor.html')}`);
 }
 
+/** Creates the main window. */
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1430,
@@ -98,7 +104,9 @@ function createWindow() {
       webSecurity: false,
     },
   });
-  mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
+  mainWindow.loadURL(isDev
+    ? 'http://localhost:3000'
+    : `file://${path.join(__dirname, '../build/index.html')}`);
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
@@ -106,15 +114,11 @@ function createWindow() {
   const menu = defaultMenu(app, shell);
   menu.push(new MenuItem({
     label: "Library",
-    submenu: [
-      {label: "Reset from itunes", click: () => resetLibrary()},
-    ]
+    submenu: [{label: "Reset from itunes", click: () => resetLibrary()}]
   }));
   menu.push(new MenuItem({
     label: "Extensions",
-    submenu: [
-      {label: "Wikipedia", click: () => runExtension('wikipedia')}
-    ]
+    submenu: [{label: "Wikipedia", click: () => runExtension('wikipedia')}]
   }));
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
   //const menu = Menu.getApplicationMenu();
