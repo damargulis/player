@@ -6,4 +6,5 @@ export const GENRE_ERROR = ERROR_BASE + "No genres found.";
 export const NO_PAGE_ERROR = ERROR_BASE + "No page found.";
 export const PARSER_ERROR = ERROR_BASE + "Parser error.";
 export const PIC_ERROR = ERROR_BASE + "No picture found.";
+export const TRACK_ERROR = ERROR_BASE + "Wrong number of tracks found.";
 export const YEAR_ERROR = ERROR_BASE + "No year found.";

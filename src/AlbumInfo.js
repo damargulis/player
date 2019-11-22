@@ -46,6 +46,9 @@ export default class AlbumInfo extends React.Component {
         <div style={this.props.stlye} />
       );
     }
+    if (Object.keys(this.props.album.warnings).length > 0) {
+      newStyle.backgroundColor = 'yellow';
+    }
     if (this.props.album.errors.length > 0) {
       newStyle.backgroundColor = 'red';
     }

@@ -2,6 +2,7 @@ import {BASE_URL} from './constants';
 import {
   ALBUM_ART_ERROR,
   GENRE_ERROR,
+  TRACK_ERROR,
   NO_PAGE_ERROR,
   PARSER_ERROR,
   YEAR_ERROR
@@ -102,6 +103,50 @@ function searchForWikiPage(album, library) {
   });
 }
 
+function getTracks(doc) {
+  const tracklists = doc.getElementsByClassName('tracklist');
+  // TODO: using first for now, should loop through all, check header to
+  // determine what to do with it; can include multi releases, discs, versions,
+  // etc.
+  if (tracklists.length === 0) {
+    return [];
+  }
+  const tracklist = tracklists[0];
+  const rows = tracklist.getElementsByTagName('tr');
+  // splits into two arrays, headers which contains any rows that have a <th>
+  // element, and dataRows which has all the others
+  const [headers, dataRows] = Array(...rows).reduce(
+    ([headers, dataRows], row) => {
+      return row.getElementsByTagName('th').length
+        ? [[...headers, row], dataRows]
+        : [headers, [...dataRows, row]];
+  }, [[], []]);
+  let goodHeader;
+  for (let header of headers) {
+    if (header.textContent.includes('Title')) {
+      goodHeader = header;
+      break;
+    }
+  }
+  if (!goodHeader) {
+    debugger;
+  }
+  const headerCells = goodHeader.getElementsByTagName('th');
+  const headerNames = Array(...headerCells).map((cell) => cell.textContent);
+  //const noIndex = headerNames.indexOf('No.');
+  const titleIndex = headerNames.indexOf('Title');
+  //const lengthIndex = headerNames.indexOf('Length');
+  const songTitles = Array(...rows).filter((row) => {
+    return row.getElementsByTagName('th').length === 0;
+  }).map((row) => {
+    const data = row.getElementsByTagName('td');
+    const titleText = data[titleIndex].textContent;
+    const matches = titleText.match(/"(.*?)"/);
+    return matches ? matches[1] : null;
+  }).filter(Boolean);
+  return songTitles;
+}
+
 /**
  * Modifys an album based on the data found on its wikipedia page.
  * @param {!Album} album The album to modify.
@@ -128,6 +173,17 @@ function modifyAlbum(album, library) {
       album.removeError(GENRE_ERROR);
     } else {
       album.addError(GENRE_ERROR);
+    }
+    const trackTitles = getTracks(doc);
+    if (album.trackIds.length == trackTitles.length) {
+      const tracks = album.trackIds.map((id) => library.getTrack(id));
+      tracks.forEach((track, index) => {
+        if (track.name != trackTitles[index]) {
+          album.addTrackWarning(index, trackTitles[index]);
+        }
+      });
+    } else {
+      album.addError(TRACK_ERROR);
     }
 
     const pics = infoBox.getElementsByTagName('img');

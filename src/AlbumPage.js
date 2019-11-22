@@ -17,6 +17,43 @@ export default class AlbumPicker extends React.Component {
     });
   }
 
+  acceptTrackWarnings() {
+    for (const indexStr in this.props.album.warnings) {
+      const index = parseInt(indexStr);
+      const track = this.props.library.getTrack(this.props.album.trackIds[index]);
+      track.name = this.props.album.warnings[indexStr];
+    }
+    this.props.album.warnings = {};
+    this.props.library.save().then(() => {
+      this.forceUpdate();
+    });
+  }
+
+  getWarnings() {
+    const warnings = Object.keys(this.props.album.warnings);
+    if (!warnings.length) {
+      return null;
+    }
+    return (
+      <div style={{
+        border: "solid yellow 5px",
+        marginTop: "10px",
+        marginBottom: "10px",
+        marginLeft: "100px",
+      }} >
+        <div> Warnings: </div>
+        {
+          warnings.map((trackIndex) => {
+            return (
+              <div key={trackIndex}>{(parseInt(trackIndex) + 1) + ": " + this.props.album.warnings[trackIndex]}</div>
+            );
+          })
+        }
+        <button onClick={this.acceptTrackWarnings.bind(this)}>Accept</button>
+      </div>
+    );
+  }
+
   getErrors() {
     if (!this.props.album.errors.length) {
       return null;
@@ -125,6 +162,9 @@ export default class AlbumPicker extends React.Component {
           </div>
           {
             this.getErrors()
+          }
+          {
+            this.getWarnings()
           }
         </div>
         <SongPicker

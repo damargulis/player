@@ -11,6 +11,7 @@ export default class Album {
     albumArtFile = null,
     wikiPage = null,
     errors = [],
+    warnings = {},
   }) {
     /** @type {string} */
     this.name = name;
@@ -43,6 +44,9 @@ export default class Album {
     // class then can have methods like getInfo, resolve, ignore etc.
     /** @type {!Array<string>} */
     this.errors = errors;
+
+    // TODO: make this better idk
+    this.warnings = warnings;
   }
 
   /**
@@ -67,6 +71,10 @@ export default class Album {
         ...this.errors.slice(index + 1),
       ];
     }
+  }
+
+  addTrackWarning(index, trackTitles) {
+    this.warnings[index] = trackTitles;
   }
 }
 

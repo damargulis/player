@@ -58,7 +58,7 @@ function getAlbumsPool(library) {
       const artist = library.getArtistsByIds(album.artistIds)
         .map((artistData) => artistData.name)
         .join(", ");
-      return album.name + "by: " + artist;
+      return album.name + " by: " + artist;
     },
     modifyAlbum
   );
@@ -87,6 +87,8 @@ function getArtistPool(library) {
  * @return {!Promise} A promise resolving once finished.
  */
 export default function runWikiExtension(library) {
+  // put these into a single pool so that you can go straight into the other
+  // without having to wait for an acutal finish?
   const albumPool = getAlbumsPool(library);
   const artistPool = getArtistPool(library);
   return albumPool.start()

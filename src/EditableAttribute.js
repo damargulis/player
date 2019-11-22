@@ -13,7 +13,7 @@ export default class EditableAttribute extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.attr != prevProps.attr) {
+    if (this.props.attr !== prevProps.attr) {
       this.setState({value: this.props.attr});
     }
   }
