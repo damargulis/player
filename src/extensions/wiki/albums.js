@@ -2,9 +2,9 @@ import {BASE_URL} from './constants';
 import {
   ALBUM_ART_ERROR,
   GENRE_ERROR,
-  TRACK_ERROR,
   NO_PAGE_ERROR,
   PARSER_ERROR,
+  TRACK_ERROR,
   YEAR_ERROR
 } from './errors';
 import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
@@ -103,6 +103,11 @@ function searchForWikiPage(album, library) {
   });
 }
 
+/**
+ * Gets the track titles listed on the wiki page.
+ * @param {!Document} doc The wikipedia root page
+ * @return {!Array<string>} The song titles.
+ */
 function getTracks(doc) {
   const tracklists = doc.getElementsByClassName('tracklist');
   // TODO: using first for now, should loop through all, check header to
@@ -116,35 +121,30 @@ function getTracks(doc) {
   // splits into two arrays, headers which contains any rows that have a <th>
   // element, and dataRows which has all the others
   const [headers, dataRows] = Array(...rows).reduce(
-    ([headers, dataRows], row) => {
+    ([header, dRows], row) => {
       return row.getElementsByTagName('th').length
-        ? [[...headers, row], dataRows]
-        : [headers, [...dataRows, row]];
-  }, [[], []]);
-  let goodHeader;
-  for (let header of headers) {
+        ? [[...header, row], dRows]
+        : [header, [...dRows, row]];
+    },
+    [[], []]);
+  let goodHeader = null;
+  for (const header of headers) {
     if (header.textContent.includes('Title')) {
       goodHeader = header;
       break;
     }
-  }
-  if (!goodHeader) {
-    debugger;
   }
   const headerCells = goodHeader.getElementsByTagName('th');
   const headerNames = Array(...headerCells).map((cell) => cell.textContent);
   //const noIndex = headerNames.indexOf('No.');
   const titleIndex = headerNames.indexOf('Title');
   //const lengthIndex = headerNames.indexOf('Length');
-  const songTitles = Array(...rows).filter((row) => {
-    return row.getElementsByTagName('th').length === 0;
-  }).map((row) => {
+  return dataRows.map((row) => {
     const data = row.getElementsByTagName('td');
     const titleText = data[titleIndex].textContent;
-    const matches = titleText.match(/"(.*?)"/);
-    return matches ? matches[1] : null;
+    const matches = titleText.match(/"(?<inner>.*?)"/);
+    return matches ? matches.inner : null;
   }).filter(Boolean);
-  return songTitles;
 }
 
 /**

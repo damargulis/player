@@ -44,7 +44,7 @@ function formatGenre(genre) {
  * @return {string} The sanitized string.
  */
 export function sanitize(string) {
-  return string.replace(/\s*[\[\(].*?[\]\)]\s*/g, "").replace(/\s+/g, " ");
+  return string.replace(/\s*[[(].*?[\])]\s*/g, "").replace(/\s+/g, " ");
 }
 
 /**

@@ -20,7 +20,8 @@ export default class AlbumPicker extends React.Component {
   acceptTrackWarnings() {
     for (const indexStr in this.props.album.warnings) {
       const index = parseInt(indexStr);
-      const track = this.props.library.getTrack(this.props.album.trackIds[index]);
+      const track = this.props.library.getTrack(
+        this.props.album.trackIds[index]);
       track.name = this.props.album.warnings[indexStr];
     }
     this.props.album.warnings = {};
@@ -45,7 +46,8 @@ export default class AlbumPicker extends React.Component {
         {
           warnings.map((trackIndex) => {
             return (
-              <div key={trackIndex}>{(parseInt(trackIndex) + 1) + ": " + this.props.album.warnings[trackIndex]}</div>
+              <div key={trackIndex}>{parseInt(trackIndex) + 1 + ": " +
+                this.props.album.warnings[trackIndex]}</div>
             );
           })
         }
