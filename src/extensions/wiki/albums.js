@@ -103,20 +103,7 @@ function searchForWikiPage(album, library) {
   });
 }
 
-/**
- * Gets the track titles listed on the wiki page.
- * @param {!Document} doc The wikipedia root page
- * @return {!Array<string>} The song titles.
- */
-function getTracks(doc) {
-  const tracklists = doc.getElementsByClassName('tracklist');
-  // TODO: using first for now, should loop through all, check header to
-  // determine what to do with it; can include multi releases, discs, versions,
-  // etc.
-  if (tracklists.length === 0) {
-    return [];
-  }
-  const tracklist = tracklists[0];
+function getTracksFromTracklist(tracklist) {
   const rows = tracklist.getElementsByTagName('tr');
   // splits into two arrays, headers which contains any rows that have a <th>
   // element, and dataRows which has all the others
@@ -148,6 +135,29 @@ function getTracks(doc) {
 }
 
 /**
+ * Gets the track titles listed on the wiki page.
+ * @param {!Document} doc The wikipedia root page
+ * @return {!Array<string>} The song titles.
+ */
+function getTracks(doc) {
+  const tracklists = doc.getElementsByClassName('tracklist');
+  // TODO: using first for now, should loop through all, check header to
+  // determine what to do with it; can include multi releases, discs, versions,
+  // etc.
+  if (tracklists.length === 0) {
+    return [];
+  }
+  let tracks = [];
+  for (const tracklist of tracklists) {
+    // tracklists that are hidden are usually bonus tracks .. maybe include but give different warning for missing bonus tracks?
+    if (!tracklist.className.includes("collapsible")) {
+      tracks = [...tracks, ...getTracksFromTracklist(tracklist)];
+    }
+  }
+  return tracks;
+}
+
+/**
  * Modifys an album based on the data found on its wikipedia page.
  * @param {!Album} album The album to modify.
  * @param {!Library} library The library the album is from.
@@ -175,10 +185,10 @@ function modifyAlbum(album, library) {
       album.addError(GENRE_ERROR);
     }
     const trackTitles = getTracks(doc);
-    if (album.trackIds.length == trackTitles.length) {
+    if (album.trackIds.length === trackTitles.length) {
       const tracks = album.trackIds.map((id) => library.getTrack(id));
       tracks.forEach((track, index) => {
-        if (track.name != trackTitles[index]) {
+        if (track.name !== trackTitles[index]) {
           album.addTrackWarning(index, trackTitles[index]);
         }
       });
@@ -205,7 +215,9 @@ function modifyAlbum(album, library) {
       album.addError(ALBUM_ART_ERROR);
       return Promise.resolve();
     });
-  }).catch(() => {
+  }).catch((err) => {
+    console.log("PARSER ERROR!!");
+    console.log(err);
     album.addError(PARSER_ERROR);
     return Promise.resolve();
   });
