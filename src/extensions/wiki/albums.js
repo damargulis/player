@@ -143,7 +143,7 @@ function getTracks(doc) {
     const data = row.getElementsByTagName('td');
     const titleText = data[titleIndex].textContent;
     const matches = titleText.match(/"(?<inner>.*?)"/);
-    return matches ? matches.inner : null;
+    return matches ? matches.groups.inner : null;
   }).filter(Boolean);
 }
 
@@ -182,6 +182,7 @@ function modifyAlbum(album, library) {
           album.addTrackWarning(index, trackTitles[index]);
         }
       });
+      album.removeError(TRACK_ERROR);
     } else {
       album.addError(TRACK_ERROR);
     }
