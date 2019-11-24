@@ -22,7 +22,6 @@ export default class AlbumPicker extends React.Component {
       search: null,
     };
     this.numCols = 0;
-
   }
 
   sortAlbums(albums) {
@@ -121,8 +120,6 @@ export default class AlbumPicker extends React.Component {
   }
 
   render() {
-    console.log('render');
-    console.log(this.state.search);
     const items = this.state.withErrors
       ? this.state.sortedAlbums.filter((album) => {
         return album.errors.length > 0;

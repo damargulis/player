@@ -103,6 +103,11 @@ function searchForWikiPage(album, library) {
   });
 }
 
+/**
+ * Gets the tracks from a track list.
+ * @param {!HTMLTableElement} tracklist The table holding a tracklist.
+ * @return {!Array<string>} The song titles.
+ */
 function getTracksFromTracklist(tracklist) {
   const rows = tracklist.getElementsByTagName('tr');
   // splits into two arrays, headers which contains any rows that have a <th>
@@ -149,7 +154,8 @@ function getTracks(doc) {
   }
   let tracks = [];
   for (const tracklist of tracklists) {
-    // tracklists that are hidden are usually bonus tracks .. maybe include but give different warning for missing bonus tracks?
+    // tracklists that are hidden are usually bonus tracks .. maybe include
+    // but give different warning for missing bonus tracks?
     if (!tracklist.className.includes("collapsible")) {
       tracks = [...tracks, ...getTracksFromTracklist(tracklist)];
     }
@@ -215,9 +221,7 @@ function modifyAlbum(album, library) {
       album.addError(ALBUM_ART_ERROR);
       return Promise.resolve();
     });
-  }).catch((err) => {
-    console.log("PARSER ERROR!!");
-    console.log(err);
+  }).catch(() => {
     album.addError(PARSER_ERROR);
     return Promise.resolve();
   });

@@ -91,19 +91,22 @@ export default function runWikiExtension(library) {
   // without having to wait for an acutal finish?
   const albumPool = getAlbumsPool(library);
   const artistPool = getArtistPool(library);
-  const albumErrors = library.getAlbums().reduce((total, album) => total + album.errors.length, 0);
-  const albumWarnings = library.getAlbums().reduce((total, album) => total + Object.keys(album.warnings).length, 0);
+  const albumErrors = library.getAlbums()
+    .reduce((total, album) => total + album.errors.length, 0);
+  const albumWarnings = library.getAlbums()
+    .reduce((total, album) => total + Object.keys(album.warnings).length, 0);
   const albumGood = library.getAlbums().filter((album) => {
-    return album.errors.length === 0 && Object.keys(album.warnings).length === 0;
+    return album.errors.length === 0 &&
+      Object.keys(album.warnings).length === 0;
   }).length;
   return albumPool.start()
     .then(() => artistPool.start())
     .then(() => {
       ipcRenderer.send('extension-update', {
         'type': 'done',
-        'albumErrors': albumErrors,
-        'albumWarnings': albumWarnings,
-        'albumGood': albumGood,
+        albumErrors,
+        albumWarnings,
+        albumGood,
       });
     });
 }

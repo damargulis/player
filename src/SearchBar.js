@@ -7,7 +7,7 @@ export default class SearchBar extends React.Component {
 
     this.state = {
       value: '',
-    }
+    };
 
     this.searchDebounce = null;
   }
@@ -27,11 +27,11 @@ export default class SearchBar extends React.Component {
 
   render() {
     return (
-      <input 
+      <input
         placeholder="Search"
         value={this.state.value}
         onChange={this.onChange.bind(this)}
       />
-    )
+    );
   }
 }
