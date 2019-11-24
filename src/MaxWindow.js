@@ -29,6 +29,11 @@ export default class MaxWindow extends React.Component {
     });
     this.onArtistMessage = this.onArtistMessage.bind(this);
     ipcRenderer.on('toArtist', this.onArtistMessage);
+    ipcRenderer.on('toSong', this.onSongMessage.bind(this));
+  }
+
+  onSongMessage(evt, data) {
+    this.goToSong(data.song);
   }
 
   onArtistMessage(evt, data) {
@@ -67,6 +72,22 @@ export default class MaxWindow extends React.Component {
 
   canGoForward() {
     return this.state.curScene < this.state.scenes.length - 1;
+  }
+
+  goToSong(song) {
+    const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
+    scenes.push(
+      () => <SongPicker
+        genres={this.state.genres}
+        playSong={this.props.playSong}
+        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
+        library={this.props.library}
+        songs={this.props.library.getTracks(this.state.genres)}
+        scrollToSong={song}
+      />
+    );
+    const curScene = this.state.curScene + 1;
+    this.setState({scenes, curScene});
   }
 
   goToAlbum(album) {
@@ -186,6 +207,7 @@ export default class MaxWindow extends React.Component {
           time={this.props.time}
           goToArtist={this.goToArtist.bind(this)}
           goToAlbum={this.goToAlbum.bind(this)}
+          goToSong={this.goToSong.bind(this)}
         />
         <div className="section">
           <div id="sidebar">

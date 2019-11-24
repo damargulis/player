@@ -34,15 +34,31 @@ export default class InfoPanel extends React.Component {
     const {track, library} = this.props;
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
-    return albums.map((album, index) => {
-      return (
-        <div key={index}>
-          <div className="link" onClick={() => this.props.goToAlbum(album)}>
-            {album.name}
+    if (albums.length) {
+      return albums.map((album, index) => {
+        return (
+          <div key={index}>
+            <div className="link" onClick={() => this.props.goToAlbum(album)}>
+              {album.name}
+            </div>
           </div>
+        );
+      });
+    }
+    return "Albums";
+  }
+
+  getNameLink() {
+    if (this.props.track) {
+      return (
+        <div className="link"
+          onClick={() => this.props.goToSong(this.props.track)}
+        >
+          {this.props.track.name}
         </div>
       );
-    });
+    }
+    return 'Track Name';
   }
 
   render() {
@@ -68,7 +84,7 @@ export default class InfoPanel extends React.Component {
         />
         <div>
           <div className="track-label" id="name">
-            {track ? track.name : 'Track Name'}
+            { this.getNameLink() }
           </div>
           <div className="track-label" id="author">
             {

@@ -5,6 +5,10 @@ import React from 'react';
 const {ipcRenderer} = require('electron');
 
 export default class MiniWindow extends React.Component {
+  goToSong(song) {
+    ipcRenderer.send('goToSong', {song});
+  }
+
   goToArtist(artist) {
     ipcRenderer.send('goToArtist', {artist});
   }
@@ -19,6 +23,7 @@ export default class MiniWindow extends React.Component {
         <InfoPanel
           goToArtist={this.goToArtist.bind(this)}
           goToAlbum={this.goToAlbum.bind(this)}
+          goToSong={this.goToSong.bind(this)}
           small={true}
           library={this.props.library}
           track={this.props.playlist.getCurrentTrack()}

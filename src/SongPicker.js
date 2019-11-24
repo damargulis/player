@@ -208,6 +208,15 @@ export default class SongPicker extends React.Component {
   }
 
   render() {
+    // do this by id or something instead, this kind of check is bad but needed
+    // because object gets serialized from miniwindow -> maxwindow
+    const scrollTo = this.props.scrollToSong
+      ? this.state.songs.findIndex((song) => {
+        return song.name === this.props.scrollToSong.name &&
+        song.year === this.props.scrollToSong.year &&
+        song.duration === this.props.scrollToSong.duration;
+      })
+      : -1;
     return (
       <div className="main">
         <SearchBar onSearch={(search) => this.onSearch(search)} />
@@ -224,6 +233,7 @@ export default class SongPicker extends React.Component {
                 rowStyle={this.getRowStyle.bind(this)}
                 onRowClick={this.onRowClick.bind(this)}
                 onRowDoubleClick={this.onRowDoubleClick.bind(this)}
+                scrollToIndex={scrollTo}
                 sortBy={this.state.sortBy}
                 sort={this.sort.bind(this)}
                 sortDirection={this.state.sortDirection}

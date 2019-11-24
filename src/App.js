@@ -40,6 +40,9 @@ export default class App extends React.Component {
     ipcRenderer.on('toArtist', () => {
       this.onMaximize_();
     });
+    ipcRenderer.on('toSong', () => {
+      this.onMaximize_();
+    });
     ipcRenderer.on('run-extension', (type, arg) => {
       switch (arg) {
       case 'wikipedia':

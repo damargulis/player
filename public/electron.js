@@ -24,6 +24,11 @@ ipcMain.on('goToArtist', (evt, data) => {
   evt.reply('toArtist', data);
 });
 
+ipcMain.on('goToSong', (evt, data) => {
+  maximize();
+  evt.reply('toSong', data);
+});
+
 ipcMain.on('goToAlbum', (evt, data) => {
   maximize();
   evt.reply('toAlbum', data);

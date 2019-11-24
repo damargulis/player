@@ -20,6 +20,7 @@ export default class Header extends React.Component {
         <InfoPanel
           goToArtist={this.props.goToArtist}
           goToAlbum={this.props.goToAlbum}
+          goToSong={this.props.goToSong}
           library={this.props.library}
           track={this.props.playlist.getCurrentTrack()}
         />
