@@ -1,5 +1,6 @@
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
+import SearchBar from './SearchBar';
 import {toTime} from './utils';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 
@@ -20,7 +21,12 @@ export default class SongPicker extends React.Component {
       selected: [],
       lastSelected: null,
       sortDirection,
+      search: '',
     };
+  }
+
+  componentDidMount() {
+    this.sort(this.state);
   }
 
   componentDidUpdate(prevProps) {
@@ -30,7 +36,13 @@ export default class SongPicker extends React.Component {
   }
 
   sortSongs(sortBy, sortDirection) {
-    let songs = this.props.songs.slice();
+    let songs = this.props.songs.slice().filter((song) => {
+      if (this.state && this.state.search) {
+        return song.name.toLowerCase()
+          .includes(this.state.search.toLowerCase());
+      }
+      return true;
+    });
     switch (sortBy) {
     case 'index':
       break;
@@ -191,9 +203,14 @@ export default class SongPicker extends React.Component {
     this.setState({sortBy, sortDirection, songs, selected});
   }
 
+  onSearch(search) {
+    this.setState({search}, () => this.sort(this.state));
+  }
+
   render() {
     return (
       <div className="main">
+        <SearchBar onSearch={(search) => this.onSearch(search)} />
         <AutoSizer>
           {({height, width}) => {
             return (

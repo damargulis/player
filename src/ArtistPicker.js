@@ -1,5 +1,6 @@
 import ArtistInfo from './ArtistInfo';
 import React from 'react';
+import SearchBar from './SearchBar';
 import WrappedGrid from './WrappedGrid';
 
 
@@ -7,16 +8,29 @@ export default class ArtistPicker extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      sortedArtists: this.sortArtists(this.props.artists),
+      sortedArtists: [],
       withErrors: false,
+      search: '',
     };
 
     this.numCols = 0;
   }
 
   sortArtists(artists) {
-    return artists.slice().sort((artist1, artist2) => {
+    return artists.filter((artist) => {
+      if (this.state.search) {
+        return artist.name.toLowerCase()
+          .includes(this.state.search.toLowerCase());
+      }
+      return true;
+    }).sort((artist1, artist2) => {
       return artist1.name.localeCompare(artist2.name);
+    });
+  }
+
+  componentDidMount() {
+    this.setState({
+      sortedArtists: this.sortArtists(this.props.artists),
     });
   }
 
@@ -59,6 +73,10 @@ export default class ArtistPicker extends React.Component {
     });
   }
 
+  onSearch(search) {
+    this.setState({search});
+  }
+
   // reuse the grid from album view?
   // source pictures from wikipedia, rotate album covers as backup
   render() {
@@ -69,6 +87,7 @@ export default class ArtistPicker extends React.Component {
     return (
       <div className="main">
         <button onClick={() => this.withErrors()}>With Errors Only</button>
+        <SearchBar onSearch={(search) => this.onSearch(search)} />
         <WrappedGrid
           items={items}
           cellRenderer={this.cellRenderer.bind(this)}
