@@ -1,6 +1,7 @@
 import AlbumInfo from './AlbumInfo';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
+import SearchBar from './SearchBar';
 import WrappedGrid from './WrappedGrid';
 
 import './App.css';
@@ -8,30 +9,39 @@ import './App.css';
 export default class AlbumPicker extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      sortMethod: null,
-      reverse: false,
-      sortedAlbums: this.sortAlbums(this.props.albums),
-      withErrors: false,
-    };
-    this.numCols = 0;
 
     this.sortByName = this.sortByName.bind(this);
     this.sortByYear = this.sortByYear.bind(this);
     this.sortByArtist = this.sortByArtist.bind(this);
+
+    this.state = {
+      sortMethod: this.sortByName,
+      reverse: false,
+      sortedAlbums: [],
+      withErrors: false,
+      search: null,
+    };
+    this.numCols = 0;
+
   }
 
   sortAlbums(albums) {
-    if (this.state && this.state.sortMethod) {
-      return albums.slice().sort((album1, album2) => {
-        if (this.state.reverse) {
-          return this.state.sortMethod(album2, album1);
-        }
-        return this.state.sortMethod(album1, album2);
-      });
-    }
-    return albums.slice().sort((album1, album2) => {
-      return album1.name.localeCompare(album2.name);
+    return albums.filter((album) => {
+      if (!this.state.search) {
+        return true;
+      }
+      return album.name.includes(this.state.search);
+    }).sort((album1, album2) => {
+      if (this.state.reverse) {
+        return this.state.sortMethod(album2, album1);
+      }
+      return this.state.sortMethod(album1, album2);
+    });
+  }
+
+  componentDidMount() {
+    this.setState({
+      sortedAlbums: this.sortAlbums(this.props.albums),
     });
   }
 
@@ -106,7 +116,13 @@ export default class AlbumPicker extends React.Component {
     });
   }
 
+  onSearch(search) {
+    this.setState({ search });
+  }
+
   render() {
+    console.log('render');
+    console.log(this.state.search);
     const items = this.state.withErrors
       ? this.state.sortedAlbums.filter((album) => {
         return album.errors.length > 0;
@@ -119,6 +135,7 @@ export default class AlbumPicker extends React.Component {
           </button>
           <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
           <button onClick={() => this.withErrors()}>With Errors Only</button>
+          <SearchBar onSearch={(search) => this.onSearch(search)} />
         </div>
         <WrappedGrid
           items={items}
