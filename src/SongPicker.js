@@ -30,7 +30,7 @@ export default class SongPicker extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.genres !== this.props.genres) {
+    if (prevProps.songs !== this.props.songs) {
       this.sort(this.state);
     }
   }
