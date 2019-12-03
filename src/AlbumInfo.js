@@ -1,6 +1,6 @@
 import React from 'react';
-import {getImgSrc} from './utils';
 import {Resources} from './constants';
+import {getImgSrc} from './utils';
 
 export default class AlbumInfo extends React.Component {
   constructor(props) {

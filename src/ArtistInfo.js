@@ -1,7 +1,13 @@
 import React from 'react';
-import {getImgSrc} from './utils';
 import {Resources} from './constants';
+import {getImgSrc} from './utils';
 
+/**
+ * Gets album arts from all albums from an artist.
+ * @param {!Library} library The library artist is from.
+ * @param {!Artist} artist The artist to get the albums from.
+ * @return {!Array<string>} The album art files.
+ */
 function getAlbumArtFiles(library, artist) {
   const albums = library.getAlbumsByIds(artist.albumIds);
   return albums.map((album) => album.albumArtFile).filter(Boolean);
@@ -11,8 +17,11 @@ export default class ArtistInfo extends React.Component {
   constructor(props) {
     super(props);
 
-    let file = this.props.artist.artFile;
-    this.artFiles = [file, ...getAlbumArtFiles(props.library, props.artist)].filter(Boolean);
+    const file = this.props.artist.artFile;
+    this.artFiles = [
+      file,
+      ...getAlbumArtFiles(props.library, props.artist)
+    ].filter(Boolean);
     this.state = {
       currentImg: 0,
       timerId: null,

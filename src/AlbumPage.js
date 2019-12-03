@@ -2,11 +2,10 @@ import EditableAttribute from './EditableAttribute';
 import NavigationBar from './NavigationBar';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
+import {Resources} from './constants';
 import SongPicker from './SongPicker.js';
 import modifyAlbum from './extensions/wiki/albums';
-import {toTime} from './utils';
-import {getImgSrc} from './utils';
-import {Resources} from './constants';
+import {getImgSrc, toTime} from './utils';
 
 export default class AlbumPicker extends React.Component {
   runWiki() {

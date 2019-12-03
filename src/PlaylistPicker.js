@@ -43,7 +43,14 @@ export default class PlaylistPicker extends React.Component {
               cellRenderer={this.cellRenderer.bind(this)}
             />
           </div>
-          <div style={{height: '100%', position: 'absolute', top: 0, right: 0, width: '50%'}}>
+          <div
+            style={{
+              height: '100%',
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '50%'
+            }}>
             <span style={{width: '100%', textAlign: 'center'}}>Auto</span>
             <WrappedGrid
               items={this.state.playlists}
