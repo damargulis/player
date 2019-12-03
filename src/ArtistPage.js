@@ -5,6 +5,7 @@ import React from 'react';
 import SongPicker from './SongPicker.js';
 import {getImgSrc} from './utils';
 import modifyArtist from './extensions/wiki/artists';
+import {Resources} from './constants';
 
 export default class ArtistPage extends React.Component {
   runWiki() {
@@ -39,7 +40,7 @@ export default class ArtistPage extends React.Component {
   }
 
   render() {
-    const src = getImgSrc(this.props.artist.artFile);
+    const src = getImgSrc(this.props.artist.artFile || Resources.DEFAULT_ARTIST);
     return (
       <div className="main">
         <div className="pageHolder"

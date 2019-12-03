@@ -5,8 +5,8 @@ import React from 'react';
 import SongPicker from './SongPicker.js';
 import modifyAlbum from './extensions/wiki/albums';
 import {toTime} from './utils';
-
-const path = require('path');
+import {getImgSrc} from './utils';
+import {Resources} from './constants';
 
 export default class AlbumPicker extends React.Component {
   runWiki() {
@@ -114,8 +114,9 @@ export default class AlbumPicker extends React.Component {
   render() {
     // todo use albumInfo or combine logic
     // ya know actually separate conscers and shit
-    const file = this.props.album && this.props.album.albumArtFile;
-    const src = file ? new URL('file://' + path.resolve(file)) : null;
+    let file = this.props.album && this.props.album.albumArtFile;
+    file = file || Resources.DEFAULT_ALBUM;
+    const src = getImgSrc(file);
     //const artist = this.props.library.getArtistsByIds(
     //  this.props.album.artistIds).map((artist) => {
     //  return artist.name;

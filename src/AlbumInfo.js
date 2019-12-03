@@ -1,6 +1,7 @@
 import React from 'react';
+import {getImgSrc} from './utils';
+import {Resources} from './constants';
 
-const path = require('path');
 export default class AlbumInfo extends React.Component {
   constructor(props) {
     super(props);
@@ -52,8 +53,9 @@ export default class AlbumInfo extends React.Component {
     if (this.props.album.errors.length > 0) {
       newStyle.backgroundColor = 'red';
     }
-    const file = this.props.album && this.props.album.albumArtFile;
-    const src = file ? new URL('file://' + path.resolve(file)) : null;
+    let file = this.props.album && this.props.album.albumArtFile;
+    file = file || Resources.DEFAULT_ALBUM;
+    const src = getImgSrc(file);
     const artists = this.props.library.getArtistsByIds(
       this.props.album.artistIds).map((artist) => {
       return artist.name;

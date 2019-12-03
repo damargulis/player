@@ -1,9 +1,18 @@
 import React from 'react';
 import {getImgSrc} from './utils';
+import {Resources} from './constants';
+
+function getAlbumArtFiles(library, artist) {
+  const albums = library.getAlbumsByIds(artist.albumIds);
+  return albums.map((album) => album.albumArtFile).filter(Boolean);
+}
 
 export default class ArtistInfo extends React.Component {
   constructor(props) {
     super(props);
+
+    let file = this.props.artist.artFile;
+    this.artFiles = [file, ...getAlbumArtFiles(props.library, props.artist)].filter(Boolean);
     this.state = {
       currentImg: 0,
       timerId: null,
@@ -22,7 +31,7 @@ export default class ArtistInfo extends React.Component {
         }
         this.setState({
           currentImg:
-            (this.state.currentImg + 1) % this.props.artist.albumIds.length,
+            (this.state.currentImg + 1) % this.artFiles.length,
         });
       }, time);
       if (!this.props.artist) {
@@ -31,7 +40,7 @@ export default class ArtistInfo extends React.Component {
       this.setState({
         timerId: id,
         currentImg:
-          (this.state.currentImg + 1) % this.props.artist.albumIds.length,
+          (this.state.currentImg + 1) % this.artFiles.length,
       });
     }, Math.random() * time);
     this.setState({
@@ -59,14 +68,8 @@ export default class ArtistInfo extends React.Component {
     if (this.props.artist.errors.length > 0) {
       newStyle.backgroundColor = 'red';
     }
-    // add in into the rotation instead?
-    let file = this.props.artist.artFile;
-    if (!file) {
-      const albums = this.props.library.getAlbumsByIds(
-        this.props.artist.albumIds);
-      const album = albums[this.state.currentImg];
-      file = album && album.albumArtFile;
-    }
+    let file = this.artFiles[this.state.currentImg];
+    file = file || Resources.DEFAULT_ARTIST;
     const src = getImgSrc(file);
     return (
       <div
