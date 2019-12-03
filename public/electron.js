@@ -1,5 +1,6 @@
 const {
   app,
+  globalShortcut,
   BrowserWindow,
   Menu,
   MenuItem,
@@ -16,6 +17,8 @@ let mainWindow = null;
 let extensionWindow = null;
 // TODO: change name to be playerEvt or something since its used for more than
 // just extensions
+// TODO: refactor all of this into a channel class w/ names and queues and shit
+// goddamit i hate channels
 let extEvt = null;
 let extensionEvt = null;
 
@@ -126,26 +129,21 @@ function createWindow() {
     submenu: [{label: "Wikipedia", click: () => runExtension('wikipedia')}]
   }));
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
-  //const menu = Menu.getApplicationMenu();
-  //menu.append(new MenuItem({
-  //  label: "Extensions",
-  //}));
-  //Menu.setApplicationMenu(menu);
-  // how to set menu:
-  //var menu = Menu.buildFromTemplate([
-  //  {
-  //    label: 'Menu',
-  //    submenu: [
-  //      {label: 'Adjust Notification Value'},
-  //      {label: 'CoinMarketCap'},
-  //      {label: 'Exit'}
-  //    ]
-  //  }
-  //]);
-  //Menu.setApplicationMenu(menu);
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  // TODO: media keys dont work ... :(
+  globalShortcut.register('CommandOrControl+0', () => {
+    extEvt.reply('nextTrack');
+  });
+  globalShortcut.register('CommandOrControl+9', () => {
+    extEvt.reply('playTrack');
+  });
+  globalShortcut.register('CommandOrControl+8', () => {
+    extEvt.reply('prevTrack');
+  });
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

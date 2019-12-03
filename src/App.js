@@ -43,6 +43,15 @@ export default class App extends React.Component {
     ipcRenderer.on('toSong', () => {
       this.onMaximize_();
     });
+    ipcRenderer.on('nextTrack', () => {
+      this.nextTrack();
+    });
+    ipcRenderer.on('prevTrack', () => {
+      this.prevTrack();
+    });
+    ipcRenderer.on('playTrack', () => {
+      this.playPause();
+    });
     ipcRenderer.on('run-extension', (type, arg) => {
       switch (arg) {
       case 'wikipedia':
