@@ -1,7 +1,8 @@
 import React from 'react';
+import {Resources} from './constants';
+import {getImgSrc} from './utils';
 
 const {ipcRenderer} = require('electron');
-const path = require('path');
 
 export default class InfoPanel extends React.Component {
   onImageClick_() {
@@ -66,9 +67,8 @@ export default class InfoPanel extends React.Component {
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
     const album = albums[0];
-    const imageSrc = album && album.albumArtFile
-      ? new URL('file://' + path.resolve(album.albumArtFile)) : null;
-    const src = imageSrc;
+    const src = getImgSrc(
+      (album && album.albumArtFile) || Resources.DEFAULT_ALBUM);
     // TODO: make rotate instead -- conditionally on playlist type??
     // meaning like if its playing a specific album, only show that album
     // (and artwork)
