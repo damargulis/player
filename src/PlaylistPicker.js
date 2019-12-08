@@ -42,9 +42,9 @@ function getMostPlayed(library) {
  * @return {!Playlist} The playlist.
  */
 function getRecentlyAdded(library) {
-  const now = (new Date()).getTime();
+  const now = new Date().getTime();
   const tracks = library.getTracks().filter((track) => {
-    return (now - track.dateAdded.getTime()) < THREE_MONTHS;
+    return now - track.dateAdded.getTime() < THREE_MONTHS;
   }).map((track) => {
     return track.id;
   });
@@ -57,13 +57,22 @@ function getRecentlyAdded(library) {
  * @return {!Playlist} The playlist.
  */
 function getRecentlyPlayed(library) {
-  const now = (new Date()).getTime();
+  const now = new Date().getTime();
   const tracks = library.getTracks().filter((track) => {
-    return (now - track.playDate.getTime()) < THREE_MONTHS;
+    return now - track.playDate.getTime() < THREE_MONTHS;
   }).map((track) => {
     return track.id;
   });
   return new Playlist({name: 'Recently Played', trackIds: tracks});
+}
+
+function getLikesForYear(library, year) {
+  const tracks = library.getTracks().filter((track) => {
+    return track.favorites.indexOf(year) !== -1;
+  }).map((track) => {
+    return track.id;
+  });
+  return new Playlist({name: 'Favorite Tracks of ' + year, trackIds: tracks});
 }
 
 /**
@@ -72,7 +81,13 @@ function getRecentlyPlayed(library) {
  * @return {!Array<!Playlist>} The playlists.
  */
 function getLikesByYear(library) {
-  return [new Playlist({name: "Favorite Songs 2019", trackIds: []})];
+  const years = new Set();
+  library.getTracks().forEach((track) => {
+    track.favorites.forEach((year) => years.add(year));
+  });
+  return [...years].map((year) => {
+    return getLikesForYear(library, year);
+  });
 }
 
 /**

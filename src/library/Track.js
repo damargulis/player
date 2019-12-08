@@ -12,6 +12,7 @@ export default class Track {
     genreIds = [],
     dateAdded = '',
     playDate = '',
+    favorites = [],
   }) {
     /** @type {number} */
     this.id = id;
@@ -48,6 +49,9 @@ export default class Track {
 
     /** @type {!Date} */
     this.playDate = new Date(playDate);
+
+    /** @type {!Array<number>} */
+    this.favorites = favorites;
   }
 }
 

@@ -2,9 +2,11 @@ import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
 import ProgressBar from './ProgressBar.js';
 import React from 'react';
+import LikeButton from './LikeButton.js';
 
 export default class Header extends React.Component {
   render() {
+    const track = this.props.playlist.getCurrentTrack();
     return (
       <div id="header" style={{padding: "2px"}}>
         <ControlPanel
@@ -22,12 +24,16 @@ export default class Header extends React.Component {
           goToAlbum={this.props.goToAlbum}
           goToSong={this.props.goToSong}
           library={this.props.library}
-          track={this.props.playlist.getCurrentTrack()}
+          track={track}
+        />
+        <LikeButton
+          track={track}
+          library= {this.props.library}
         />
         <ProgressBar
           setTime={this.props.setTime}
           time={this.props.time}
-          track={this.props.playlist.getCurrentTrack()}
+          track={track}
         />
       </div>
     );

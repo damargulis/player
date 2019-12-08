@@ -14,5 +14,6 @@ export const Resources = {
   PAUSE: RESOURCES_DIR + 'pause.png',
   NEXT_TRACK: RESOURCES_DIR + 'next_track.png',
   NEXT_ALBUM: RESOURCES_DIR + 'next_album.png',
+  FAVORITE: RESOURCES_DIR + 'favorite.png',
 };
 

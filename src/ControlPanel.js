@@ -85,7 +85,7 @@ export default class ControlPanel extends React.Component {
         <input
           style={{width: "25px"}}
           type="image"
-          alt="volume"
+          alt="previous album"
           src={getImgSrc(Resources.PREVIOUS_ALBUM)}
           onClick={this.props.prevAlbum}
           disabled={!this.props.playlist.hasPrevAlbum()}
@@ -94,7 +94,7 @@ export default class ControlPanel extends React.Component {
         <input
           style={{width: "25px"}}
           type="image"
-          alt="volume"
+          alt="previous track"
           src={getImgSrc(Resources.PREVIOUS_TRACK)}
           onClick={this.props.prevTrack}
           disabled={!this.props.playlist.hasPrevTrack()}
@@ -103,7 +103,7 @@ export default class ControlPanel extends React.Component {
         <input
           style={{width: "25px"}}
           type="image"
-          alt="volume"
+          alt="play-pause"
           src={getImgSrc(this.props.playing ? Resources.PAUSE : Resources.PLAY)}
           onClick={this.props.playPause}
           disabled={!this.props.playlist.getCurrentTrack()}
@@ -112,7 +112,7 @@ export default class ControlPanel extends React.Component {
         <input
           style={{width: "25px"}}
           type="image"
-          alt="volume"
+          alt="next track"
           src={getImgSrc(Resources.NEXT_TRACK)}
           onClick={this.props.nextTrack}
           disabled={!this.props.playlist.hasNextTrack()}
@@ -121,7 +121,7 @@ export default class ControlPanel extends React.Component {
         <input
           style={{width: "25px"}}
           type="image"
-          alt="volume"
+          alt="next album"
           src={getImgSrc(Resources.NEXT_ALBUM)}
           onClick={this.props.nextAlbum}
           disabled={!this.props.playlist.hasNextAlbum()}
