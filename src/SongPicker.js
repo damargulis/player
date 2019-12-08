@@ -3,8 +3,17 @@ import React from 'react';
 import SearchBar from './SearchBar';
 import {toTime} from './utils';
 import {AutoSizer, Column, Table} from 'react-virtualized';
+import SongEditer from './SongEditer';
 
 import 'react-virtualized/styles.css';
+
+import Modal from 'react-modal';
+
+// see: http://reactcommunity.org/react-modal/accessibility/#app-element
+Modal.setAppElement('#root');
+
+const {remote} = require('electron');
+const {Menu, MenuItem} = remote;
 
 export default class SongPicker extends React.Component {
   constructor(props) {
@@ -22,6 +31,7 @@ export default class SongPicker extends React.Component {
       lastSelected: null,
       sortDirection,
       search: '',
+      editing: false,
     };
   }
 
@@ -149,6 +159,22 @@ export default class SongPicker extends React.Component {
     this.setState({selected});
   }
 
+  edit() {
+    this.setState({editing: true});
+  }
+
+  doRowRightClick({index}) {
+    if (!this.state.selected.includes(index)) {
+      this.setState({selected: [index], lastSelected: index});
+    }
+    const menu = new Menu();
+    menu.append(
+      new MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
+    menu.append(new MenuItem({label: 'Play Next'}));
+    menu.append(new MenuItem({label: 'Favorite'}));
+    menu.popup({window: remote.getCurrentWindow()});
+  }
+
   doCmdClick(index) {
     let selected = this.state.selected;
     if (selected.includes(index)) {
@@ -207,18 +233,31 @@ export default class SongPicker extends React.Component {
     this.setState({search}, () => this.sort(this.state));
   }
 
+  closeEdit() {
+    this.setState({editing: false});
+  }
+
   render() {
     // do this by id or something instead, this kind of check is bad but needed
     // because object gets serialized from miniwindow -> maxwindow
     const scrollTo = this.props.scrollToSong
       ? this.state.songs.findIndex((song) => {
-        return song.name === this.props.scrollToSong.name &&
-        song.year === this.props.scrollToSong.year &&
-        song.duration === this.props.scrollToSong.duration;
+        return song.id === this.props.scrollToSong.id
       })
       : -1;
+    const selectedSongs = this.state.selected.map((songId) => {
+      return this.state.songs[songId];
+    });
     return (
       <div className="main">
+        <Modal isOpen={this.state.editing}
+        onRequestClose={this.closeEdit.bind(this)} >
+          <SongEditer
+            exit={this.closeEdit.bind(this)}
+            library={this.props.library}
+            tracks={selectedSongs}
+          />
+        </Modal>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <AutoSizer>
           {({height, width}) => {
@@ -233,6 +272,7 @@ export default class SongPicker extends React.Component {
                 rowStyle={this.getRowStyle.bind(this)}
                 onRowClick={this.onRowClick.bind(this)}
                 onRowDoubleClick={this.onRowDoubleClick.bind(this)}
+                onRowRightClick={this.doRowRightClick.bind(this)}
                 scrollToIndex={scrollTo}
                 sortBy={this.state.sortBy}
                 sort={this.sort.bind(this)}

@@ -1,0 +1,23 @@
+.edit-container {
+  display: flex;
+  padding-top: 3px;
+}
+
+.label {
+  padding-right: 5px;
+  min-width: fit-content;
+}
+
+.input {
+  width: 100%;
+}
+
+.bottom-bar {
+  text-align: center;
+}
+
+.bottom-bar button {
+  width: 30%;
+  margin-left: 10%;
+  margin-right: 10%;
+}
