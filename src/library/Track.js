@@ -11,6 +11,7 @@ export default class Track {
     albumIds = [],
     genreIds = [],
     dateAdded = '',
+    playDate = '',
   }) {
     /** @type {number} */
     this.id = id;
@@ -44,6 +45,9 @@ export default class Track {
 
     /** @type {!Date} */
     this.dateAdded = new Date(dateAdded);
+
+    /** @type {!Date} */
+    this.playDate = new Date(playDate);
   }
 }
 

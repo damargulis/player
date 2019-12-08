@@ -103,8 +103,12 @@ export default class App extends React.Component {
       });
     });
     this.audio.addEventListener('ended', () => {
-      this.state.playlist.getCurrentTrack().playCount++;
+      const track = this.state.playlist.getCurrentTrack();
+      track.playCount++;
+      track.playDate = new Date();
+      this.setState({library: this.state.library});
       this.nextTrack();
+      this.state.library.save();
     });
   }
 

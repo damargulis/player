@@ -3,6 +3,12 @@ import React from 'react';
 import WrappedGrid from './WrappedGrid';
 
 /**
+ * Miliseconds in 3 months
+ * @type {number}
+ */
+const THREE_MONTHS = 1000 * 60 * 60 * 24;
+
+/**
  * Gets the unlistened songs in the library.
  * @param {!Libary} library The library to get from.
  * @return {!Playlist} The playlist.
@@ -38,7 +44,7 @@ function getMostPlayed(library) {
 function getRecentlyAdded(library) {
   const now = (new Date()).getTime();
   const tracks = library.getTracks().filter((track) => {
-    return (now - track.dateAdded.getTime()) < (1000 * 60 * 60 * 24 * 30);
+    return (now - track.dateAdded.getTime()) < THREE_MONTHS;
   }).map((track) => {
     return track.id;
   });
@@ -51,7 +57,13 @@ function getRecentlyAdded(library) {
  * @return {!Playlist} The playlist.
  */
 function getRecentlyPlayed(library) {
-  return new Playlist({name: 'Recently Played', trackIds: []});
+  const now = (new Date()).getTime();
+  const tracks = library.getTracks().filter((track) => {
+    return (now - track.playDate.getTime()) < THREE_MONTHS;
+  }).map((track) => {
+    return track.id;
+  });
+  return new Playlist({name: 'Recently Played', trackIds: tracks});
 }
 
 /**

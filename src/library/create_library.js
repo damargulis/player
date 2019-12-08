@@ -164,6 +164,7 @@ function createTracksFromItunesData(tracks) {
     track.genres = new Set(getGenres(trackData));
     track.trackNumber = trackData['Track Number'];
     track.dateAdded = trackData['Date Added'];
+    track.playDate = trackData['Play Date UTC'];
     //const track = new Track({
     //  name: trackData['Name'],
     //  duration: trackData['Total Time'],
@@ -322,6 +323,7 @@ export function createLibraryFromItunes() {
         playCount: data.playCount,
         skipCount: data.skipCount,
         dateAdded: data.dateAdded,
+        playDate: data.playDate,
       }));
     });
     // set genre ids
