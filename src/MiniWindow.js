@@ -31,6 +31,7 @@ export default class MiniWindow extends React.Component {
         />
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel
+            volumeButton={true}
             playing={this.props.playing}
             playPause={this.props.playPause}
             nextAlbum={this.props.nextAlbum}
