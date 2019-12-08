@@ -1,7 +1,7 @@
 import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
-import React from 'react';
 import ProgressBar from './ProgressBar.js';
+import React from 'react';
 
 const {ipcRenderer} = require('electron');
 

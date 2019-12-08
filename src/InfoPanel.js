@@ -68,7 +68,7 @@ export default class InfoPanel extends React.Component {
       ? library.getAlbumsByIds(track.albumIds) : [];
     const album = albums[0];
     const src = getImgSrc(
-      (album && album.albumArtFile) || Resources.DEFAULT_ALBUM);
+      album && album.albumArtFile || Resources.DEFAULT_ALBUM);
     // TODO: make rotate instead -- conditionally on playlist type??
     // meaning like if its playing a specific album, only show that album
     // (and artwork)

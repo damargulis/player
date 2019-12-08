@@ -1,7 +1,12 @@
+import Playlist from './library/Playlist';
 import React from 'react';
 import WrappedGrid from './WrappedGrid';
-import Playlist from './library/Playlist';
 
+/**
+ * Gets the unlistened songs in the library.
+ * @param {!Libary} library The library to get from.
+ * @return {!Playlist} The playlist.
+ */
 function getUnlistened(library) {
   const tracks = library.getTracks().filter((track) => {
     return track.playCount === 0;
@@ -11,6 +16,11 @@ function getUnlistened(library) {
   return new Playlist({name: "Unheard", trackIds: tracks});
 }
 
+/**
+ * Gets the 100 most played songs in the library.
+ * @param {!Libary} library The library to get from.
+ * @return {!Playlist} The playlist.
+ */
 function getMostPlayed(library) {
   const tracks = library.getTracks().slice().sort((track1, track2) => {
     return track2.playCount - track1.playCount;
@@ -20,18 +30,38 @@ function getMostPlayed(library) {
   return new Playlist({name: 'Most Played', trackIds: tracks});
 }
 
+/**
+ * Gets the songs added to the library in the last 3 months.
+ * @param {!Libary} library The library to get from.
+ * @return {!Playlist} The playlist.
+ */
 function getRecentlyAdded(library) {
-  return new Playlist({name: 'Recently Added', trackIds:  []});
+  return new Playlist({name: 'Recently Added', trackIds: []});
 }
 
+/**
+ * Gets the songs listened to in the last 3 months.
+ * @param {!Libary} library The library to get from.
+ * @return {!Playlist} The playlist.
+ */
 function getRecentlyPlayed(library) {
   return new Playlist({name: 'Recently Played', trackIds: []});
 }
 
+/**
+ * Gets a playlist of songs liked in each year.
+ * @param {!Libary} library The library to get from.
+ * @return {!Array<!Playlist>} The playlists.
+ */
 function getLikesByYear(library) {
   return [new Playlist({name: "Favorite Songs 2019", trackIds: []})];
 }
 
+/**
+ * Gets all auto playlists.
+ * @param {!Library} library The library to get from.
+ * @return {!Array<!Playlist>} The playlists.
+ */
 function getAutoPlaylists(library) {
   return [
     getMostPlayed(library),
@@ -50,7 +80,7 @@ export default class PlaylistPicker extends React.Component {
       autoPlaylists: getAutoPlaylists(this.props.library)
     };
   }
-  
+
   // todo: make wrappedGrids items actually work and get rid of this
   autoCellRenderer(index, key, style) {
     const playlist = this.state.autoPlaylists[index];

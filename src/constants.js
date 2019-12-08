@@ -1,7 +1,8 @@
 const RESOURCES_DIR = './resources/';
 
 // images should come from:
-// https://thenounproject.com/coquet_adrien/collection/music-media-player-control-play-multimedia-record/
+// https://thenounproject.com/coquet_adrien/collection/
+// music-media-player-control-play-multimedia-record/
 // if possible
 export const Resources = {
   DEFAULT_ALBUM: RESOURCES_DIR + 'missing_album.png',
