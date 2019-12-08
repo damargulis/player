@@ -66,6 +66,12 @@ function getRecentlyPlayed(library) {
   return new Playlist({name: 'Recently Played', trackIds: tracks});
 }
 
+/**
+ * Gets playlist for likes in a given year.
+ * @param {!Library} library The library to get from.
+ * @param {number} year The year to get favorites for.
+ * @return {!Playlist} The playlist.
+ */
 function getLikesForYear(library, year) {
   const tracks = library.getTracks().filter((track) => {
     return track.favorites.indexOf(year) !== -1;

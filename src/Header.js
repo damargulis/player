@@ -1,8 +1,8 @@
 import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
+import LikeButton from './LikeButton.js';
 import ProgressBar from './ProgressBar.js';
 import React from 'react';
-import LikeButton from './LikeButton.js';
 
 export default class Header extends React.Component {
   render() {
