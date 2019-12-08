@@ -10,6 +10,7 @@ export default class Track {
     artistIds = [],
     albumIds = [],
     genreIds = [],
+    dateAdded = '',
   }) {
     /** @type {number} */
     this.id = id;
@@ -40,6 +41,9 @@ export default class Track {
 
     /** @type {!Array<number>} */
     this.genreIds = genreIds;
+
+    /** @type {!Date} */
+    this.dateAdded = new Date(dateAdded);
   }
 }
 

@@ -36,7 +36,13 @@ function getMostPlayed(library) {
  * @return {!Playlist} The playlist.
  */
 function getRecentlyAdded(library) {
-  return new Playlist({name: 'Recently Added', trackIds: []});
+  const now = (new Date()).getTime();
+  const tracks = library.getTracks().filter((track) => {
+    return (now - track.dateAdded.getTime()) < (1000 * 60 * 60 * 24 * 30);
+  }).map((track) => {
+    return track.id;
+  });
+  return new Playlist({name: 'Recently Added', trackIds: tracks});
 }
 
 /**

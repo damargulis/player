@@ -163,6 +163,7 @@ function createTracksFromItunesData(tracks) {
     track.mainAlbum = trackData.Album;
     track.genres = new Set(getGenres(trackData));
     track.trackNumber = trackData['Track Number'];
+    track.dateAdded = trackData['Date Added'];
     //const track = new Track({
     //  name: trackData['Name'],
     //  duration: trackData['Total Time'],
@@ -311,16 +312,17 @@ export function createLibraryFromItunes() {
       albumData.id = albums.length - 1;
     });
     const tracks = [];
-    trackMap.forEach((data, index) => {
-      tracks.push(new Track(index, {
+    trackMap.forEach((data) => {
+      data.id = tracks.length;
+      tracks.push(new Track(tracks.length, {
         name: data.name,
         duration: data.duration,
         filePath: data.filePath,
         year: data.year,
         playCount: data.playCount,
         skipCount: data.skipCount,
+        dateAdded: data.dateAdded,
       }));
-      data.id = tracks.length - 1;
     });
     // set genre ids
     albumMap.forEach((albumData) => {
