@@ -1,6 +1,6 @@
-import ControlPanel from './ControlPanel.js';
-import InfoPanel from './InfoPanel.js';
-import ProgressBar from './ProgressBar.js';
+import ControlPanel from './ControlPanel';
+import InfoPanel from './InfoPanel';
+import ProgressBar from './ProgressBar';
 import React from 'react';
 
 const {ipcRenderer} = require('electron');
@@ -40,7 +40,8 @@ export default class MiniWindow extends React.Component {
             prevTrack={this.props.prevTrack}
             playlist={this.props.playlist}
             setVolume={this.props.setVolume}
-            track={this.props.track}/>
+            library={this.props.library}
+          />
         </div>
         <ProgressBar
           setTime={this.props.setTime}

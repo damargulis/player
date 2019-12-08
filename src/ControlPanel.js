@@ -2,6 +2,7 @@ import Modal from 'react-modal';
 import React from 'react';
 import {Resources} from './constants';
 import {getImgSrc} from './utils';
+import LikeButton from './LikeButton';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement('#root');
@@ -126,6 +127,10 @@ export default class ControlPanel extends React.Component {
           onClick={this.props.nextAlbum}
           disabled={!this.props.playlist.hasNextAlbum()}
           className="control-button"
+        />
+        <LikeButton
+          track={this.props.playlist.getCurrentTrack()}
+          library={this.props.library}
         />
       </div>
     );

@@ -6,7 +6,7 @@ export default class LikeButton extends React.Component {
   favorite() {
     const year = new Date().getFullYear();
     const index = this.props.track.favorites.indexOf(year);
-    if (index == -1) {
+    if (index === -1) {
       this.props.track.favorites.push(year);
     } else {
       this.props.track.favorites.splice(index, 1);
@@ -21,11 +21,12 @@ export default class LikeButton extends React.Component {
       this.props.track.favorites.indexOf(year) !== -1;
     return (
       <input
+        className="control-button"
         type="image"
         alt="favorite"
         src={getImgSrc(Resources.FAVORITE)}
         onClick={this.favorite.bind(this)}
-        style={{width: "50px", height: "50px", opacity: favorite ? '1' : '.5'}}
+        style={{width: "25px", opacity: favorite ? '1' : '.5'}}
         disabled={!this.props.track}
       />
     );
