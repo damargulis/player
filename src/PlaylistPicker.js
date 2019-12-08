@@ -97,6 +97,36 @@ function getLikesByYear(library) {
 }
 
 /**
+ * Gets playlist for album likes in a given year.
+ * @param {!Library} library The library to get from.
+ * @param {number} year The year to get favorites for.
+ * @return {!Playlist} The playlist.
+ */
+function getAlbumLikesForYear(library, year) {
+  const tracks = library.getAlbums().filter((album) => {
+    return album.favorites.indexOf(year) !== -1;
+  }).map((album) => {
+    return album.trackIds;
+  }).flat();
+  return new Playlist({name: 'Favorite Albums of ' + year, trackIds: tracks});
+}
+
+/**
+ * Gets a playlist of albums liked in each year.
+ * @param {!Libary} library The library to get from.
+ * @return {!Array<!Playlist>} The playlists.
+ */
+function getAlbumLikesByYear(library) {
+  const years = new Set();
+  library.getAlbums().forEach((album) => {
+    album.favorites.forEach((year) => years.add(year));
+  });
+  return [...years].map((year) => {
+    return getAlbumLikesForYear(library, year);
+  });
+}
+
+/**
  * Gets all auto playlists.
  * @param {!Library} library The library to get from.
  * @return {!Array<!Playlist>} The playlists.
@@ -108,6 +138,7 @@ function getAutoPlaylists(library) {
     getRecentlyAdded(library),
     getRecentlyPlayed(library),
     ...getLikesByYear(library),
+    ...getAlbumLikesByYear(library),
   ];
 }
 

@@ -12,6 +12,7 @@ export default class Album {
     wikiPage = null,
     errors = [],
     warnings = {},
+    favorites = [],
   }) {
     /** @type {string} */
     this.name = name;
@@ -47,6 +48,9 @@ export default class Album {
 
     // TODO: make this better idk
     this.warnings = warnings;
+
+    /** @type {!Array<number>} */
+    this.favorites = favorites;
   }
 
   /**

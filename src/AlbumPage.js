@@ -1,4 +1,5 @@
 import EditableAttribute from './EditableAttribute';
+import LikeButton from './LikeButton';
 import NavigationBar from './NavigationBar';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
@@ -161,6 +162,10 @@ export default class AlbumPicker extends React.Component {
                 translate: 'translateY(-50%)'
               }}
             >Play Album</button>
+            <LikeButton
+              track={this.props.album}
+              library={this.props.library}
+            />
           </div>
           {
             this.getErrors()
