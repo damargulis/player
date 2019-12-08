@@ -222,6 +222,8 @@ export default class App extends React.Component {
             playPause={this.playPause.bind(this)}
             playing={this.state.playing}
             setVolume={this.setVolume.bind(this)}
+            setTime={this.setTime.bind(this)}
+            time={this.state.time}
           />
         </div>
         <div style={{display: mini ? "none" : "initial"}}>
