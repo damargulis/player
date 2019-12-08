@@ -75,27 +75,51 @@ export default class ControlPanel extends React.Component {
         {
           this.getVolumeControl()
         }
-        <button onClick={this.props.prevAlbum}
-          disabled={!this.props.playlist.hasPrevAlbum()}
-          className="control-button">|&lt;</button>
-        <button
-          onClick={this.props.prevTrack}
-          disabled={!this.props.playlist.hasPrevTrack()}
-          className="control-button">&lt;</button>
-        <button
-          disabled={!this.props.playlist.getCurrentTrack()}
-          onClick={this.props.playPause}
-          className="control-button">
-          {this.props.playing ? 'Pause' : 'Play'}
-        </button>
-        <button
-          disabled={!this.props.playlist.hasNextTrack()}
-          onClick={this.props.nextTrack}
-          className="control-button">&gt;</button>
-        <button
-          disabled={!this.props.playlist.hasNextAlbum()}
-          onClick={this.props.nextAlbum}
-          className="control-button">&gt;|</button>
+        <input
+            style={{width: "25px"}}
+            type="image"
+            alt="volume"
+            src={getImgSrc(Resources.PREVIOUS_ALBUM)}
+            onClick={this.props.prevAlbum}
+            disabled={!this.props.playlist.hasPrevAlbum()}
+            className="control-button"
+        />
+        <input
+            style={{width: "25px"}}
+            type="image"
+            alt="volume"
+            src={getImgSrc(Resources.PREVIOUS_TRACK)}
+            onClick={this.props.prevTrack}
+            disabled={!this.props.playlist.hasPrevTrack()}
+            className="control-button"
+        />
+        <input
+            style={{width: "25px"}}
+            type="image"
+            alt="volume"
+            src={getImgSrc(this.props.playing ? Resources.PAUSE : Resources.PLAY)}
+            onClick={this.props.playPause}
+            disabled={!this.props.playlist.getCurrentTrack()}
+            className="control-button"
+        />
+        <input
+            style={{width: "25px"}}
+            type="image"
+            alt="volume"
+            src={getImgSrc(Resources.NEXT_TRACK)}
+            onClick={this.props.nextTrack}
+            disabled={!this.props.playlist.hasNextTrack()}
+            className="control-button"
+        />
+        <input
+            style={{width: "25px"}}
+            type="image"
+            alt="volume"
+            src={getImgSrc(Resources.NEXT_ALBUM)}
+            onClick={this.props.nextAlbum}
+            disabled={!this.props.playlist.hasNextAlbum()}
+            className="control-button"
+        />
       </div>
     );
   }

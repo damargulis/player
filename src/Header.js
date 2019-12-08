@@ -6,7 +6,7 @@ import React from 'react';
 export default class Header extends React.Component {
   render() {
     return (
-      <div id="header">
+      <div id="header" style={{padding: "2px"}}>
         <ControlPanel
           playing={this.props.playing}
           playPause={this.props.playPause}
