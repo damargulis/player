@@ -11,6 +11,8 @@ const {execSync} = require('child_process');
 
 const mm = require('musicmetadata');
 
+// TODO: redo this whole thing and just save the damn ids...
+
 /**
  * Gets the genres for a single itunes track. Genres are expected to be in the
  * "Comments" attribution, formatted as a comma separated, quoted list.
@@ -187,7 +189,7 @@ export function loadLibrary(libraryFile) {
       }
       const libraryData = JSON.parse(data);
       const tracks = libraryData.tracks_.map(
-        (trackData) => new Track(trackData));
+        (trackData, index) => new Track(index, trackData));
       const albums = libraryData.albums_.map(
         (albumData) => new Album(albumData));
       const artists = libraryData.artists_.map(
@@ -309,8 +311,8 @@ export function createLibraryFromItunes() {
       albumData.id = albums.length - 1;
     });
     const tracks = [];
-    trackMap.forEach((data) => {
-      tracks.push(new Track({
+    trackMap.forEach((data, index) => {
+      tracks.push(new Track(index, {
         name: data.name,
         duration: data.duration,
         filePath: data.filePath,

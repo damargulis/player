@@ -1,6 +1,6 @@
 
 export default class Track {
-  constructor({
+  constructor(id, {
     name = '',
     duration = 0,
     filePath = '',
@@ -11,6 +11,9 @@ export default class Track {
     albumIds = [],
     genreIds = [],
   }) {
+    /** @type {number} */
+    this.id = id;
+
     /** @type {string} */
     this.name = name;
 
