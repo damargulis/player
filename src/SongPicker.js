@@ -1,13 +1,13 @@
+import Modal from 'react-modal';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import SearchBar from './SearchBar';
+import SongEditer from './SongEditer';
 import {toTime} from './utils';
 import {AutoSizer, Column, Table} from 'react-virtualized';
-import SongEditer from './SongEditer';
 
 import 'react-virtualized/styles.css';
 
-import Modal from 'react-modal';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement('#root');
@@ -242,7 +242,7 @@ export default class SongPicker extends React.Component {
     // because object gets serialized from miniwindow -> maxwindow
     const scrollTo = this.props.scrollToSong
       ? this.state.songs.findIndex((song) => {
-        return song.id === this.props.scrollToSong.id
+        return song.id === this.props.scrollToSong.id;
       })
       : -1;
     const selectedSongs = this.state.selected.map((songId) => {
@@ -251,7 +251,7 @@ export default class SongPicker extends React.Component {
     return (
       <div className="main">
         <Modal isOpen={this.state.editing}
-        onRequestClose={this.closeEdit.bind(this)} >
+          onRequestClose={this.closeEdit.bind(this)} >
           <SongEditer
             exit={this.closeEdit.bind(this)}
             library={this.props.library}

@@ -21,3 +21,13 @@
   margin-left: 10%;
   margin-right: 10%;
 }
+
+.list-item {
+  margin-right: 5px;
+}
+
+.close {
+  margin: 5px;
+  border: solid black 1px;
+  border-radius: 100%;
+}

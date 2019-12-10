@@ -103,6 +103,7 @@ export default class Library {
       if (this.genres_.indexOf(genre) >= 0) {
         return this.genres_.indexOf(genre);
       }
+      // push returns next index, -1 to return this one;
       return this.genres_.push(genre) - 1;
     });
   }
