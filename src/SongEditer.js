@@ -21,8 +21,10 @@ export default class SongEditer extends React.Component {
     const track = this.props.tracks[0];
     track.name = this.name.current.value;
     track.year = this.year.current.value;
-    track.favorites = this.favorites.current.value.split(', ').map(
-      (num) => parseInt(num));
+    if (this.favorites.current.value) {
+      track.favorites = this.favorites.current.value.split(', ').map(
+        (num) => parseInt(num));
+    }
     track.genreIds = this.props.library.getGenreIds(this.state.genres);
     track.playCount = this.playCount.current.value;
     this.props.library.save();
