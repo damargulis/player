@@ -14,6 +14,7 @@ export default class SongEditer extends React.Component {
     this.name = React.createRef();
     this.year = React.createRef();
     this.favorites = React.createRef();
+    this.playCount = React.createRef();
   }
 
   save() {
@@ -23,6 +24,7 @@ export default class SongEditer extends React.Component {
     track.favorites = this.favorites.current.value.split(', ').map(
       (num) => parseInt(num));
     track.genreIds = this.props.library.getGenreIds(this.state.genres);
+    track.playCount = this.playCount.current.value;
     this.props.library.save();
     this.props.exit();
   }
@@ -117,6 +119,7 @@ export default class SongEditer extends React.Component {
         <div className="edit-container">
           <label className="label">Play Count:</label>
           <input
+            ref={this.playCount}
             className="input"
             defaultValue={track.playCount}
             type="number"
