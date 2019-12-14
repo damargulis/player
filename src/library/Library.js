@@ -63,12 +63,20 @@ export default class Library {
     return this.tracks_;
   }
 
+  getAlbumById(id) {
+    return this.albums_[id];
+  }
+
   getAlbumsByIds(ids) {
-    return ids.map((id) => this.albums_[id]);
+    return ids.map((id) => this.getAlbumById(id));
+  }
+
+  getArtistById(id) {
+    return this.artists_[id];
   }
 
   getArtistsByIds(ids) {
-    return ids.map((id) => this.artists_[id]);
+    return ids.map((id) => this.getArtistById(id));
   }
 
   getTrack(id) {
@@ -93,8 +101,12 @@ export default class Library {
     return this.genres_;
   }
 
+  getGenreById(id) {
+    return this.genres_[id];
+  }
+
   getGenresByIds(ids) {
-    return ids.map((id) => this.genres_[id]);
+    return ids.map((id) => this.getGenreById(id));
   }
 
   /* adds any genres if they don't already exist. returns array of ids */

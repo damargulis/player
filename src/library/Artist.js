@@ -1,5 +1,5 @@
 export default class Artist {
-  constructor({
+  constructor(id, {
     name = '',
     albumIds = [],
     trackIds = [],
@@ -8,6 +8,9 @@ export default class Artist {
     artFile = null,
     wikiPage = null,
   }) {
+    /** @type {number} */
+    this.id = id;
+
     /** @type {string} */
     this.name = name;
 

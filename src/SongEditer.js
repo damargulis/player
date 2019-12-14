@@ -1,4 +1,4 @@
-import AutoComplete from './AutoComplete';
+import AttributeList from './AttributeList';
 import React from 'react';
 
 import './SongEditer.css';
@@ -6,14 +6,18 @@ import './SongEditer.css';
 export default class SongEditer extends React.Component {
   constructor(props) {
     super(props);
+    // TODO: handle multiple tracks -- wrap this?
+    const track = this.props.tracks[0];
 
-    const genres = this.props.library.getGenresByIds(
-      this.props.tracks[0].genreIds);
-    this.state = { genres };
+    this.state = {
+      genreIds: [...track.genreIds],
+      albumIds: [...track.albumIds],
+      artistIds: [...track.artistIds],
+      yearsFavorited: [...track.favorites],
+    };
 
     this.name = React.createRef();
     this.year = React.createRef();
-    this.favorites = React.createRef();
     this.playCount = React.createRef();
   }
 
@@ -21,49 +25,30 @@ export default class SongEditer extends React.Component {
     const track = this.props.tracks[0];
     track.name = this.name.current.value;
     track.year = this.year.current.value;
-    if (this.favorites.current.value) {
-      track.favorites = this.favorites.current.value.split(', ').map(
-        (num) => parseInt(num));
-    }
-    track.genreIds = this.props.library.getGenreIds(this.state.genres);
     track.playCount = this.playCount.current.value;
+    track.favorites = this.state.yearsFavorited;
+    track.genreIds = this.state.genreIds;
+    this.state.albumIds.forEach((albumId) => {
+      if (!track.albumIds.includes(albumId)) {
+        const album = this.props.library.getAlbumById(albumId);
+        album.trackIds.push(track.id);
+      }
+    });
+    track.albumIds = this.state.albumIds;
+    this.state.artistIds.forEach((artistId) => {
+      if (!track.artistIds.includes(artistId)) {
+        const artist = this.props.library.getArtistById(artistId);
+        artist.trackIds.push(track.id);
+      }
+    });
+    track.artistIds = this.state.artistIds;
+
     this.props.library.save();
     this.props.exit();
   }
 
-  addGenre(genre) {
-    const genres = this.state.genres;
-    genres.push(genre);
-    this.setState({genres});
-  }
-
-  removeGenre(index) {
-    const genres = this.state.genres;
-    genres.splice(index, 1);
-    this.setState({genres});
-  }
-
-  getGenres() {
-    const genres = this.state.genres;
-    return genres.map((genre, index) => {
-      return (
-        <div className="list-item" key={index}>
-          {genre}
-          <span onClick={() => this.removeGenre(index)} className="close">
-            X
-          </span>
-        </div>
-      );
-    });
-  }
-
   render() {
     const track = this.props.tracks[0];
-    const artists = this.props.library.getArtistsByIds(track.artistIds)
-      .map(artist => artist.name).join(', ');
-    const albums = this.props.library.getAlbumsByIds(track.albumIds)
-      .map(album => album.name).join(', ');
-    const favoriteYears = track.favorites.sort().join(', ');
     return (
       <div>
         <h3 className="title">
@@ -78,18 +63,33 @@ export default class SongEditer extends React.Component {
             placeholder="Name"
           />
         </div>
-        <div className="edit-container">
-          <label className="label" >Artists: </label>
-          <input
-            defaultValue={artists}
-            className="input"
-            placeholder="Artists"
-          />
-        </div>
-        <div className="edit-container">
-          <label className="label">Albums: </label>
-          <input defaultValue={albums} className="input" placeholder="Albums"/>
-        </div>
+        <AttributeList
+          label="Artists"
+          attributes={this.state.artistIds}
+          suggestions={
+            this.props.library.getArtists().map((artist) => artist.id)
+          }
+          getDisplayName={(artistId) => {
+            return this.props.library.getArtistById(artistId).name;
+          }}
+          searchFilter={(input, suggest) => {
+            const artist = this.props.library.getArtistById(suggest);
+            return artist.name.toLowerCase().indexOf(input.toLowerCase()) > -1;
+          }}
+        />
+        <AttributeList
+          label="Albums"
+          attributes={this.state.albumIds}
+          suggestions={this.props.library.getAlbums().map((album) => album.id)}
+          getDisplayName={(albumId) => {
+            return this.props.library.getAlbumById(albumId).name;
+          }}
+          searchFilter={(input, suggest) => {
+            const album = this.props.library.getAlbumById(suggest);
+            // todo: include artist, genre etc in search
+            return album.name.toLowerCase().indexOf(input.toLowerCase()) > -1;
+          }}
+        />
         <div className="edit-container">
           <label className="label" >Year: </label>
           <input
@@ -100,24 +100,28 @@ export default class SongEditer extends React.Component {
             placeholder="Year"
           />
         </div>
-        <div className="edit-container">
-          <label className="label">Genres: </label>
-          {
-            this.getGenres()
-          }
-          <AutoComplete
-            onSubmit={this.addGenre.bind(this)}
-            suggestions={this.props.library.getGenres()}
-          />
-        </div>
-        <div className="edit-container">
-          <label className="label">Years Favorited: </label>
-          <input
-            ref={this.favorites}
-            className="input"
-            defaultValue={favoriteYears}
-          />
-        </div>
+        <AttributeList
+          label="Genres"
+          attributes={this.state.genreIds}
+          suggestions={[...Array(this.props.library.getGenres().length).keys()]}
+          getDisplayName={(genreId) => this.props.library.getGenreById(genreId)}
+          searchFilter={(input, suggest) => {
+            const genre = this.props.library.getGenreById(suggest);
+            return genre.toLowerCase().indexOf(input.toLowerCase()) > -1;
+          }}
+        />
+        <AttributeList
+          label="Years Favorited"
+          attributes={this.state.yearsFavorited}
+          // TODO: better way of suggesting years
+          suggestions={[2015, 2016, 2017, 2018, 2019]}
+          // TODO: make this the default
+          getDisplayName={(year) => year}
+          searchFilter={(input, year) => {
+            return year.toString().toLowerCase().indexOf(
+              input.toLowerCase()) > -1;
+          }}
+        />
         <div className="edit-container">
           <label className="label">Play Count:</label>
           <input

@@ -134,6 +134,7 @@ export default class SongPicker extends React.Component {
     style.borderTop = 'solid black 1px';
     style.backgroundColor = index % 2 === 0 ? 'white' : 'lightgray';
     style.userSelect = 'none';
+    style.fontSize = 10;
     if (index === -1) {
       style.backgroundColor = 'gray';
     }
@@ -267,7 +268,7 @@ export default class SongPicker extends React.Component {
                 height={height}
                 rowCount={this.state.songs.length}
                 rowGetter={({index}) => this.getSongData(index)}
-                rowHeight={20}
+                rowHeight={15}
                 width={width}
                 rowStyle={this.getRowStyle.bind(this)}
                 onRowClick={this.onRowClick.bind(this)}

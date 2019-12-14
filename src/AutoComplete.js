@@ -1,7 +1,7 @@
 
 import React, {Fragment} from 'react';
-
 import './AutoComplete.css';
+
 
 export default class AutoComplete extends React.Component {
   constructor(props) {
@@ -15,13 +15,25 @@ export default class AutoComplete extends React.Component {
     };
   }
 
-  onClick(evt) {
+  onClick(evt, suggestion) {
     this.setState({
       activeSuggestion: 0,
-      filteredSuggestions: [],
+      filteredSuggestions: [suggestion],
       showSuggestion: false,
       userInput: evt.target.innerText,
     });
+  }
+
+  onSubmit() {
+    const suggestion = this.state.filteredSuggestions[
+      this.state.activeSuggestion];
+    if (suggestion) {
+      this.props.onSubmit(suggestion);
+      this.setState({
+        userInput: "",
+      });
+    }
+    // TODO: else if (this.props.addNew)
   }
 
   getSearchSuggestions() {
@@ -39,9 +51,10 @@ export default class AutoComplete extends React.Component {
                   this.state.activeSuggestion === index ? "active" : ""
                 }
                 key={index}
-                onClick={this.onClick.bind(this)}
+                onClick={(evt) => this.onClick(evt, suggestion)}
+                data-id={suggestion}
               >
-                {suggestion}
+                {this.props.getDisplayName(suggestion)}
               </li>
             );
           })
@@ -50,34 +63,25 @@ export default class AutoComplete extends React.Component {
     );
   }
 
-  onChange(evt) {
-    const input = evt.currentTarget.value;
-    const suggestions = this.props.suggestions.filter((suggest) => {
-      return suggest.toLowerCase().indexOf(input.toLowerCase()) > -1;
-    });
-    this.setState({
-      activeSuggestion: 0,
-      filteredSuggestions: suggestions,
-      showSuggestion: true,
-      userInput: input,
-    });
-  }
-
   onKeyDown(evt) {
     const suggestion = this.state.filteredSuggestions[
       this.state.activeSuggestion];
     switch (evt.keyCode) {
     //enter
     case 13:
-      // if input already == suggestion, do submit action
-      if (suggestion === this.state.userInput) {
+      // double tap enter to submit
+      if (this.state.filteredSuggestions.length == 1 &&
+          !this.state.showSuggestion) {
         this.onSubmit();
-      } else {
+      } else if (suggestion) {
         this.setState({
           activeSuggestion: 0,
           showSuggestion: false,
-          userInput: suggestion,
+          filteredSuggestions: [suggestion],
+          userInput: this.props.getDisplayName(suggestion),
         });
+      } else {
+        // if has add func, call it, else show warning?
       }
       break;
     // up arrow
@@ -99,10 +103,18 @@ export default class AutoComplete extends React.Component {
     }
   }
 
-  onSubmit() {
-    this.props.onSubmit(this.state.userInput);
+
+  onChange(evt) {
+    const input = evt.currentTarget.value;
+    // TODO: sort by relavece / starting with right letter
+    const suggestions = this.props.suggestions.filter((suggest) => {
+      return this.props.searchFilter(input, suggest);
+    });
     this.setState({
-      userInput: "",
+      activeSuggestion: 0,
+      filteredSuggestions: suggestions,
+      showSuggestion: true,
+      userInput: input,
     });
   }
 
@@ -126,4 +138,3 @@ export default class AutoComplete extends React.Component {
     );
   }
 }
-

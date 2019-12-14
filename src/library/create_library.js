@@ -193,9 +193,9 @@ export function loadLibrary(libraryFile) {
       const tracks = libraryData.tracks_.map(
         (trackData, index) => new Track(index, trackData));
       const albums = libraryData.albums_.map(
-        (albumData) => new Album(albumData));
+        (albumData, index) => new Album(index, albumData));
       const artists = libraryData.artists_.map(
-        (artistData) => new Artist(artistData));
+        (artistData, index) => new Artist(index, artistData));
       const genres = libraryData.genres_;
       const playlists = libraryData.playlists_.map(
         (playlistData) => new Playlist(playlistData)
@@ -298,14 +298,14 @@ export function createLibraryFromItunes() {
     });
     const artists = [];
     artistMap.forEach((artistData) => {
-      artists.push(new Artist({
+      artists.push(new Artist(artists.length, {
         name: artistData.name,
       }));
       artistData.id = artists.length - 1;
     });
     const albums = [];
     albumMap.forEach((albumData) => {
-      albums.push(new Album({
+      albums.push(new Album(albums.length, {
         name: albumData.name,
         year: albumData.year,
         albumArtFile: albumData.albumArtFile,

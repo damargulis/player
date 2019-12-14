@@ -1,6 +1,6 @@
 
 export default class Album {
-  constructor({
+  constructor(id, {
     name = '',
     trackIds = [],
     genreIds = [],
@@ -14,6 +14,9 @@ export default class Album {
     warnings = {},
     favorites = [],
   }) {
+    /** @type {number} */
+    this.id = id;
+
     /** @type {string} */
     this.name = name;
 
