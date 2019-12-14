@@ -158,14 +158,22 @@ export default class AlbumPicker extends React.Component {
               onClick={this.playAlbum.bind(this)}
               style={{
                 position: 'absolute',
-                top: '50%',
-                translate: 'translateY(-50%)'
+                top: '33%',
+                translate: 'translateY(-66%)'
               }}
             >Play Album</button>
-            <LikeButton
-              track={this.props.album}
-              library={this.props.library}
-            />
+            <div
+              style={{
+                position: 'absolute',
+                top: '66%',
+                translate: 'translateY(-33%)',
+              }}
+            >
+              <LikeButton
+                track={this.props.album}
+                library={this.props.library}
+              />
+            </div>
           </div>
           {
             this.getErrors()
