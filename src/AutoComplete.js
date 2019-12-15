@@ -52,7 +52,7 @@ export default class AutoComplete extends React.Component {
                 className={
                   this.state.activeSuggestion === index ? "active" : ""
                 }
-                key={suggestion.id}
+                key={suggestion.id || suggestion}
                 onClick={(evt) => this.onClick(evt, suggestion)}
               >
                 {this.props.getDisplayName(suggestion)}
