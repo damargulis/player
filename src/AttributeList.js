@@ -24,7 +24,7 @@ export default class AttributeList extends React.Component {
   getAttributes() {
     return this.state.current.map((attr, index) => {
       return (
-        <div className="list-item" key={attr.id}>
+        <div className="list-item" key={index}>
           {this.props.getDisplayName(attr)}
           <span className="close" onClick={() => this.remove(index)}>
             X

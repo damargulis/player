@@ -334,8 +334,8 @@ export default class SongPicker extends React.Component {
 
 SongPicker.propTypes = {
   library: PropTypes.instanceOf(Library).isRequired,
-  scrollToSong: PropTypes.func.isRequired,
+  scrollToSong: PropTypes.object,
   setPlaylistAndPlay: PropTypes.func.isRequired,
   songs: PropTypes.array.isRequired,
-  sortBy: PropTypes.string.isRequired,
+  sortBy: PropTypes.string,
 };

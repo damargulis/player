@@ -94,7 +94,7 @@ export default class AlbumInfo extends React.Component {
 }
 
 AlbumInfo.propTypes = {
-  album: PropTypes.instanceOf(Album).isRequired,
+  album: PropTypes.instanceOf(Album),
   goToAlbum: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,
   playAlbum: PropTypes.func.isRequired,

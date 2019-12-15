@@ -145,8 +145,8 @@ export default class ControlPanel extends React.Component {
           type="image"
         />
         <LikeButton
+          item={this.props.playlist.getCurrentTrack()}
           library={this.props.library}
-          track={this.props.playlist.getCurrentTrack()}
         />
       </div>
     );

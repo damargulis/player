@@ -24,14 +24,10 @@ export default class MaxWindow extends React.Component {
       scenes: [],
       curScene: -1,
     };
-
-    ipcRenderer.on('toAlbum', (evt, data) => {
-      setTimeout(() => {
-        this.goToAlbum(data.album);
-      });
-    });
     this.onArtistMessage = this.onArtistMessage.bind(this);
+    this.onAlbumMessage = this.onAlbumMessage.bind(this);
     ipcRenderer.on('toArtist', this.onArtistMessage);
+    ipcRenderer.on('toAlbum', this.onAlbumMessage);
     ipcRenderer.on('toSong', this.onSongMessage.bind(this));
   }
 
@@ -39,8 +35,14 @@ export default class MaxWindow extends React.Component {
     this.goToSong(data.song);
   }
 
+  onAlbumMessage(evt, data) {
+    const album = this.props.library.getAlbumById(data.album.id);
+    this.goToAlbum(album);
+  }
+
   onArtistMessage(evt, data) {
-    this.goToArtist(data.artist);
+    const artist = this.props.library.getArtistById(data.artist.id);
+    this.goToArtist(artist);
   }
 
   componentWillUnmount() {

@@ -1,4 +1,5 @@
 import AlbumPicker from './AlbumPicker.js';
+import Artist from './library/Artist';
 import EditableAttribute from './EditableAttribute';
 import Library from './library/Library';
 import NavigationBar from './NavigationBar';
@@ -97,8 +98,8 @@ export default class ArtistPage extends React.Component {
 }
 
 ArtistPage.propTypes = {
-  artist: PropTypes.array.isRequired,
-  canGoForward: PropTypes.func.isRequired,
+  artist: PropTypes.instanceOf(Artist).isRequired,
+  canGoForward: PropTypes.bool.isRequired,
   goBack: PropTypes.func.isRequired,
   goForward: PropTypes.func.isRequired,
   goToAlbum: PropTypes.func.isRequired,

@@ -176,8 +176,8 @@ export default class AlbumPicker extends React.Component {
               }}
             >
               <LikeButton
+                item={this.props.album}
                 library={this.props.library}
-                track={this.props.album}
               />
             </div>
           </div>
@@ -202,7 +202,7 @@ export default class AlbumPicker extends React.Component {
 
 AlbumPicker.propTypes = {
   album: PropTypes.instanceOf(Album).isRequired,
-  canGoForward: PropTypes.func.isRequired,
+  canGoForward: PropTypes.bool.isRequired,
   goBack: PropTypes.func.isRequired,
   goForward: PropTypes.func.isRequired,
   goToArtist: PropTypes.func.isRequired,

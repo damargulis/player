@@ -1,7 +1,7 @@
 import Library from './library/Library';
 import NavigationBar from './NavigationBar';
+import Playlist from './library/Playlist';
 import PropTypes from 'prop-types';
-import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import SongPicker from './SongPicker.js';
 import {toTime} from './utils';
@@ -43,7 +43,6 @@ export default class PlaylistPage extends React.Component {
         <div className="playlistPageBody" style={{height: "100%"}}>
           <SongPicker
             library={this.props.library}
-            playSong={this.props.playSong}
             setPlaylistAndPlay={this.props.setPlaylistAndPlay}
             songs={songs}
           />
@@ -59,7 +58,6 @@ PlaylistPage.propTypes = {
   goBack: PropTypes.func.isRequired,
   goForward: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,
-  playSong: PropTypes.func.isRequired,
-  playlist: PropTypes.instanceOf(RandomSongPlaylist).isRequired,
+  playlist: PropTypes.instanceOf(Playlist).isRequired,
   setPlaylistAndPlay: PropTypes.func.isRequired,
 };

@@ -301,7 +301,6 @@
     ],
     // TODO: add this back
     //"react/forbid-prop-types": "error",
-    "react/no-array-index-key": "error",
     "require-atomic-updates": "off",
     "require-await": "error",
     "require-jsdoc": "error",

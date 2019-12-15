@@ -108,7 +108,7 @@ export default class ArtistInfo extends React.Component {
 }
 
 ArtistInfo.propTypes = {
-  artist: PropTypes.instanceOf(Artist).isRequired,
+  artist: PropTypes.instanceOf(Artist),
   goToArtist: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,
   style: PropTypes.object.isRequired,

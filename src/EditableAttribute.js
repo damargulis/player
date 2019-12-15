@@ -67,6 +67,9 @@ export default class EditableAttribute extends React.Component {
 }
 
 EditableAttribute.propTypes = {
-  attr: PropTypes.object.isRequired,
+  attr: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number
+  ]).isRequired,
   onSave: PropTypes.func.isRequired,
 };
