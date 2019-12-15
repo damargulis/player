@@ -1,4 +1,7 @@
-import AttributeList from './AttributeList';
+import AlbumAttributeEditor from './AlbumAttributeEditor';
+import ArtistAttributeEditor from './ArtistAttributeEditor';
+import FavoritesAttributeEditor from './FavoritesAttributeEditor';
+import GenreAttributeEditor from './GenreAttributeEditor';
 import Library from './library/Library';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -97,20 +100,9 @@ export default class MultipleSongEditer extends React.Component {
         <h3 className="title">Edit Tracks</h3>
         {
           this.state.editArtists
-            ? <AttributeList
-              attributes={this.state.artistIds}
-              getDisplayName={(artistId) => {
-                return this.props.library.getArtistById(artistId).name;
-              }}
-              label="Artists"
-              searchFilter={(input, suggest) => {
-                const artist = this.props.library.getArtistById(suggest);
-                const name = artist.name.toLowerCase();
-                return name.indexOf(input.toLowerCase()) > -1;
-              }}
-              suggestions={
-                this.props.library.getArtists().map((artist) => artist.id)
-              }
+            ? <ArtistAttributeEditor
+              artistIds={this.state.artistIds}
+              library={this.props.library}
             /> : null
         }
         <div>Edit Artists:
@@ -118,21 +110,9 @@ export default class MultipleSongEditer extends React.Component {
         </div>
         {
           this.state.editAlbums
-            ? <AttributeList
-              attributes={this.state.albumIds}
-              getDisplayName={(albumId) => {
-                return this.props.library.getAlbumById(albumId).name;
-              }}
-              label="Albums"
-              searchFilter={(input, suggest) => {
-                const album = this.props.library.getAlbumById(suggest);
-                // todo: include artist, genre etc in search
-                const name = album.name.toLowerCase();
-                return name.indexOf(input.toLowerCase()) > -1;
-              }}
-              suggestions={
-                this.props.library.getAlbums().map((album) => album.id)
-              }
+            ? <AlbumAttributeEditor
+              albumIds={this.state.albumIds}
+              library={this.props.library}
             /> : null
         }
         <div>Edit Albums:
@@ -154,19 +134,9 @@ export default class MultipleSongEditer extends React.Component {
           <input onChange={this.editYear.bind(this)} type="checkbox"/>
         </div>
         { this.state.editGenre
-          ? <AttributeList
-            attributes={this.state.genreIds}
-            getDisplayName={
-              (genreId) => this.props.library.getGenreById(genreId)
-            }
-            label="Genres"
-            searchFilter={(input, suggest) => {
-              const genre = this.props.library.getGenreById(suggest);
-              return genre.toLowerCase().indexOf(input.toLowerCase()) > -1;
-            }}
-            suggestions={
-              [...Array(this.props.library.getGenres().length).keys()]
-            }
+          ? <GenreAttributeEditor
+            genreIds={this.state.genreIds}
+            library={this.props.library}
           /> : null
         }
         <div>Edit Genres:
@@ -174,15 +144,8 @@ export default class MultipleSongEditer extends React.Component {
         </div>
         {
           this.state.editFavorites
-            ? <AttributeList
-              attributes={this.state.yearsFavorited}
-              getDisplayName={(year) => year}
-              label="Years Favorited"
-              searchFilter={(input, year) => {
-                return year.toString().toLowerCase().indexOf(
-                  input.toLowerCase()) > -1;
-              }}
-              suggestions={[2015, 2016, 2017, 2018, 2019]}
+            ? <FavoritesAttributeEditor
+              yearsFavorited={this.state.yearsFavorited}
             /> : null
         }
         <div>Edit Years Favorited:

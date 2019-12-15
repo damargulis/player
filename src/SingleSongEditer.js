@@ -1,4 +1,7 @@
-import AttributeList from './AttributeList';
+import AlbumAttributeEditor from './AlbumAttributeEditor';
+import ArtistAttributeEditor from './ArtistAttributeEditor';
+import FavoritesAttributeEditor from './FavoritesAttributeEditor';
+import GenreAttributeEditor from './GenreAttributeEditor';
 import Library from './library/Library';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -61,32 +64,13 @@ export default class SingleSongEditer extends React.Component {
             ref={this.name}
           />
         </div>
-        <AttributeList
-          attributes={this.state.artistIds}
-          getDisplayName={(artistId) => {
-            return this.props.library.getArtistById(artistId).name;
-          }}
-          label="Artists"
-          searchFilter={(input, suggest) => {
-            const artist = this.props.library.getArtistById(suggest);
-            return artist.name.toLowerCase().indexOf(input.toLowerCase()) > -1;
-          }}
-          suggestions={
-            this.props.library.getArtists().map((artist) => artist.id)
-          }
+        <ArtistAttributeEditor
+          artistIds={this.state.artistIds}
+          library={this.props.library}
         />
-        <AttributeList
-          attributes={this.state.albumIds}
-          getDisplayName={(albumId) => {
-            return this.props.library.getAlbumById(albumId).name;
-          }}
-          label="Albums"
-          searchFilter={(input, suggest) => {
-            const album = this.props.library.getAlbumById(suggest);
-            // todo: include artist, genre etc in search
-            return album.name.toLowerCase().indexOf(input.toLowerCase()) > -1;
-          }}
-          suggestions={this.props.library.getAlbums().map((album) => album.id)}
+        <AlbumAttributeEditor
+          albumIds={this.state.albumIds}
+          library={this.props.library}
         />
         <div className="edit-container">
           <label className="label" >Year: </label>
@@ -98,27 +82,12 @@ export default class SingleSongEditer extends React.Component {
             type="number"
           />
         </div>
-        <AttributeList
-          attributes={this.state.genreIds}
-          getDisplayName={(genreId) => this.props.library.getGenreById(genreId)}
-          label="Genres"
-          searchFilter={(input, suggest) => {
-            const genre = this.props.library.getGenreById(suggest);
-            return genre.toLowerCase().indexOf(input.toLowerCase()) > -1;
-          }}
-          suggestions={[...Array(this.props.library.getGenres().length).keys()]}
+        <GenreAttributeEditor
+          genreIds={this.state.genreIds}
+          library={this.props.library}
         />
-        <AttributeList
-          attributes={this.state.yearsFavorited}
-          getDisplayName={(year) => year}
-          // TODO: better way of suggesting years
-          label="Years Favorited"
-          // TODO: make this the default
-          searchFilter={(input, year) => {
-            return year.toString().toLowerCase().indexOf(
-              input.toLowerCase()) > -1;
-          }}
-          suggestions={[2015, 2016, 2017, 2018, 2019]}
+        <FavoritesAttributeEditor
+          yearsFavorited={this.state.yearsFavorited}
         />
         <div className="edit-container">
           <label className="label">Play Count:</label>
