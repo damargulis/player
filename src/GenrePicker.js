@@ -1,3 +1,5 @@
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 // TODO: make this a part of the pages only when its needed, send in available
@@ -6,7 +8,7 @@ export default class GenrePicker extends React.Component {
   getOptions() {
     return this.props.library.getGenres().map((genre, index) => {
       return {
-        html: <option value={index} key={index}>{genre}</option>,
+        html: <option key={genre} value={index}>{genre}</option>,
         value: genre,
       };
     }).sort((option1, option2) => {
@@ -27,7 +29,7 @@ export default class GenrePicker extends React.Component {
   render() {
     return (
       <div id="genre-picker">
-        <select onChange={this.onChange.bind(this)} multiple size={10}
+        <select multiple onChange={this.onChange.bind(this)} size={10}
           style={{height: '100%', width: '100%'}}
         >
           {
@@ -38,3 +40,8 @@ export default class GenrePicker extends React.Component {
     );
   }
 }
+
+GenrePicker.propTypes = {
+  library: PropTypes.instanceOf(Library).isRequired,
+  setGenres: PropTypes.func.isRequired,
+};

@@ -1,5 +1,5 @@
-
-import React, {Fragment} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import './AutoComplete.css';
 
 
@@ -50,9 +50,8 @@ export default class AutoComplete extends React.Component {
                 className={
                   this.state.activeSuggestion === index ? "active" : ""
                 }
-                key={index}
+                key={suggestion.id}
                 onClick={(evt) => this.onClick(evt, suggestion)}
-                data-id={suggestion}
               >
                 {this.props.getDisplayName(suggestion)}
               </li>
@@ -70,7 +69,7 @@ export default class AutoComplete extends React.Component {
     //enter
     case 13:
       // double tap enter to submit
-      if (this.state.filteredSuggestions.length == 1 &&
+      if (this.state.filteredSuggestions.length === 1 &&
           !this.state.showSuggestion) {
         this.onSubmit();
       } else if (suggestion) {
@@ -120,12 +119,12 @@ export default class AutoComplete extends React.Component {
 
   render() {
     return (
-      <Fragment>
+      <>
         <input
           className="serach-input"
-          type="text"
           onChange={this.onChange.bind(this)}
           onKeyDown={this.onKeyDown.bind(this)}
+          type="text"
           value={this.state.userInput}
         />
         {
@@ -134,7 +133,14 @@ export default class AutoComplete extends React.Component {
         <button onClick={this.onSubmit.bind(this)}>
           Add
         </button>
-      </Fragment>
+      </>
     );
   }
 }
+
+AutoComplete.propTypes = {
+  getDisplayName: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  searchFilter: PropTypes.func.isRequired,
+  suggestions: PropTypes.array.isRequired,
+};

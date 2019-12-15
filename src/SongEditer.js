@@ -1,4 +1,6 @@
 import AttributeList from './AttributeList';
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import './SongEditer.css';
@@ -57,77 +59,77 @@ export default class SongEditer extends React.Component {
         <div className="edit-container">
           <label className="label" >Name: </label>
           <input
-            ref={this.name}
-            defaultValue={track.name}
             className="input"
+            defaultValue={track.name}
             placeholder="Name"
+            ref={this.name}
           />
         </div>
         <AttributeList
-          label="Artists"
           attributes={this.state.artistIds}
-          suggestions={
-            this.props.library.getArtists().map((artist) => artist.id)
-          }
           getDisplayName={(artistId) => {
             return this.props.library.getArtistById(artistId).name;
           }}
+          label="Artists"
           searchFilter={(input, suggest) => {
             const artist = this.props.library.getArtistById(suggest);
             return artist.name.toLowerCase().indexOf(input.toLowerCase()) > -1;
           }}
+          suggestions={
+            this.props.library.getArtists().map((artist) => artist.id)
+          }
         />
         <AttributeList
-          label="Albums"
           attributes={this.state.albumIds}
-          suggestions={this.props.library.getAlbums().map((album) => album.id)}
           getDisplayName={(albumId) => {
             return this.props.library.getAlbumById(albumId).name;
           }}
+          label="Albums"
           searchFilter={(input, suggest) => {
             const album = this.props.library.getAlbumById(suggest);
             // todo: include artist, genre etc in search
             return album.name.toLowerCase().indexOf(input.toLowerCase()) > -1;
           }}
+          suggestions={this.props.library.getAlbums().map((album) => album.id)}
         />
         <div className="edit-container">
           <label className="label" >Year: </label>
           <input
-            ref={this.year}
             className="input"
-            type="number"
             defaultValue={track.year}
             placeholder="Year"
+            ref={this.year}
+            type="number"
           />
         </div>
         <AttributeList
-          label="Genres"
           attributes={this.state.genreIds}
-          suggestions={[...Array(this.props.library.getGenres().length).keys()]}
           getDisplayName={(genreId) => this.props.library.getGenreById(genreId)}
+          label="Genres"
           searchFilter={(input, suggest) => {
             const genre = this.props.library.getGenreById(suggest);
             return genre.toLowerCase().indexOf(input.toLowerCase()) > -1;
           }}
+          suggestions={[...Array(this.props.library.getGenres().length).keys()]}
         />
         <AttributeList
-          label="Years Favorited"
           attributes={this.state.yearsFavorited}
-          // TODO: better way of suggesting years
-          suggestions={[2015, 2016, 2017, 2018, 2019]}
-          // TODO: make this the default
           getDisplayName={(year) => year}
+          // TODO: better way of suggesting years
+          label="Years Favorited"
+          // TODO: make this the default
           searchFilter={(input, year) => {
             return year.toString().toLowerCase().indexOf(
               input.toLowerCase()) > -1;
           }}
+          suggestions={[2015, 2016, 2017, 2018, 2019]}
         />
         <div className="edit-container">
           <label className="label">Play Count:</label>
           <input
-            ref={this.playCount}
             className="input"
             defaultValue={track.playCount}
+            ref={this.playCount}
             type="number"
           />
         </div>
@@ -139,3 +141,9 @@ export default class SongEditer extends React.Component {
     );
   }
 }
+
+SongEditer.propTypes = {
+  exit: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+  tracks: PropTypes.array.isRequired,
+};

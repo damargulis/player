@@ -1,4 +1,6 @@
+import Library from './library/Library';
 import Modal from 'react-modal';
+import PropTypes from 'prop-types';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import SearchBar from './SearchBar';
@@ -252,7 +254,8 @@ export default class SongPicker extends React.Component {
     return (
       <div className="main">
         <Modal isOpen={this.state.editing}
-          onRequestClose={this.closeEdit.bind(this)} >
+          onRequestClose={this.closeEdit.bind(this)}
+        >
           <SongEditer
             exit={this.closeEdit.bind(this)}
             library={this.props.library}
@@ -266,59 +269,59 @@ export default class SongPicker extends React.Component {
               <Table
                 headerHeight={30}
                 height={height}
-                rowCount={this.state.songs.length}
-                rowGetter={({index}) => this.getSongData(index)}
-                rowHeight={15}
-                width={width}
-                rowStyle={this.getRowStyle.bind(this)}
                 onRowClick={this.onRowClick.bind(this)}
                 onRowDoubleClick={this.onRowDoubleClick.bind(this)}
                 onRowRightClick={this.doRowRightClick.bind(this)}
-                scrollToIndex={scrollTo}
-                sortBy={this.state.sortBy}
-                sort={this.sort.bind(this)}
-                sortDirection={this.state.sortDirection}
                 rowClassName="songRow"
+                rowCount={this.state.songs.length}
+                rowGetter={({index}) => this.getSongData(index)}
+                rowHeight={15}
+                rowStyle={this.getRowStyle.bind(this)}
+                scrollToIndex={scrollTo}
+                sort={this.sort.bind(this)}
+                sortBy={this.state.sortBy}
+                sortDirection={this.state.sortDirection}
+                width={width}
               >
                 <Column
+                  dataKey="index"
                   label="Index"
                   width={50}
-                  dataKey="index"
                 />
                 <Column
+                  dataKey="name"
                   label="Name"
                   width={300}
-                  dataKey="name"
                 />
                 <Column
+                  dataKey="duration"
                   label="Time"
                   width={50}
-                  dataKey="duration"
                 />
                 <Column
+                  dataKey="artists"
                   label="Artists"
                   width={150}
-                  dataKey="artists"
                 />
                 <Column
+                  dataKey="albums"
                   label="Albums"
                   width={150}
-                  dataKey="albums"
                 />
                 <Column
+                  dataKey="genres"
                   label="Genres"
                   width={100}
-                  dataKey="genres"
                 />
                 <Column
+                  dataKey="year"
                   label="Year"
                   width={50}
-                  dataKey="year"
                 />
                 <Column
+                  dataKey="playCount"
                   label="Plays"
                   width={80}
-                  dataKey="playCount"
                 />
               </Table>
             );
@@ -328,3 +331,11 @@ export default class SongPicker extends React.Component {
     );
   }
 }
+
+SongPicker.propTypes = {
+  library: PropTypes.instanceOf(Library).isRequired,
+  scrollToSong: PropTypes.func.isRequired,
+  setPlaylistAndPlay: PropTypes.func.isRequired,
+  songs: PropTypes.array.isRequired,
+  sortBy: PropTypes.string.isRequired,
+};

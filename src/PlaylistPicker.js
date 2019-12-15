@@ -1,4 +1,6 @@
+import Library from './library/Library';
 import Playlist from './library/Playlist';
+import PropTypes from 'prop-types';
 import React from 'react';
 import WrappedGrid from './WrappedGrid';
 
@@ -166,8 +168,9 @@ export default class PlaylistPicker extends React.Component {
       width: 150
     };
     return (
-      <div onClick={() => this.props.goToPlaylist(playlist)}
-        key={key} style={newStyle} >
+      <div key={key}
+        onClick={() => this.props.goToPlaylist(playlist)} style={newStyle}
+      >
         {playlist.name}
       </div>
     );
@@ -187,8 +190,9 @@ export default class PlaylistPicker extends React.Component {
       width: 150
     };
     return (
-      <div onClick={() => this.props.goToPlaylist(playlist)}
-        key={key} style={newStyle} >
+      <div key={key}
+        onClick={() => this.props.goToPlaylist(playlist)} style={newStyle}
+      >
         {playlist.name}
       </div>
     );
@@ -203,8 +207,8 @@ export default class PlaylistPicker extends React.Component {
           <div style={{height: '100%', width: '50%'}}>
             Manual
             <WrappedGrid
-              items={this.state.playlists}
               cellRenderer={this.cellRenderer.bind(this)}
+              items={this.state.playlists}
             />
           </div>
           <div
@@ -214,11 +218,12 @@ export default class PlaylistPicker extends React.Component {
               top: 0,
               right: 0,
               width: '50%'
-            }}>
+            }}
+          >
             <span style={{width: '100%', textAlign: 'center'}}>Auto</span>
             <WrappedGrid
-              items={this.state.autoPlaylists}
               cellRenderer={this.autoCellRenderer.bind(this)}
+              items={this.state.autoPlaylists}
             />
           </div>
         </div>
@@ -226,3 +231,8 @@ export default class PlaylistPicker extends React.Component {
     );
   }
 }
+
+PlaylistPicker.propTypes = {
+  goToPlaylist: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+};

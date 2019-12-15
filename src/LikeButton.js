@@ -1,5 +1,8 @@
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Resources} from './constants';
+import Track from './library/Track';
 import {getImgSrc} from './utils';
 
 export default class LikeButton extends React.Component {
@@ -21,14 +24,19 @@ export default class LikeButton extends React.Component {
       this.props.track.favorites.indexOf(year) !== -1;
     return (
       <input
-        className="control-button"
-        type="image"
         alt="favorite"
-        src={getImgSrc(Resources.FAVORITE)}
-        onClick={this.favorite.bind(this)}
-        style={{width: "25px", opacity: favorite ? '1' : '.5'}}
+        className="control-button"
         disabled={!this.props.track}
+        onClick={this.favorite.bind(this)}
+        src={getImgSrc(Resources.FAVORITE)}
+        style={{width: "25px", opacity: favorite ? '1' : '.5'}}
+        type="image"
       />
     );
   }
 }
+
+LikeButton.propTypes = {
+  library: PropTypes.instanceOf(Library).isRequired,
+  track: PropTypes.instanceOf(Track),
+};

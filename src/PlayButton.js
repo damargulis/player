@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class PlayButton extends React.Component {
@@ -7,9 +8,14 @@ export default class PlayButton extends React.Component {
 
   render() {
     return (
-      <button onClick={this.onClick.bind(this)} className="control-button">
+      <button className="control-button" onClick={this.onClick.bind(this)}>
         {this.props.playing ? 'Pause' : 'Play'}
       </button>
     );
   }
 }
+
+PlayButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  playing: PropTypes.bool.isRequired,
+};

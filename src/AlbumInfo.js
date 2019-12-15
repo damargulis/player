@@ -1,3 +1,6 @@
+import Album from './library/Album';
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Resources} from './constants';
 import {getImgSrc} from './utils';
@@ -44,7 +47,7 @@ export default class AlbumInfo extends React.Component {
     };
     if (!this.props.album) {
       return (
-        <div style={this.props.stlye} />
+        <div style={this.props.style} />
       );
     }
     if (Object.keys(this.props.album.warnings).length > 0) {
@@ -66,13 +69,13 @@ export default class AlbumInfo extends React.Component {
       >
         <div style={{position: "absolute", left: "50%"}}>
           <img
-            onDoubleClick={() => this.onDoubleClickAlbum()}
-            onClick={() => this.onClickAlbum()}
-            style={{paddingTop: "10px", position: "relative", left: "-50%"}}
-            src={src}
             alt="album art"
-            width="100"
             height="100"
+            onClick={() => this.onClickAlbum()}
+            onDoubleClick={() => this.onDoubleClickAlbum()}
+            src={src}
+            style={{paddingTop: "10px", position: "relative", left: "-50%"}}
+            width="100"
           />
           <div
             style={{position: "relative", left: "-50%", textAlign: 'center'}}
@@ -89,3 +92,11 @@ export default class AlbumInfo extends React.Component {
     );
   }
 }
+
+AlbumInfo.propTypes = {
+  album: PropTypes.instanceOf(Album).isRequired,
+  goToAlbum: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+  playAlbum: PropTypes.func.isRequired,
+  style: PropTypes.object.isRequired,
+};

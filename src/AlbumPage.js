@@ -1,6 +1,9 @@
+import Album from './library/Album';
 import EditableAttribute from './EditableAttribute';
+import Library from './library/Library';
 import LikeButton from './LikeButton';
 import NavigationBar from './NavigationBar';
+import PropTypes from 'prop-types';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
 import {Resources} from './constants';
@@ -41,13 +44,15 @@ export default class AlbumPicker extends React.Component {
         marginTop: "10px",
         marginBottom: "10px",
         marginLeft: "100px",
-      }} >
+      }}
+      >
         <div> Warnings: </div>
         {
           warnings.map((trackIndex) => {
             return (
               <div key={trackIndex}>{parseInt(trackIndex) + 1 + ": " +
-                this.props.album.warnings[trackIndex]}</div>
+                this.props.album.warnings[trackIndex]}
+              </div>
             );
           })
         }
@@ -70,9 +75,9 @@ export default class AlbumPicker extends React.Component {
       >
         <div> Errors: </div>
         {
-          this.props.album.errors.map((error, index) => {
+          this.props.album.errors.map((error) => {
             return (
-              <div key={index}>{error}</div>
+              <div key={error}>{error}</div>
             );
           })
         }
@@ -87,9 +92,9 @@ export default class AlbumPicker extends React.Component {
     }
     const artists = this.props.library.getArtistsByIds(
       this.props.album.artistIds);
-    return artists.map((artist, index) => {
+    return artists.map((artist) => {
       return (
-        <div key={index}>
+        <div key={artist.id}>
           <div className="link" onClick={() => this.props.goToArtist(artist)}>
             {artist.name}
           </div>
@@ -128,11 +133,11 @@ export default class AlbumPicker extends React.Component {
         <div className="albumPageHeader" style={{display: "flex"}}>
           <div className="info">
             <NavigationBar
+              canGoForward={this.props.canGoForward}
               goBack={this.props.goBack}
               goForward={this.props.goForward}
-              canGoForward={this.props.canGoForward}
             />
-            <img src={src} alt="album art" width="100" height="100" />
+            <img alt="album art" height="100" src={src} width="100" />
             <EditableAttribute
               attr={this.props.album && this.props.album.name}
               onSave={(value) => {
@@ -161,7 +166,8 @@ export default class AlbumPicker extends React.Component {
                 top: '33%',
                 translate: 'translateY(-66%)'
               }}
-            >Play Album</button>
+            >Play Album
+            </button>
             <div
               style={{
                 position: 'absolute',
@@ -170,8 +176,8 @@ export default class AlbumPicker extends React.Component {
               }}
             >
               <LikeButton
-                track={this.props.album}
                 library={this.props.library}
+                track={this.props.album}
               />
             </div>
           </div>
@@ -183,13 +189,23 @@ export default class AlbumPicker extends React.Component {
           }
         </div>
         <SongPicker
-          sortBy="index"
+          library={this.props.library}
           setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           songs={this.props.library.getAlbumTracks(this.props.album)}
-          library={this.props.library}
+          sortBy="index"
         />
 
       </div>
     );
   }
 }
+
+AlbumPicker.propTypes = {
+  album: PropTypes.instanceOf(Album).isRequired,
+  canGoForward: PropTypes.func.isRequired,
+  goBack: PropTypes.func.isRequired,
+  goForward: PropTypes.func.isRequired,
+  goToArtist: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+  setPlaylistAndPlay: PropTypes.func.isRequired,
+};

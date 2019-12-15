@@ -215,36 +215,36 @@ export default class App extends React.Component {
       <div>
         <div style={{display: mini ? "initial" : "none"}}>
           <MiniWindow
-            playlist={this.state.playlist}
             library={this.state.library}
-            nextTrack={this.nextTrack.bind(this)}
             nextAlbum={this.nextAlbum.bind(this)}
-            prevTrack={this.prevTrack.bind(this)}
-            prevAlbum={this.prevAlbum.bind(this)}
+            nextTrack={this.nextTrack.bind(this)}
             playAlbum={this.playAlbum.bind(this)}
-            playSong={this.playSong.bind(this)}
-            playPause={this.playPause.bind(this)}
             playing={this.state.playing}
-            setVolume={this.setVolume.bind(this)}
+            playlist={this.state.playlist}
+            playPause={this.playPause.bind(this)}
+            playSong={this.playSong.bind(this)}
+            prevAlbum={this.prevAlbum.bind(this)}
+            prevTrack={this.prevTrack.bind(this)}
             setTime={this.setTime.bind(this)}
+            setVolume={this.setVolume.bind(this)}
             time={this.state.time}
           />
         </div>
         <div style={{display: mini ? "none" : "initial"}}>
           <MaxWindow
-            setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
-            playlist={this.state.playlist}
             library={this.state.library}
-            nextTrack={this.nextTrack.bind(this)}
             nextAlbum={this.nextAlbum.bind(this)}
-            prevTrack={this.prevTrack.bind(this)}
-            prevAlbum={this.prevAlbum.bind(this)}
+            nextTrack={this.nextTrack.bind(this)}
             playAlbum={this.playAlbum.bind(this)}
-            playSong={this.playSong.bind(this)}
-            playPause={this.playPause.bind(this)}
             playing={this.state.playing}
-            setVolume={this.setVolume.bind(this)}
+            playlist={this.state.playlist}
+            playPause={this.playPause.bind(this)}
+            playSong={this.playSong.bind(this)}
+            prevAlbum={this.prevAlbum.bind(this)}
+            prevTrack={this.prevTrack.bind(this)}
+            setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
             setTime={this.setTime.bind(this)}
+            setVolume={this.setVolume.bind(this)}
             time={this.state.time}
           />
         </div>

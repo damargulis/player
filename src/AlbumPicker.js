@@ -1,4 +1,6 @@
 import AlbumInfo from './AlbumInfo';
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import React from 'react';
 import SearchBar from './SearchBar';
@@ -74,13 +76,13 @@ export default class AlbumPicker extends React.Component {
       }) : this.state.sortedAlbums;
     return (
       <AlbumInfo
-        playAlbum={this.playAlbum.bind(this)}
+        album={albums[index]}
         goToAlbum={(album) => this.goToAlbum(album)}
-        library={this.props.library}
         index={index}
         key={key}
+        library={this.props.library}
+        playAlbum={this.playAlbum.bind(this)}
         style={style}
-        album={albums[index]}
       />
     );
   }
@@ -135,11 +137,17 @@ export default class AlbumPicker extends React.Component {
           <SearchBar onSearch={(search) => this.onSearch(search)} />
         </div>
         <WrappedGrid
-          items={items}
           cellRenderer={this.cellRenderer.bind(this)}
+          items={items}
         />
       </div>
     );
   }
 }
 
+AlbumPicker.propTypes = {
+  albums: PropTypes.array.isRequired,
+  goToAlbum: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+  setPlaylistAndPlay: PropTypes.func.isRequired,
+};

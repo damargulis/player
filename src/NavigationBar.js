@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class NavigationBar extends React.Component {
@@ -6,10 +7,17 @@ export default class NavigationBar extends React.Component {
       <div>
         <button onClick={this.props.goBack}>&lt;</button>
         <button
-          onClick={this.props.goForward}
           disabled={!this.props.canGoForward}
-        >&gt;</button>
+          onClick={this.props.goForward}
+        >&gt;
+        </button>
       </div>
     );
   }
 }
+
+NavigationBar.propTypes = {
+  canGoForward: PropTypes.bool.isRequired,
+  goBack: PropTypes.func.isRequired,
+  goForward: PropTypes.func.isRequired,
+};

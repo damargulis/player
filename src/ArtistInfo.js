@@ -1,3 +1,6 @@
+import Artist from './library/Artist';
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Resources} from './constants';
 import {getImgSrc} from './utils';
@@ -64,7 +67,7 @@ export default class ArtistInfo extends React.Component {
   render() {
     if (!this.props.artist) {
       return (
-        <div style={this.props.stlye} />
+        <div style={this.props.style} />
       );
     }
     // recenter with new width filling full space
@@ -82,16 +85,20 @@ export default class ArtistInfo extends React.Component {
     const src = getImgSrc(file);
     return (
       <div
-        style={newStyle}
         onClick={() => this.props.goToArtist(this.props.artist)}
+        style={newStyle}
       >
         <div style={{position: "absolute", left: "50%"}}>
           <img
+            alt="artist art"
+            height="100"
+            src={src}
             style={{paddingTop: "10px", position: "relative", left: "-50%"}}
-            src={src} alt="artist art" width="100" height="100"
+            width="100"
           />
           <div
-            style={{position: "relative", left: "-50%", textAlign: 'center'}}>
+            style={{position: "relative", left: "-50%", textAlign: 'center'}}
+          >
             {this.props.artist.name}
           </div>
         </div>
@@ -99,3 +106,10 @@ export default class ArtistInfo extends React.Component {
     );
   }
 }
+
+ArtistInfo.propTypes = {
+  artist: PropTypes.instanceOf(Artist).isRequired,
+  goToArtist: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+  style: PropTypes.object.isRequired,
+};

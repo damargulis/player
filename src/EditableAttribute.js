@@ -1,4 +1,4 @@
-
+import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class EditableAttribute extends React.Component {
@@ -49,13 +49,14 @@ export default class EditableAttribute extends React.Component {
     return (
       <div>
         <input
-          style={{display: this.state.editing ? '' : 'none'}}
-          ref={this.input}
+          onBlur={this.save.bind(this)}
           onChange={this.onChange.bind(this)}
           onKeyUp={this.onKeyUp.bind(this)}
-          onBlur={this.save.bind(this)}
+          ref={this.input}
+          style={{display: this.state.editing ? '' : 'none'}}
           value={this.state.value}
-        ></input>
+        >
+        </input>
         <div style={{display: this.state.editing ? 'none' : ''}}>
           {this.state.value}
           <button onClick={this.edit.bind(this)}>Edit</button>
@@ -64,3 +65,8 @@ export default class EditableAttribute extends React.Component {
     );
   }
 }
+
+EditableAttribute.propTypes = {
+  attr: PropTypes.object.isRequired,
+  onSave: PropTypes.func.isRequired,
+};

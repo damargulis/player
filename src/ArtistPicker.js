@@ -1,8 +1,9 @@
 import ArtistInfo from './ArtistInfo';
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import React from 'react';
 import SearchBar from './SearchBar';
 import WrappedGrid from './WrappedGrid';
-
 
 export default class ArtistPicker extends React.Component {
   constructor(props) {
@@ -57,12 +58,12 @@ export default class ArtistPicker extends React.Component {
       }) : this.state.sortedArtists;
     return (
       <ArtistInfo
+        artist={artists[index]}
         goToArtist={(artist) => this.goToArtist(artist)}
-        library={this.props.library}
         index={index}
         key={key}
+        library={this.props.library}
         style={style}
-        artist={artists[index]}
       />
     );
   }
@@ -89,10 +90,16 @@ export default class ArtistPicker extends React.Component {
         <button onClick={() => this.withErrors()}>With Errors Only</button>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <WrappedGrid
-          items={items}
           cellRenderer={this.cellRenderer.bind(this)}
+          items={items}
         />
       </div>
     );
   }
 }
+
+ArtistPicker.propTypes = {
+  artists: PropTypes.array.isRequired,
+  goToArtist: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+};

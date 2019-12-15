@@ -1,5 +1,9 @@
-export default class RandomSongPlaylist {
+import EmptyPlaylist from './EmptyPlaylist';
+
+export default class RandomSongPlaylist extends EmptyPlaylist {
   constructor(tracks) {
+    super();
+
     this.tracks_ = tracks;
 
     this.playlist_ = [];

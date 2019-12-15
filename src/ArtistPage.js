@@ -1,6 +1,8 @@
 import AlbumPicker from './AlbumPicker.js';
 import EditableAttribute from './EditableAttribute';
+import Library from './library/Library';
 import NavigationBar from './NavigationBar';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Resources} from './constants';
 import SongPicker from './SongPicker.js';
@@ -28,9 +30,9 @@ export default class ArtistPage extends React.Component {
       >
         <div> Errors: </div>
         {
-          this.props.artist.errors.map((error, index) => {
+          this.props.artist.errors.map((error) => {
             return (
-              <div key={index}>{error}</div>
+              <div key={error}>{error}</div>
             );
           })
         }
@@ -49,12 +51,12 @@ export default class ArtistPage extends React.Component {
         >
           <div className="artistPageHeader" style={{display: "flex"}}>
             <NavigationBar
+              canGoForward={this.props.canGoForward}
               goBack={this.props.goBack}
               goForward={this.props.goForward}
-              canGoForward={this.props.canGoForward}
             />
             <div className="info">
-              <img src={src} alt="artist art" width="100" height="100" />
+              <img alt="artist art" height="100" src={src} width="100" />
               <EditableAttribute
                 attr={this.props.artist && this.props.artist.name}
                 onSave={(value) => {
@@ -73,16 +75,16 @@ export default class ArtistPage extends React.Component {
           <div className="artistPageBody" style={{height: "100%"}}>
             <div className="container" style={{height: "50%"}}>
               <AlbumPicker
-                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
                 albums={this.props.library.getAlbumsByArtist(this.props.artist)}
-                library={this.props.library}
                 goToAlbum={this.props.goToAlbum}
+                library={this.props.library}
+                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
               />
             </div>
             <div className="container" style={{height: "50%"}}>
               <SongPicker
-                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
                 library={this.props.library}
+                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
                 songs={this.props.library.getArtistTracks(this.props.artist)}
 
               />
@@ -93,3 +95,13 @@ export default class ArtistPage extends React.Component {
     );
   }
 }
+
+ArtistPage.propTypes = {
+  artist: PropTypes.array.isRequired,
+  canGoForward: PropTypes.func.isRequired,
+  goBack: PropTypes.func.isRequired,
+  goForward: PropTypes.func.isRequired,
+  goToAlbum: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+  setPlaylistAndPlay: PropTypes.func.isRequired,
+};

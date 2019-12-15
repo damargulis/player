@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { AutoSizer, Grid } from 'react-virtualized';
 
@@ -44,3 +45,8 @@ export default class WrappedGrid extends React.Component {
     );
   }
 }
+
+WrappedGrid.propTypes = {
+  cellRenderer: PropTypes.func.isRequired,
+  items: PropTypes.array.isRequired,
+};

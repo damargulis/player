@@ -1,5 +1,8 @@
+import Library from './library/Library';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Resources} from './constants';
+import Track from './library/Track';
 import {getImgSrc} from './utils';
 
 const {ipcRenderer} = require('electron');
@@ -18,9 +21,9 @@ export default class InfoPanel extends React.Component {
     const artists = track && library
       ? library.getArtistsByIds(track.artistIds) : [];
     if (artists.length) {
-      return artists.map((artist, index) => {
+      return artists.map((artist) => {
         return (
-          <div key={index}>
+          <div key={artist.id}>
             <div className="link" onClick={() => this.props.goToArtist(artist)}>
               {artist.name}
             </div>
@@ -36,9 +39,9 @@ export default class InfoPanel extends React.Component {
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
     if (albums.length) {
-      return albums.map((album, index) => {
+      return albums.map((album) => {
         return (
-          <div key={index}>
+          <div key={album.id}>
             <div className="link" onClick={() => this.props.goToAlbum(album)}>
               {album.name}
             </div>
@@ -77,10 +80,10 @@ export default class InfoPanel extends React.Component {
       : {height: 70, width: 70, padding: 15};
     return (
       <div id="info-panel" style={{display: "flex"}}>
-        <img onClick={() => this.onImageClick_()}
+        <img alt="album-art"
+          onClick={() => this.onImageClick_()}
           src={src}
           style={imgStyle}
-          alt="album-art"
         />
         <div>
           <div className="track-label" id="name">
@@ -104,3 +107,12 @@ export default class InfoPanel extends React.Component {
     );
   }
 }
+
+InfoPanel.propTypes = {
+  goToAlbum: PropTypes.func.isRequired,
+  goToArtist: PropTypes.func.isRequired,
+  goToSong: PropTypes.func.isRequired,
+  library: PropTypes.instanceOf(Library).isRequired,
+  small: PropTypes.bool,
+  track: PropTypes.instanceOf(Track),
+};

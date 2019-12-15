@@ -1,4 +1,5 @@
 import AutoComplete from './AutoComplete';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class AttributeList extends React.Component {
@@ -23,9 +24,9 @@ export default class AttributeList extends React.Component {
   getAttributes() {
     return this.state.current.map((attr, index) => {
       return (
-        <div className="list-item" key={index}>
+        <div className="list-item" key={attr.id}>
           {this.props.getDisplayName(attr)}
-          <span onClick={() => this.remove(index)} className="close">
+          <span className="close" onClick={() => this.remove(index)}>
             X
           </span>
         </div>
@@ -44,10 +45,18 @@ export default class AttributeList extends React.Component {
         <AutoComplete
           getDisplayName={this.props.getDisplayName}
           onSubmit={this.add.bind(this)}
-          suggestions={suggestions}
           searchFilter={this.props.searchFilter}
+          suggestions={suggestions}
         />
       </div>
     );
   }
 }
+
+AttributeList.propTypes = {
+  attributes: PropTypes.array.isRequired,
+  getDisplayName: PropTypes.func.isRequired,
+  label: PropTypes.string.isRequired,
+  searchFilter: PropTypes.func.isRequired,
+  suggestions: PropTypes.array.isRequired,
+};

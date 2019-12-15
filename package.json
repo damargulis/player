@@ -51,6 +51,7 @@
     "electron-default-menu": "^1.0.1",
     "electron-rebuild": "^1.8.6",
     "es6-promise-pool": "^2.5.0",
+    "eslint-plugin-react": "^7.17.0",
     "itunes-data": "^0.1.4",
     "jimp": "^0.8.4",
     "libxmljs": "^0.19.7",

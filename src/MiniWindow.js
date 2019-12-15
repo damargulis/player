@@ -1,6 +1,9 @@
 import ControlPanel from './ControlPanel';
+import EmptyPlaylist from './playlist/EmptyPlaylist';
 import InfoPanel from './InfoPanel';
+import Library from './library/Library';
 import ProgressBar from './ProgressBar';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const {ipcRenderer} = require('electron');
@@ -22,25 +25,25 @@ export default class MiniWindow extends React.Component {
     return (
       <div id="mini-window">
         <InfoPanel
-          goToArtist={this.goToArtist.bind(this)}
           goToAlbum={this.goToAlbum.bind(this)}
+          goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}
-          small={true}
           library={this.props.library}
+          small={true}
           track={this.props.playlist.getCurrentTrack()}
         />
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel
-            volumeButton={true}
-            playing={this.props.playing}
-            playPause={this.props.playPause}
+            library={this.props.library}
             nextAlbum={this.props.nextAlbum}
             nextTrack={this.props.nextTrack}
+            playing={this.props.playing}
+            playlist={this.props.playlist}
+            playPause={this.props.playPause}
             prevAlbum={this.props.prevAlbum}
             prevTrack={this.props.prevTrack}
-            playlist={this.props.playlist}
             setVolume={this.props.setVolume}
-            library={this.props.library}
+            volumeButton={true}
           />
         </div>
         <ProgressBar
@@ -52,3 +55,17 @@ export default class MiniWindow extends React.Component {
     );
   }
 }
+
+MiniWindow.propTypes = {
+  library: PropTypes.instanceOf(Library).isRequired,
+  nextAlbum: PropTypes.func.isRequired,
+  nextTrack: PropTypes.func.isRequired,
+  playPause: PropTypes.func.isRequired,
+  playing: PropTypes.bool.isRequired,
+  playlist: PropTypes.instanceOf(EmptyPlaylist).isRequired,
+  prevAlbum: PropTypes.func.isRequired,
+  prevTrack: PropTypes.func.isRequired,
+  setTime: PropTypes.func.isRequired,
+  setVolume: PropTypes.func.isRequired,
+  time: PropTypes.number.isRequired,
+};
