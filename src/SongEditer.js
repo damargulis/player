@@ -2,6 +2,7 @@ import AttributeList from './AttributeList';
 import Library from './library/Library';
 import PropTypes from 'prop-types';
 import React from 'react';
+import Track from './library/Track';
 
 import './SongEditer.css';
 
@@ -145,5 +146,5 @@ export default class SongEditer extends React.Component {
 SongEditer.propTypes = {
   exit: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,
-  tracks: PropTypes.array.isRequired,
+  tracks: PropTypes.arrayOf(PropTypes.instanceOf(Track)).isRequired,
 };

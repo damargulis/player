@@ -208,7 +208,7 @@ export default class PlaylistPicker extends React.Component {
             Manual
             <WrappedGrid
               cellRenderer={this.cellRenderer.bind(this)}
-              items={this.state.playlists}
+              numItems={this.state.playlists.length}
             />
           </div>
           <div
@@ -223,7 +223,7 @@ export default class PlaylistPicker extends React.Component {
             <span style={{width: '100%', textAlign: 'center'}}>Auto</span>
             <WrappedGrid
               cellRenderer={this.autoCellRenderer.bind(this)}
-              items={this.state.autoPlaylists}
+              numItems={this.state.autoPlaylists.length}
             />
           </div>
         </div>

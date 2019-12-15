@@ -1,3 +1,4 @@
+import Artist from './library/Artist';
 import ArtistInfo from './ArtistInfo';
 import Library from './library/Library';
 import PropTypes from 'prop-types';
@@ -91,7 +92,7 @@ export default class ArtistPicker extends React.Component {
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <WrappedGrid
           cellRenderer={this.cellRenderer.bind(this)}
-          items={items}
+          numItems={items.length}
         />
       </div>
     );
@@ -99,7 +100,7 @@ export default class ArtistPicker extends React.Component {
 }
 
 ArtistPicker.propTypes = {
-  artists: PropTypes.array.isRequired,
+  artists: PropTypes.arrayOf(PropTypes.instanceOf(Artist)).isRequired,
   goToArtist: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,
 };

@@ -299,8 +299,7 @@
       "error",
       "as-needed"
     ],
-    // TODO: add this back
-    //"react/forbid-prop-types": "error",
+    "react/forbid-prop-types": "error",
     "require-atomic-updates": "off",
     "require-await": "error",
     "require-jsdoc": "error",

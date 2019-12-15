@@ -1,3 +1,4 @@
+import Album from './library/Album';
 import AlbumInfo from './AlbumInfo';
 import Library from './library/Library';
 import PropTypes from 'prop-types';
@@ -138,7 +139,7 @@ export default class AlbumPicker extends React.Component {
         </div>
         <WrappedGrid
           cellRenderer={this.cellRenderer.bind(this)}
-          items={items}
+          numItems={items.length}
         />
       </div>
     );
@@ -146,7 +147,7 @@ export default class AlbumPicker extends React.Component {
 }
 
 AlbumPicker.propTypes = {
-  albums: PropTypes.array.isRequired,
+  albums: PropTypes.arrayOf(PropTypes.instanceOf(Album)).isRequired,
   goToAlbum: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,
   setPlaylistAndPlay: PropTypes.func.isRequired,

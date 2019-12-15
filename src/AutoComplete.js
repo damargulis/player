@@ -1,3 +1,5 @@
+import Album from './library/Album';
+import Artist from './library/Artist';
 import PropTypes from 'prop-types';
 import React from 'react';
 import './AutoComplete.css';
@@ -142,5 +144,10 @@ AutoComplete.propTypes = {
   getDisplayName: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   searchFilter: PropTypes.func.isRequired,
-  suggestions: PropTypes.array.isRequired,
+  suggestions: PropTypes.arrayOf(PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.instanceOf(Album),
+    PropTypes.instanceOf(Artist),
+  ]).isRequired),
 };

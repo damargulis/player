@@ -111,5 +111,7 @@ ArtistInfo.propTypes = {
   artist: PropTypes.instanceOf(Artist),
   goToArtist: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,
-  style: PropTypes.object.isRequired,
+  style: PropTypes.shape({
+    width: PropTypes.number,
+  }).isRequired,
 };

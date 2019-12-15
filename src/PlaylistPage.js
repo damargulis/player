@@ -54,7 +54,7 @@ export default class PlaylistPage extends React.Component {
 
 PlaylistPage.propTypes = {
   canGoForward: PropTypes.bool.isRequired,
-  genres: PropTypes.array.isRequired,
+  genres: PropTypes.arrayOf(PropTypes.number).isRequired,
   goBack: PropTypes.func.isRequired,
   goForward: PropTypes.func.isRequired,
   library: PropTypes.instanceOf(Library).isRequired,

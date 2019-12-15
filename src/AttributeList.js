@@ -1,3 +1,5 @@
+import Album from './library/Album';
+import Artist from './library/Artist';
 import AutoComplete from './AutoComplete';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -54,9 +56,16 @@ export default class AttributeList extends React.Component {
 }
 
 AttributeList.propTypes = {
-  attributes: PropTypes.array.isRequired,
+  attributes: PropTypes.arrayOf(PropTypes.number).isRequired,
   getDisplayName: PropTypes.func.isRequired,
   label: PropTypes.string.isRequired,
   searchFilter: PropTypes.func.isRequired,
-  suggestions: PropTypes.array.isRequired,
+  // TODO: find out how to template this so the functions take in whichever is
+  // passed here
+  suggestions: PropTypes.arrayOf(PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.string,
+    PropTypes.instanceOf(Album),
+    PropTypes.instanceOf(Artist),
+  ])).isRequired,
 };

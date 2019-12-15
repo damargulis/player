@@ -16,16 +16,15 @@ export default class WrappedGrid extends React.Component {
   }
 
   render() {
-    if (!this.props.items) {
+    if (this.props.numItems === 0) {
       return null;
     }
-    const numItems = this.props.items.length;
     return (
       <AutoSizer>
         {({height, width}) => {
         // TODO: make 150 a prop (w/ default?)
           this.numCols = Math.floor(width / 150);
-          const rows = Math.ceil(numItems / this.numCols);
+          const rows = Math.ceil(this.props.numItems / this.numCols);
           if (this.numCols <= 0 || this.numCols <= 0) {
             return null;
           }
@@ -48,5 +47,5 @@ export default class WrappedGrid extends React.Component {
 
 WrappedGrid.propTypes = {
   cellRenderer: PropTypes.func.isRequired,
-  items: PropTypes.array.isRequired,
+  numItems: PropTypes.number.isRequired,
 };

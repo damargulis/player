@@ -5,6 +5,7 @@ import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import SearchBar from './SearchBar';
 import SongEditer from './SongEditer';
+import Track from './library/Track';
 import {toTime} from './utils';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 
@@ -334,8 +335,10 @@ export default class SongPicker extends React.Component {
 
 SongPicker.propTypes = {
   library: PropTypes.instanceOf(Library).isRequired,
-  scrollToSong: PropTypes.object,
+  scrollToSong: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+  }),
   setPlaylistAndPlay: PropTypes.func.isRequired,
-  songs: PropTypes.array.isRequired,
+  songs: PropTypes.arrayOf(PropTypes.instanceOf(Track)).isRequired,
   sortBy: PropTypes.string,
 };
