@@ -117,7 +117,7 @@ export default class AlbumPicker extends React.Component {
   }
 
   render() {
-    // todo use albumInfo or combine logic
+    // TODO: use albumInfo or combine logic
     // ya know actually separate conscers and shit
     let file = this.props.album && this.props.album.albumArtFile;
     file = file || Resources.DEFAULT_ALBUM;
