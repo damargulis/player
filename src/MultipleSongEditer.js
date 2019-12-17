@@ -5,6 +5,7 @@ import GenreAttributeEditor from './GenreAttributeEditor';
 import Library from './library/Library';
 import PropTypes from 'prop-types';
 import React from 'react';
+import ToggableEditableAttribute from './ToggableEditableAttribute';
 import Track from './library/Track';
 
 export default class MultipleSongEditer extends React.Component {
@@ -37,10 +38,6 @@ export default class MultipleSongEditer extends React.Component {
     this.setState({editArtists: evt.target.checked});
   }
 
-  editAlbums(evt) {
-    this.setState({editAlbums: evt.target.checked});
-  }
-
   editFavorites(evt) {
     this.setState({editFavorites: evt.target.checked});
   }
@@ -51,6 +48,10 @@ export default class MultipleSongEditer extends React.Component {
 
   editPlayCount(evt) {
     this.setState({editPlayCount: evt.target.checked});
+  }
+
+  editAlbums(evt) {
+    this.setState({editAlbums: evt.target.checked});
   }
 
   saveTrack(track) {
@@ -98,74 +99,75 @@ export default class MultipleSongEditer extends React.Component {
     return (
       <div>
         <h3 className="title">Edit Tracks</h3>
-        {
-          this.state.editArtists
-            ? <ArtistAttributeEditor
-              artistIds={this.state.artistIds}
-              library={this.props.library}
-            /> : null
-        }
-        <div>Edit Artists:
-          <input onChange={this.editArtists.bind(this)} type="checkbox"/>
-        </div>
-        {
-          this.state.editAlbums
-            ? <AlbumAttributeEditor
-              albumIds={this.state.albumIds}
-              library={this.props.library}
-            /> : null
-        }
-        <div>Edit Albums:
-          <input onChange={this.editAlbums.bind(this)} type="checkbox"/>
-        </div>
-        {
-          this.state.editYear
-            ? <div className="edit-container">
-              <label className="label">Year: </label>
-              <input
-                className="input"
-                placeholder="Year"
-                ref={this.year}
-                type="number"
-              />
-            </div> : null
-        }
-        <div>Edit Year:
-          <input onChange={this.editYear.bind(this)} type="checkbox"/>
-        </div>
-        { this.state.editGenre
-          ? <GenreAttributeEditor
+        <ToggableEditableAttribute
+          editing={this.state.editArtists}
+          label="Artists"
+          toggleEdit={this.editArtists.bind(this)}
+        >
+          <ArtistAttributeEditor
+            artistIds={this.state.artistIds}
+            library={this.props.library}
+          />
+        </ToggableEditableAttribute>
+        <ToggableEditableAttribute
+          editing={this.state.editAlbums}
+          label="Albums"
+          toggleEdit={this.editAlbums.bind(this)}
+        >
+          <AlbumAttributeEditor
+            albumIds={this.state.albumIds}
+            library={this.props.library}
+          />
+        </ToggableEditableAttribute>
+        <ToggableEditableAttribute
+          editing={this.state.editYear}
+          label="Year"
+          toggleEdit={this.editYear.bind(this)}
+        >
+          <div className="edit-container">
+            <label className="label">Year: </label>
+            <input
+              className="input"
+              placeholder="Year"
+              ref={this.year}
+              type="number"
+            />
+          </div>
+        </ToggableEditableAttribute>
+        <ToggableEditableAttribute
+          editing={this.state.editGenre}
+          label="Genres"
+          toggleEdit={this.editGenre.bind(this)}
+        >
+          <GenreAttributeEditor
             genreIds={this.state.genreIds}
             library={this.props.library}
-          /> : null
-        }
-        <div>Edit Genres:
-          <input onChange={this.editGenre.bind(this)} type="checkbox"/>
-        </div>
-        {
-          this.state.editFavorites
-            ? <FavoritesAttributeEditor
-              yearsFavorited={this.state.yearsFavorited}
-            /> : null
-        }
-        <div>Edit Years Favorited:
-          <input onChange={this.editFavorites.bind(this)} type="checkbox"/>
-        </div>
-        {
-          this.state.editPlayCount
-            ? <div className="edit-container">
-              <label className="label">Play Count: </label>
-              <input
-                className="input"
-                placeholder="Play Count"
-                ref={this.playCount}
-                type="number"
-              />
-            </div> : null
-        }
-        <div>Edit Play Count:
-          <input onChange={this.editPlayCount.bind(this)} type="checkbox"/>
-        </div>
+          />
+        </ToggableEditableAttribute>
+        <ToggableEditableAttribute
+          editing={this.state.editFavorites}
+          label="Favorite Years"
+          toggleEdit={this.editFavorites.bind(this)}
+        >
+          <FavoritesAttributeEditor
+            yearsFavorited={this.state.yearsFavorited}
+          />
+        </ToggableEditableAttribute>
+        <ToggableEditableAttribute
+          editing={this.state.editPlayCount}
+          label="Play Count"
+          toggleEdit={this.editPlayCount.bind(this)}
+        >
+          <div className="edit-container">
+            <label className="label">Play Count: </label>
+            <input
+              className="input"
+              placeholder="Play Count"
+              ref={this.playCount}
+              type="number"
+            />
+          </div>
+        </ToggableEditableAttribute>
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>
           <button onClick={this.props.exit}>Cancel</button>
