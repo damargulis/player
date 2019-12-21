@@ -1,15 +1,15 @@
 export default class Artist {
-  name: string;
-  albumIds: number[];
-  artFile?: string;
-  id: number;
-  errors: string[];
-  wikiPage?: string;
-  genreIds: number[];
-  trackIds: number[];
+  public name: string;
+  public albumIds: number[];
+  public artFile?: string;
+  public id: number;
+  public errors: string[];
+  public wikiPage?: string;
+  public genreIds: number[];
+  public trackIds: number[];
 
   constructor(id: number, {
-    name = '',
+    name = "",
     albumIds = [],
     trackIds = [],
     genreIds = [],
@@ -27,13 +27,13 @@ export default class Artist {
     this.wikiPage = wikiPage;
   }
 
-  addError(err: string) {
+  public addError(err: string) {
     if (!this.errors.includes(err)) {
       this.errors.push(err);
     }
   }
 
-  removeError(err: string) {
+  public removeError(err: string) {
     const index = this.errors.indexOf(err);
     if (index >= 0) {
       this.errors = [
@@ -43,4 +43,3 @@ export default class Artist {
     }
   }
 }
-

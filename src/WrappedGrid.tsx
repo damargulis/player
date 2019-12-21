@@ -1,34 +1,29 @@
-import React from 'react';
-import { AutoSizer, Grid } from 'react-virtualized';
+import React from "react";
+import { AutoSizer, Grid } from "react-virtualized";
 
-import './App.css';
+import "./App.css";
 
 interface WrappedGridProps {
   cellRenderer: (index: number, key: string, style: any) => JSX.Element;
   numItems: number;
 }
 
-export default class WrappedGrid extends React.Component<WrappedGridProps,{}> {
-  numCols: number;
+export default class WrappedGrid extends React.Component<WrappedGridProps, {}> {
+  private numCols: number;
 
   constructor(props: WrappedGridProps) {
     super(props);
     this.numCols = 0;
   }
 
-  cellRenderer({columnIndex, key, rowIndex, style}: {columnIndex: number, key: string, rowIndex: number, style: Object}) {
-    return this.props.cellRenderer(
-      rowIndex * this.numCols + columnIndex, key, style);
-  }
-
-  render() {
+  public render() {
     if (this.props.numItems === 0) {
       return null;
     }
     return (
       <AutoSizer>
         {({height, width}) => {
-        // TODO: make 150 a prop (w/ default?)
+          // TODO: make 150 a prop (w/ default?)
           this.numCols = Math.floor(width / 150);
           const rows = Math.ceil(this.props.numItems / this.numCols);
           if (this.numCols <= 0 || this.numCols <= 0) {
@@ -48,5 +43,13 @@ export default class WrappedGrid extends React.Component<WrappedGridProps,{}> {
         }}
       </AutoSizer>
     );
+  }
+
+  private cellRenderer(
+    {columnIndex, key, rowIndex, style}:
+    {columnIndex: number, key: string, rowIndex: number, style: object},
+  ) {
+    return this.props.cellRenderer(
+      rowIndex * this.numCols + columnIndex, key, style);
   }
 }

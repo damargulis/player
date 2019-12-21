@@ -1,13 +1,13 @@
-import Artist from './library/Artist';
-import Album from './library/Album';
-import AlbumInfo from './AlbumInfo';
-import Library from './library/Library';
-import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
-import * as React from 'react';
-import SearchBar from './SearchBar';
-import WrappedGrid from './WrappedGrid';
+import Album from "./library/Album";
+import AlbumInfo from "./AlbumInfo";
+import Artist from "./library/Artist";
+import Library from "./library/Library";
+import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
+import * as React from "react";
+import SearchBar from "./SearchBar";
+import WrappedGrid from "./WrappedGrid";
 
-import './App.css';
+import "./App.css";
 
 interface AlbumPickerProps {
   albums: Album[];
@@ -16,8 +16,8 @@ interface AlbumPickerProps {
   setPlaylistAndPlay: (playlist: RandomAlbumPlaylist) => void;
 }
 
-export default class AlbumPicker extends React.Component<AlbumPickerProps,any> {
-  numCols: number;
+export default class AlbumPicker extends React.Component<AlbumPickerProps, any> {
+  private numCols: number;
 
   constructor(props: AlbumPickerProps) {
     super(props);
@@ -27,16 +27,16 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps,any> {
     this.sortByArtist = this.sortByArtist.bind(this);
 
     this.state = {
-      sortMethod: this.sortByName,
       reverse: false,
+      search: null,
+      sortMethod: this.sortByName,
       sortedAlbums: [],
       withErrors: false,
-      search: null,
     };
     this.numCols = 0;
   }
 
-  sortAlbums(albums: Album[]) {
+  public sortAlbums(albums: Album[]) {
     return albums.filter((album) => {
       if (!this.state.search) {
         return true;
@@ -50,13 +50,13 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps,any> {
     });
   }
 
-  componentDidMount() {
+  public componentDidMount() {
     this.setState({
       sortedAlbums: this.sortAlbums(this.props.albums),
     });
   }
 
-  componentDidUpdate() {
+  public componentDidUpdate() {
     const sortedAlbums = this.sortAlbums(this.props.albums);
     if (sortedAlbums.length !== this.state.sortedAlbums.length ||
       sortedAlbums.some((album, index) => {
@@ -68,69 +68,7 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps,any> {
     }
   }
 
-  goToAlbum(album: Album) {
-    this.props.goToAlbum(album);
-  }
-
-  playAlbum(album: Album) {
-    const playlist = new RandomAlbumPlaylist(
-      this.props.library, this.state.sortedAlbums);
-    playlist.addAlbum(album);
-    this.props.setPlaylistAndPlay(playlist);
-  }
-
-  cellRenderer(index: number, key: string, style: any) {
-    const albums = this.state.withErrors
-      ? this.state.sortedAlbums.filter((album: Album) => {
-        return album.errors.length > 0;
-      }) : this.state.sortedAlbums;
-    return (
-      <AlbumInfo
-        album={albums[index]}
-        goToAlbum={(album) => this.goToAlbum(album)}
-        key={key}
-        library={this.props.library}
-        playAlbum={this.playAlbum.bind(this)}
-        style={style}
-      />
-    );
-  }
-
-  sortByName(album1: Album, album2: Album) {
-    return album1.name.localeCompare(album2.name);
-  }
-
-  sortByArtist(album1: Album, album2: Album) {
-    const artist1 = this.props.library.getArtistsByIds(album1.artistIds)
-      .map((artist: Artist) => artist.name).join(",");
-    const artist2 = this.props.library.getArtistsByIds(album2.artistIds)
-      .map((artist: Artist) => artist.name).join(",");
-    return artist1.localeCompare(artist2);
-  }
-
-  sortByYear(album1: Album, album2: Album) {
-    return album1.year - album2.year;
-  }
-
-  chooseSort(sortMethod: (album1: Album, album2: Album) => number) {
-    if (sortMethod === this.state.sortMethod) {
-      this.setState({reverse: !this.state.reverse});
-    } else {
-      this.setState({ sortMethod });
-    }
-  }
-
-  withErrors() {
-    this.setState({
-      withErrors: !this.state.withErrors,
-    });
-  }
-
-  onSearch(search: string) {
-    this.setState({ search });
-  }
-
-  render() {
+  public render() {
     const items = this.state.withErrors
       ? this.state.sortedAlbums.filter((album: Album) => {
         return album.errors.length > 0;
@@ -152,5 +90,66 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps,any> {
       </div>
     );
   }
-}
 
+  private goToAlbum(album: Album) {
+    this.props.goToAlbum(album);
+  }
+
+  private playAlbum(album: Album) {
+    const playlist = new RandomAlbumPlaylist(
+      this.props.library, this.state.sortedAlbums);
+    playlist.addAlbum(album);
+    this.props.setPlaylistAndPlay(playlist);
+  }
+
+  private cellRenderer(index: number, key: string, style: any) {
+    const albums = this.state.withErrors
+      ? this.state.sortedAlbums.filter((album: Album) => {
+        return album.errors.length > 0;
+      }) : this.state.sortedAlbums;
+    return (
+      <AlbumInfo
+        album={albums[index]}
+        goToAlbum={(album) => this.goToAlbum(album)}
+        key={key}
+        library={this.props.library}
+        playAlbum={this.playAlbum.bind(this)}
+        style={style}
+      />
+    );
+  }
+
+  private sortByName(album1: Album, album2: Album) {
+    return album1.name.localeCompare(album2.name);
+  }
+
+  private sortByArtist(album1: Album, album2: Album) {
+    const artist1 = this.props.library.getArtistsByIds(album1.artistIds)
+      .map((artist: Artist) => artist.name).join(",");
+    const artist2 = this.props.library.getArtistsByIds(album2.artistIds)
+      .map((artist: Artist) => artist.name).join(",");
+    return artist1.localeCompare(artist2);
+  }
+
+  private sortByYear(album1: Album, album2: Album) {
+    return album1.year - album2.year;
+  }
+
+  private chooseSort(sortMethod: (album1: Album, album2: Album) => number) {
+    if (sortMethod === this.state.sortMethod) {
+      this.setState({reverse: !this.state.reverse});
+    } else {
+      this.setState({ sortMethod });
+    }
+  }
+
+  private withErrors() {
+    this.setState({
+      withErrors: !this.state.withErrors,
+    });
+  }
+
+  private onSearch(search: string) {
+    this.setState({ search });
+  }
+}

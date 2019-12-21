@@ -1,21 +1,19 @@
-import Artist from '../../library/Artist';
-import {BASE_URL} from './constants';
+import Artist from "../../library/Artist";
+import {BASE_URL} from "./constants";
 import {
   GENRE_ERROR,
   NO_PAGE_ERROR,
   PARSER_ERROR,
   PIC_ERROR,
-} from './errors';
-import {findAsync, getDoc, getGenresByRow} from './utils';
-import Library from '../../library/Library';
-
-const rp = require('request-promise-native');
-const fs = require('fs');
-const shortid = require('shortid');
-
+} from "./errors";
+import fs from "fs";
+import Library from "../../library/Library";
+import rp from "request-promise-native";
+import shortid from "shortid";
+import {findAsync, getDoc, getGenresByRow} from "./utils";
 
 function getWikiPageOptions(artist: Artist): string[] {
-  const artistName = artist.name.replace(/ /g, '_');
+  const artistName = artist.name.replace(/ /g, "_");
   return [
     BASE_URL + artistName,
     BASE_URL + artistName + "_(band)",
@@ -24,11 +22,11 @@ function getWikiPageOptions(artist: Artist): string[] {
   ];
 }
 
-function isRightLink(link: string): boolean {
+function isRightLink(link: string) {
   return rp(link).then((htmlString: string) => {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
-    const infoBoxes = doc.getElementsByClassName('infobox');
+    const doc = parser.parseFromString(htmlString, "text/html");
+    const infoBoxes = doc.getElementsByClassName("infobox");
     const infoBox = infoBoxes[0];
     if (infoBox && infoBox.textContent &&  (infoBox.textContent.includes(
       "Background information") || infoBox.textContent.includes(
@@ -54,12 +52,15 @@ function searchForWikiPage(artist: Artist): Promise<string>  {
 }
 
 function modifyArtist(artist: Artist, library: Library) {
+  if (!artist.wikiPage) {
+    return Promise.resolve();
+  }
   return rp(artist.wikiPage).then((htmlString: string) => {
     artist.removeError(PARSER_ERROR);
     const doc = getDoc(htmlString);
-    const infoBoxes = doc.getElementsByClassName('infobox');
+    const infoBoxes = doc.getElementsByClassName("infobox");
     const infoBox = infoBoxes[0];
-    const rows = infoBox.getElementsByTagName('tr');
+    const rows = infoBox.getElementsByTagName("tr");
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
       artist.genreIds = library.getGenreIds(genres);
@@ -67,19 +68,19 @@ function modifyArtist(artist: Artist, library: Library) {
     } else {
       artist.addError(GENRE_ERROR);
     }
-    const pics = infoBox.getElementsByTagName('img');
-    //TODO: take multiple pictures (rotate them elsewhere in the app)
+    const pics = infoBox.getElementsByTagName("img");
+    // TODO: take multiple pictures (rotate them elsewhere in the app)
     const pic = pics[0];
     const options = {
+      encoding: "binary",
       url: pic && pic.src,
-      encoding: 'binary',
     };
     return rp(options).then((data: string) => {
       if (!artist.artFile) {
         const id = shortid.generate();
-        artist.artFile = './data/' + id + '.png';
+        artist.artFile = "./data/" + id + ".png";
       }
-      fs.writeFileSync(artist.artFile, data, 'binary');
+      fs.writeFileSync(artist.artFile, data, "binary");
       // should this even be an error?
       artist.removeError(PIC_ERROR);
     }).catch(() => {

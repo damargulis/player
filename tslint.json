@@ -4,6 +4,12 @@
         "tslint:recommended"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+      "ordered-imports": [true, {
+        "module-source-path": "basename"
+      }],
+      "no-unnecessary-initializer": false,
+      "interface-name": false
+    },
     "rulesDirectory": []
 }

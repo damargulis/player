@@ -1,19 +1,18 @@
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import Library from './library/Library';
-import MaxWindow from './MaxWindow';
-import MiniWindow from './MiniWindow';
-import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
-import * as React from 'react';
-import runWikiExtension from './extensions/wiki/main';
 import {
   createLibraryFromItunes,
   deleteLibrary,
-  loadLibrary
-} from './library/create_library';
+  loadLibrary,
+} from "./library/create_library";
+import {ipcRenderer} from "electron";
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import Library from "./library/Library";
+import runWikiExtension from "./extensions/wiki/main";
+import MaxWindow from "./MaxWindow";
+import MiniWindow from "./MiniWindow";
+import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
+import * as React from "react";
 
-import './App.css';
-
-const {ipcRenderer} = require('electron');
+import "./App.css";
 
 const DEFAULT_VOLUME = .1;
 
@@ -25,69 +24,70 @@ interface AppState {
   time: number;
 }
 
-export default class App extends React.Component<{},AppState> {
-  audio: HTMLAudioElement;
+export default class App extends React.Component<{}, AppState> {
+  private audio: HTMLAudioElement;
 
-  constructor() {
-    super({});
+  constructor(props: {}) {
+    super(props);
+
     this.state = {
-      mini: false,
       library: new Library(),
-      playlist: new EmptyPlaylist(),
+      mini: false,
       playing: false,
+      playlist: new EmptyPlaylist(),
       time: 0,
     };
-    ipcRenderer.on('minimize-reply', () => {
-      this.onMinimize_();
+    ipcRenderer.on("minimize-reply", () => {
+      this.onMinimize();
     });
-    ipcRenderer.on('maximize-reply', () => {
-      this.onMaximize_();
+    ipcRenderer.on("maximize-reply", () => {
+      this.onMaximize();
     });
-    ipcRenderer.on('toAlbum', () => {
-      this.onMaximize_();
+    ipcRenderer.on("toAlbum", () => {
+      this.onMaximize();
     });
-    ipcRenderer.on('toArtist', () => {
-      this.onMaximize_();
+    ipcRenderer.on("toArtist", () => {
+      this.onMaximize();
     });
-    ipcRenderer.on('toSong', () => {
-      this.onMaximize_();
+    ipcRenderer.on("toSong", () => {
+      this.onMaximize();
     });
-    ipcRenderer.on('nextTrack', () => {
+    ipcRenderer.on("nextTrack", () => {
       this.nextTrack();
     });
-    ipcRenderer.on('prevTrack', () => {
+    ipcRenderer.on("prevTrack", () => {
       this.prevTrack();
     });
-    ipcRenderer.on('playTrack', () => {
+    ipcRenderer.on("playTrack", () => {
       this.playPause();
     });
-    ipcRenderer.on('run-extension', (type: {}, arg: string) => {
+    ipcRenderer.on("run-extension", (type: {}, arg: string) => {
       switch (arg) {
-      case 'wikipedia':
+      case "wikipedia":
         runWikiExtension(this.state.library).then(() => {
           this.state.library.save();
           this.setState({library: this.state.library});
-        }).catch(() => {});
+        });
         break;
       default:
         break;
       }
     });
-    ipcRenderer.on('reset-library', () => {
+    ipcRenderer.on("reset-library", () => {
       deleteLibrary().then(() => {
         createLibraryFromItunes().then((library: Library) => {
           const playlist = new RandomAlbumPlaylist(library);
           library.save();
           this.setState({
             library,
-            playlist
+            playlist,
           });
         });
       });
     });
-    ipcRenderer.send('extension-ready');
+    ipcRenderer.send("extension-ready");
 
-    loadLibrary('data/library.json').then((library: Library) => {
+    loadLibrary("data/library.json").then((library: Library) => {
       const playlist = new RandomAlbumPlaylist(library);
       this.setState({
         library,
@@ -99,19 +99,19 @@ export default class App extends React.Component<{},AppState> {
         library.save();
         this.setState({
           library,
-          playlist
+          playlist,
         });
       });
     });
 
     this.audio = new Audio();
     this.audio.volume = DEFAULT_VOLUME;
-    this.audio.addEventListener('timeupdate', () => {
+    this.audio.addEventListener("timeupdate", () => {
       this.setState({
         time: this.audio.currentTime,
       });
     });
-    this.audio.addEventListener('ended', () => {
+    this.audio.addEventListener("ended", () => {
       const track = this.state.playlist.getCurrentTrack();
       if (!track) {
         return;
@@ -124,81 +124,7 @@ export default class App extends React.Component<{},AppState> {
     });
   }
 
-  setVolume(volume: number) {
-    this.audio.volume = volume;
-  }
-
-  setTime(time: number) {
-    this.audio.currentTime = time / 1000;
-  }
-
-  setSourceAndPlay() {
-    this.setSource();
-    this.play();
-  }
-
-  playPause() {
-    if (this.state.playing) {
-      this.pause();
-    } else {
-      this.play();
-    }
-  }
-
-  play() {
-    this.audio.play();
-    this.setState({
-      playing: true,
-    });
-  }
-
-  pause() {
-    this.audio.pause();
-    this.setState({
-      playing: false,
-    });
-  }
-
-  setSource() {
-    const track = this.state.playlist.getCurrentTrack();
-    if (track) {
-      this.audio.src = new URL(track.filePath).toString();
-    }
-  }
-
-  onMaximize_() {
-    this.setState({ mini: false });
-  }
-
-  onMinimize_() {
-    this.setState({ mini: true });
-  }
-
-  nextTrack() {
-    this.state.playlist.nextTrack();
-    this.setSourceAndPlay();
-  }
-
-  nextAlbum() {
-    this.state.playlist.nextAlbum();
-    this.setSourceAndPlay();
-  }
-
-  prevAlbum() {
-    this.state.playlist.prevAlbum();
-    this.setSourceAndPlay();
-  }
-
-  prevTrack() {
-    this.state.playlist.prevTrack();
-    this.setSourceAndPlay();
-  }
-
-  setPlaylistAndPlay(playlist: EmptyPlaylist) {
-    this.setState({playlist}, () => this.nextTrack());
-  }
-
-  render() {
+  public render() {
     const mini = this.state.mini;
     // both kept on so that the subscriptions in max window stay, otherwise
     // message comes in before max window gets reattached
@@ -239,5 +165,78 @@ export default class App extends React.Component<{},AppState> {
       </div>
     );
   }
-}
 
+  private setVolume(volume: number) {
+    this.audio.volume = volume;
+  }
+
+  private setTime(time: number) {
+    this.audio.currentTime = time / 1000;
+  }
+
+  private setSourceAndPlay() {
+    this.setSource();
+    this.play();
+  }
+
+  private playPause() {
+    if (this.state.playing) {
+      this.pause();
+    } else {
+      this.play();
+    }
+  }
+
+  private play() {
+    this.audio.play();
+    this.setState({
+      playing: true,
+    });
+  }
+
+  private pause() {
+    this.audio.pause();
+    this.setState({
+      playing: false,
+    });
+  }
+
+  private setSource() {
+    const track = this.state.playlist.getCurrentTrack();
+    if (track) {
+      this.audio.src = new URL(track.filePath).toString();
+    }
+  }
+
+  private onMaximize() {
+    this.setState({ mini: false });
+  }
+
+  private onMinimize() {
+    this.setState({ mini: true });
+  }
+
+  private nextTrack() {
+    this.state.playlist.nextTrack();
+    this.setSourceAndPlay();
+  }
+
+  private nextAlbum() {
+    this.state.playlist.nextAlbum();
+    this.setSourceAndPlay();
+  }
+
+  private prevAlbum() {
+    this.state.playlist.prevAlbum();
+    this.setSourceAndPlay();
+  }
+
+  private prevTrack() {
+    this.state.playlist.prevTrack();
+    this.setSourceAndPlay();
+  }
+
+  private setPlaylistAndPlay(playlist: EmptyPlaylist) {
+    this.setState({playlist}, () => this.nextTrack());
+  }
+}

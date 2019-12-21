@@ -1,11 +1,11 @@
-import AlbumAttributeEditor from './AlbumAttributeEditor';
-import ArtistAttributeEditor from './ArtistAttributeEditor';
-import FavoritesAttributeEditor from './FavoritesAttributeEditor';
-import GenreAttributeEditor from './GenreAttributeEditor';
-import Library from './library/Library';
-import React from 'react';
-import ToggableEditableAttribute from './ToggableEditableAttribute';
-import Track from './library/Track';
+import AlbumAttributeEditor from "./AlbumAttributeEditor";
+import ArtistAttributeEditor from "./ArtistAttributeEditor";
+import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
+import GenreAttributeEditor from "./GenreAttributeEditor";
+import Library from "./library/Library";
+import React from "react";
+import ToggableEditableAttribute from "./ToggableEditableAttribute";
+import Track from "./library/Track";
 
 interface MultipleSongEditerProps {
   library: Library;
@@ -26,99 +26,32 @@ interface MultipleSongEditerState {
   editPlayCount: boolean;
 }
 
-export default class MultipleSongEditer extends React.Component<MultipleSongEditerProps,MultipleSongEditerState> {
-  year = React.createRef<HTMLInputElement>();
-  playCount = React.createRef<HTMLInputElement>();
+export default class MultipleSongEditer extends React.Component<MultipleSongEditerProps, MultipleSongEditerState> {
+  private year = React.createRef<HTMLInputElement>();
+  private playCount = React.createRef<HTMLInputElement>();
 
   constructor(props: MultipleSongEditerProps) {
     super(props);
 
     // TODO: smarter defaults?
     this.state = {
-      genreIds: [],
-      editGenre: false,
-      artistIds: [],
-      editArtists: false,
-      editAlbums: false,
       albumIds: [],
+      artistIds: [],
+      editAlbums: false,
+      editArtists: false,
       editFavorites: false,
-      yearsFavorited: [],
-      editYear: false,
+      editGenre: false,
       editPlayCount: false,
+      editYear: false,
+      genreIds: [],
+      yearsFavorited: [],
     };
 
     this.year = React.createRef();
     this.playCount = React.createRef();
   }
 
-  editGenre(editing: boolean) {
-    this.setState({editGenre: editing});
-  }
-
-  editArtists(editing: boolean) {
-    this.setState({editArtists: editing});
-  }
-
-  editFavorites(editing: boolean) {
-    this.setState({editFavorites: editing});
-  }
-
-  editYear(editing: boolean) {
-    this.setState({editYear: editing});
-  }
-
-  editPlayCount(editing: boolean) {
-    this.setState({editPlayCount: editing});
-  }
-
-  editAlbums(editing: boolean) {
-    this.setState({editAlbums: editing});
-  }
-
-  saveTrack(track: Track) {
-    if (this.state.editGenre) {
-      track.genreIds = this.state.genreIds;
-    }
-    if (this.state.editArtists) {
-      this.state.artistIds.forEach((artistId) => {
-        if (!track.artistIds.includes(artistId)) {
-          const artist = this.props.library.getArtistById(artistId);
-          artist.trackIds.push(track.id);
-        }
-      });
-      track.artistIds = this.state.artistIds;
-    }
-    if (this.state.editAlbums) {
-      this.state.albumIds.forEach((albumId) => {
-        if (!track.albumIds.includes(albumId)) {
-          const album = this.props.library.getAlbumById(albumId);
-          album.trackIds.push(track.id);
-        }
-      });
-      track.albumIds = this.state.albumIds;
-    }
-    if (this.state.editFavorites) {
-      track.favorites = this.state.yearsFavorited;
-    }
-    const year = this.year.current;
-    if (this.state.editYear && year) {
-      track.year = parseInt(year.value);
-    }
-    const playCount = this.playCount.current;
-    if (this.state.editPlayCount && playCount) {
-      track.playCount = parseInt(playCount.value);
-    }
-  }
-
-  save() {
-    this.props.tracks.forEach((track) => {
-      this.saveTrack(track);
-    });
-    this.props.library.save();
-    this.props.exit();
-  }
-
-  render() {
+  public render() {
     return (
       <div>
         <h3 className="title">Edit Tracks</h3>
@@ -197,5 +130,72 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
         </div>
       </div>
     );
+  }
+
+  private editGenre(editing: boolean) {
+    this.setState({editGenre: editing});
+  }
+
+  private editArtists(editing: boolean) {
+    this.setState({editArtists: editing});
+  }
+
+  private editFavorites(editing: boolean) {
+    this.setState({editFavorites: editing});
+  }
+
+  private editYear(editing: boolean) {
+    this.setState({editYear: editing});
+  }
+
+  private editPlayCount(editing: boolean) {
+    this.setState({editPlayCount: editing});
+  }
+
+  private editAlbums(editing: boolean) {
+    this.setState({editAlbums: editing});
+  }
+
+  private saveTrack(track: Track) {
+    if (this.state.editGenre) {
+      track.genreIds = this.state.genreIds;
+    }
+    if (this.state.editArtists) {
+      this.state.artistIds.forEach((artistId) => {
+        if (!track.artistIds.includes(artistId)) {
+          const artist = this.props.library.getArtistById(artistId);
+          artist.trackIds.push(track.id);
+        }
+      });
+      track.artistIds = this.state.artistIds;
+    }
+    if (this.state.editAlbums) {
+      this.state.albumIds.forEach((albumId) => {
+        if (!track.albumIds.includes(albumId)) {
+          const album = this.props.library.getAlbumById(albumId);
+          album.trackIds.push(track.id);
+        }
+      });
+      track.albumIds = this.state.albumIds;
+    }
+    if (this.state.editFavorites) {
+      track.favorites = this.state.yearsFavorited;
+    }
+    const year = this.year.current;
+    if (this.state.editYear && year) {
+      track.year = parseInt(year.value, 10);
+    }
+    const playCount = this.playCount.current;
+    if (this.state.editPlayCount && playCount) {
+      track.playCount = parseInt(playCount.value, 10);
+    }
+  }
+
+  private save() {
+    this.props.tracks.forEach((track) => {
+      this.saveTrack(track);
+    });
+    this.props.library.save();
+    this.props.exit();
   }
 }

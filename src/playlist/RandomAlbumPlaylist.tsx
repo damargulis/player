@@ -1,14 +1,14 @@
-import Album from '../library/Album';
-import Library from '../library/Library';
-import EmptyPlaylist from './EmptyPlaylist';
-import Track from '../library/Track';
+import Album from "../library/Album";
+import EmptyPlaylist from "./EmptyPlaylist";
+import Library from "../library/Library";
+import Track from "../library/Track";
 
 export default class RandomAlbumPlaylist extends EmptyPlaylist {
-  library: Library;
-  playlist: Album[];
-  currentAlbum: number;
-  currentTrack: number;
-  albums: Album[];
+  private library: Library;
+  private playlist: Album[];
+  private currentAlbum: number;
+  private currentTrack: number;
+  private albums: Album[];
 
   constructor(library: Library, albums: Album[] = []) {
     super();
@@ -19,11 +19,11 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     this.albums = albums;
   }
 
-  getCurrentAlbum() {
+  public getCurrentAlbum() {
     return this.playlist[this.currentAlbum];
   }
 
-  getCurrentTrack(): Track | undefined{
+  public getCurrentTrack(): Track | undefined {
     const album = this.getCurrentAlbum();
     if (!album || !album.trackIds[this.currentTrack]) {
       return undefined;
@@ -31,7 +31,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.library.getTrack(album.trackIds[this.currentTrack]);
   }
 
-  nextAlbum() {
+  public nextAlbum() {
     this.currentAlbum++;
     this.currentTrack = 0;
     if (this.playlist.length <= this.currentAlbum) {
@@ -45,7 +45,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  nextTrack() {
+  public nextTrack() {
     this.currentTrack++;
     if (!this.getCurrentTrack()) {
       return this.nextAlbum();
@@ -53,7 +53,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  prevTrack() {
+  public prevTrack() {
     this.currentTrack -= 1;
     if (!this.getCurrentTrack()) {
       this.currentAlbum--;
@@ -62,31 +62,30 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  prevAlbum() {
+  public prevAlbum() {
     this.currentAlbum -= 1;
     this.currentTrack = 0;
     return this.getCurrentTrack();
   }
 
-  hasNextAlbum() {
+  public hasNextAlbum() {
     return true;
   }
 
-  hasNextTrack() {
+  public hasNextTrack() {
     return true;
   }
 
-  hasPrevAlbum() {
+  public hasPrevAlbum() {
     return this.currentAlbum > 0;
   }
 
-  hasPrevTrack() {
+  public hasPrevTrack() {
     return this.currentAlbum > 0 || this.currentTrack > 0;
   }
 
-  addAlbum(album: Album) {
+  public addAlbum(album: Album) {
     this.playlist = this.playlist.slice(0, this.currentAlbum + 1);
     this.playlist.push(album);
   }
 }
-

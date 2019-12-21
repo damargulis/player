@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface EditableAttributeProps<T> {
   attr: T;
@@ -10,7 +10,8 @@ interface EditableAttributeState<T> {
   editing: boolean;
 }
 
-export default class EditableAttribute<T> extends React.Component<EditableAttributeProps<T>,EditableAttributeState<T>> {
+export default class EditableAttribute<T> extends
+    React.Component<EditableAttributeProps<T>, EditableAttributeState<T>> {
   private input = React.createRef<HTMLInputElement>();
 
   constructor(props: EditableAttributeProps<T>) {
@@ -21,13 +22,33 @@ export default class EditableAttribute<T> extends React.Component<EditableAttrib
     };
   }
 
-  componentDidUpdate(prevProps: EditableAttributeProps<T>) {
+  public componentDidUpdate(prevProps: EditableAttributeProps<T>) {
     if (this.props.attr !== prevProps.attr) {
       this.setState({value: this.props.attr});
     }
   }
 
-  edit() {
+  public render() {
+    return (
+      <div>
+        <input
+          onBlur={this.save.bind(this)}
+          onChange={this.onChange.bind(this)}
+          onKeyUp={this.onKeyUp.bind(this)}
+          ref={this.input}
+          style={{display: this.state.editing ? "" : "none"}}
+          value={this.state.value as unknown as string}
+        >
+        </input>
+        <div style={{display: this.state.editing ? "none" : ""}}>
+          {this.state.value}
+          <button onClick={this.edit.bind(this)}>Edit</button>
+        </div>
+      </div>
+    );
+  }
+
+  private edit() {
     this.setState({
       editing: true,
     }, () => {
@@ -38,42 +59,22 @@ export default class EditableAttribute<T> extends React.Component<EditableAttrib
     });
   }
 
-  onChange(evt: React.ChangeEvent<HTMLInputElement>) {
+  private onChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
       value: evt.target.value as unknown as T,
     });
   }
 
-  save() {
+  private save() {
     this.setState({
       editing: false,
     });
     this.props.onSave(this.state.value);
   }
 
-  onKeyUp(evt: React.KeyboardEvent) {
+  private onKeyUp(evt: React.KeyboardEvent) {
     if (evt.key === "Enter") {
       this.save();
     }
-  }
-
-  render() {
-    return (
-      <div>
-        <input
-          onBlur={this.save.bind(this)}
-          onChange={this.onChange.bind(this)}
-          onKeyUp={this.onKeyUp.bind(this)}
-          ref={this.input}
-          style={{display: this.state.editing ? '' : 'none'}}
-          value={this.state.value as unknown as string}
-        >
-        </input>
-        <div style={{display: this.state.editing ? 'none' : ''}}>
-          {this.state.value}
-          <button onClick={this.edit.bind(this)}>Edit</button>
-        </div>
-      </div>
-    );
   }
 }

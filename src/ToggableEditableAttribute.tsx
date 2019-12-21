@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface ToggableEditableAttributeProps {
   editing: boolean;
@@ -6,12 +6,9 @@ interface ToggableEditableAttributeProps {
   toggleEdit: (editing: boolean) => void;
 }
 
-export default class ToggableEditableAttribute extends React.Component<ToggableEditableAttributeProps,{}> {
-  toggleEdit(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.props.toggleEdit(evt.target.checked);
-  }
+export default class ToggableEditableAttribute extends React.Component<ToggableEditableAttributeProps, {}> {
 
-  render() {
+  public render() {
     return (
       <>
         {
@@ -22,5 +19,8 @@ export default class ToggableEditableAttribute extends React.Component<ToggableE
         </div>
       </>
     );
+  }
+  private toggleEdit(evt: React.ChangeEvent<HTMLInputElement>) {
+    this.props.toggleEdit(evt.target.checked);
   }
 }

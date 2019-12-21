@@ -1,12 +1,12 @@
-import AttributeList from './AttributeList';
-import React from 'react';
+import AttributeList from "./AttributeList";
+import React from "react";
 
 interface FavoritesAttributeEditorProps {
   yearsFavorited: number[];
 }
 
-export default class FavoritesAttributeEditor extends React.Component<FavoritesAttributeEditorProps,{}> {
-  render() {
+export default class FavoritesAttributeEditor extends React.Component<FavoritesAttributeEditorProps, {}> {
+  public render() {
     return (
       <AttributeList
         attributes={this.props.yearsFavorited}

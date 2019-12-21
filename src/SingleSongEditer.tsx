@@ -1,10 +1,10 @@
-import AlbumAttributeEditor from './AlbumAttributeEditor';
-import ArtistAttributeEditor from './ArtistAttributeEditor';
-import FavoritesAttributeEditor from './FavoritesAttributeEditor';
-import GenreAttributeEditor from './GenreAttributeEditor';
-import Library from './library/Library';
-import React from 'react';
-import Track from './library/Track';
+import AlbumAttributeEditor from "./AlbumAttributeEditor";
+import ArtistAttributeEditor from "./ArtistAttributeEditor";
+import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
+import GenreAttributeEditor from "./GenreAttributeEditor";
+import Library from "./library/Library";
+import React from "react";
+import Track from "./library/Track";
 
 interface SingleSongEditerProps {
   track: Track;
@@ -19,33 +19,33 @@ interface SingleSongEditerState {
   yearsFavorited: number[];
 }
 
-export default class SingleSongEditer extends React.Component<SingleSongEditerProps,SingleSongEditerState> {
-  name = React.createRef<HTMLInputElement>();
-  year = React.createRef<HTMLInputElement>();
-  playCount = React.createRef<HTMLInputElement>();
+export default class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSongEditerState> {
+  private name = React.createRef<HTMLInputElement>();
+  private year = React.createRef<HTMLInputElement>();
+  private playCount = React.createRef<HTMLInputElement>();
 
   constructor(props: SingleSongEditerProps) {
     super(props);
     const track = this.props.track;
 
     this.state = {
-      genreIds: [...track.genreIds],
       albumIds: [...track.albumIds],
       artistIds: [...track.artistIds],
+      genreIds: [...track.genreIds],
       yearsFavorited: [...track.favorites],
     };
   }
 
-  save() {
+  public save() {
     const track = this.props.track;
     if (this.name.current) {
       track.name = this.name.current.value;
     }
     if (this.year.current) {
-      track.year = parseInt(this.year.current.value);
+      track.year = parseInt(this.year.current.value, 10);
     }
     if (this.playCount.current) {
-      track.playCount = parseInt(this.playCount.current.value);
+      track.playCount = parseInt(this.playCount.current.value, 10);
     }
     track.favorites = this.state.yearsFavorited;
     track.genreIds = this.state.genreIds;
@@ -68,7 +68,7 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
     this.props.exit();
   }
 
-  render() {
+  public render() {
     const track = this.props.track;
     return (
       <div>

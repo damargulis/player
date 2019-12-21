@@ -1,31 +1,31 @@
 
 export default class Track {
-  duration: number;
-  playCount: number;
-  playDate: Date;
-  filePath: string;
-  artistIds: number[];
-  albumIds: number[];
-  name: string;
-  year: number;
-  genreIds: number[];
-  id: number;
-  skipCount: number;
-  dateAdded: Date;
-  favorites: number[];
+  public duration: number;
+  public playCount: number;
+  public playDate: Date;
+  public filePath: string;
+  public artistIds: number[];
+  public albumIds: number[];
+  public name: string;
+  public year: number;
+  public genreIds: number[];
+  public id: number;
+  public skipCount: number;
+  public dateAdded: Date;
+  public favorites: number[];
 
   constructor(id: number, {
-    name = '',
+    name = "",
     duration = 0,
-    filePath = '',
+    filePath = "",
     year = 0,
     playCount = 0,
     skipCount = 0,
     artistIds = [],
     albumIds = [],
     genreIds = [],
-    dateAdded = '',
-    playDate = '',
+    dateAdded = "",
+    playDate = "",
     favorites = [],
   }) {
     this.id = id;
@@ -43,4 +43,3 @@ export default class Track {
     this.favorites = favorites;
   }
 }
-

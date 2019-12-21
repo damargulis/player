@@ -1,12 +1,12 @@
-import Album from './library/Album';
-import Artist from './library/Artist';
-import ControlPanel from './ControlPanel';
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import InfoPanel from './InfoPanel';
-import Library from './library/Library';
-import ProgressBar from './ProgressBar';
-import React from 'react';
-import Track from './library/Track';
+import Album from "./library/Album";
+import Artist from "./library/Artist";
+import ControlPanel from "./ControlPanel";
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import InfoPanel from "./InfoPanel";
+import Library from "./library/Library";
+import ProgressBar from "./ProgressBar";
+import React from "react";
+import Track from "./library/Track";
 
 interface HeaderProps {
   playlist: EmptyPlaylist;
@@ -25,8 +25,8 @@ interface HeaderProps {
   time: number;
 }
 
-export default class Header extends React.Component<HeaderProps,{}> {
-  render() {
+export default class Header extends React.Component<HeaderProps, {}> {
+  public render() {
     const track = this.props.playlist.getCurrentTrack();
     return (
       <div id="header" style={{padding: "2px"}}>

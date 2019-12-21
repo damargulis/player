@@ -1,8 +1,8 @@
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import Library from './library/Library';
-import Playlist from './library/Playlist';
-import React from 'react';
-import WrappedGrid from './WrappedGrid';
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import Library from "./library/Library";
+import Playlist from "./library/Playlist";
+import React from "react";
+import WrappedGrid from "./WrappedGrid";
 
 const THREE_MONTHS = 1000 * 60 * 60 * 24;
 
@@ -27,7 +27,7 @@ function getMostPlayed(library: Library) {
   }).slice(0, 100).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Most Played', trackIds: tracks});
+  return new Playlist({name: "Most Played", trackIds: tracks});
 }
 
 /**
@@ -40,7 +40,7 @@ function getRecentlyAdded(library: Library) {
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Recently Added', trackIds: tracks});
+  return new Playlist({name: "Recently Added", trackIds: tracks});
 }
 
 /**
@@ -53,7 +53,7 @@ function getRecentlyPlayed(library: Library) {
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Recently Played', trackIds: tracks});
+  return new Playlist({name: "Recently Played", trackIds: tracks});
 }
 
 /**
@@ -65,7 +65,7 @@ function getLikesForYear(library: Library, year: number) {
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Favorite Tracks of ' + year, trackIds: tracks});
+  return new Playlist({name: "Favorite Tracks of " + year, trackIds: tracks});
 }
 
 /**
@@ -90,7 +90,7 @@ function getAlbumLikesForYear(library: Library, year: number) {
   }).map((album) => {
     return album.trackIds;
   }).flat();
-  return new Playlist({name: 'Favorite Albums of ' + year, trackIds: tracks});
+  return new Playlist({name: "Favorite Albums of " + year, trackIds: tracks});
 }
 
 /**
@@ -131,16 +131,49 @@ interface PlaylistPickerState {
   playlists: Playlist[];
 }
 
-export default class PlaylistPicker extends React.Component<PlaylistPickerProps,PlaylistPickerState> {
+export default class PlaylistPicker extends React.Component<PlaylistPickerProps, PlaylistPickerState> {
   constructor(props: PlaylistPickerProps) {
     super(props);
     this.state = {
+      autoPlaylists: getAutoPlaylists(this.props.library),
       playlists: this.props.library.getPlaylists(),
-      autoPlaylists: getAutoPlaylists(this.props.library)
     };
   }
 
-  renderPlaylist(index: number, key: string, style: {width: number}, playlist: Playlist) {
+  public render() {
+    // todo: make auto different -- top heard, unheard, move errors to herei
+    // instead of a filter, etc.
+    return (
+      <div className="main">
+        <div style={{position: "absolute", height: "100%", width: "100%"}}>
+          <div style={{height: "100%", width: "50%"}}>
+            Manual
+            <WrappedGrid
+              cellRenderer={this.cellRenderer.bind(this)}
+              numItems={this.state.playlists.length}
+            />
+          </div>
+          <div
+            style={{
+              height: "100%",
+              position: "absolute",
+              right: 0,
+              top: 0,
+              width: "50%",
+            }}
+          >
+            <span style={{width: "100%", textAlign: "center"}}>Auto</span>
+            <WrappedGrid
+              cellRenderer={this.autoCellRenderer.bind(this)}
+              numItems={this.state.autoPlaylists.length}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  private renderPlaylist(index: number, key: string, style: {width: number}, playlist: Playlist) {
     if (!playlist) {
       return (
         <div key={key} style={style} />
@@ -150,7 +183,7 @@ export default class PlaylistPicker extends React.Component<PlaylistPickerProps,
       ...style,
       paddingLeft: (style.width - 150) / 2,
       paddingRight: (style.width - 150) / 2,
-      width: 150
+      width: 150,
     };
     return (
       <div key={key}
@@ -162,47 +195,14 @@ export default class PlaylistPicker extends React.Component<PlaylistPickerProps,
   }
 
   // todo: make wrappedGrids items actually work and get rid of this
-  autoCellRenderer(index: number, key: string, style: {width: number}) {
+  private autoCellRenderer(index: number, key: string, style: {width: number}) {
     const playlist = this.state.autoPlaylists[index];
     return this.renderPlaylist(index, key, style, playlist);
   }
 
   // for regular playlists
-  cellRenderer(index: number, key: string, style: {width: number}) {
+  private cellRenderer(index: number, key: string, style: {width: number}) {
     const playlist = this.state.playlists[index];
     return this.renderPlaylist(index, key, style, playlist);
-  }
-
-  render() {
-    // todo: make auto different -- top heard, unheard, move errors to herei
-    // instead of a filter, etc.
-    return (
-      <div className="main">
-        <div style={{position: 'absolute', height: '100%', width: '100%'}}>
-          <div style={{height: '100%', width: '50%'}}>
-            Manual
-            <WrappedGrid
-              cellRenderer={this.cellRenderer.bind(this)}
-              numItems={this.state.playlists.length}
-            />
-          </div>
-          <div
-            style={{
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              width: '50%'
-            }}
-          >
-            <span style={{width: '100%', textAlign: 'center'}}>Auto</span>
-            <WrappedGrid
-              cellRenderer={this.autoCellRenderer.bind(this)}
-              numItems={this.state.autoPlaylists.length}
-            />
-          </div>
-        </div>
-      </div>
-    );
   }
 }

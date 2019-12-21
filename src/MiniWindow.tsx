@@ -1,14 +1,13 @@
-import Artist from './library/Artist';
-import Album from './library/Album';
-import ControlPanel from './ControlPanel';
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import InfoPanel from './InfoPanel';
-import Library from './library/Library';
-import ProgressBar from './ProgressBar';
-import React from 'react';
-import Track from './library/Track';
-
-const {ipcRenderer} = require('electron');
+import Album from "./library/Album";
+import Artist from "./library/Artist";
+import ControlPanel from "./ControlPanel";
+import {ipcRenderer} from "electron";
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import InfoPanel from "./InfoPanel";
+import Library from "./library/Library";
+import ProgressBar from "./ProgressBar";
+import React from "react";
+import Track from "./library/Track";
 
 interface MiniWindowProps {
   library: Library;
@@ -24,20 +23,9 @@ interface MiniWindowProps {
   time: number;
 }
 
-export default class MiniWindow extends React.Component<MiniWindowProps,{}> {
-  goToSong(song: Track) {
-    ipcRenderer.send('goToSong', {song});
-  }
+export default class MiniWindow extends React.Component<MiniWindowProps, {}> {
 
-  goToArtist(artist: Artist) {
-    ipcRenderer.send('goToArtist', {artist});
-  }
-
-  goToAlbum(album: Album) {
-    ipcRenderer.send('goToAlbum', {album});
-  }
-
-  render() {
+  public render() {
     return (
       <div id="mini-window">
         <InfoPanel
@@ -69,5 +57,16 @@ export default class MiniWindow extends React.Component<MiniWindowProps,{}> {
         />
       </div>
     );
+  }
+  private goToSong(song: Track) {
+    ipcRenderer.send("goToSong", {song});
+  }
+
+  private goToArtist(artist: Artist) {
+    ipcRenderer.send("goToArtist", {artist});
+  }
+
+  private goToAlbum(album: Album) {
+    ipcRenderer.send("goToAlbum", {album});
   }
 }

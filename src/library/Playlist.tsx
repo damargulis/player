@@ -1,7 +1,7 @@
 
 export default class Playlist {
-  name: string;
-  trackIds: number[];
+  public name: string;
+  public trackIds: number[];
 
   constructor({name, trackIds}: {name: string, trackIds: number[]}) {
     this.name = name;

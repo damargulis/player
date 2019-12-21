@@ -1,12 +1,11 @@
-import Album from './library/Album';
-import Artist from './library/Artist';
-import Library from './library/Library';
-import React from 'react';
-import {Resources} from './constants';
-import Track from './library/Track';
-import {getImgSrc} from './utils';
-
-const {ipcRenderer} = require('electron');
+import Album from "./library/Album";
+import Artist from "./library/Artist";
+import {Resources} from "./constants";
+import {ipcRenderer} from "electron";
+import Library from "./library/Library";
+import React from "react";
+import Track from "./library/Track";
+import {getImgSrc} from "./utils";
 
 interface InfoPanelProps {
   goToAlbum: (album: Album) => void;
@@ -17,71 +16,9 @@ interface InfoPanelProps {
   small?: boolean;
 }
 
-export default class InfoPanel extends React.Component<InfoPanelProps,{}> {
-  goToSong(song?: Track) {
-    if (song) {
-      this.props.goToSong(song);
-    }
-  }
+export default class InfoPanel extends React.Component<InfoPanelProps, {}> {
 
-  onImageClick_() {
-    if (this.props.small) {
-      ipcRenderer.send('maximize');
-    } else {
-      ipcRenderer.send('minimize');
-    }
-  }
-
-  getArtistLinks() {
-    const {track, library} = this.props;
-    const artists = track && library
-      ? library.getArtistsByIds(track.artistIds) : [];
-    if (artists.length) {
-      return artists.map((artist: Artist) => {
-        return (
-          <div key={artist.id}>
-            <div className="link" onClick={() => this.props.goToArtist(artist)}>
-              {artist.name}
-            </div>
-          </div>
-        );
-      });
-    }
-    return "Artists";
-  }
-
-  getAlbumLinks() {
-    const {track, library} = this.props;
-    const albums = track && library
-      ? library.getAlbumsByIds(track.albumIds) : [];
-    if (albums.length) {
-      return albums.map((album: Album) => {
-        return (
-          <div key={album.id}>
-            <div className="link" onClick={() => this.props.goToAlbum(album)}>
-              {album.name}
-            </div>
-          </div>
-        );
-      });
-    }
-    return "Albums";
-  }
-
-  getNameLink() {
-    if (this.props.track) {
-      return (
-        <div className="link"
-          onClick={() => this.goToSong(this.props.track)}
-        >
-          {this.props.track.name}
-        </div>
-      );
-    }
-    return 'Track Name';
-  }
-
-  render() {
+  public render() {
     const {track, library} = this.props;
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
@@ -97,7 +34,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps,{}> {
     return (
       <div id="info-panel" style={{display: "flex"}}>
         <img alt="album-art"
-          onClick={() => this.onImageClick_()}
+          onClick={() => this.onImageClick()}
           src={src}
           style={imgStyle}
         />
@@ -116,10 +53,72 @@ export default class InfoPanel extends React.Component<InfoPanelProps,{}> {
             }
           </div>
           <div className="track-label" id="year">
-            {track ? track.year : 'Year'}
+            {track ? track.year : "Year"}
           </div>
         </div>
       </div>
     );
+  }
+  private goToSong(song?: Track) {
+    if (song) {
+      this.props.goToSong(song);
+    }
+  }
+
+  private onImageClick() {
+    if (this.props.small) {
+      ipcRenderer.send("maximize");
+    } else {
+      ipcRenderer.send("minimize");
+    }
+  }
+
+  private getArtistLinks() {
+    const {track, library} = this.props;
+    const artists = track && library
+      ? library.getArtistsByIds(track.artistIds) : [];
+    if (artists.length) {
+      return artists.map((artist: Artist) => {
+        return (
+          <div key={artist.id}>
+            <div className="link" onClick={() => this.props.goToArtist(artist)}>
+              {artist.name}
+            </div>
+          </div>
+        );
+      });
+    }
+    return "Artists";
+  }
+
+  private getAlbumLinks() {
+    const {track, library} = this.props;
+    const albums = track && library
+      ? library.getAlbumsByIds(track.albumIds) : [];
+    if (albums.length) {
+      return albums.map((album: Album) => {
+        return (
+          <div key={album.id}>
+            <div className="link" onClick={() => this.props.goToAlbum(album)}>
+              {album.name}
+            </div>
+          </div>
+        );
+      });
+    }
+    return "Albums";
+  }
+
+  private getNameLink() {
+    if (this.props.track) {
+      return (
+        <div className="link"
+          onClick={() => this.goToSong(this.props.track)}
+        >
+          {this.props.track.name}
+        </div>
+      );
+    }
+    return "Track Name";
   }
 }

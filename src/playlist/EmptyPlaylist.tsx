@@ -1,15 +1,23 @@
-import Track from '../library/Track';
+import Track from "../library/Track";
 
 export default class EmptyPlaylist {
-  nextTrack() {}
-  getCurrentTrack(): Track | undefined {
+  public getCurrentTrack(): Track | undefined {
     return undefined;
   }
-  nextAlbum(): Track | void {}
-  prevTrack(): Track | void {}
-  prevAlbum(): Track | void {}
-  hasPrevTrack() { return false }
-  hasPrevAlbum() { return false }
-  hasNextTrack() { return false }
-  hasNextAlbum() { return false }
+  public nextAlbum(): Track | undefined {
+    return undefined;
+  }
+  public prevTrack(): Track | undefined {
+    return undefined;
+  }
+  public prevAlbum(): Track | undefined {
+    return undefined;
+  }
+  public nextTrack(): Track | undefined {
+    return undefined;
+  }
+  public hasPrevTrack() { return false; }
+  public hasPrevAlbum() { return false; }
+  public hasNextTrack() { return false; }
+  public hasNextAlbum() { return false; }
 }

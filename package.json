@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@types/musicmetadata": "^2.0.4",
     "@types/react": "^16.9.16",
     "@types/react-dom": "^16.9.4",
     "@types/react-modal": "^3.10.1",
     "@types/react-virtualized": "^9.21.7",
+    "@types/request-promise-native": "^1.0.17",
+    "@types/shortid": "0.0.29",
     "electron-is-dev": "^1.1.0",
     "jsmediatags": "^3.9.2",
     "node-gyp": "^6.0.0",

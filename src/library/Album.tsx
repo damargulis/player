@@ -1,21 +1,21 @@
 
 export default class Album {
-  id: number;
-  warnings: Record<string, string>;
-  errors: string[];
-  albumArtFile?: string;
-  artistIds: number[];
-  name: string;
-  trackIds: number[];
-  year: number;
-  wikiPage?: string;
-  genreIds: number[];
-  playCount: number;
-  skipCount: number;
-  favorites: number[];
+  public id: number;
+  public warnings: Record<string, string>;
+  public errors: string[];
+  public albumArtFile?: string;
+  public artistIds: number[];
+  public name: string;
+  public trackIds: number[];
+  public year: number;
+  public wikiPage?: string;
+  public genreIds: number[];
+  public playCount: number;
+  public skipCount: number;
+  public favorites: number[];
 
   constructor(id: number, {
-    name = '',
+    name = "",
     trackIds = [],
     genreIds = [],
     artistIds = [],
@@ -46,13 +46,13 @@ export default class Album {
     this.favorites = favorites;
   }
 
-  addError(err: string) {
+  public addError(err: string) {
     if (!this.errors.includes(err)) {
       this.errors.push(err);
     }
   }
 
-  removeError(err: string) {
+  public removeError(err: string) {
     const index = this.errors.indexOf(err);
     if (index >= 0) {
       this.errors = [
@@ -62,8 +62,7 @@ export default class Album {
     }
   }
 
-  addTrackWarning(index: number, trackTitles: string) {
+  public addTrackWarning(index: number, trackTitles: string) {
     this.warnings[index] = trackTitles;
   }
 }
-

@@ -1,15 +1,13 @@
-import Album from './Album';
-import Artist from './Artist';
-import Library from './Library';
-import Playlist from './Playlist';
-import Track from './Track';
-
-const fs = require('fs');
-const path = require('path');
-const shortid = require('shortid');
-const {execSync} = require('child_process');
-
-const mm = require('musicmetadata');
+import Album from "./Album";
+import Artist from "./Artist";
+import {execSync} from "child_process";
+import fs from "fs";
+import Library from "./Library";
+import mm from "musicmetadata";
+import path from "path";
+import Playlist from "./Playlist";
+import shortid from "shortid";
+import Track from "./Track";
 
 // TODO: redo this whole thing and just save the damn ids...
 
@@ -19,7 +17,7 @@ const mm = require('musicmetadata');
  * i.e. "Rock", "Indie Rock", "Folk Rock"
  */
 function getGenres(trackData: {Comments: string}) {
-  return trackData.Comments.split(', ').map(genre => genre.slice(1, -1));
+  return trackData.Comments.split(", ").map((genre) => genre.slice(1, -1));
 }
 
 /**
@@ -42,15 +40,15 @@ function createArtistsFromItunesData(tracks: any) {
     const artistPath = upLevels(track.Location, 2);
     if (artistMap.has(artistPath)) {
       const artist = artistMap.get(artistPath);
-      artist.tracks.push(track['Persistent ID']);
-      getGenres(track).forEach(genre => artist.genres.add(genre));
+      artist.tracks.push(track["Persistent ID"]);
+      getGenres(track).forEach((genre) => artist.genres.add(genre));
       artist.albums.add(upLevels(track.Location));
     } else {
       const artist = {
-        'name': track.Artist,
-        'genres': new Set(getGenres(track)),
-        'tracks': [track['Persistent ID']],
-        'albums': new Set([upLevels(track.Location)]),
+        albums: new Set([upLevels(track.Location)]),
+        genres: new Set(getGenres(track)),
+        name: track.Artist,
+        tracks: [track["Persistent ID"]],
       };
       artistMap.set(artistPath, artist);
     }
@@ -63,9 +61,9 @@ function createArtistsFromItunesData(tracks: any) {
  * "Comments" attribution, formatted as a comma separated, quoted list.
  * i.e. "Rock", "Indie Rock", "Folk Rock"
  */
-function createGenresFromItunesData(tracks: Map<string,any>): string[] {
+function createGenresFromItunesData(tracks: Map<string, any>): string[] {
   const genreSet = new Set() as Set<string>;
-  tracks.forEach(track => {
+  tracks.forEach((track) => {
     const genres = getGenres(track);
     genres.forEach((genre) => genreSet.add(genre));
   });
@@ -78,7 +76,7 @@ function createGenresFromItunesData(tracks: Map<string,any>): string[] {
  */
 function getAlbumArt(track: Track): Promise<string|null> {
   return new Promise((resolve) => {
-    const filePath = decodeURI(track.filePath.slice(7)).replace('%23', '#');
+    const filePath = decodeURI(track.filePath.slice(7)).replace("%23", "#");
     try {
       const readStream = fs.createReadStream(filePath);
       mm(readStream, (err: Error | null, data: any) => {
@@ -104,23 +102,23 @@ function getAlbumArt(track: Track): Promise<string|null> {
  * Creates album data objects from itunes data. Returns a map where each file
  * path string points to the album data.
  */
-function createAlbumsFromItunesData(tracks: Map<string,any>) {
+function createAlbumsFromItunesData(tracks: Map<string, any>) {
   const albumMap = new Map();
   tracks.forEach((track) => {
     const albumString = upLevels(track.Location);
     if (albumMap.has(albumString)) {
       const album = albumMap.get(albumString);
-      album.tracks.push(track['Persistent ID']);
-      getGenres(track).forEach(genre => album.genres.add(genre));
+      album.tracks.push(track["Persistent ID"]);
+      getGenres(track).forEach((genre) => album.genres.add(genre));
     } else {
       const album = {
-        'tracks': [track['Persistent ID']],
-        'name': track.Album,
-        'artistPath': upLevels(track.Location, 2),
-        'genres': new Set(getGenres(track)),
-        'year': track.Year,
-        'playCount': 0,
-        'skipCount': 0,
+        artistPath: upLevels(track.Location, 2),
+        genres: new Set(getGenres(track)),
+        name: track.Album,
+        playCount: 0,
+        skipCount: 0,
+        tracks: [track["Persistent ID"]],
+        year: track.Year,
       };
       // TODO: create album art here
       albumMap.set(albumString, album);
@@ -132,24 +130,24 @@ function createAlbumsFromItunesData(tracks: Map<string,any>) {
 /**
  * Creates tracks from an itunes data map.
  */
-function createTracksFromItunesData(tracks: Map<string,any>) {
+function createTracksFromItunesData(tracks: Map<string, any>) {
   const trackMap = new Map();
-  tracks.forEach(trackData => {
-    const persistentId = trackData['Persistent ID'];
+  tracks.forEach((trackData) => {
+    const persistentId = trackData["Persistent ID"];
     // make these into formal data classes?
     const track = {
-      'name': trackData.Name,
-      'duration': trackData['Total Time'],
-      'filePath': trackData['Location'],
-      'year': trackData['Year'],
-      'playCount': trackData['Play Count'],
-      'skipCount': trackData['Skip Count'],
-      'mainArtist': trackData['Artist'],
-      'mainAlbum': trackData['Album'],
-      'genres': new Set(getGenres(trackData)),
-      'trackNumber': trackData['Track Number'],
-      'dataAdded': trackData['Date Added'],
-      'playDate': trackData['Play Date UTC'],
+      dataAdded: trackData["Date Added"],
+      duration: trackData["Total Time"],
+      filePath: trackData.Location,
+      genres: new Set(getGenres(trackData)),
+      mainAlbum: trackData.Album,
+      mainArtist: trackData.Artist,
+      name: trackData.Name,
+      playCount: trackData["Play Count"],
+      playDate: trackData["Play Date UTC"],
+      skipCount: trackData["Skip Count"],
+      trackNumber: trackData["Track Number"],
+      year: trackData.Year,
     };
     trackMap.set(persistentId, track);
   });
@@ -174,7 +172,7 @@ export function loadLibrary(libraryFile: string): Promise<Library> {
         (artistData: any, index: number) => new Artist(index, artistData));
       const genres = libraryData.genres_;
       const playlists = libraryData.playlists_.map(
-        (playlistData: any) => new Playlist(playlistData)
+        (playlistData: any) => new Playlist(playlistData),
       );
       return resolve(new Library(tracks, albums, artists, genres, playlists));
     });
@@ -185,10 +183,10 @@ export function loadLibrary(libraryFile: string): Promise<Library> {
  * Deletes a directory and all its contents.
  */
 function deleteRecursive(filepath: string) {
-  if (!fs.existsSync(path)) {
+  if (!fs.existsSync(filepath)) {
     return;
   }
-  fs.readDirSync(path).forEach((file: string) => {
+  fs.readdirSync(filepath).forEach((file: string) => {
     const curPath = path.join(filepath, file);
     if (fs.lstatSync(curPath).isDirectory()) {
       deleteRecursive(curPath);
@@ -196,7 +194,7 @@ function deleteRecursive(filepath: string) {
       fs.unlinkSync(curPath);
     }
   });
-  fs.rmdirSync(path);
+  fs.rmdirSync(filepath);
 }
 
 /**
@@ -205,7 +203,7 @@ function deleteRecursive(filepath: string) {
  */
 export function deleteLibrary() {
   return new Promise((resolve) => {
-    deleteRecursive('./data/');
+    deleteRecursive("./data/");
     resolve();
   });
 }
@@ -222,29 +220,29 @@ export function createLibraryFromItunes(): Promise<Library> {
   // (master playlist contains all songs, no need to run this twice)
 
   return new Promise((resolve) => {
-    if (!fs.existsSync('./data')) {
-      fs.mkdirSync('./data');
+    if (!fs.existsSync("./data")) {
+      fs.mkdirSync("./data");
     }
-    execSync('./node_modules/itunes-data/cli.js --tracks data/tracks.json ' +
-      '~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
-      stdio: 'inherit'
+    execSync("./node_modules/itunes-data/cli.js --tracks data/tracks.json " +
+      "~/Music/iTunes/iTunes\\ Music\\ Library.xml", {
+      stdio: "inherit",
     });
-    execSync('./node_modules/itunes-data/cli.js --playlists ' +
-      'data/playlists.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml', {
-      stdio: 'inherit'
+    execSync("./node_modules/itunes-data/cli.js --playlists " +
+      "data/playlists.json ~/Music/iTunes/iTunes\\ Music\\ Library.xml", {
+      stdio: "inherit",
     });
-    const trackFile = './data/tracks.json';
-    const playlistFile = './data/playlists.json';
+    const trackFile = "./data/tracks.json";
+    const playlistFile = "./data/playlists.json";
     const trackFileData = fs.readFileSync(trackFile);
     const playlistFileData = fs.readFileSync(playlistFile);
-    const rawTrackData = JSON.parse(trackFileData);
-    const rawPlaylistFileData = JSON.parse(playlistFileData);
+    const rawTrackData = JSON.parse(trackFileData.toString());
+    const rawPlaylistFileData = JSON.parse(playlistFileData.toString());
     const realPlaylists = rawPlaylistFileData.filter((playlist: any) => {
-      return !(playlist.Name === "Library" || playlist['Smart Criteria']);
+      return !(playlist.Name === "Library" || playlist["Smart Criteria"]);
     });
     const trackData = new Map();
     rawTrackData.forEach((track: any) => {
-      trackData.set(track['Persistent ID'], track);
+      trackData.set(track["Persistent ID"], track);
     });
     const genreArray = createGenresFromItunesData(trackData);
 
@@ -256,7 +254,6 @@ export function createLibraryFromItunes(): Promise<Library> {
 
     /** {map<pid,data>} */
     const trackMap = createTracksFromItunesData(trackData);
-
 
     // sort tracks in albums:
     albumMap.forEach((albumData) => {
@@ -280,9 +277,9 @@ export function createLibraryFromItunes(): Promise<Library> {
     const albums = [] as Album[];
     albumMap.forEach((albumData) => {
       albums.push(new Album(albums.length, {
+        albumArtFile: albumData.albumArtFile,
         name: albumData.name,
         year: albumData.year,
-        albumArtFile: albumData.albumArtFile,
       }));
       albumData.id = albums.length - 1;
     });
@@ -290,14 +287,14 @@ export function createLibraryFromItunes(): Promise<Library> {
     trackMap.forEach((data) => {
       data.id = tracks.length;
       tracks.push(new Track(tracks.length, {
-        name: data.name,
+        dateAdded: data.dateAdded,
         duration: data.duration,
         filePath: data.filePath,
-        year: data.year,
+        name: data.name,
         playCount: data.playCount,
-        skipCount: data.skipCount,
-        dateAdded: data.dateAdded,
         playDate: data.playDate,
+        skipCount: data.skipCount,
+        year: data.year,
       }));
     });
     // set genre ids
@@ -365,12 +362,12 @@ export function createLibraryFromItunes(): Promise<Library> {
     const playlists = realPlaylists.map((playlist: any) => {
       const trackIds = playlist.Tracks.filter((track: any) => track != null)
         .map((track: any) => {
-          return trackMap.get(track['Persistent ID']).id;
+          return trackMap.get(track["Persistent ID"]).id;
         });
       return new Playlist({name: playlist.Name, trackIds});
     });
 
-    const promises = [] as Promise<void>[];
+    const promises = [] as Array<Promise<void>>;
     albumMap.forEach((albumData) => {
       const track = trackMap.get(albumData.tracks[0]);
       const album = albums[albumData.id];
@@ -386,4 +383,3 @@ export function createLibraryFromItunes(): Promise<Library> {
     });
   });
 }
-

@@ -1,17 +1,17 @@
-import Album from './library/Album';
-import Artist from './library/Artist';
-import EditableAttribute from './EditableAttribute';
-import LikeButton from './LikeButton';
-import Library from './library/Library';
-import NavigationBar from './NavigationBar';
-import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
-import * as React from 'react';
-import {Resources} from './constants';
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import SongPicker from './SongPicker';
-import Track from './library/Track';
-import modifyAlbum from './extensions/wiki/albums';
-import {getImgSrc, toTime} from './utils';
+import Album from "./library/Album";
+import modifyAlbum from "./extensions/wiki/albums";
+import Artist from "./library/Artist";
+import {Resources} from "./constants";
+import EditableAttribute from "./EditableAttribute";
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import Library from "./library/Library";
+import LikeButton from "./LikeButton";
+import NavigationBar from "./NavigationBar";
+import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
+import * as React from "react";
+import SongPicker from "./SongPicker";
+import Track from "./library/Track";
+import {getImgSrc, toTime} from "./utils";
 
 interface AlbumPageProps {
   album: Album;
@@ -23,121 +23,18 @@ interface AlbumPageProps {
   goForward: () => void;
 }
 
-export default class AlbumPage extends React.Component<AlbumPageProps,{}> {
-  runWiki() {
-    modifyAlbum(this.props.album, this.props.library).then(() => {
-      this.props.library.save().then(() => {
-        this.forceUpdate();
-      });
-    });
-  }
+export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
 
-  acceptTrackWarnings() {
-    for (const indexStr in this.props.album.warnings) {
-      const index = parseInt(indexStr);
-      const track = this.props.library.getTrack(
-        this.props.album.trackIds[index]);
-      track.name = this.props.album.warnings[indexStr];
-    }
-    this.props.album.warnings = {};
-    this.props.library.save().then(() => {
-      this.forceUpdate();
-    });
-  }
-
-  getWarnings() {
-    const warnings = Object.keys(this.props.album.warnings);
-    if (!warnings.length) {
-      return null;
-    }
-    return (
-      <div style={{
-        border: "solid yellow 5px",
-        marginTop: "10px",
-        marginBottom: "10px",
-        marginLeft: "100px",
-      }}
-      >
-        <div> Warnings: </div>
-        {
-          warnings.map((trackIndex) => {
-            return (
-              <div key={trackIndex}>{parseInt(trackIndex) + 1 + ": " +
-                this.props.album.warnings[trackIndex]}
-              </div>
-            );
-          })
-        }
-        <button onClick={this.acceptTrackWarnings.bind(this)}>Accept</button>
-      </div>
-    );
-  }
-
-  getErrors() {
-    if (!this.props.album.errors.length) {
-      return null;
-    }
-    return (
-      <div style={{
-        border: "solid red 1px",
-        marginTop: "10px",
-        marginBottom: "10px",
-        marginLeft: "100px",
-      }}
-      >
-        <div> Errors: </div>
-        {
-          this.props.album.errors.map((error: string) => {
-            return (
-              <div key={error}>{error}</div>
-            );
-          })
-        }
-      </div>
-
-    );
-  }
-
-  getArtistLinks() {
-    if (!this.props.album) {
-      return null;
-    }
-    const artists = this.props.library.getArtistsByIds(
-      this.props.album.artistIds);
-    return artists.map((artist: Artist) => {
-      return (
-        <div key={artist.id}>
-          <div className="link" onClick={() => this.props.goToArtist(artist)}>
-            {artist.name}
-          </div>
-        </div>
-      );
-    });
-  }
-
-  getTotalTime() {
-    const songs = this.props.library.getAlbumTracks(this.props.album);
-    const duration = songs.reduce((total: number, song: Track) => total + song.duration, 0);
-    return toTime(duration);
-  }
-
-  playAlbum() {
-    const playlist = new RandomAlbumPlaylist(
-      this.props.library, [this.props.album]);
-    playlist.addAlbum(this.props.album);
-    this.props.setPlaylistAndPlay(playlist);
-  }
-
-  render() {
+  public render() {
     // TODO: use albumInfo or combine logic
     // ya know actually separate conscers and shit
     let file = this.props.album && this.props.album.albumArtFile;
     file = file || Resources.DEFAULT_ALBUM;
     const src = getImgSrc(file);
-    //const artist = this.props.library.getArtistsByIds(
+    // const artist = this.props.library.getArtistsByIds(
     //  this.props.album.artistIds).map((artist) => {
     //  return artist.name;
-    //}).join(", ");
+    // }).join(", ");
     // todo: set playSong to play an album playlist of by artist ?
     // TODO: add validation to edit year
     return (
@@ -170,21 +67,21 @@ export default class AlbumPage extends React.Component<AlbumPageProps,{}> {
               Run Wiki Extension
             </button>
           </div>
-          <div style={{position: 'relative'}}>
+          <div style={{position: "relative"}}>
             <button
               onClick={this.playAlbum.bind(this)}
               style={{
-                position: 'absolute',
-                top: '33%',
-                translate: 'translateY(-66%)'
+                position: "absolute",
+                top: "33%",
+                translate: "translateY(-66%)",
               }}
             >Play Album
             </button>
             <div
               style={{
-                position: 'absolute',
-                top: '66%',
-                translate: 'translateY(-33%)',
+                position: "absolute",
+                top: "66%",
+                translate: "translateY(-33%)",
               }}
             >
               <LikeButton
@@ -209,5 +106,110 @@ export default class AlbumPage extends React.Component<AlbumPageProps,{}> {
 
       </div>
     );
+  }
+  private runWiki() {
+    modifyAlbum(this.props.album, this.props.library).then(() => {
+      this.props.library.save().then(() => {
+        this.forceUpdate();
+      });
+    });
+  }
+
+  private acceptTrackWarnings() {
+    for (const indexStr in this.props.album.warnings) {
+      if (this.props.album.warnings.hasOwnProperty(indexStr)) {
+        const index = parseInt(indexStr, 10);
+        const track = this.props.library.getTrack(
+          this.props.album.trackIds[index]);
+        track.name = this.props.album.warnings[indexStr];
+      }
+    }
+    this.props.album.warnings = {};
+    this.props.library.save().then(() => {
+      this.forceUpdate();
+    });
+  }
+
+  private getWarnings() {
+    const warnings = Object.keys(this.props.album.warnings);
+    if (!warnings.length) {
+      return null;
+    }
+    return (
+      <div style={{
+        border: "solid yellow 5px",
+        marginBottom: "10px",
+        marginLeft: "100px",
+        marginTop: "10px",
+      }}
+      >
+        <div> Warnings: </div>
+        {
+          warnings.map((trackIndex) => {
+            return (
+              <div key={trackIndex}>{parseInt(trackIndex, 10) + 1 + ": " +
+                this.props.album.warnings[trackIndex]}
+              </div>
+            );
+          })
+        }
+        <button onClick={this.acceptTrackWarnings.bind(this)}>Accept</button>
+      </div>
+    );
+  }
+
+  private getErrors() {
+    if (!this.props.album.errors.length) {
+      return null;
+    }
+    return (
+      <div style={{
+        border: "solid red 1px",
+        marginBottom: "10px",
+        marginLeft: "100px",
+        marginTop: "10px",
+      }}
+      >
+        <div> Errors: </div>
+        {
+          this.props.album.errors.map((error: string) => {
+            return (
+              <div key={error}>{error}</div>
+            );
+          })
+        }
+      </div>
+
+    );
+  }
+
+  private getArtistLinks() {
+    if (!this.props.album) {
+      return null;
+    }
+    const artists = this.props.library.getArtistsByIds(
+      this.props.album.artistIds);
+    return artists.map((artist: Artist) => {
+      return (
+        <div key={artist.id}>
+          <div className="link" onClick={() => this.props.goToArtist(artist)}>
+            {artist.name}
+          </div>
+        </div>
+      );
+    });
+  }
+
+  private getTotalTime() {
+    const songs = this.props.library.getAlbumTracks(this.props.album);
+    const duration = songs.reduce((total: number, song: Track) => total + song.duration, 0);
+    return toTime(duration);
+  }
+
+  private playAlbum() {
+    const playlist = new RandomAlbumPlaylist(
+      this.props.library, [this.props.album]);
+    playlist.addAlbum(this.props.album);
+    this.props.setPlaylistAndPlay(playlist);
   }
 }

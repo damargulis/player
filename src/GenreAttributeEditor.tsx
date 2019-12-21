@@ -1,14 +1,14 @@
-import AttributeList from './AttributeList';
-import Library from './library/Library';
-import React from 'react';
+import AttributeList from "./AttributeList";
+import Library from "./library/Library";
+import React from "react";
 
 interface GenreAttributeEditorProps {
   genreIds: number[];
   library: Library;
 }
 
-export default class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps,{}> {
-  render() {
+export default class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps, {}> {
+  public render() {
     return (
       <AttributeList
         attributes={this.props.genreIds}

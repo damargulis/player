@@ -1,130 +1,124 @@
-import Album from './Album';
-import Artist from './Artist';
-import Track from './Track';
-import Playlist from './Playlist';
+import Album from "./Album";
+import Artist from "./Artist";
+import Playlist from "./Playlist";
+import Track from "./Track";
 
-const fs = require('fs');
+import fs from "fs";
 
 export default class Library {
-  tracks_: Track[];
-  albums_: Album[];
-  artists_: Artist[];
-  genres_: string[];
-  playlists_: Playlist[];
+  constructor(
+    private tracks: Track[] = [],
+    private albums: Album[] = [],
+    private artists: Artist[] = [],
+    private genres: string[] = [],
+    private playlists: Playlist[] = [],
+  ) {}
 
-  constructor(tracks: Track[] = [], albums: Album[] = [], artists: Artist[] = [], genres: string[] = [], playlists: Playlist[] = []) {
-    this.tracks_ = tracks;
-    this.albums_ = albums;
-    this.artists_ = artists;
-    this.genres_ = genres;
-    this.playlists_ = playlists;
-  }
-
-  getAlbums(genres?: number[]) {
+  public getAlbums(genres?: number[]) {
     if (genres && genres.length) {
-      const albums = this.albums_.filter((album) => {
+      const albums = this.albums.filter((album) => {
         return album.genreIds.some((genreId) => {
           return genres.includes(genreId);
         });
       });
       return albums;
     }
-    return this.albums_;
+    return this.albums;
   }
 
-  getAlbumsByArtist(artist: Artist) {
+  public getAlbumsByArtist(artist: Artist) {
     return artist.albumIds.map((albumId) => {
-      return this.albums_[albumId];
+      return this.albums[albumId];
     });
   }
 
-  getArtists(genres?: number[]) {
+  public getArtists(genres?: number[]) {
     if (genres && genres.length) {
-      return this.artists_.filter((artist) => {
+      return this.artists.filter((artist) => {
         return artist.genreIds.some((genreId) => {
           return genres.includes(genreId);
         });
       });
     }
-    return this.artists_;
+    return this.artists;
   }
 
-  getAlbumTracks(album: Album) {
+  public getAlbumTracks(album: Album) {
     return album.trackIds.map((songId) => {
-      return this.tracks_[songId];
+      return this.tracks[songId];
     });
   }
 
-  getTracks(genres?: number[]) {
+  public getTracks(genres?: number[]) {
     if (genres && genres.length) {
-      return this.tracks_.filter((song) => {
+      return this.tracks.filter((song) => {
         return song.genreIds.some((genreId) => {
           return genres.includes(genreId);
         });
       });
     }
-    return this.tracks_;
+    return this.tracks;
   }
 
-  getAlbumById(id: number) {
-    return this.albums_[id];
+  public getAlbumById(id: number) {
+    return this.albums[id];
   }
 
-  getAlbumsByIds(ids: number[]) {
+  public getAlbumsByIds(ids: number[]) {
     return ids.map((id) => this.getAlbumById(id));
   }
 
-  getArtistById(id: number) {
-    return this.artists_[id];
+  public getArtistById(id: number) {
+    return this.artists[id];
   }
 
-  getArtistsByIds(ids: number[]) {
+  public getArtistsByIds(ids: number[]) {
     return ids.map((id) => this.getArtistById(id));
   }
 
-  getTrack(id: number) {
-    return this.tracks_[id];
+  public getTrack(id: number) {
+    return this.tracks[id];
   }
 
-  getTracksByIds(ids: number[]) {
+  public getTracksByIds(ids: number[]) {
     return ids.map((songId) => {
       return this.getTrack(songId);
     });
   }
 
-  getRandomAlbum() {
-    return this.albums_[Math.floor(Math.random() * this.albums_.length)];
+  public getRandomAlbum() {
+    return this.albums[Math.floor(Math.random() * this.albums.length)];
   }
 
-  getRandomTrack() {
-    return this.tracks_[Math.floor(Math.random() * this.tracks_.length)];
+  public getRandomTrack() {
+    return this.tracks[Math.floor(Math.random() * this.tracks.length)];
   }
 
-  getGenres() {
-    return this.genres_;
+  public getGenres() {
+    return this.genres;
   }
 
-  getGenreById(id: number) {
-    return this.genres_[id];
+  public getGenreById(id: number) {
+    return this.genres[id];
   }
 
-  getGenresByIds(ids: number[]) {
+  public getGenresByIds(ids: number[]) {
     return ids.map((id) => this.getGenreById(id));
   }
 
   /* adds any genres if they don't already exist. returns array of ids */
-  getGenreIds(genres: string[]) {
+  public getGenreIds(genres: string[]) {
     return genres.map((genre) => {
-      if (this.genres_.indexOf(genre) >= 0) {
-        return this.genres_.indexOf(genre);
+      if (this.genres.indexOf(genre) >= 0) {
+        return this.genres.indexOf(genre);
       }
       // push returns next index, -1 to return this one;
-      return this.genres_.push(genre) - 1;
+      return this.genres.push(genre) - 1;
     });
   }
 
-  save() {
-    const fileName = 'data/library.json';
+  public save() {
+    const fileName = "data/library.json";
     // maybe use sync if you want to do this on exit so it doesn't half write?
     // will have to see how exiting works on electron...
     return new Promise((resolve, reject) => {
@@ -137,7 +131,7 @@ export default class Library {
     });
   }
 
-  getPlaylists() {
-    return this.playlists_;
+  public getPlaylists() {
+    return this.playlists;
   }
 }

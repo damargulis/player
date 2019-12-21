@@ -1,7 +1,7 @@
-import React from 'react';
-import Track from './library/Track';
+import React from "react";
+import Track from "./library/Track";
 
-import {toTime} from './utils';
+import {toTime} from "./utils";
 
 interface ProgressBarProps {
   setTime: (time: number) => void;
@@ -9,12 +9,9 @@ interface ProgressBarProps {
   track?: Track;
 }
 
-export default class ProgressBar extends React.Component<ProgressBarProps,{}> {
-  onChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.props.setTime(parseFloat(evt.target.value));
-  }
+export default class ProgressBar extends React.Component<ProgressBarProps, {}> {
 
-  render() {
+  public render() {
     const totalDuration = this.props.track ? this.props.track.duration : 0;
     return (
       <div>
@@ -29,5 +26,8 @@ export default class ProgressBar extends React.Component<ProgressBarProps,{}> {
         <span>{toTime(totalDuration)}</span>
       </div>
     );
+  }
+  private onChange(evt: React.ChangeEvent<HTMLInputElement>) {
+    this.props.setTime(parseFloat(evt.target.value));
   }
 }

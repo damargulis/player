@@ -1,15 +1,15 @@
-import Album from './library/Album';
-import AlbumPicker from './AlbumPicker';
-import Artist from './library/Artist';
-import EditableAttribute from './EditableAttribute';
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import Library from './library/Library';
-import NavigationBar from './NavigationBar';
-import React from 'react';
-import {Resources} from './constants';
-import SongPicker from './SongPicker';
-import {getImgSrc} from './utils';
-import modifyArtist from './extensions/wiki/artists';
+import Album from "./library/Album";
+import AlbumPicker from "./AlbumPicker";
+import Artist from "./library/Artist";
+import modifyArtist from "./extensions/wiki/artists";
+import {Resources} from "./constants";
+import EditableAttribute from "./EditableAttribute";
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import Library from "./library/Library";
+import NavigationBar from "./NavigationBar";
+import React from "react";
+import SongPicker from "./SongPicker";
+import {getImgSrc} from "./utils";
 
 interface ArtistPageProps {
   artist: Artist;
@@ -21,39 +21,9 @@ interface ArtistPageProps {
   setPlaylistAndPlay: (playlist: EmptyPlaylist) => void;
 }
 
-export default class ArtistPage extends React.Component<ArtistPageProps,{}> {
-  runWiki() {
-    modifyArtist(this.props.artist, this.props.library).then(() => {
-      this.props.library.save();
-    });
-  }
+export default class ArtistPage extends React.Component<ArtistPageProps, {}> {
 
-  getErrors() {
-    if (!this.props.artist.errors.length) {
-      return null;
-    }
-    return (
-      <div style={{
-        border: "solid red 1px",
-        marginTop: "10px",
-        marginBottom: "10px",
-        marginLeft: "100px",
-      }}
-      >
-        <div> Errors: </div>
-        {
-          this.props.artist.errors.map((error) => {
-            return (
-              <div key={error}>{error}</div>
-            );
-          })
-        }
-      </div>
-
-    );
-  }
-
-  render() {
+  public render() {
     const src = getImgSrc(
       this.props.artist.artFile || Resources.DEFAULT_ARTIST);
     return (
@@ -104,6 +74,36 @@ export default class ArtistPage extends React.Component<ArtistPageProps,{}> {
           </div>
         </div>
       </div>
+    );
+  }
+  private runWiki() {
+    modifyArtist(this.props.artist, this.props.library).then(() => {
+      this.props.library.save();
+    });
+  }
+
+  private getErrors() {
+    if (!this.props.artist.errors.length) {
+      return null;
+    }
+    return (
+      <div style={{
+        border: "solid red 1px",
+        marginBottom: "10px",
+        marginLeft: "100px",
+        marginTop: "10px",
+      }}
+      >
+        <div> Errors: </div>
+        {
+          this.props.artist.errors.map((error) => {
+            return (
+              <div key={error}>{error}</div>
+            );
+          })
+        }
+      </div>
+
     );
   }
 }

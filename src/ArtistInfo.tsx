@@ -1,9 +1,9 @@
-import Album from './library/Album';
-import Artist from './library/Artist';
-import Library from './library/Library';
-import React from 'react';
-import {Resources} from './constants';
-import {getImgSrc} from './utils';
+import Album from "./library/Album";
+import Artist from "./library/Artist";
+import {Resources} from "./constants";
+import Library from "./library/Library";
+import React from "react";
+import {getImgSrc} from "./utils";
 
 function getAlbumArtFiles(library: Library , artist: Artist) {
   const albums = library.getAlbumsByIds(artist.albumIds);
@@ -16,7 +16,7 @@ interface ArtistInfoProps {
   style: {
     width: number;
     backgroundColor: string;
-  }
+  };
   goToArtist: (artist: Artist) => void;
 }
 
@@ -25,8 +25,8 @@ interface ArtistInfoState {
   timerId?: number;
 }
 
-export default class ArtistInfo extends React.Component<ArtistInfoProps,ArtistInfoState> {
-  artFiles: string[];
+export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
+  private artFiles: string[];
 
   constructor(props: ArtistInfoProps) {
     super(props);
@@ -34,7 +34,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps,ArtistIn
     const file = this.props.artist.artFile;
     this.artFiles = [
       file,
-      ...getAlbumArtFiles(props.library, props.artist)
+      ...getAlbumArtFiles(props.library, props.artist),
     ].filter(Boolean) as string[];
     this.state = {
       currentImg: 0,
@@ -42,7 +42,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps,ArtistIn
     };
   }
 
-  componentDidMount() {
+  public componentDidMount() {
     if (!this.props.artist) {
       return;
     }
@@ -61,21 +61,20 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps,ArtistIn
         return;
       }
       this.setState({
+        currentImg: (this.state.currentImg + 1) % this.artFiles.length,
         timerId: id,
-        currentImg:
-          (this.state.currentImg + 1) % this.artFiles.length,
       });
     }, Math.random() * time);
     this.setState({
-      timerId: timeoutId
+      timerId: timeoutId,
     });
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     clearInterval(this.state.timerId);
   }
 
-  render() {
+  public render() {
     if (!this.props.artist) {
       return (
         <div style={this.props.style} />
@@ -86,10 +85,10 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps,ArtistIn
       ...this.props.style,
       paddingLeft: (this.props.style.width - 150) / 2,
       paddingRight: (this.props.style.width - 150) / 2,
-      width: 150
+      width: 150,
     };
     if (this.props.artist.errors.length > 0) {
-      newStyle.backgroundColor = 'red';
+      newStyle.backgroundColor = "red";
     }
     let file = this.artFiles[this.state.currentImg];
     file = file || Resources.DEFAULT_ARTIST;
@@ -108,7 +107,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps,ArtistIn
             width="100"
           />
           <div
-            style={{position: "relative", left: "-50%", textAlign: 'center'}}
+            style={{position: "relative", left: "-50%", textAlign: "center"}}
           >
             {this.props.artist.name}
           </div>

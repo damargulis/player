@@ -1,10 +1,10 @@
-import Library from './library/Library';
-import MultipleSongEditer from './MultipleSongEditer';
-import React from 'react';
-import SingleSongEditer from './SingleSongEditer';
-import Track from './library/Track';
+import Library from "./library/Library";
+import MultipleSongEditer from "./MultipleSongEditer";
+import React from "react";
+import SingleSongEditer from "./SingleSongEditer";
+import Track from "./library/Track";
 
-import './SongEditer.css';
+import "./SongEditer.css";
 
 interface SongEditerProps {
   tracks: Track[];
@@ -12,8 +12,8 @@ interface SongEditerProps {
   library: Library;
 }
 
-export default class SongEditer extends React.Component<SongEditerProps,{}> {
-  render() {
+export default class SongEditer extends React.Component<SongEditerProps, {}> {
+  public render() {
     if (this.props.tracks.length === 0) {
       // TODO: Error out
       return null;

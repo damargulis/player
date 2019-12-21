@@ -1,10 +1,10 @@
-import EmptyPlaylist from './EmptyPlaylist';
-import Track from '../library/Track';
+import EmptyPlaylist from "./EmptyPlaylist";
+import Track from "../library/Track";
 
 export default class RandomSongPlaylist extends EmptyPlaylist {
-  tracks: Track[];
-  playlist: Track[];
-  currentTrack: number;
+  private tracks: Track[];
+  private playlist: Track[];
+  private currentTrack: number;
   constructor(tracks: Track[]) {
     super();
     this.tracks = tracks;
@@ -12,11 +12,11 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
     this.currentTrack = -1;
   }
 
-  getCurrentTrack() {
+  public getCurrentTrack() {
     return this.playlist[this.currentTrack];
   }
 
-  nextTrack() {
+  public nextTrack() {
     // todo: switch to play through and reshuffle on repeat only
     this.currentTrack++;
     if (this.playlist.length <= this.currentTrack) {
@@ -26,28 +26,28 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  prevTrack() {
+  public prevTrack() {
     this.currentTrack--;
     return this.getCurrentTrack();
   }
 
-  hasNextAlbum() {
+  public hasNextAlbum() {
     return false;
   }
 
-  hasNextTrack() {
+  public hasNextTrack() {
     return true;
   }
 
-  hasPrevAlbum() {
+  public hasPrevAlbum() {
     return false;
   }
 
-  hasPrevTrack() {
+  public hasPrevTrack() {
     return this.currentTrack > 0;
   }
 
-  addSong(song: Track) {
+  public addSong(song: Track) {
     this.playlist = this.playlist.slice(0, this.currentTrack + 1);
     this.playlist.push(song);
   }

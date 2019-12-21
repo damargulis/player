@@ -1,5 +1,5 @@
-import React, {MouseEvent, KeyboardEvent, ChangeEvent} from 'react';
-import './AutoComplete.css';
+import "./AutoComplete.css";
+import React, {ChangeEvent, KeyboardEvent, MouseEvent} from "react";
 
 interface AutoCompleteProps {
   getDisplayName: (id: number) => string;
@@ -15,7 +15,7 @@ interface AutoCompleteState {
   userInput: string;
 }
 
-export default class AutoComplete extends React.Component<AutoCompleteProps,AutoCompleteState> {
+export default class AutoComplete extends React.Component<AutoCompleteProps, AutoCompleteState> {
   constructor(props: AutoCompleteProps) {
     super(props);
 
@@ -27,7 +27,27 @@ export default class AutoComplete extends React.Component<AutoCompleteProps,Auto
     };
   }
 
-  onClick(evt: MouseEvent, suggestion: number) {
+  public render() {
+    return (
+      <>
+        <input
+          className="serach-input"
+          onChange={this.onChange.bind(this)}
+          onKeyDown={this.onKeyDown.bind(this)}
+          type="text"
+          value={this.state.userInput}
+        />
+        {
+          this.getSearchSuggestions()
+        }
+        <button onClick={this.onSubmit.bind(this)}>
+          Add
+        </button>
+      </>
+    );
+  }
+
+  private onClick(evt: MouseEvent, suggestion: number) {
     this.setState({
       activeSuggestion: 0,
       filteredSuggestions: [suggestion],
@@ -36,7 +56,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps,Auto
     });
   }
 
-  onSubmit() {
+  private onSubmit() {
     const suggestion = this.state.filteredSuggestions[
       this.state.activeSuggestion];
     if (suggestion) {
@@ -48,7 +68,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps,Auto
     // TODO: else if (this.props.addNew)
   }
 
-  getSearchSuggestions() {
+  private getSearchSuggestions() {
     if (!this.state.showSuggestion || !this.state.filteredSuggestions.length ||
       !this.state.userInput) {
       return null;
@@ -74,11 +94,11 @@ export default class AutoComplete extends React.Component<AutoCompleteProps,Auto
     );
   }
 
-  onKeyDown(evt: KeyboardEvent) {
+  private onKeyDown(evt: KeyboardEvent) {
     const suggestion = this.state.filteredSuggestions[
       this.state.activeSuggestion];
     switch (evt.keyCode) {
-    //enter
+    // enter
     case 13:
       // double tap enter to submit
       if (this.state.filteredSuggestions.length === 1 &&
@@ -87,8 +107,8 @@ export default class AutoComplete extends React.Component<AutoCompleteProps,Auto
       } else if (suggestion) {
         this.setState({
           activeSuggestion: 0,
-          showSuggestion: false,
           filteredSuggestions: [suggestion],
+          showSuggestion: false,
           userInput: this.props.getDisplayName(suggestion),
         });
       } else {
@@ -114,7 +134,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps,Auto
     }
   }
 
-  onChange(evt: ChangeEvent<HTMLInputElement>) {
+  private onChange(evt: ChangeEvent<HTMLInputElement>) {
     const input = evt.currentTarget.value;
     // TODO: sort by relavece / starting with right letter
     const suggestions = this.props.suggestions.filter((suggest) => {
@@ -126,25 +146,5 @@ export default class AutoComplete extends React.Component<AutoCompleteProps,Auto
       showSuggestion: true,
       userInput: input,
     });
-  }
-
-  render() {
-    return (
-      <>
-        <input
-          className="serach-input"
-          onChange={this.onChange.bind(this)}
-          onKeyDown={this.onKeyDown.bind(this)}
-          type="text"
-          value={this.state.userInput}
-        />
-        {
-          this.getSearchSuggestions()
-        }
-        <button onClick={this.onSubmit.bind(this)}>
-          Add
-        </button>
-      </>
-    );
   }
 }

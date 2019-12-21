@@ -1,15 +1,15 @@
-import Artist from './library/Artist';
-import AttributeList from './AttributeList';
-import Library from './library/Library';
-import React from 'react';
+import Artist from "./library/Artist";
+import AttributeList from "./AttributeList";
+import Library from "./library/Library";
+import React from "react";
 
 interface ArtistAttributeEditorProps {
   artistIds: number[];
   library: Library;
 }
 
-export default class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps,{}> {
-  render() {
+export default class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps, {}> {
+  public render() {
     return (
       <AttributeList
         attributes={this.props.artistIds}
@@ -29,4 +29,3 @@ export default class ArtistAttributeEditor extends React.Component<ArtistAttribu
     );
   }
 }
-

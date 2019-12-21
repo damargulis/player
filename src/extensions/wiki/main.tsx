@@ -1,10 +1,10 @@
-import Album from '../../library/Album';
-import Artist from '../../library/Artist';
-import Library from '../../library/Library';
-import modifyAlbum from './albums';
-import modifyArtist from './artists';
-const PromisePool = require('es6-promise-pool');
-const {ipcRenderer} = require('electron');
+import Album from "../../library/Album";
+import modifyAlbum from "./albums";
+import Artist from "../../library/Artist";
+import modifyArtist from "./artists";
+import {ipcRenderer} from "electron";
+import PromisePool from "es6-promise-pool";
+import Library from "../../library/Library";
 
 // TODO: set num by isDev
 const CONCURRENT = 7;
@@ -19,29 +19,35 @@ const CONCURRENT = 7;
  * @param {!function(T):Promise} modifyFunc The modification function to run.
  * @return {!PromisePool} The pool to run
  */
-function getPool<T>(library: Library, items: T[], prefix: string, getName: (item: T) =>  string, modifyFunc: (item: T, library: Library) =>  Promise<null>) {
+function getPool<T>(
+  library: Library,
+  items: T[],
+  prefix: string,
+  getName: (item: T) =>  string,
+  modifyFunc: (item: T, library: Library) =>  Promise<void>,
+) {
   let index = 0;
-  ipcRenderer.send('extension-update', {
-    'type': 'start-section',
-    'items': items.length,
+  ipcRenderer.send("extension-update", {
+    items: items.length,
+    type: "start-section",
   });
   return new PromisePool(() => {
     const item = items[index];
     if (!item) {
-      return null;
+      return Promise.resolve(null);
     }
     const id = index++;
     const name = getName(item);
-    ipcRenderer.send('extension-update', {
-      'type': 'start-item',
-      'id': prefix + id,
+    ipcRenderer.send("extension-update", {
+      id: prefix + id,
       name,
+      type: "start-item",
     });
     return modifyFunc(item, library).then(() => {
-      ipcRenderer.send('extension-update', {
-        'type': 'end-item',
-        'id': prefix + id,
+      ipcRenderer.send("extension-update", {
+        id: prefix + id,
         name,
+        type: "end-item",
       });
     });
   }, CONCURRENT);
@@ -51,14 +57,14 @@ function getAlbumsPool(library: Library) {
   return getPool(
     library,
     library.getAlbums(),
-    /* prefix= */ 'album-',
+    /* prefix= */ "album-",
     (album) => {
       const artist = library.getArtistsByIds(album.artistIds)
         .map((artistData: Artist) => artistData.name)
         .join(", ");
       return album.name + " by: " + artist;
     },
-    modifyAlbum
+    modifyAlbum,
   );
 }
 
@@ -66,11 +72,11 @@ function getArtistPool(library: Library) {
   return getPool(
     library,
     library.getArtists(),
-    /* prefix= */ 'artist-',
+    /* prefix= */ "artist-",
     (artist) => {
       return artist.name;
     },
-    modifyArtist
+    modifyArtist,
   );
 }
 
@@ -90,11 +96,11 @@ export default function runWikiExtension(library: Library) {
   return albumPool.start()
     .then(() => artistPool.start())
     .then(() => {
-      ipcRenderer.send('extension-update', {
-        'type': 'done',
+      ipcRenderer.send("extension-update", {
         albumErrors,
-        albumWarnings,
         albumGood,
+        albumWarnings,
+        type: "done",
       });
     });
 }

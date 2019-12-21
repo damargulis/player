@@ -1,5 +1,5 @@
-import Library from './library/Library';
-import React from 'react';
+import Library from "./library/Library";
+import React from "react";
 
 interface GenrePickerProps {
   library: Library;
@@ -13,8 +13,22 @@ interface GenreElement {
 
 // TODO: make this a part of the pages only when its needed, send in available
 // genres as a prop
-export default class GenrePicker extends React.Component<GenrePickerProps,{}> {
-  getOptions() {
+export default class GenrePicker extends React.Component<GenrePickerProps, {}> {
+
+  public render() {
+    return (
+      <div id="genre-picker">
+        <select multiple onChange={this.onChange.bind(this)} size={10}
+          style={{height: "100%", width: "100%"}}
+        >
+          {
+            this.getOptions()
+          }
+        </select>
+      </div>
+    );
+  }
+  private getOptions() {
     return this.props.library.getGenres().map((genre: string, index: number) => {
       return {
         html: <option key={genre} value={index}>{genre}</option>,
@@ -27,26 +41,11 @@ export default class GenrePicker extends React.Component<GenrePickerProps,{}> {
     });
   }
 
-  onChange(evt: React.ChangeEvent<HTMLSelectElement>) {
+  private onChange(evt: React.ChangeEvent<HTMLSelectElement>) {
     const options = [];
     for (const option of evt.target.selectedOptions) {
-      options.push(parseInt(option.value));
+      options.push(parseInt(option.value, 10));
     }
     this.props.setGenres(options);
   }
-
-  render() {
-    return (
-      <div id="genre-picker">
-        <select multiple onChange={this.onChange.bind(this)} size={10}
-          style={{height: '100%', width: '100%'}}
-        >
-          {
-            this.getOptions()
-          }
-        </select>
-      </div>
-    );
-  }
 }
-

@@ -1,5 +1,5 @@
-import AutoComplete from './AutoComplete';
-import React from 'react';
+import AutoComplete from "./AutoComplete";
+import React from "react";
 
 interface AttributeListProps {
   attributes: number[];
@@ -13,7 +13,7 @@ interface AttributeListState {
   current: number[];
 }
 
-export default class AttributeList extends React.Component<AttributeListProps,AttributeListState> {
+export default class AttributeList extends React.Component<AttributeListProps, AttributeListState> {
   constructor(props: AttributeListProps) {
     super(props);
 
@@ -22,30 +22,7 @@ export default class AttributeList extends React.Component<AttributeListProps,At
     };
   }
 
-  add(attr: number) {
-    this.state.current.push(attr);
-    this.setState({current: this.state.current});
-  }
-
-  remove(index: number) {
-    this.state.current.splice(index, 1);
-    this.setState({current: this.state.current});
-  }
-
-  getAttributes() {
-    return this.state.current.map((attr, index) => {
-      return (
-        <div className="list-item" key={index}>
-          {this.props.getDisplayName(attr)}
-          <span className="close" onClick={() => this.remove(index)}>
-            X
-          </span>
-        </div>
-      );
-    });
-  }
-
-  render() {
+  public render() {
     const suggestions = this.props.suggestions.filter((attr, index) => {
       return !this.state.current.includes(index);
     });
@@ -61,5 +38,28 @@ export default class AttributeList extends React.Component<AttributeListProps,At
         />
       </div>
     );
+  }
+
+  private add(attr: number) {
+    this.state.current.push(attr);
+    this.setState({current: this.state.current});
+  }
+
+  private remove(index: number) {
+    this.state.current.splice(index, 1);
+    this.setState({current: this.state.current});
+  }
+
+  private getAttributes() {
+    return this.state.current.map((attr, index) => {
+      return (
+        <div className="list-item" key={index}>
+          {this.props.getDisplayName(attr)}
+          <span className="close" onClick={() => this.remove(index)}>
+            X
+          </span>
+        </div>
+      );
+    });
   }
 }

@@ -1,10 +1,10 @@
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import Library from './library/Library';
-import NavigationBar from './NavigationBar';
-import Playlist from './library/Playlist';
-import React from 'react';
-import SongPicker from './SongPicker';
-import {toTime} from './utils';
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import Library from "./library/Library";
+import NavigationBar from "./NavigationBar";
+import Playlist from "./library/Playlist";
+import React from "react";
+import SongPicker from "./SongPicker";
+import {toTime} from "./utils";
 
 interface PlaylistPageProps {
   canGoForward: boolean;
@@ -16,15 +16,9 @@ interface PlaylistPageProps {
   setPlaylistAndPlay: (playlist: EmptyPlaylist) => void;
 }
 
-export default class PlaylistPage extends React.Component<PlaylistPageProps,{}> {
-  getTotalTime() {
-    const songs = this.props.library.getTracksByIds(
-      this.props.playlist.trackIds);
-    const duration = songs.reduce((total, song) => total + song.duration, 0);
-    return toTime(duration);
-  }
+export default class PlaylistPage extends React.Component<PlaylistPageProps, {}> {
 
-  render() {
+  public render() {
     const src = "";
     const allPlaylistSongs = this.props.library.getTracksByIds(
       this.props.playlist.trackIds);
@@ -59,5 +53,11 @@ export default class PlaylistPage extends React.Component<PlaylistPageProps,{}> 
         </div>
       </div>
     );
+  }
+  private getTotalTime() {
+    const songs = this.props.library.getTracksByIds(
+      this.props.playlist.trackIds);
+    const duration = songs.reduce((total, song) => total + song.duration, 0);
+    return toTime(duration);
   }
 }

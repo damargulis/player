@@ -1,7 +1,7 @@
-import React from "react";
-import AttributeList from "./AttributeList";
 import Album from "./library/Album";
+import AttributeList from "./AttributeList";
 import Library from "./library/Library";
+import React from "react";
 
 interface AlbumAttributeEditorProps {
   albumIds: number[];

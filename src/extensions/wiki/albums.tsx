@@ -1,24 +1,23 @@
-import Album from '../../library/Album';
-import Artist from '../../library/Artist';
-import {BASE_URL} from './constants';
+import Album from "../../library/Album";
+import Artist from "../../library/Artist";
+import {BASE_URL} from "./constants";
 import {
   ALBUM_ART_ERROR,
   GENRE_ERROR,
   NO_PAGE_ERROR,
   PARSER_ERROR,
   TRACK_ERROR,
-  YEAR_ERROR
-} from './errors';
-import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
-import Library from '../../library/Library';
-
-const rp = require('request-promise-native');
-const moment = require('moment');
-const fs = require('fs');
-const shortid = require('shortid');
+  YEAR_ERROR,
+} from "./errors";
+import fs from "fs";
+import Library from "../../library/Library";
+import moment from "moment";
+import rp from "request-promise-native";
+import shortid from "shortid";
+import {findAsync, getDoc, getGenresByRow, sanitize} from "./utils";
 
 function getYear(rootNode: HTMLElement) {
-  const released = rootNode.textContent || '';
+  const released = rootNode.textContent || "";
   let str = sanitize(released);
   if (str.indexOf("(") > 0) {
     str = str.slice(0, str.indexOf("("));
@@ -29,10 +28,10 @@ function getYear(rootNode: HTMLElement) {
 
 function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>) {
   for (const row of rows) {
-    const headers = row.getElementsByTagName('th');
+    const headers = row.getElementsByTagName("th");
     const name = headers[0] && headers[0].textContent;
     if (name === "Released") {
-      const data = row.getElementsByTagName('td')[0];
+      const data = row.getElementsByTagName("td")[0];
       return getYear(data);
     }
   }
@@ -40,7 +39,7 @@ function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>) {
 }
 
 function getAllWikiOptions(album: Album, artist: Artist) {
-  const albumName = album.name.replace('#', 'Number ').replace(/ /g, "_");
+  const albumName = album.name.replace("#", "Number ").replace(/ /g, "_");
   const artistName = artist.name.replace(/ /g, "_");
   return [
     BASE_URL + albumName,
@@ -59,10 +58,13 @@ function getAllWikiOptions(album: Album, artist: Artist) {
 function isRightLink(link: string, album: Album, artist: Artist) {
   return rp(link).then((htmlString: string) => {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
-    const infoBoxes = doc.getElementsByClassName('infobox');
+    const doc = parser.parseFromString(htmlString, "text/html");
+    const infoBoxes = doc.getElementsByClassName("infobox");
     const infoBox = infoBoxes[0] as HTMLElement;
-    return infoBox && infoBox.textContent && infoBox.textContent.toLowerCase().includes(
+    if (!infoBox || !infoBox.textContent) {
+      return false;
+    }
+    return infoBox.textContent.toLowerCase().includes(
       "by " + artist.name.toLowerCase());
   }).catch(() => {
     return false;
@@ -78,40 +80,40 @@ function searchForWikiPage(album: Album, library: Library) {
 }
 
 function getTracksFromTracklist(tracklist: Element) {
-  const rows = tracklist.getElementsByTagName('tr');
+  const rows = tracklist.getElementsByTagName("tr");
   // splits into two arrays, headers which contains any rows that have a <th>
   // element, and dataRows which has all the others
-  const headers = []
-  const dataRows = []
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i].getElementsByTagName('th').length) {
-      headers.push(rows[i]);
+  const headers = [];
+  const dataRows = [];
+  for (const row of rows) {
+    if (row.getElementsByTagName("th").length) {
+      headers.push(row);
     } else {
-      dataRows.push(rows[i]);
+      dataRows.push(row);
     }
   }
   let goodHeader = null;
   for (const header of headers) {
-    if (header.textContent && header.textContent.includes('Title')) {
+    if (header.textContent && header.textContent.includes("Title")) {
       goodHeader = header;
       break;
     }
   }
-  const headerCells = goodHeader ? goodHeader.getElementsByTagName('th') : [];
+  const headerCells = goodHeader ? goodHeader.getElementsByTagName("th") : [];
   const headerNames = Array(...headerCells).map((cell) => cell.textContent);
-  //const noIndex = headerNames.indexOf('No.');
-  const titleIndex = headerNames.indexOf('Title');
-  //const lengthIndex = headerNames.indexOf('Length');
+  // const noIndex = headerNames.indexOf('No.');
+  const titleIndex = headerNames.indexOf("Title");
+  // const lengthIndex = headerNames.indexOf('Length');
   return dataRows.map((row) => {
-    const data = row.getElementsByTagName('td');
-    const titleText = data[titleIndex].textContent || '';
+    const data = row.getElementsByTagName("td");
+    const titleText = data[titleIndex].textContent || "";
     const matches = titleText.match(/"(?<inner>.*?)"/);
     return matches && matches.groups ? matches.groups.inner : null;
   }).filter(Boolean) as string[];
 }
 
 function getTracks(doc: Document) {
-  const tracklists = doc.getElementsByClassName('tracklist');
+  const tracklists = doc.getElementsByClassName("tracklist");
   // TODO: using first for now, should loop through all, check header to
   // determine what to do with it; can include multi releases, discs, versions,
   // etc.
@@ -130,12 +132,15 @@ function getTracks(doc: Document) {
 }
 
 function modifyAlbum(album: Album, library: Library) {
+  if (!album.wikiPage) {
+    return Promise.resolve();
+  }
   return rp(album.wikiPage).then((htmlString: string) => {
     album.removeError(PARSER_ERROR);
     const doc = getDoc(htmlString);
-    const infoBoxes = doc.getElementsByClassName('infobox');
+    const infoBoxes = doc.getElementsByClassName("infobox");
     const infoBox = infoBoxes[0];
-    const rows = infoBox.getElementsByTagName('tr');
+    const rows = infoBox.getElementsByTagName("tr");
     const year = getYearByRow(rows);
     if (year) {
       album.year = year;
@@ -163,19 +168,19 @@ function modifyAlbum(album: Album, library: Library) {
       album.addError(TRACK_ERROR);
     }
 
-    const pics = infoBox.getElementsByTagName('img');
-    //TODO: take multiple pictures (rotate them elsewhere in the app)
+    const pics = infoBox.getElementsByTagName("img");
+    // TODO: take multiple pictures (rotate them elsewhere in the app)
     const pic = pics[0];
     const options = {
+      encoding: "binary",
       url: pic && pic.src,
-      encoding: 'binary',
     };
     return rp(options).then((data: string) => {
       if (!album.albumArtFile) {
         const id = shortid.generate();
-        album.albumArtFile = './data/' + id + '.png';
+        album.albumArtFile = "./data/" + id + ".png";
       }
-      fs.writeFileSync(album.albumArtFile, data, 'binary');
+      fs.writeFileSync(album.albumArtFile, data, "binary");
       album.removeError(ALBUM_ART_ERROR);
     }).catch(() => {
       album.addError(ALBUM_ART_ERROR);
@@ -202,4 +207,3 @@ export default function runAlbumModifier(album: Album, library: Library) {
   }
   return modifyAlbum(album, library);
 }
-
