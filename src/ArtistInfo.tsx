@@ -5,19 +5,16 @@ import Library from "./library/Library";
 import React from "react";
 import {getImgSrc} from "./utils";
 
-function getAlbumArtFiles(library: Library , artist: Artist) {
+function getAlbumArtFiles(library: Library , artist: Artist): string[] {
   const albums = library.getAlbumsByIds(artist.albumIds);
-  return albums.map((album: Album) => album.albumArtFile).filter(Boolean);
+  return albums.map((album: Album) => album.albumArtFile).filter(Boolean) as string[];
 }
 
 interface ArtistInfoProps {
   artist: Artist;
   library: Library;
-  style: {
-    width: number;
-    backgroundColor: string;
-  };
-  goToArtist: (artist: Artist) => void;
+  style: React.CSSProperties;
+  goToArtist(artist: Artist): void;
 }
 
 interface ArtistInfoState {
@@ -42,7 +39,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
     };
   }
 
-  public componentDidMount() {
+  public componentDidMount(): void {
     if (!this.props.artist) {
       return;
     }
@@ -70,21 +67,22 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
     });
   }
 
-  public componentWillUnmount() {
+  public componentWillUnmount(): void {
     clearInterval(this.state.timerId);
   }
 
-  public render() {
+  public render(): JSX.Element {
     if (!this.props.artist) {
       return (
         <div style={this.props.style} />
       );
     }
     // recenter with new width filling full space
+    const width = this.props.style.width as number;
     const newStyle = {
       ...this.props.style,
-      paddingLeft: (this.props.style.width - 150) / 2,
-      paddingRight: (this.props.style.width - 150) / 2,
+      paddingLeft: (width - 150) / 2,
+      paddingRight: (width - 150) / 2,
       width: 150,
     };
     if (this.props.artist.errors.length > 0) {

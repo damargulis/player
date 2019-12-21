@@ -2,10 +2,10 @@ import "./AutoComplete.css";
 import React, {ChangeEvent, KeyboardEvent, MouseEvent} from "react";
 
 interface AutoCompleteProps {
-  getDisplayName: (id: number) => string;
-  onSubmit: (id: number) => void;
-  searchFilter: (search: string, id: number) => boolean;
   suggestions: number[];
+  getDisplayName(id: number): string;
+  onSubmit(id: number): void;
+  searchFilter(search: string, id: number): boolean;
 }
 
 interface AutoCompleteState {
@@ -27,7 +27,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
     };
   }
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <>
         <input
@@ -47,7 +47,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
     );
   }
 
-  private onClick(evt: MouseEvent, suggestion: number) {
+  private onClick(evt: MouseEvent, suggestion: number): void {
     this.setState({
       activeSuggestion: 0,
       filteredSuggestions: [suggestion],
@@ -56,7 +56,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
     });
   }
 
-  private onSubmit() {
+  private onSubmit(): void {
     const suggestion = this.state.filteredSuggestions[
       this.state.activeSuggestion];
     if (suggestion) {
@@ -68,10 +68,10 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
     // TODO: else if (this.props.addNew)
   }
 
-  private getSearchSuggestions() {
+  private getSearchSuggestions(): JSX.Element | undefined {
     if (!this.state.showSuggestion || !this.state.filteredSuggestions.length ||
       !this.state.userInput) {
-      return null;
+      return;
     }
     return (
       <ul className="suggestions">
@@ -94,7 +94,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
     );
   }
 
-  private onKeyDown(evt: KeyboardEvent) {
+  private onKeyDown(evt: KeyboardEvent): void {
     const suggestion = this.state.filteredSuggestions[
       this.state.activeSuggestion];
     switch (evt.keyCode) {
@@ -134,7 +134,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
     }
   }
 
-  private onChange(evt: ChangeEvent<HTMLInputElement>) {
+  private onChange(evt: ChangeEvent<HTMLInputElement>): void {
     const input = evt.currentTarget.value;
     // TODO: sort by relavece / starting with right letter
     const suggestions = this.props.suggestions.filter((suggest) => {

@@ -8,17 +8,17 @@ import Track from "./library/Track";
 import {getImgSrc} from "./utils";
 
 interface InfoPanelProps {
-  goToAlbum: (album: Album) => void;
-  goToArtist: (artist: Artist) => void;
-  goToSong: (track: Track) => void;
   library: Library;
   track?: Track;
   small?: boolean;
+  goToAlbum(album: Album): void;
+  goToArtist(artist: Artist): void;
+  goToSong(track: Track): void;
 }
 
-export default class InfoPanel extends React.Component<InfoPanelProps, {}> {
+export default class InfoPanel extends React.Component<InfoPanelProps> {
 
-  public render() {
+  public render(): JSX.Element {
     const {track, library} = this.props;
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
@@ -59,13 +59,14 @@ export default class InfoPanel extends React.Component<InfoPanelProps, {}> {
       </div>
     );
   }
-  private goToSong(song?: Track) {
+
+  private goToSong(song?: Track): void {
     if (song) {
       this.props.goToSong(song);
     }
   }
 
-  private onImageClick() {
+  private onImageClick(): void {
     if (this.props.small) {
       ipcRenderer.send("maximize");
     } else {
@@ -73,7 +74,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps, {}> {
     }
   }
 
-  private getArtistLinks() {
+  private getArtistLinks(): JSX.Element[] | string {
     const {track, library} = this.props;
     const artists = track && library
       ? library.getArtistsByIds(track.artistIds) : [];
@@ -91,7 +92,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps, {}> {
     return "Artists";
   }
 
-  private getAlbumLinks() {
+  private getAlbumLinks(): JSX.Element[] | string {
     const {track, library} = this.props;
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
@@ -109,12 +110,10 @@ export default class InfoPanel extends React.Component<InfoPanelProps, {}> {
     return "Albums";
   }
 
-  private getNameLink() {
+  private getNameLink(): JSX.Element | string {
     if (this.props.track) {
       return (
-        <div className="link"
-          onClick={() => this.goToSong(this.props.track)}
-        >
+        <div className="link" onClick={() => this.goToSong(this.props.track)} >
           {this.props.track.name}
         </div>
       );

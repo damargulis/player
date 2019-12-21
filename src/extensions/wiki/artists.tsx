@@ -22,7 +22,7 @@ function getWikiPageOptions(artist: Artist): string[] {
   ];
 }
 
-function isRightLink(link: string) {
+function isRightLink(link: string): Promise<boolean> {
   return rp(link).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, "text/html");
@@ -51,7 +51,7 @@ function searchForWikiPage(artist: Artist): Promise<string>  {
   });
 }
 
-function modifyArtist(artist: Artist, library: Library) {
+function modifyArtist(artist: Artist, library: Library): Promise<void> {
   if (!artist.wikiPage) {
     return Promise.resolve();
   }
@@ -93,7 +93,7 @@ function modifyArtist(artist: Artist, library: Library) {
   });
 }
 
-export default function runArtistModifier(artist: Artist, library: Library) {
+export default function runArtistModifier(artist: Artist, library: Library): Promise<void> {
   if (!artist.wikiPage) {
     return searchForWikiPage(artist).then((wikiPage) => {
       if (wikiPage) {

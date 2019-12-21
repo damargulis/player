@@ -1,12 +1,12 @@
 import React from "react";
 
 interface PlaylistTypePickerProps {
-  setType: (playlistType: string) => void;
+  setType(playlistType: string): void;
 }
 
-export default class PlaylistTypePicker extends React.Component<PlaylistTypePickerProps, {}> {
+export default class PlaylistTypePicker extends React.Component<PlaylistTypePickerProps> {
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <div id="playlist-picker">
         <select size={4}

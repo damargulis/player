@@ -11,22 +11,22 @@ import Track from "./library/Track";
 interface HeaderProps {
   playlist: EmptyPlaylist;
   library: Library;
-  nextAlbum: () => void;
-  nextTrack: () => void;
   playing: boolean;
-  playPause: () => void;
-  prevAlbum: () => void;
-  prevTrack: () => void;
-  setVolume: (vol: number) => void;
-  goToAlbum: (album: Album) => void;
-  goToArtist: (artist: Artist) => void;
-  goToSong: (track: Track) => void;
-  setTime: (time: number) => void;
   time: number;
+  nextAlbum(): void;
+  nextTrack(): void;
+  playPause(): void;
+  prevAlbum(): void;
+  prevTrack(): void;
+  setVolume(vol: number): void;
+  goToAlbum(album: Album): void;
+  goToArtist(artist: Artist): void;
+  goToSong(track: Track): void;
+  setTime(time: number): void;
 }
 
-export default class Header extends React.Component<HeaderProps, {}> {
-  public render() {
+export default class Header extends React.Component<HeaderProps> {
+  public render(): JSX.Element {
     const track = this.props.playlist.getCurrentTrack();
     return (
       <div id="header" style={{padding: "2px"}}>

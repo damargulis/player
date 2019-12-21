@@ -16,8 +16,8 @@ export default class EmptyPlaylist {
   public nextTrack(): Track | undefined {
     return undefined;
   }
-  public hasPrevTrack() { return false; }
-  public hasPrevAlbum() { return false; }
-  public hasNextTrack() { return false; }
-  public hasNextAlbum() { return false; }
+  public hasPrevTrack(): boolean { return false; }
+  public hasPrevAlbum(): boolean { return false; }
+  public hasNextTrack(): boolean { return false; }
+  public hasNextAlbum(): boolean { return false; }
 }

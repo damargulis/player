@@ -1,7 +1,7 @@
 import React from "react";
 
 interface SearchBarProps {
-  onSearch: (search: string) => void;
+  onSearch(search: string): void;
 }
 
 interface SearchBarState {
@@ -19,7 +19,7 @@ export default class SearchBar extends React.Component<SearchBarProps, SearchBar
     };
   }
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <input
         onChange={this.onChange.bind(this)}
@@ -29,7 +29,7 @@ export default class SearchBar extends React.Component<SearchBarProps, SearchBar
     );
   }
 
-  private onChange(evt: React.ChangeEvent<HTMLInputElement>) {
+  private onChange(evt: React.ChangeEvent<HTMLInputElement>): void {
     this.setState({
       value: evt.target.value,
     });

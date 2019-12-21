@@ -9,7 +9,7 @@ import Track from "./library/Track";
 interface SingleSongEditerProps {
   track: Track;
   library: Library;
-  exit: () => void;
+  exit(): void;
 }
 
 interface SingleSongEditerState {
@@ -36,7 +36,7 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
     };
   }
 
-  public save() {
+  public save(): void {
     const track = this.props.track;
     if (this.name.current) {
       track.name = this.name.current.value;
@@ -68,7 +68,7 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
     this.props.exit();
   }
 
-  public render() {
+  public render(): JSX.Element {
     const track = this.props.track;
     return (
       <div>

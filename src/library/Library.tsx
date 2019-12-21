@@ -14,7 +14,7 @@ export default class Library {
     private playlists: Playlist[] = [],
   ) {}
 
-  public getAlbums(genres?: number[]) {
+  public getAlbums(genres?: number[]): Album[] {
     if (genres && genres.length) {
       const albums = this.albums.filter((album) => {
         return album.genreIds.some((genreId) => {
@@ -26,13 +26,13 @@ export default class Library {
     return this.albums;
   }
 
-  public getAlbumsByArtist(artist: Artist) {
+  public getAlbumsByArtist(artist: Artist): Album[] {
     return artist.albumIds.map((albumId) => {
       return this.albums[albumId];
     });
   }
 
-  public getArtists(genres?: number[]) {
+  public getArtists(genres?: number[]): Artist[] {
     if (genres && genres.length) {
       return this.artists.filter((artist) => {
         return artist.genreIds.some((genreId) => {
@@ -43,13 +43,13 @@ export default class Library {
     return this.artists;
   }
 
-  public getAlbumTracks(album: Album) {
+  public getAlbumTracks(album: Album): Track[] {
     return album.trackIds.map((songId) => {
       return this.tracks[songId];
     });
   }
 
-  public getTracks(genres?: number[]) {
+  public getTracks(genres?: number[]): Track[] {
     if (genres && genres.length) {
       return this.tracks.filter((song) => {
         return song.genreIds.some((genreId) => {
@@ -60,54 +60,54 @@ export default class Library {
     return this.tracks;
   }
 
-  public getAlbumById(id: number) {
+  public getAlbumById(id: number): Album {
     return this.albums[id];
   }
 
-  public getAlbumsByIds(ids: number[]) {
+  public getAlbumsByIds(ids: number[]): Album[] {
     return ids.map((id) => this.getAlbumById(id));
   }
 
-  public getArtistById(id: number) {
+  public getArtistById(id: number): Artist {
     return this.artists[id];
   }
 
-  public getArtistsByIds(ids: number[]) {
+  public getArtistsByIds(ids: number[]): Artist[] {
     return ids.map((id) => this.getArtistById(id));
   }
 
-  public getTrack(id: number) {
+  public getTrack(id: number): Track {
     return this.tracks[id];
   }
 
-  public getTracksByIds(ids: number[]) {
+  public getTracksByIds(ids: number[]): Track[] {
     return ids.map((songId) => {
       return this.getTrack(songId);
     });
   }
 
-  public getRandomAlbum() {
+  public getRandomAlbum(): Album {
     return this.albums[Math.floor(Math.random() * this.albums.length)];
   }
 
-  public getRandomTrack() {
+  public getRandomTrack(): Track {
     return this.tracks[Math.floor(Math.random() * this.tracks.length)];
   }
 
-  public getGenres() {
+  public getGenres(): string[] {
     return this.genres;
   }
 
-  public getGenreById(id: number) {
+  public getGenreById(id: number): string {
     return this.genres[id];
   }
 
-  public getGenresByIds(ids: number[]) {
+  public getGenresByIds(ids: number[]): string[] {
     return ids.map((id) => this.getGenreById(id));
   }
 
   /* adds any genres if they don't already exist. returns array of ids */
-  public getGenreIds(genres: string[]) {
+  public getGenreIds(genres: string[]): number[] {
     return genres.map((genre) => {
       if (this.genres.indexOf(genre) >= 0) {
         return this.genres.indexOf(genre);
@@ -117,7 +117,7 @@ export default class Library {
     });
   }
 
-  public save() {
+  public save(): Promise<void> {
     const fileName = "data/library.json";
     // maybe use sync if you want to do this on exit so it doesn't half write?
     // will have to see how exiting works on electron...
@@ -131,7 +131,7 @@ export default class Library {
     });
   }
 
-  public getPlaylists() {
+  public getPlaylists(): Playlist[] {
     return this.playlists;
   }
 }

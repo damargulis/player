@@ -11,12 +11,20 @@ import "./App.css";
 
 interface AlbumPickerProps {
   albums: Album[];
-  goToAlbum: (album: Album) => void;
   library: Library;
-  setPlaylistAndPlay: (playlist: RandomAlbumPlaylist) => void;
+  goToAlbum(album: Album): void;
+  setPlaylistAndPlay(playlist: RandomAlbumPlaylist): void;
 }
 
-export default class AlbumPicker extends React.Component<AlbumPickerProps, any> {
+interface AlbumPickerState {
+  search?: string;
+  reverse: boolean;
+  sortedAlbums: Album[];
+  withErrors: boolean;
+  sortMethod(album1: Album, album2: Album): number;
+}
+
+export default class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   private numCols: number;
 
   constructor(props: AlbumPickerProps) {
@@ -28,7 +36,7 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
 
     this.state = {
       reverse: false,
-      search: null,
+      search: undefined,
       sortMethod: this.sortByName,
       sortedAlbums: [],
       withErrors: false,
@@ -36,7 +44,7 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
     this.numCols = 0;
   }
 
-  public sortAlbums(albums: Album[]) {
+  public sortAlbums(albums: Album[]): Album[] {
     return albums.filter((album) => {
       if (!this.state.search) {
         return true;
@@ -50,13 +58,13 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
     });
   }
 
-  public componentDidMount() {
+  public componentDidMount(): void {
     this.setState({
       sortedAlbums: this.sortAlbums(this.props.albums),
     });
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(): void {
     const sortedAlbums = this.sortAlbums(this.props.albums);
     if (sortedAlbums.length !== this.state.sortedAlbums.length ||
       sortedAlbums.some((album, index) => {
@@ -68,7 +76,7 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
     }
   }
 
-  public render() {
+  public render(): JSX.Element {
     const items = this.state.withErrors
       ? this.state.sortedAlbums.filter((album: Album) => {
         return album.errors.length > 0;
@@ -91,18 +99,18 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
     );
   }
 
-  private goToAlbum(album: Album) {
+  private goToAlbum(album: Album): void {
     this.props.goToAlbum(album);
   }
 
-  private playAlbum(album: Album) {
+  private playAlbum(album: Album): void {
     const playlist = new RandomAlbumPlaylist(
       this.props.library, this.state.sortedAlbums);
     playlist.addAlbum(album);
     this.props.setPlaylistAndPlay(playlist);
   }
 
-  private cellRenderer(index: number, key: string, style: any) {
+  private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
     const albums = this.state.withErrors
       ? this.state.sortedAlbums.filter((album: Album) => {
         return album.errors.length > 0;
@@ -119,11 +127,11 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
     );
   }
 
-  private sortByName(album1: Album, album2: Album) {
+  private sortByName(album1: Album, album2: Album): number {
     return album1.name.localeCompare(album2.name);
   }
 
-  private sortByArtist(album1: Album, album2: Album) {
+  private sortByArtist(album1: Album, album2: Album): number {
     const artist1 = this.props.library.getArtistsByIds(album1.artistIds)
       .map((artist: Artist) => artist.name).join(",");
     const artist2 = this.props.library.getArtistsByIds(album2.artistIds)
@@ -131,11 +139,11 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
     return artist1.localeCompare(artist2);
   }
 
-  private sortByYear(album1: Album, album2: Album) {
+  private sortByYear(album1: Album, album2: Album): number {
     return album1.year - album2.year;
   }
 
-  private chooseSort(sortMethod: (album1: Album, album2: Album) => number) {
+  private chooseSort(sortMethod: (album1: Album, album2: Album) => number): void {
     if (sortMethod === this.state.sortMethod) {
       this.setState({reverse: !this.state.reverse});
     } else {
@@ -143,13 +151,13 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, any> 
     }
   }
 
-  private withErrors() {
+  private withErrors(): void {
     this.setState({
       withErrors: !this.state.withErrors,
     });
   }
 
-  private onSearch(search: string) {
+  private onSearch(search: string): void {
     this.setState({ search });
   }
 }

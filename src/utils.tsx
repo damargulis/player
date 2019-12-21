@@ -4,7 +4,7 @@ import path from "path";
  * Formats a duration to a time "minutes:seconds".
  * Takes in time in milliseconds.
  */
-export function toTime(ms: number) {
+export function toTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;

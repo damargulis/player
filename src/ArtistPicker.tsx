@@ -13,8 +13,8 @@ interface ArtistPickerState {
 
 interface ArtistPickerProps {
   artists: Artist[];
-  goToArtist: (artist: Artist) => void;
   library: Library;
+  goToArtist(artist: Artist): void;
 }
 
 export default class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState> {
@@ -31,13 +31,13 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     this.numCols = 0;
   }
 
-  public componentDidMount() {
+  public componentDidMount(): void {
     this.setState({
       sortedArtists: this.sortArtists(this.props.artists),
     });
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(): void {
     const sortedArtists = this.sortArtists(this.props.artists);
     if (sortedArtists.length !== this.state.sortedArtists.length ||
       sortedArtists.some((artist, index) => {
@@ -51,7 +51,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
 
   // reuse the grid from album view?
   // source pictures from wikipedia, rotate album covers as backup
-  public render() {
+  public render(): JSX.Element {
     const items = this.state.withErrors
       ? this.state.sortedArtists.filter((artist) => {
         return artist.errors.length > 0;
@@ -68,7 +68,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     );
   }
 
-  private sortArtists(artists: Artist[]) {
+  private sortArtists(artists: Artist[]): Artist[] {
     return artists.filter((artist) => {
       if (this.state.search) {
         return artist.name.toLowerCase()
@@ -80,11 +80,11 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     });
   }
 
-  private goToArtist(artist: Artist) {
+  private goToArtist(artist: Artist): void {
     this.props.goToArtist(artist);
   }
 
-  private cellRenderer(index: number, key: string, style: {width: number, backgroundColor: string}) {
+  private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
     const artists = this.state.withErrors
       ? this.state.sortedArtists.filter((artist) => {
         return artist.errors.length > 0;
@@ -100,13 +100,13 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     );
   }
 
-  private withErrors() {
+  private withErrors(): void {
     this.setState({
       withErrors: !this.state.withErrors,
     });
   }
 
-  private onSearch(search: string) {
+  private onSearch(search: string): void {
     this.setState({search});
   }
 }

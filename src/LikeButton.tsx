@@ -10,9 +10,9 @@ interface LikeButtonProps {
   item?: Album | Track;
 }
 
-export default class LikeButton extends React.Component<LikeButtonProps, {}> {
+export default class LikeButton extends React.Component<LikeButtonProps> {
 
-  public render() {
+  public render(): JSX.Element {
     const year = new Date().getFullYear();
     const favorite = this.props.item &&
       this.props.item.favorites.indexOf(year) !== -1;
@@ -28,7 +28,8 @@ export default class LikeButton extends React.Component<LikeButtonProps, {}> {
       />
     );
   }
-  private favorite() {
+
+  private favorite(): void {
     if (!this.props.item) {
       return;
     }

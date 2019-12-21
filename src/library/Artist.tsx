@@ -1,3 +1,13 @@
+export interface ArtistParameters {
+  name?: string;
+  albumIds?: number[];
+  artFile?: string;
+  errors?: string[];
+  wikiPage?: string;
+  genreIds?: number[];
+  trackIds?: number[];
+}
+
 export default class Artist {
   public name: string;
   public albumIds: number[];
@@ -16,7 +26,7 @@ export default class Artist {
     errors = [],
     artFile = undefined,
     wikiPage = undefined,
-  }) {
+  }: ArtistParameters) {
     this.id = id;
     this.name = name;
     this.albumIds = albumIds;
@@ -27,13 +37,13 @@ export default class Artist {
     this.wikiPage = wikiPage;
   }
 
-  public addError(err: string) {
+  public addError(err: string): void {
     if (!this.errors.includes(err)) {
       this.errors.push(err);
     }
   }
 
-  public removeError(err: string) {
+  public removeError(err: string): void {
     const index = this.errors.indexOf(err);
     if (index >= 0) {
       this.errors = [

@@ -1,13 +1,71 @@
-import Album from "./Album";
-import Artist from "./Artist";
+import Album, {AlbumParameters} from "./Album";
+import Artist, {ArtistParameters} from "./Artist";
 import {execSync} from "child_process";
 import fs from "fs";
 import Library from "./Library";
 import mm from "musicmetadata";
 import path from "path";
-import Playlist from "./Playlist";
+import Playlist, {PlaylistParameters} from "./Playlist";
 import shortid from "shortid";
-import Track from "./Track";
+import Track, {TrackParameters} from "./Track";
+
+interface TempArtistData {
+  albums: Set<string>;
+  genres: Set<string>;
+  id: number;
+  name: string;
+  tracks: number[];
+}
+
+interface TempTrackData {
+  id: number;
+  dateAdded: string;
+  duration: number;
+  filePath: string;
+  genres: Set<string>;
+  mainAlbum: string;
+  mainArtist: string;
+  name: string;
+  playCount: number;
+  playDate: string;
+  skipCount: number;
+  trackNumber: number;
+  year: number;
+}
+
+interface TempAlbumData {
+  id: number;
+  albumArtFile: string;
+  artistPath: string;
+  genres: Set<string>;
+  name: string;
+  playCount: number;
+  skipCount: number;
+  tracks: number[];
+  year: number;
+}
+
+interface ItunesTrackData {
+  "Persistent ID": number;
+  "Date Added": string;
+  "Total Time": string;
+  Location: string;
+  Comments: string;
+  Album: string;
+  Artist: string;
+  Name: string;
+  "Play Count": number;
+  "Play Date UTC": string;
+  "Skip Count": number;
+  "Track Number": number;
+  Year: number;
+}
+
+interface ItunesPlaylistData {
+  Tracks: ItunesTrackData[];
+  Name: string;
+  "Smart Criteria": string;
+}
 
 // TODO: redo this whole thing and just save the damn ids...
 
@@ -16,14 +74,14 @@ import Track from "./Track";
  * "Comments" attribution, formatted as a comma separated, quoted list.
  * i.e. "Rock", "Indie Rock", "Folk Rock"
  */
-function getGenres(trackData: {Comments: string}) {
+function getGenres(trackData: {Comments: string}): string[] {
   return trackData.Comments.split(", ").map((genre) => genre.slice(1, -1));
 }
 
 /**
  * Returns the file path levels up from the path given.
  */
-function upLevels(filePath: string, levels = 1) {
+function upLevels(filePath: string, levels = 1): string {
   const parts = filePath.split(path.sep);
   const newparts = parts.slice(0, -1 * levels);
   return path.join(...newparts);
@@ -34,9 +92,9 @@ function upLevels(filePath: string, levels = 1) {
  * TODO: create an itunes type file that exports the itunes data maps
  * remove the anys
  */
-function createArtistsFromItunesData(tracks: any) {
+function createArtistsFromItunesData(tracks: Map<number, ItunesTrackData>): Map<string, TempArtistData> {
   const artistMap = new Map();
-  tracks.forEach((track: any) => {
+  tracks.forEach((track: ItunesTrackData) => {
     const artistPath = upLevels(track.Location, 2);
     if (artistMap.has(artistPath)) {
       const artist = artistMap.get(artistPath);
@@ -61,7 +119,7 @@ function createArtistsFromItunesData(tracks: any) {
  * "Comments" attribution, formatted as a comma separated, quoted list.
  * i.e. "Rock", "Indie Rock", "Folk Rock"
  */
-function createGenresFromItunesData(tracks: Map<string, any>): string[] {
+function createGenresFromItunesData(tracks: Map<string, ItunesTrackData>): string[] {
   const genreSet = new Set() as Set<string>;
   tracks.forEach((track) => {
     const genres = getGenres(track);
@@ -74,12 +132,12 @@ function createGenresFromItunesData(tracks: Map<string, any>): string[] {
  * Gets the album art from an mp3 file. Saves the the art into its own file and
  * returns a promise with the file path.
  */
-function getAlbumArt(track: Track): Promise<string|null> {
+function getAlbumArt(track: TempTrackData): Promise<string|undefined> {
   return new Promise((resolve) => {
     const filePath = decodeURI(track.filePath.slice(7)).replace("%23", "#");
     try {
       const readStream = fs.createReadStream(filePath);
-      mm(readStream, (err: Error | null, data: any) => {
+      mm(readStream, (err: Error | undefined, data: {picture: Array<{data: Buffer}>}) => {
         const id = shortid.generate();
         if (err) {
           return;
@@ -87,13 +145,13 @@ function getAlbumArt(track: Track): Promise<string|null> {
         if (data.picture[0] && data.picture[0].data) {
           fs.writeFileSync(`./data/${id}.png`, data.picture[0].data);
         } else {
-          resolve(null);
+          resolve();
         }
         readStream.close();
         resolve(`./data/${id}.png`);
       });
     } catch (err) {
-      resolve(null);
+      resolve();
     }
   });
 }
@@ -102,7 +160,7 @@ function getAlbumArt(track: Track): Promise<string|null> {
  * Creates album data objects from itunes data. Returns a map where each file
  * path string points to the album data.
  */
-function createAlbumsFromItunesData(tracks: Map<string, any>) {
+function createAlbumsFromItunesData(tracks: Map<string, ItunesTrackData>): Map<string, TempAlbumData> {
   const albumMap = new Map();
   tracks.forEach((track) => {
     const albumString = upLevels(track.Location);
@@ -130,13 +188,13 @@ function createAlbumsFromItunesData(tracks: Map<string, any>) {
 /**
  * Creates tracks from an itunes data map.
  */
-function createTracksFromItunesData(tracks: Map<string, any>) {
+function createTracksFromItunesData(tracks: Map<string, ItunesTrackData>): Map<number, TempTrackData> {
   const trackMap = new Map();
   tracks.forEach((trackData) => {
     const persistentId = trackData["Persistent ID"];
     // make these into formal data classes?
     const track = {
-      dataAdded: trackData["Date Added"],
+      dateAdded: trackData["Date Added"],
       duration: trackData["Total Time"],
       filePath: trackData.Location,
       genres: new Set(getGenres(trackData)),
@@ -159,20 +217,20 @@ function createTracksFromItunesData(tracks: Map<string, any>) {
  */
 export function loadLibrary(libraryFile: string): Promise<Library> {
   return new Promise((resolve, reject) => {
-    fs.readFile(libraryFile, (err: Error | null, data: any) => {
+    fs.readFile(libraryFile, (err: Error | null, data: Buffer) => {
       if (err) {
         return reject(err);
       }
-      const libraryData = JSON.parse(data);
-      const tracks = libraryData.tracks_.map(
-        (trackData: any, index: number) => new Track(index, trackData));
-      const albums = libraryData.albums_.map(
-        (albumData: any, index: number) => new Album(index, albumData));
-      const artists = libraryData.artists_.map(
-        (artistData: any, index: number) => new Artist(index, artistData));
-      const genres = libraryData.genres_;
-      const playlists = libraryData.playlists_.map(
-        (playlistData: any) => new Playlist(playlistData),
+      const libraryData = JSON.parse(data.toString());
+      const tracks = libraryData.tracks.map(
+        (trackData: TrackParameters, index: number) => new Track(index, trackData));
+      const albums = libraryData.albums.map(
+        (albumData: AlbumParameters, index: number) => new Album(index, albumData));
+      const artists = libraryData.artists.map(
+        (artistData: ArtistParameters, index: number) => new Artist(index, artistData));
+      const genres = libraryData.genres;
+      const playlists = libraryData.playlists.map(
+        (playlistData: PlaylistParameters) => new Playlist(playlistData),
       );
       return resolve(new Library(tracks, albums, artists, genres, playlists));
     });
@@ -182,7 +240,7 @@ export function loadLibrary(libraryFile: string): Promise<Library> {
 /**
  * Deletes a directory and all its contents.
  */
-function deleteRecursive(filepath: string) {
+function deleteRecursive(filepath: string): void {
   if (!fs.existsSync(filepath)) {
     return;
   }
@@ -197,20 +255,15 @@ function deleteRecursive(filepath: string) {
   fs.rmdirSync(filepath);
 }
 
-/**
- * Deletes the data directory.
- * @return {!Promise} a promise resolving once completed.
- */
-export function deleteLibrary() {
+/** Deletes the data directory. */
+export function deleteLibrary(): Promise<void> {
   return new Promise((resolve) => {
     deleteRecursive("./data/");
     resolve();
   });
 }
 
-/**
- * Reads a library from an itunes manifest file and turns it into a library.
- */
+/** Reads a library from an itunes manifest file and turns it into a library. */
 export function createLibraryFromItunes(): Promise<Library> {
   // reload itunes data -> json
   // TODO: delete tracks.json?
@@ -237,11 +290,11 @@ export function createLibraryFromItunes(): Promise<Library> {
     const playlistFileData = fs.readFileSync(playlistFile);
     const rawTrackData = JSON.parse(trackFileData.toString());
     const rawPlaylistFileData = JSON.parse(playlistFileData.toString());
-    const realPlaylists = rawPlaylistFileData.filter((playlist: any) => {
+    const realPlaylists = rawPlaylistFileData.filter((playlist: ItunesPlaylistData) => {
       return !(playlist.Name === "Library" || playlist["Smart Criteria"]);
     });
     const trackData = new Map();
-    rawTrackData.forEach((track: any) => {
+    rawTrackData.forEach((track: ItunesTrackData) => {
       trackData.set(track["Persistent ID"], track);
     });
     const genreArray = createGenresFromItunesData(trackData);
@@ -257,9 +310,12 @@ export function createLibraryFromItunes(): Promise<Library> {
 
     // sort tracks in albums:
     albumMap.forEach((albumData) => {
-      albumData.tracks.sort((trackId1: string, trackId2: string) => {
+      albumData.tracks.sort((trackId1: number, trackId2: number) => {
         const track1 = trackMap.get(trackId1);
         const track2 = trackMap.get(trackId2);
+        if (!track1 || !track2) {
+          return 0;
+        }
         return track1.trackNumber - track2.trackNumber;
       });
     });
@@ -324,13 +380,17 @@ export function createLibraryFromItunes(): Promise<Library> {
     albumMap.forEach((albumData) => {
       const album = albums[albumData.id];
       const artistData = artistMap.get(albumData.artistPath);
-      album.artistIds.push(artistData.id);
+      if (artistData) {
+        album.artistIds.push(artistData.id);
+      }
     });
     trackMap.forEach((data) => {
       const track = tracks[data.id];
       const artistLocation = upLevels(data.filePath, 2);
       const artistData = artistMap.get(artistLocation);
-      track.artistIds.push(artistData.id);
+      if (artistData) {
+        track.artistIds.push(artistData.id);
+      }
     });
 
     // set album ids
@@ -338,31 +398,38 @@ export function createLibraryFromItunes(): Promise<Library> {
       const track = tracks[data.id];
       const albumLocation = upLevels(data.filePath);
       const albumData = albumMap.get(albumLocation);
-      track.albumIds.push(albumData.id);
+      if (albumData) {
+        track.albumIds.push(albumData.id);
+      }
     });
     albumMap.forEach((albumData) => {
       const artistData = artistMap.get(albumData.artistPath);
-      const artist = artists[artistData.id];
-      artist.albumIds.push(albumData.id);
+      if (artistData) {
+        const artist = artists[artistData.id];
+        artist.albumIds.push(albumData.id);
+      }
     });
     // set track ids
     trackMap.forEach((data) => {
       const artistLocation = upLevels(data.filePath, 2);
       const artistData = artistMap.get(artistLocation);
-      const artist = artists[artistData.id];
-      artist.trackIds.push(data.id);
+      if (artistData) {
+        const artist = artists[artistData.id];
+        artist.trackIds.push(data.id);
+      }
     });
     albumMap.forEach((albumData) => {
       const album = albums[albumData.id];
-      album.trackIds = albumData.tracks.map((trackPid: string) => {
+      album.trackIds = albumData.tracks.map((trackPid: number) => {
         const data = trackMap.get(trackPid);
-        return data.id;
+        return (data && data.id) || 0;
       });
     });
-    const playlists = realPlaylists.map((playlist: any) => {
-      const trackIds = playlist.Tracks.filter((track: any) => track != null)
-        .map((track: any) => {
-          return trackMap.get(track["Persistent ID"]).id;
+    const playlists = realPlaylists.map((playlist: ItunesPlaylistData) => {
+      const trackIds = playlist.Tracks.filter((track: ItunesTrackData) => !!track)
+        .map((track: ItunesTrackData) => {
+          const data = trackMap.get(track["Persistent ID"]);
+          return (data && data.id) || 0;
         });
       return new Playlist({name: playlist.Name, trackIds});
     });
@@ -372,11 +439,13 @@ export function createLibraryFromItunes(): Promise<Library> {
       const track = trackMap.get(albumData.tracks[0]);
       const album = albums[albumData.id];
       // TODO: check multiple tracks for album art data?
-      promises.push(getAlbumArt(track).then((artFile: string|null) => {
-        if (artFile) {
-          album.albumArtFile = artFile;
-        }
-      }));
+      if (track) {
+        promises.push(getAlbumArt(track).then((artFile: string|undefined) => {
+          if (artFile) {
+            album.albumArtFile = artFile;
+          }
+        }));
+      }
     });
     Promise.all(promises).then(() => {
       resolve(new Library(tracks, albums, artists, genreArray, playlists));

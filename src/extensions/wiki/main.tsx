@@ -9,23 +9,14 @@ import Library from "../../library/Library";
 // TODO: set num by isDev
 const CONCURRENT = 7;
 
-/**
- * Returns a pool of modifiers to run.
- * @param {!Library} library Library to modify.
- * @param {!Array<T>} items Array of items to modify.
- * @param {string} prefix An identifying string to use as a prefix in html.
- * @param {!function(T):string} getName A function that takes int he item to
- *  modify and returns its name
- * @param {!function(T):Promise} modifyFunc The modification function to run.
- * @return {!PromisePool} The pool to run
- */
+/** Returns a pool of modifiers to run. */
 function getPool<T>(
   library: Library,
   items: T[],
   prefix: string,
   getName: (item: T) =>  string,
   modifyFunc: (item: T, library: Library) =>  Promise<void>,
-) {
+): PromisePool<void> {
   let index = 0;
   ipcRenderer.send("extension-update", {
     items: items.length,
@@ -34,7 +25,7 @@ function getPool<T>(
   return new PromisePool(() => {
     const item = items[index];
     if (!item) {
-      return Promise.resolve(null);
+      return Promise.resolve();
     }
     const id = index++;
     const name = getName(item);
@@ -53,7 +44,7 @@ function getPool<T>(
   }, CONCURRENT);
 }
 
-function getAlbumsPool(library: Library) {
+function getAlbumsPool(library: Library): PromisePool<void> {
   return getPool(
     library,
     library.getAlbums(),
@@ -68,7 +59,7 @@ function getAlbumsPool(library: Library) {
   );
 }
 
-function getArtistPool(library: Library) {
+function getArtistPool(library: Library): PromisePool<void> {
   return getPool(
     library,
     library.getArtists(),
@@ -80,7 +71,7 @@ function getArtistPool(library: Library) {
   );
 }
 
-export default function runWikiExtension(library: Library) {
+export default function runWikiExtension(library: Library): PromiseLike<void> {
   // put these into a single pool so that you can go straight into the other
   // without having to wait for an acutal finish?
   const albumPool = getAlbumsPool(library);

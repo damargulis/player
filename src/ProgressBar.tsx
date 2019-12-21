@@ -4,14 +4,14 @@ import Track from "./library/Track";
 import {toTime} from "./utils";
 
 interface ProgressBarProps {
-  setTime: (time: number) => void;
   time: number;
   track?: Track;
+  setTime(time: number): void;
 }
 
-export default class ProgressBar extends React.Component<ProgressBarProps, {}> {
+export default class ProgressBar extends React.Component<ProgressBarProps> {
 
-  public render() {
+  public render(): JSX.Element {
     const totalDuration = this.props.track ? this.props.track.duration : 0;
     return (
       <div>
@@ -27,7 +27,8 @@ export default class ProgressBar extends React.Component<ProgressBarProps, {}> {
       </div>
     );
   }
-  private onChange(evt: React.ChangeEvent<HTMLInputElement>) {
+
+  private onChange(evt: React.ChangeEvent<HTMLInputElement>): void {
     this.props.setTime(parseFloat(evt.target.value));
   }
 }

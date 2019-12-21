@@ -19,17 +19,17 @@ import Track from "./library/Track";
 
 interface MaxWindowProps {
   library: Library;
-  nextAlbum: () => void;
-  nextTrack: () => void;
   playing: boolean;
   playlist: EmptyPlaylist;
-  playPause: () => void;
-  prevAlbum: () => void;
-  prevTrack: () => void;
-  setTime: (time: number) => void;
-  setVolume: (vol: number) => void;
   time: number;
-  setPlaylistAndPlay: (playlist: EmptyPlaylist) => void;
+  nextAlbum(): void;
+  nextTrack(): void;
+  playPause(): void;
+  prevAlbum(): void;
+  prevTrack(): void;
+  setTime(time: number): void;
+  setVolume(vol: number): void;
+  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
 interface MaxWindowState {
@@ -56,11 +56,11 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     ipcRenderer.on("toSong", this.onSongMessage.bind(this));
   }
 
-  public componentWillUnmount() {
+  public componentWillUnmount(): void {
     ipcRenderer.removeListener("toArtist", this.onArtistMessage);
   }
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <div id="max-window" >
         <Header
@@ -97,27 +97,27 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     );
   }
 
-  private onSongMessage(evt: Event, data: {song: Track}) {
+  private onSongMessage(evt: Event, data: {song: Track}): void {
     this.goToSong(data.song);
   }
 
-  private onAlbumMessage(evt: Event, data: {album: Album}) {
+  private onAlbumMessage(evt: Event, data: {album: Album}): void {
     const album = this.props.library.getAlbumById(data.album.id);
     this.goToAlbum(album);
   }
 
-  private onArtistMessage(evt: Event, data: {artist: Artist}) {
+  private onArtistMessage(evt: Event, data: {artist: Artist}): void {
     const artist = this.props.library.getArtistById(data.artist.id);
     this.goToArtist(artist);
   }
 
-  private setGenres(genres: number[]) {
+  private setGenres(genres: number[]): void {
     this.setState({
       genres,
     });
   }
 
-  private setType(type: string) {
+  private setType(type: string): void {
     this.setState({
       curScene: -1,
       playlistType: type,
@@ -125,23 +125,23 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     });
   }
 
-  private goBack() {
+  private goBack(): void {
     this.setState({
       curScene: this.state.curScene - 1,
     });
   }
 
-  private goForward() {
+  private goForward(): void {
     this.setState({
       curScene: this.state.curScene + 1,
     });
   }
 
-  private canGoForward() {
+  private canGoForward(): boolean {
     return this.state.curScene < this.state.scenes.length - 1;
   }
 
-  private goToSong(song: Track) {
+  private goToSong(song: Track): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <SongPicker
@@ -155,7 +155,7 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     this.setState({scenes, curScene});
   }
 
-  private goToAlbum(album: Album) {
+  private goToAlbum(album: Album): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <AlbumPage
@@ -172,7 +172,7 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     this.setState({scenes, curScene});
   }
 
-  private goToArtist(artist: Artist) {
+  private goToArtist(artist: Artist): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <ArtistPage
@@ -190,7 +190,7 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     this.setState({scenes, curScene});
   }
 
-  private goToPlaylist(playlist: Playlist) {
+  private goToPlaylist(playlist: Playlist): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       (genres) => <PlaylistPage
@@ -208,7 +208,7 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     this.setState({scenes, curScene});
   }
 
-  private getPicker() {
+  private getPicker(): JSX.Element | undefined {
     if (this.state.curScene >= 0) {
       return this.state.scenes[this.state.curScene](this.state.genres);
     }
@@ -247,7 +247,7 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
         />
       );
     default:
-      return null;
+      return;
     }
   }
 }

@@ -10,16 +10,16 @@ import {getImgSrc} from "./utils";
 Modal.setAppElement("#root");
 
 interface ControlPanelProps {
-  setVolume: (vol: number) => void;
   playlist: EmptyPlaylist;
   volumeButton?: boolean;
-  prevAlbum: () => void;
-  prevTrack: () => void;
-  playPause: () => void;
   playing: boolean;
-  nextTrack: () => void;
   library: Library;
-  nextAlbum: () => void;
+  setVolume(vol: number): void;
+  prevAlbum(): void;
+  prevTrack(): void;
+  playPause(): void;
+  nextTrack(): void;
+  nextAlbum(): void;
 }
 
 interface ControlPanelState {
@@ -35,7 +35,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
     };
   }
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <div id="control-panel" style={{display: "flex"}}>
         {
@@ -94,23 +94,23 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
     );
   }
 
-  private setVolume(evt: ChangeEvent<HTMLInputElement>) {
+  private setVolume(evt: ChangeEvent<HTMLInputElement>): void {
     this.props.setVolume(parseInt(evt.currentTarget.value, 10));
   }
 
-  private onClick() {
+  private onClick(): void {
     this.setState({
       volume: true,
     });
   }
 
-  private close() {
+  private close(): void {
     this.setState({
       volume: false,
     });
   }
 
-  private getVolumeControl() {
+  private getVolumeControl(): JSX.Element {
     if (this.props.volumeButton) {
       const style = {
         content: {

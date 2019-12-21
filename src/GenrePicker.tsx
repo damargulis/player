@@ -3,7 +3,7 @@ import React from "react";
 
 interface GenrePickerProps {
   library: Library;
-  setGenres: (genres: number[]) => void;
+  setGenres(genres: number[]): void;
 }
 
 interface GenreElement {
@@ -13,9 +13,9 @@ interface GenreElement {
 
 // TODO: make this a part of the pages only when its needed, send in available
 // genres as a prop
-export default class GenrePicker extends React.Component<GenrePickerProps, {}> {
+export default class GenrePicker extends React.Component<GenrePickerProps> {
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <div id="genre-picker">
         <select multiple onChange={this.onChange.bind(this)} size={10}
@@ -28,7 +28,8 @@ export default class GenrePicker extends React.Component<GenrePickerProps, {}> {
       </div>
     );
   }
-  private getOptions() {
+
+  private getOptions(): JSX.Element[] {
     return this.props.library.getGenres().map((genre: string, index: number) => {
       return {
         html: <option key={genre} value={index}>{genre}</option>,
@@ -41,7 +42,7 @@ export default class GenrePicker extends React.Component<GenrePickerProps, {}> {
     });
   }
 
-  private onChange(evt: React.ChangeEvent<HTMLSelectElement>) {
+  private onChange(evt: React.ChangeEvent<HTMLSelectElement>): void {
     const options = [];
     for (const option of evt.target.selectedOptions) {
       options.push(parseInt(option.value, 10));

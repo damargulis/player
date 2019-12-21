@@ -6,21 +6,18 @@ import * as React from "react";
 import {getImgSrc} from "./utils";
 
 interface AlbumInfoProps {
-  playAlbum: (album: Album) => void;
-  goToAlbum: (album: Album) => void;
   album: Album;
   library: Library;
-  style: {
-    width: number,
-    backgroundColor: string,
-  };
+  style: React.CSSProperties;
+  playAlbum(album: Album): void;
+  goToAlbum(album: Album): void;
 }
 
-export default class AlbumInfo extends React.Component<AlbumInfoProps, {}> {
+export default class AlbumInfo extends React.Component<AlbumInfoProps> {
   private timer?: number;
   private prevent: boolean;
 
-  constructor(props: any) {
+  constructor(props: AlbumInfoProps) {
     super(props);
 
     this.timer = undefined;
@@ -28,12 +25,13 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps, {}> {
     this.prevent = false;
   }
 
-  public render() {
+  public render(): JSX.Element {
     // recenter with new width filling full space
+    const width = this.props.style.width as number;
     const newStyle = {
       ...this.props.style,
-      paddingLeft: (this.props.style.width - 150) / 2,
-      paddingRight: (this.props.style.width - 150) / 2,
+      paddingLeft: (width - 150) / 2,
+      paddingRight: (width - 150) / 2,
       width: 150,
     };
     if (!this.props.album) {
@@ -81,7 +79,7 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps, {}> {
     );
   }
 
-  private onClickAlbum() {
+  private onClickAlbum(): void {
     this.timer = window.setTimeout(() => {
       if (!this.prevent) {
         this.doClickAlbum();
@@ -90,17 +88,17 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps, {}> {
     }, 200);
   }
 
-  private onDoubleClickAlbum() {
+  private onDoubleClickAlbum(): void {
     clearTimeout(this.timer);
     this.prevent = true;
     this.doDoubleClickAlbum();
   }
 
-  private doDoubleClickAlbum() {
+  private doDoubleClickAlbum(): void {
     this.props.playAlbum(this.props.album);
   }
 
-  private doClickAlbum() {
+  private doClickAlbum(): void {
     this.props.goToAlbum(this.props.album);
   }
 }

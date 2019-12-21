@@ -19,7 +19,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     this.albums = albums;
   }
 
-  public getCurrentAlbum() {
+  public getCurrentAlbum(): Album {
     return this.playlist[this.currentAlbum];
   }
 
@@ -31,7 +31,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.library.getTrack(album.trackIds[this.currentTrack]);
   }
 
-  public nextAlbum() {
+  public nextAlbum(): Track | undefined {
     this.currentAlbum++;
     this.currentTrack = 0;
     if (this.playlist.length <= this.currentAlbum) {
@@ -45,7 +45,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public nextTrack() {
+  public nextTrack(): Track | undefined {
     this.currentTrack++;
     if (!this.getCurrentTrack()) {
       return this.nextAlbum();
@@ -53,7 +53,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public prevTrack() {
+  public prevTrack(): Track | undefined {
     this.currentTrack -= 1;
     if (!this.getCurrentTrack()) {
       this.currentAlbum--;
@@ -62,29 +62,29 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public prevAlbum() {
+  public prevAlbum(): Track | undefined {
     this.currentAlbum -= 1;
     this.currentTrack = 0;
     return this.getCurrentTrack();
   }
 
-  public hasNextAlbum() {
+  public hasNextAlbum(): boolean {
     return true;
   }
 
-  public hasNextTrack() {
+  public hasNextTrack(): boolean {
     return true;
   }
 
-  public hasPrevAlbum() {
+  public hasPrevAlbum(): boolean {
     return this.currentAlbum > 0;
   }
 
-  public hasPrevTrack() {
+  public hasPrevTrack(): boolean {
     return this.currentAlbum > 0 || this.currentTrack > 0;
   }
 
-  public addAlbum(album: Album) {
+  public addAlbum(album: Album): void {
     this.playlist = this.playlist.slice(0, this.currentAlbum + 1);
     this.playlist.push(album);
   }

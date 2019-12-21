@@ -124,7 +124,7 @@ export default class App extends React.Component<{}, AppState> {
     });
   }
 
-  public render() {
+  public render(): JSX.Element {
     const mini = this.state.mini;
     // both kept on so that the subscriptions in max window stay, otherwise
     // message comes in before max window gets reattached
@@ -166,20 +166,20 @@ export default class App extends React.Component<{}, AppState> {
     );
   }
 
-  private setVolume(volume: number) {
+  private setVolume(volume: number): void {
     this.audio.volume = volume;
   }
 
-  private setTime(time: number) {
+  private setTime(time: number): void {
     this.audio.currentTime = time / 1000;
   }
 
-  private setSourceAndPlay() {
+  private setSourceAndPlay(): void {
     this.setSource();
     this.play();
   }
 
-  private playPause() {
+  private playPause(): void {
     if (this.state.playing) {
       this.pause();
     } else {
@@ -187,56 +187,56 @@ export default class App extends React.Component<{}, AppState> {
     }
   }
 
-  private play() {
+  private play(): void {
     this.audio.play();
     this.setState({
       playing: true,
     });
   }
 
-  private pause() {
+  private pause(): void {
     this.audio.pause();
     this.setState({
       playing: false,
     });
   }
 
-  private setSource() {
+  private setSource(): void {
     const track = this.state.playlist.getCurrentTrack();
     if (track) {
       this.audio.src = new URL(track.filePath).toString();
     }
   }
 
-  private onMaximize() {
+  private onMaximize(): void {
     this.setState({ mini: false });
   }
 
-  private onMinimize() {
+  private onMinimize(): void {
     this.setState({ mini: true });
   }
 
-  private nextTrack() {
+  private nextTrack(): void {
     this.state.playlist.nextTrack();
     this.setSourceAndPlay();
   }
 
-  private nextAlbum() {
+  private nextAlbum(): void {
     this.state.playlist.nextAlbum();
     this.setSourceAndPlay();
   }
 
-  private prevAlbum() {
+  private prevAlbum(): void {
     this.state.playlist.prevAlbum();
     this.setSourceAndPlay();
   }
 
-  private prevTrack() {
+  private prevTrack(): void {
     this.state.playlist.prevTrack();
     this.setSourceAndPlay();
   }
 
-  private setPlaylistAndPlay(playlist: EmptyPlaylist) {
+  private setPlaylistAndPlay(playlist: EmptyPlaylist): void {
     this.setState({playlist}, () => this.nextTrack());
   }
 }

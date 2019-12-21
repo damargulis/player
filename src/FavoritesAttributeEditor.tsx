@@ -5,8 +5,8 @@ interface FavoritesAttributeEditorProps {
   yearsFavorited: number[];
 }
 
-export default class FavoritesAttributeEditor extends React.Component<FavoritesAttributeEditorProps, {}> {
-  public render() {
+export default class FavoritesAttributeEditor extends React.Component<FavoritesAttributeEditorProps> {
+  public render(): JSX.Element {
     return (
       <AttributeList
         attributes={this.props.yearsFavorited}

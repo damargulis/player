@@ -11,21 +11,21 @@ import Track from "./library/Track";
 
 interface MiniWindowProps {
   library: Library;
-  nextAlbum: () => void;
-  nextTrack: () => void;
   playing: boolean;
   playlist: EmptyPlaylist;
-  playPause: () => void;
-  prevAlbum: () => void;
-  prevTrack: () => void;
-  setTime: (time: number) => void;
-  setVolume: (vol: number) => void;
   time: number;
+  nextAlbum(): void;
+  nextTrack(): void;
+  playPause(): void;
+  prevAlbum(): void;
+  prevTrack(): void;
+  setTime(time: number): void;
+  setVolume(vol: number): void;
 }
 
-export default class MiniWindow extends React.Component<MiniWindowProps, {}> {
+export default class MiniWindow extends React.Component<MiniWindowProps> {
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <div id="mini-window">
         <InfoPanel
@@ -58,15 +58,15 @@ export default class MiniWindow extends React.Component<MiniWindowProps, {}> {
       </div>
     );
   }
-  private goToSong(song: Track) {
+  private goToSong(song: Track): void {
     ipcRenderer.send("goToSong", {song});
   }
 
-  private goToArtist(artist: Artist) {
+  private goToArtist(artist: Artist): void {
     ipcRenderer.send("goToArtist", {artist});
   }
 
-  private goToAlbum(album: Album) {
+  private goToAlbum(album: Album): void {
     ipcRenderer.send("goToAlbum", {album});
   }
 }

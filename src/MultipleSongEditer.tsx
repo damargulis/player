@@ -10,7 +10,7 @@ import Track from "./library/Track";
 interface MultipleSongEditerProps {
   library: Library;
   tracks: Track[];
-  exit: () => void;
+  exit(): void;
 }
 
 interface MultipleSongEditerState {
@@ -51,7 +51,7 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
     this.playCount = React.createRef();
   }
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <div>
         <h3 className="title">Edit Tracks</h3>
@@ -132,31 +132,31 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
     );
   }
 
-  private editGenre(editing: boolean) {
+  private editGenre(editing: boolean): void {
     this.setState({editGenre: editing});
   }
 
-  private editArtists(editing: boolean) {
+  private editArtists(editing: boolean): void {
     this.setState({editArtists: editing});
   }
 
-  private editFavorites(editing: boolean) {
+  private editFavorites(editing: boolean): void {
     this.setState({editFavorites: editing});
   }
 
-  private editYear(editing: boolean) {
+  private editYear(editing: boolean): void {
     this.setState({editYear: editing});
   }
 
-  private editPlayCount(editing: boolean) {
+  private editPlayCount(editing: boolean): void {
     this.setState({editPlayCount: editing});
   }
 
-  private editAlbums(editing: boolean) {
+  private editAlbums(editing: boolean): void {
     this.setState({editAlbums: editing});
   }
 
-  private saveTrack(track: Track) {
+  private saveTrack(track: Track): void {
     if (this.state.editGenre) {
       track.genreIds = this.state.genreIds;
     }
@@ -191,7 +191,7 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
     }
   }
 
-  private save() {
+  private save(): void {
     this.props.tracks.forEach((track) => {
       this.saveTrack(track);
     });

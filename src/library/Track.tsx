@@ -1,3 +1,17 @@
+export interface TrackParameters {
+  duration?: number;
+  playCount?: number;
+  playDate?: string;
+  filePath?: string;
+  artistIds?: number[];
+  albumIds?: number[];
+  name?: string;
+  year?: number;
+  genreIds?: number[];
+  skipCount?: number;
+  dateAdded?: string;
+  favorites?: number[];
+}
 
 export default class Track {
   public duration: number;
@@ -27,7 +41,7 @@ export default class Track {
     dateAdded = "",
     playDate = "",
     favorites = [],
-  }) {
+  }: TrackParameters) {
     this.id = id;
     this.name = name;
     this.duration = duration;

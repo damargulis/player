@@ -8,8 +8,8 @@ interface ArtistAttributeEditorProps {
   library: Library;
 }
 
-export default class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps, {}> {
-  public render() {
+export default class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps> {
+  public render(): JSX.Element {
     return (
       <AttributeList
         attributes={this.props.artistIds}

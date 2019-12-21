@@ -9,16 +9,16 @@ import {toTime} from "./utils";
 interface PlaylistPageProps {
   canGoForward: boolean;
   genres: number[];
-  goBack: () => void;
-  goForward: () => void;
   library: Library;
   playlist: Playlist;
-  setPlaylistAndPlay: (playlist: EmptyPlaylist) => void;
+  goBack(): void;
+  goForward(): void;
+  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
-export default class PlaylistPage extends React.Component<PlaylistPageProps, {}> {
+export default class PlaylistPage extends React.Component<PlaylistPageProps> {
 
-  public render() {
+  public render(): JSX.Element {
     const src = "";
     const allPlaylistSongs = this.props.library.getTracksByIds(
       this.props.playlist.trackIds);
@@ -54,7 +54,8 @@ export default class PlaylistPage extends React.Component<PlaylistPageProps, {}>
       </div>
     );
   }
-  private getTotalTime() {
+
+  private getTotalTime(): string {
     const songs = this.props.library.getTracksByIds(
       this.props.playlist.trackIds);
     const duration = songs.reduce((total, song) => total + song.duration, 0);

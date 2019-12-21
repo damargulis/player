@@ -16,16 +16,16 @@ import {getImgSrc, toTime} from "./utils";
 interface AlbumPageProps {
   album: Album;
   library: Library;
-  goToArtist: (artist: Artist) => void;
-  setPlaylistAndPlay: (playlist: EmptyPlaylist) => void;
   canGoForward: boolean;
-  goBack: () => void;
-  goForward: () => void;
+  goToArtist(artist: Artist): void;
+  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
+  goBack(): void;
+  goForward(): void;
 }
 
-export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
+export default class AlbumPage extends React.Component<AlbumPageProps> {
 
-  public render() {
+  public render(): JSX.Element {
     // TODO: use albumInfo or combine logic
     // ya know actually separate conscers and shit
     let file = this.props.album && this.props.album.albumArtFile;
@@ -107,7 +107,8 @@ export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
       </div>
     );
   }
-  private runWiki() {
+
+  private runWiki(): void {
     modifyAlbum(this.props.album, this.props.library).then(() => {
       this.props.library.save().then(() => {
         this.forceUpdate();
@@ -115,7 +116,7 @@ export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
     });
   }
 
-  private acceptTrackWarnings() {
+  private acceptTrackWarnings(): void {
     for (const indexStr in this.props.album.warnings) {
       if (this.props.album.warnings.hasOwnProperty(indexStr)) {
         const index = parseInt(indexStr, 10);
@@ -130,10 +131,10 @@ export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
     });
   }
 
-  private getWarnings() {
+  private getWarnings(): JSX.Element | undefined {
     const warnings = Object.keys(this.props.album.warnings);
     if (!warnings.length) {
-      return null;
+      return;
     }
     return (
       <div style={{
@@ -158,9 +159,9 @@ export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
     );
   }
 
-  private getErrors() {
+  private getErrors(): JSX.Element | undefined {
     if (!this.props.album.errors.length) {
-      return null;
+      return;
     }
     return (
       <div style={{
@@ -183,9 +184,9 @@ export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
     );
   }
 
-  private getArtistLinks() {
+  private getArtistLinks(): JSX.Element[] | undefined {
     if (!this.props.album) {
-      return null;
+      return;
     }
     const artists = this.props.library.getArtistsByIds(
       this.props.album.artistIds);
@@ -200,13 +201,13 @@ export default class AlbumPage extends React.Component<AlbumPageProps, {}> {
     });
   }
 
-  private getTotalTime() {
+  private getTotalTime(): string {
     const songs = this.props.library.getAlbumTracks(this.props.album);
     const duration = songs.reduce((total: number, song: Track) => total + song.duration, 0);
     return toTime(duration);
   }
 
-  private playAlbum() {
+  private playAlbum(): void {
     const playlist = new RandomAlbumPlaylist(
       this.props.library, [this.props.album]);
     playlist.addAlbum(this.props.album);

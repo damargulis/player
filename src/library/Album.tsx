@@ -1,3 +1,17 @@
+export interface AlbumParameters {
+  warnings?: Record<string, string>;
+  errors?: string[];
+  albumArtFile?: string;
+  artistIds?: number[];
+  name?: string;
+  trackIds?: number[];
+  year?: number;
+  wikiPage?: string;
+  genreIds?: number[];
+  playCount?: number;
+  skipCount?: number;
+  favorites?: number[];
+}
 
 export default class Album {
   public id: number;
@@ -27,7 +41,7 @@ export default class Album {
     errors = [],
     warnings = {},
     favorites = [],
-  }) {
+  }: AlbumParameters) {
     this.id = id;
     this.name = name;
     this.trackIds = trackIds;
@@ -46,13 +60,13 @@ export default class Album {
     this.favorites = favorites;
   }
 
-  public addError(err: string) {
+  public addError(err: string): void {
     if (!this.errors.includes(err)) {
       this.errors.push(err);
     }
   }
 
-  public removeError(err: string) {
+  public removeError(err: string): void {
     const index = this.errors.indexOf(err);
     if (index >= 0) {
       this.errors = [
@@ -62,7 +76,7 @@ export default class Album {
     }
   }
 
-  public addTrackWarning(index: number, trackTitles: string) {
+  public addTrackWarning(index: number, trackTitles: string): void {
     this.warnings[index] = trackTitles;
   }
 }

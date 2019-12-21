@@ -8,8 +8,8 @@ interface AlbumAttributeEditorProps {
   library: Library;
 }
 
-export default class AlbumAttributeEditor extends React.Component<AlbumAttributeEditorProps, {}> {
-  public render() {
+export default class AlbumAttributeEditor extends React.Component<AlbumAttributeEditorProps> {
+  public render(): JSX.Element {
     return (
       <AttributeList
         attributes={this.props.albumIds}

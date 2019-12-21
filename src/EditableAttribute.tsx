@@ -2,7 +2,7 @@ import React from "react";
 
 interface EditableAttributeProps<T> {
   attr: T;
-  onSave: (value: T) => void;
+  onSave(value: T): void;
 }
 
 interface EditableAttributeState<T> {
@@ -22,13 +22,13 @@ export default class EditableAttribute<T> extends
     };
   }
 
-  public componentDidUpdate(prevProps: EditableAttributeProps<T>) {
+  public componentDidUpdate(prevProps: EditableAttributeProps<T>): void {
     if (this.props.attr !== prevProps.attr) {
       this.setState({value: this.props.attr});
     }
   }
 
-  public render() {
+  public render(): JSX.Element {
     return (
       <div>
         <input
@@ -48,7 +48,7 @@ export default class EditableAttribute<T> extends
     );
   }
 
-  private edit() {
+  private edit(): void {
     this.setState({
       editing: true,
     }, () => {
@@ -59,20 +59,20 @@ export default class EditableAttribute<T> extends
     });
   }
 
-  private onChange(evt: React.ChangeEvent<HTMLInputElement>) {
+  private onChange(evt: React.ChangeEvent<HTMLInputElement>): void {
     this.setState({
       value: evt.target.value as unknown as T,
     });
   }
 
-  private save() {
+  private save(): void {
     this.setState({
       editing: false,
     });
     this.props.onSave(this.state.value);
   }
 
-  private onKeyUp(evt: React.KeyboardEvent) {
+  private onKeyUp(evt: React.KeyboardEvent): void {
     if (evt.key === "Enter") {
       this.save();
     }

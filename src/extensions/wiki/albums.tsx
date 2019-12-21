@@ -16,7 +16,7 @@ import rp from "request-promise-native";
 import shortid from "shortid";
 import {findAsync, getDoc, getGenresByRow, sanitize} from "./utils";
 
-function getYear(rootNode: HTMLElement) {
+function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || "";
   let str = sanitize(released);
   if (str.indexOf("(") > 0) {
@@ -26,7 +26,7 @@ function getYear(rootNode: HTMLElement) {
   return time.year();
 }
 
-function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>) {
+function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>): number | undefined {
   for (const row of rows) {
     const headers = row.getElementsByTagName("th");
     const name = headers[0] && headers[0].textContent;
@@ -35,10 +35,10 @@ function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>) {
       return getYear(data);
     }
   }
-  return null;
+  return;
 }
 
-function getAllWikiOptions(album: Album, artist: Artist) {
+function getAllWikiOptions(album: Album, artist: Artist): string[] {
   const albumName = album.name.replace("#", "Number ").replace(/ /g, "_");
   const artistName = artist.name.replace(/ /g, "_");
   return [
@@ -55,7 +55,7 @@ function getAllWikiOptions(album: Album, artist: Artist) {
   ];
 }
 
-function isRightLink(link: string, album: Album, artist: Artist) {
+function isRightLink(link: string, album: Album, artist: Artist): Promise<boolean> {
   return rp(link).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, "text/html");
@@ -71,7 +71,7 @@ function isRightLink(link: string, album: Album, artist: Artist) {
   });
 }
 
-function searchForWikiPage(album: Album, library: Library) {
+function searchForWikiPage(album: Album, library: Library): Promise<string> {
   const artist = library.getArtistsByIds(album.artistIds)[0];
   const options = getAllWikiOptions(album, artist);
   return findAsync(options, (option: string) => {
@@ -79,7 +79,7 @@ function searchForWikiPage(album: Album, library: Library) {
   });
 }
 
-function getTracksFromTracklist(tracklist: Element) {
+function getTracksFromTracklist(tracklist: Element): string[] {
   const rows = tracklist.getElementsByTagName("tr");
   // splits into two arrays, headers which contains any rows that have a <th>
   // element, and dataRows which has all the others
@@ -92,7 +92,7 @@ function getTracksFromTracklist(tracklist: Element) {
       dataRows.push(row);
     }
   }
-  let goodHeader = null;
+  let goodHeader;
   for (const header of headers) {
     if (header.textContent && header.textContent.includes("Title")) {
       goodHeader = header;
@@ -108,11 +108,11 @@ function getTracksFromTracklist(tracklist: Element) {
     const data = row.getElementsByTagName("td");
     const titleText = data[titleIndex].textContent || "";
     const matches = titleText.match(/"(?<inner>.*?)"/);
-    return matches && matches.groups ? matches.groups.inner : null;
+    return matches && matches.groups ? matches.groups.inner : undefined;
   }).filter(Boolean) as string[];
 }
 
-function getTracks(doc: Document) {
+function getTracks(doc: Document): string[] {
   const tracklists = doc.getElementsByClassName("tracklist");
   // TODO: using first for now, should loop through all, check header to
   // determine what to do with it; can include multi releases, discs, versions,
@@ -131,7 +131,7 @@ function getTracks(doc: Document) {
   return tracks;
 }
 
-function modifyAlbum(album: Album, library: Library) {
+function modifyAlbum(album: Album, library: Library): Promise<void> {
   if (!album.wikiPage) {
     return Promise.resolve();
   }
@@ -192,7 +192,7 @@ function modifyAlbum(album: Album, library: Library) {
   });
 }
 
-export default function runAlbumModifier(album: Album, library: Library) {
+export default function runAlbumModifier(album: Album, library: Library): Promise<void> {
   if (!album.wikiPage) {
     return searchForWikiPage(album, library).then((wikiPage) => {
       if (wikiPage) {

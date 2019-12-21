@@ -15,15 +15,15 @@ interface ArtistPageProps {
   artist: Artist;
   library: Library;
   canGoForward: boolean;
-  goBack: () => void;
-  goForward: () => void;
-  goToAlbum: (album: Album) => void;
-  setPlaylistAndPlay: (playlist: EmptyPlaylist) => void;
+  goBack(): void;
+  goForward(): void;
+  goToAlbum(album: Album): void;
+  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
-export default class ArtistPage extends React.Component<ArtistPageProps, {}> {
+export default class ArtistPage extends React.Component<ArtistPageProps> {
 
-  public render() {
+  public render(): JSX.Element {
     const src = getImgSrc(
       this.props.artist.artFile || Resources.DEFAULT_ARTIST);
     return (
@@ -76,15 +76,16 @@ export default class ArtistPage extends React.Component<ArtistPageProps, {}> {
       </div>
     );
   }
-  private runWiki() {
+
+  private runWiki(): void {
     modifyArtist(this.props.artist, this.props.library).then(() => {
       this.props.library.save();
     });
   }
 
-  private getErrors() {
+  private getErrors(): JSX.Element | undefined {
     if (!this.props.artist.errors.length) {
-      return null;
+      return;
     }
     return (
       <div style={{

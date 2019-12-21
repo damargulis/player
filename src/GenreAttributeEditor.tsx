@@ -7,8 +7,8 @@ interface GenreAttributeEditorProps {
   library: Library;
 }
 
-export default class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps, {}> {
-  public render() {
+export default class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
+  public render(): JSX.Element {
     return (
       <AttributeList
         attributes={this.props.genreIds}

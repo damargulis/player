@@ -8,15 +8,15 @@ import "./SongEditer.css";
 
 interface SongEditerProps {
   tracks: Track[];
-  exit: () => void;
   library: Library;
+  exit(): void;
 }
 
-export default class SongEditer extends React.Component<SongEditerProps, {}> {
-  public render() {
+export default class SongEditer extends React.Component<SongEditerProps> {
+  public render(): JSX.Element | undefined {
     if (this.props.tracks.length === 0) {
       // TODO: Error out
-      return null;
+      return;
     }
     if (this.props.tracks.length === 1) {
       return (

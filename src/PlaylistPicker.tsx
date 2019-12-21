@@ -9,7 +9,7 @@ const THREE_MONTHS = 1000 * 60 * 60 * 24;
 /**
  * Gets the unlistened songs in the library.
  */
-function getUnlistened(library: Library) {
+function getUnlistened(library: Library): Playlist {
   const tracks = library.getTracks().filter((track) => {
     return track.playCount === 0;
   }).map((track) => {
@@ -21,7 +21,7 @@ function getUnlistened(library: Library) {
 /**
  * Gets the 100 most played songs in the library.
  */
-function getMostPlayed(library: Library) {
+function getMostPlayed(library: Library): Playlist {
   const tracks = library.getTracks().slice().sort((track1, track2) => {
     return track2.playCount - track1.playCount;
   }).slice(0, 100).map((track) => {
@@ -33,7 +33,7 @@ function getMostPlayed(library: Library) {
 /**
  * Gets the songs added to the library in the last 3 months.
  */
-function getRecentlyAdded(library: Library) {
+function getRecentlyAdded(library: Library): Playlist {
   const now = new Date().getTime();
   const tracks = library.getTracks().filter((track) => {
     return now - track.dateAdded.getTime() < THREE_MONTHS;
@@ -46,7 +46,7 @@ function getRecentlyAdded(library: Library) {
 /**
  * Gets the songs listened to in the last 3 months.
  */
-function getRecentlyPlayed(library: Library) {
+function getRecentlyPlayed(library: Library): Playlist {
   const now = new Date().getTime();
   const tracks = library.getTracks().filter((track) => {
     return now - track.playDate.getTime() < THREE_MONTHS;
@@ -59,7 +59,7 @@ function getRecentlyPlayed(library: Library) {
 /**
  * Gets playlist for likes in a given year.
  */
-function getLikesForYear(library: Library, year: number) {
+function getLikesForYear(library: Library, year: number): Playlist {
   const tracks = library.getTracks().filter((track) => {
     return track.favorites.indexOf(year) !== -1;
   }).map((track) => {
@@ -71,7 +71,7 @@ function getLikesForYear(library: Library, year: number) {
 /**
  * Gets a playlist of songs liked in each year.
  */
-function getLikesByYear(library: Library) {
+function getLikesByYear(library: Library): Playlist[] {
   const years = new Set<number>();
   library.getTracks().forEach((track) => {
     track.favorites.forEach((year) => years.add(year));
@@ -84,7 +84,7 @@ function getLikesByYear(library: Library) {
 /**
  * Gets playlist for album likes in a given year.
  */
-function getAlbumLikesForYear(library: Library, year: number) {
+function getAlbumLikesForYear(library: Library, year: number): Playlist {
   const tracks = library.getAlbums().filter((album) => {
     return album.favorites.indexOf(year) !== -1;
   }).map((album) => {
@@ -96,7 +96,7 @@ function getAlbumLikesForYear(library: Library, year: number) {
 /**
  * Gets a playlist of albums liked in each year.
  */
-function getAlbumLikesByYear(library: Library) {
+function getAlbumLikesByYear(library: Library): Playlist[] {
   const years = new Set<number>();
   library.getAlbums().forEach((album) => {
     album.favorites.forEach((year) => years.add(year));
@@ -109,7 +109,7 @@ function getAlbumLikesByYear(library: Library) {
 /**
  * Gets all auto playlists.
  */
-function getAutoPlaylists(library: Library) {
+function getAutoPlaylists(library: Library): Playlist[] {
   return [
     getMostPlayed(library),
     getUnlistened(library),
@@ -121,9 +121,9 @@ function getAutoPlaylists(library: Library) {
 }
 
 interface PlaylistPickerProps {
-  goToPlaylist: (playlist: Playlist) => void;
   library: Library;
-  setPlaylistAndPlay: (playlist: EmptyPlaylist) => void;
+  goToPlaylist(playlist: Playlist): void;
+  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
 interface PlaylistPickerState {
@@ -140,7 +140,7 @@ export default class PlaylistPicker extends React.Component<PlaylistPickerProps,
     };
   }
 
-  public render() {
+  public render(): JSX.Element {
     // todo: make auto different -- top heard, unheard, move errors to herei
     // instead of a filter, etc.
     return (
@@ -173,16 +173,17 @@ export default class PlaylistPicker extends React.Component<PlaylistPickerProps,
     );
   }
 
-  private renderPlaylist(index: number, key: string, style: {width: number}, playlist: Playlist) {
+  private renderPlaylist(index: number, key: string, style: React.CSSProperties, playlist: Playlist): JSX.Element {
     if (!playlist) {
       return (
         <div key={key} style={style} />
       );
     }
+    const width = style.width as number;
     const newStyle = {
       ...style,
-      paddingLeft: (style.width - 150) / 2,
-      paddingRight: (style.width - 150) / 2,
+      paddingLeft: (width - 150) / 2,
+      paddingRight: (width - 150) / 2,
       width: 150,
     };
     return (
@@ -195,13 +196,13 @@ export default class PlaylistPicker extends React.Component<PlaylistPickerProps,
   }
 
   // todo: make wrappedGrids items actually work and get rid of this
-  private autoCellRenderer(index: number, key: string, style: {width: number}) {
+  private autoCellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
     const playlist = this.state.autoPlaylists[index];
     return this.renderPlaylist(index, key, style, playlist);
   }
 
   // for regular playlists
-  private cellRenderer(index: number, key: string, style: {width: number}) {
+  private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
     const playlist = this.state.playlists[index];
     return this.renderPlaylist(index, key, style, playlist);
   }

@@ -3,10 +3,10 @@ import React from "react";
 
 interface AttributeListProps {
   attributes: number[];
-  getDisplayName: (id: number) => string;
   label: string;
-  searchFilter: (input: string, id: number) => boolean;
   suggestions: number[];
+  getDisplayName(id: number): string;
+  searchFilter(input: string, id: number): boolean;
 }
 
 interface AttributeListState {
@@ -22,7 +22,7 @@ export default class AttributeList extends React.Component<AttributeListProps, A
     };
   }
 
-  public render() {
+  public render(): JSX.Element {
     const suggestions = this.props.suggestions.filter((attr, index) => {
       return !this.state.current.includes(index);
     });
@@ -40,17 +40,17 @@ export default class AttributeList extends React.Component<AttributeListProps, A
     );
   }
 
-  private add(attr: number) {
+  private add(attr: number): void {
     this.state.current.push(attr);
     this.setState({current: this.state.current});
   }
 
-  private remove(index: number) {
+  private remove(index: number): void {
     this.state.current.splice(index, 1);
     this.setState({current: this.state.current});
   }
 
-  private getAttributes() {
+  private getAttributes(): JSX.Element[] {
     return this.state.current.map((attr, index) => {
       return (
         <div className="list-item" key={index}>
