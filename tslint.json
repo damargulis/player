@@ -1,0 +1,24 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+      "ordered-imports": [true, {
+        "module-source-path": "basename"
+      }],
+      "no-unnecessary-initializer": false,
+      "interface-name": false,
+      "no-any": true,
+      "no-inferrable-types": true,
+      "type-def": [true, "call-signature"],
+      "curly": true,
+      "no-inferred-empty-object-type": true,
+      "no-null-keyword": true,
+      "use-default-type-parameter": true,
+      "no-redundant-jsdoc": true,
+      "prefer-method-signature": true
+    },
+    "rulesDirectory": []
+}
