@@ -16,9 +16,9 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
     this.numCols = 0;
   }
 
-  public render(): JSX.Element | undefined {
+  public render(): JSX.Element | null {
     if (this.props.numItems === 0) {
-      return;
+      return null;
     }
     return (
       <AutoSizer>

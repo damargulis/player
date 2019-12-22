@@ -15,7 +15,6 @@
       "type-def": [true, "call-signature"],
       "curly": true,
       "no-inferred-empty-object-type": true,
-      "no-null-keyword": true,
       "use-default-type-parameter": true,
       "no-redundant-jsdoc": true,
       "prefer-method-signature": true
