@@ -1,10 +1,15 @@
-import {Resources} from "./constants";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Library from "./library/Library";
 import LikeButton from "./LikeButton";
+import nextAlbum from "./resources/next_album.png";
+import nextTrack from "./resources/next_track.png";
+import pauseButton from "./resources/pause.png";
+import playButton from "./resources/play.png";
+import prevAlbum from "./resources/previous_album.png";
+import prevTrack from "./resources/previous_track.png";
 import React, {ChangeEvent} from "react";
 import Modal from "react-modal";
-import {getImgSrc} from "./utils";
+import volumeButton from "./resources/volume.png";
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement("#root");
@@ -46,7 +51,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
           className="control-button"
           disabled={!this.props.playlist.hasPrevAlbum()}
           onClick={this.props.prevAlbum}
-          src={getImgSrc(Resources.PREVIOUS_ALBUM)}
+          src={prevAlbum}
           style={{width: "25px"}}
           type="image"
         />
@@ -55,7 +60,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
           className="control-button"
           disabled={!this.props.playlist.hasPrevTrack()}
           onClick={this.props.prevTrack}
-          src={getImgSrc(Resources.PREVIOUS_TRACK)}
+          src={prevTrack}
           style={{width: "25px"}}
           type="image"
         />
@@ -64,7 +69,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
           className="control-button"
           disabled={!this.props.playlist.getCurrentTrack()}
           onClick={this.props.playPause}
-          src={getImgSrc(this.props.playing ? Resources.PAUSE : Resources.PLAY)}
+          src={this.props.playing ? pauseButton : playButton}
           style={{width: "25px"}}
           type="image"
         />
@@ -73,7 +78,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
           className="control-button"
           disabled={!this.props.playlist.hasNextTrack()}
           onClick={this.props.nextTrack}
-          src={getImgSrc(Resources.NEXT_TRACK)}
+          src={nextTrack}
           style={{width: "25px"}}
           type="image"
         />
@@ -82,7 +87,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
           className="control-button"
           disabled={!this.props.playlist.hasNextAlbum()}
           onClick={this.props.nextAlbum}
-          src={getImgSrc(Resources.NEXT_ALBUM)}
+          src={nextAlbum}
           style={{width: "25px"}}
           type="image"
         />
@@ -123,7 +128,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
             alt="volume"
             className="control-button"
             onClick={this.onClick.bind(this)}
-            src={getImgSrc(Resources.VOLUME)}
+            src={volumeButton}
             style={{width: "25px"}}
             type="image"
           />

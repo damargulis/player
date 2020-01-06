@@ -1,11 +1,11 @@
 import Album from "./library/Album";
 import modifyAlbum from "./extensions/wiki/albums";
 import Artist from "./library/Artist";
-import {Resources} from "./constants";
 import EditableAttribute from "./EditableAttribute";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Library from "./library/Library";
 import LikeButton from "./LikeButton";
+import defaultAlbum from "./resources/missing_album.png";
 import NavigationBar from "./NavigationBar";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
@@ -28,9 +28,8 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
   public render(): JSX.Element {
     // TODO: use albumInfo or combine logic
     // ya know actually separate conscers and shit
-    let file = this.props.album && this.props.album.albumArtFile;
-    file = file || Resources.DEFAULT_ALBUM;
-    const src = getImgSrc(file);
+    const file = this.props.album && this.props.album.albumArtFile;
+    const src = file ? getImgSrc(file).toString() : defaultAlbum;
     // const artist = this.props.library.getArtistsByIds(
     //  this.props.album.artistIds).map((artist) => {
     //  return artist.name;
@@ -46,7 +45,7 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
               goBack={this.props.goBack}
               goForward={this.props.goForward}
             />
-            <img alt="album art" height="100" src={src.toString()} width="100" />
+            <img alt="album art" height="100" src={src} width="100" />
             <EditableAttribute
               attr={this.props.album && this.props.album.name}
               onSave={(value: string) => {

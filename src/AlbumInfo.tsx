@@ -1,7 +1,7 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
-import {Resources} from "./constants";
 import Library from "./library/Library";
+import defaultAlbum from "./resources/missing_album.png";
 import * as React from "react";
 import {getImgSrc} from "./utils";
 
@@ -45,9 +45,9 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps> {
     if (this.props.album.errors.length > 0) {
       newStyle.backgroundColor = "red";
     }
-    let file = this.props.album && this.props.album.albumArtFile;
-    file = file || Resources.DEFAULT_ALBUM;
-    const src = getImgSrc(file);
+
+    const file = this.props.album && this.props.album.albumArtFile;
+    const src = file ? getImgSrc(file) : defaultAlbum;
     const artists = this.props.library.getArtistsByIds(
       this.props.album.artistIds).map((artist: Artist) => {
       return artist.name;

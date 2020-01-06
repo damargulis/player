@@ -1,9 +1,8 @@
 import Album from "./library/Album";
-import {Resources} from "./constants";
+import favoriteButton from "./resources/favorite.png";
 import Library from "./library/Library";
 import * as React from "react";
 import Track from "./library/Track";
-import {getImgSrc} from "./utils";
 
 interface LikeButtonProps {
   library: Library;
@@ -22,7 +21,7 @@ export default class LikeButton extends React.Component<LikeButtonProps> {
         className="control-button"
         disabled={!this.props.item}
         onClick={this.favorite.bind(this)}
-        src={getImgSrc(Resources.FAVORITE).toString()}
+        src={favoriteButton}
         style={{width: "25px", opacity: favorite ? "1" : ".5"}}
         type="image"
       />

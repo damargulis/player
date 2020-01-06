@@ -1,8 +1,8 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
-import {Resources} from "./constants";
 import {ipcRenderer} from "electron";
 import Library from "./library/Library";
+import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
 import Track from "./library/Track";
 import {getImgSrc} from "./utils";
@@ -23,8 +23,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
     const album = albums[0];
-    const src = getImgSrc(
-      (album && album.albumArtFile) || Resources.DEFAULT_ALBUM);
+    const src = album && album.albumArtFile ? getImgSrc(album.albumArtFile) : defaultAlbum;
     // TODO: make rotate instead -- conditionally on playlist type??
     // meaning like if its playing a specific album, only show that album
     // (and artwork)

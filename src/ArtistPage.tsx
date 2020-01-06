@@ -2,10 +2,10 @@ import Album from "./library/Album";
 import AlbumPicker from "./AlbumPicker";
 import Artist from "./library/Artist";
 import modifyArtist from "./extensions/wiki/artists";
-import {Resources} from "./constants";
 import EditableAttribute from "./EditableAttribute";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Library from "./library/Library";
+import defaultArtist from "./resources/missing_artist.png";
 import NavigationBar from "./NavigationBar";
 import React from "react";
 import SongPicker from "./SongPicker";
@@ -24,8 +24,7 @@ interface ArtistPageProps {
 export default class ArtistPage extends React.Component<ArtistPageProps> {
 
   public render(): JSX.Element {
-    const src = getImgSrc(
-      this.props.artist.artFile || Resources.DEFAULT_ARTIST);
+    const src = this.props.artist.artFile ? getImgSrc(this.props.artist.artFile) : defaultArtist;
     return (
       <div className="main">
         <div className="pageHolder"

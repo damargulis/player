@@ -97,7 +97,8 @@
     },
     "files": [
       "build/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "resources"
     ],
     "directories": {
       "buildResources": "assets"

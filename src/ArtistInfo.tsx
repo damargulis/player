@@ -1,7 +1,7 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
-import {Resources} from "./constants";
 import Library from "./library/Library";
+import defaultArtist from "./resources/missing_artist.png";
 import React from "react";
 import {getImgSrc} from "./utils";
 
@@ -88,9 +88,8 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
     if (this.props.artist.errors.length > 0) {
       newStyle.backgroundColor = "red";
     }
-    let file = this.artFiles[this.state.currentImg];
-    file = file || Resources.DEFAULT_ARTIST;
-    const src = getImgSrc(file);
+    const file = this.artFiles[this.state.currentImg];
+    const src = file ? getImgSrc(file) : defaultArtist;
     return (
       <div
         onClick={() => this.props.goToArtist(this.props.artist)}
