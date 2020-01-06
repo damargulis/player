@@ -2,14 +2,17 @@
   "name": "electron-react",
   "version": "0.1.0",
   "private": true,
+  "homepage": "./",
   "dependencies": {
     "@types/musicmetadata": "^2.0.4",
+    "@types/plist": "^3.0.2",
     "@types/react": "^16.9.16",
     "@types/react-dom": "^16.9.4",
     "@types/react-modal": "^3.10.1",
     "@types/react-virtualized": "^9.21.7",
     "@types/request-promise-native": "^1.0.17",
     "@types/shortid": "0.0.29",
+    "electron-default-menu": "^1.0.1",
     "electron-is-dev": "^1.1.0",
     "jsmediatags": "^3.9.2",
     "node-gyp": "^6.0.0",
@@ -28,7 +31,9 @@
     "eject": "react-scripts eject",
     "electron-dev": "BROWSER=none yarn start & electron .",
     "electron-rebuild": "electron-rebuild -f -s -v 1.7.8",
-    "postinstall": "node_modules/.bin/rn-nodeify --install fs --hack"
+    "postinstall": "node_modules/.bin/rn-nodeify --install fs --hack && electron-builder install-app-deps",
+    "preelectron-pack": "yarn build",
+    "electron-pack": "electron-builder build -mw"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -57,7 +62,6 @@
     "electron-rebuild": "^1.8.6",
     "es6-promise-pool": "^2.5.0",
     "eslint-plugin-react": "^7.17.0",
-    "itunes-data": "^0.1.4",
     "jimp": "^0.8.4",
     "libxmljs": "^0.19.7",
     "moment": "^2.24.0",
@@ -72,12 +76,31 @@
     "source-map-loader": "^0.2.4",
     "timers": "^0.1.1",
     "tslint": "^5.20.1",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   },
   "react-native": {
     "fs": "react-native-level-fs"
   },
   "browser": {
     "fs": "react-native-level-fs"
+  },
+  "author": {
+    "name": "Dan",
+    "email": "damargulis1@gmail.com"
+  },
+  "build": {
+    "appId": "com.music.app",
+    "productName": "Music",
+    "copyright": "Copyright © 2019 ${author}",
+    "mac": {
+      "category": "public.app-categories.utilities"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   }
 }

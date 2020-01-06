@@ -1,5 +1,6 @@
 import Album from "../../library/Album";
 import Artist from "../../library/Artist";
+import {DATA_DIR} from "../../constants";
 import {BASE_URL} from "./constants";
 import {
   ALBUM_ART_ERROR,
@@ -178,7 +179,7 @@ function modifyAlbum(album: Album, library: Library): Promise<void> {
     return rp(options).then((data: string) => {
       if (!album.albumArtFile) {
         const id = shortid.generate();
-        album.albumArtFile = "./data/" + id + ".png";
+        album.albumArtFile = `${DATA_DIR}/${id}.png`;
       }
       fs.writeFileSync(album.albumArtFile, data, "binary");
       album.removeError(ALBUM_ART_ERROR);

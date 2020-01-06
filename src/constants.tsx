@@ -1,3 +1,5 @@
+import {remote} from "electron";
+
 const RESOURCES_DIR = "./resources/";
 
 // images should come from:
@@ -16,3 +18,5 @@ export const Resources = {
   PREVIOUS_TRACK: RESOURCES_DIR + "previous_track.png",
   VOLUME: RESOURCES_DIR + "volume.png",
 };
+
+export const DATA_DIR = remote.app.getPath("userData") + "/data";

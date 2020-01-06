@@ -1,4 +1,5 @@
 import Artist from "../../library/Artist";
+import {DATA_DIR} from "../../constants";
 import {BASE_URL} from "./constants";
 import {
   GENRE_ERROR,
@@ -78,7 +79,7 @@ function modifyArtist(artist: Artist, library: Library): Promise<void> {
     return rp(options).then((data: string) => {
       if (!artist.artFile) {
         const id = shortid.generate();
-        artist.artFile = "./data/" + id + ".png";
+        artist.artFile = `${DATA_DIR}/${id}.png`;
       }
       fs.writeFileSync(artist.artFile, data, "binary");
       // should this even be an error?

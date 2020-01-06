@@ -1,3 +1,4 @@
+import {DATA_DIR} from "./constants";
 import {
   createLibraryFromItunes,
   deleteLibrary,
@@ -87,7 +88,7 @@ export default class App extends React.Component<{}, AppState> {
     });
     ipcRenderer.send("extension-ready");
 
-    loadLibrary("data/library.json").then((library: Library) => {
+    loadLibrary(`${DATA_DIR}/library.json`).then((library: Library) => {
       const playlist = new RandomAlbumPlaylist(library);
       this.setState({
         library,

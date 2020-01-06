@@ -7,11 +7,12 @@ const {
   ipcMain,
   shell
 } = require('electron');
-const defaultMenu = require('electron-default-menu');
 
-const path = require('path');
 // shouldn't need package for this ... figure out better way
 const isDev = require('electron-is-dev');
+
+const path = require('path');
+const defaultMenu = require('electron-default-menu');
 
 let mainWindow = null;
 let extensionWindow = null;
@@ -115,7 +116,7 @@ function createWindow() {
   });
   mainWindow.loadURL(isDev
     ? 'http://localhost:3000'
-    : `file://${path.join(__dirname, '../build/index.html')}`);
+    : `file://${path.join(__dirname, './index.html')}`);
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
