@@ -6,8 +6,11 @@ import React from "react";
 import {getImgSrc} from "./utils";
 
 function getAlbumArtFiles(library: Library , artist: Artist): string[] {
-  const albums = library.getAlbumsByIds(artist.albumIds);
-  return albums.map((album: Album) => album.albumArtFile).filter(Boolean) as string[];
+  const albums = library.getAlbumsByIds(artist.albumIds).map((album: Album) => album.albumArtFile);
+  return [
+    artist.artFile,
+    ...albums,
+  ].filter(Boolean) as string[];
 }
 
 interface ArtistInfoProps {
@@ -23,16 +26,9 @@ interface ArtistInfoState {
 }
 
 export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
-  private artFiles: string[];
-
   constructor(props: ArtistInfoProps) {
     super(props);
 
-    const file = this.props.artist.artFile;
-    this.artFiles = [
-      file,
-      ...getAlbumArtFiles(props.library, props.artist),
-    ].filter(Boolean) as string[];
     this.state = {
       currentImg: 0,
       timerId: undefined,
@@ -50,15 +46,14 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
           return;
         }
         this.setState({
-          currentImg:
-            (this.state.currentImg + 1) % this.artFiles.length,
+          currentImg: this.state.currentImg + 1
         });
       }, time);
       if (!this.props.artist) {
         return;
       }
       this.setState({
-        currentImg: (this.state.currentImg + 1) % this.artFiles.length,
+        currentImg: this.state.currentImg + 1,
         timerId: id,
       });
     }, Math.random() * time);
@@ -88,7 +83,8 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
     if (this.props.artist.errors.length > 0) {
       newStyle.backgroundColor = "red";
     }
-    const file = this.artFiles[this.state.currentImg];
+    const artFiles = getAlbumArtFiles(this.props.library, this.props.artist);
+    const file = artFiles[this.state.currentImg % artFiles.length];
     const src = file ? getImgSrc(file) : defaultArtist;
     return (
       <div
