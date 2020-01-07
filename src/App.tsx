@@ -145,6 +145,7 @@ export default class App extends React.Component<{}, AppState> {
             setTime={this.setTime.bind(this)}
             setVolume={this.setVolume.bind(this)}
             time={this.state.time}
+            volume={this.audio.volume}
           />
         </div>
         <div style={{display: mini ? "none" : "initial"}}>
@@ -161,6 +162,7 @@ export default class App extends React.Component<{}, AppState> {
             setTime={this.setTime.bind(this)}
             setVolume={this.setVolume.bind(this)}
             time={this.state.time}
+            volume={this.audio.volume}
           />
         </div>
       </div>
@@ -169,6 +171,7 @@ export default class App extends React.Component<{}, AppState> {
 
   private setVolume(volume: number): void {
     this.audio.volume = volume;
+    this.setState({});
   }
 
   private setTime(time: number): void {

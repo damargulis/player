@@ -1,15 +1,15 @@
 import Album, {AlbumParameters} from "./Album";
 import Artist, {ArtistParameters} from "./Artist";
 import {DATA_DIR} from "../constants";
+import {remote} from "electron";
 import fs from "fs";
 import Library from "./Library";
 import mm from "musicmetadata";
 import path from "path";
 import Playlist, {PlaylistParameters} from "./Playlist";
+import plist from "plist";
 import shortid from "shortid";
 import Track, {TrackParameters} from "./Track";
-import plist from "plist";
-import {remote} from "electron";
 
 interface TempArtistData {
   albums: Set<string>;
@@ -284,13 +284,13 @@ export function createLibraryFromItunes(): Promise<Library> {
     }
     alert("Select the iTunes manifest file to load library.");
     console.log("Opening dialog");
-    const response = remote.dialog.showOpenDialogSync({properties: ['openFile']});
+    const response = remote.dialog.showOpenDialogSync({properties: ["openFile"]});
     const itunesFile = response && response[0];
     if (!itunesFile) {
       alert("No file selected");
-      resolve(new Library())
+      resolve(new Library());
       return;
-    } 
+    }
     const itunesData = fs.readFileSync(itunesFile);
     let xmlData = itunesData.toString();
     xmlData = xmlData.replace(/[\n\t\r]/g, "");

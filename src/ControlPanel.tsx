@@ -19,6 +19,7 @@ interface ControlPanelProps {
   volumeButton?: boolean;
   playing: boolean;
   library: Library;
+  volume: number;
   setVolume(vol: number): void;
   prevAlbum(): void;
   prevTrack(): void;
@@ -100,7 +101,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
   }
 
   private setVolume(evt: ChangeEvent<HTMLInputElement>): void {
-    this.props.setVolume(parseInt(evt.currentTarget.value, 10));
+    this.props.setVolume(parseFloat(evt.currentTarget.value));
   }
 
   private onClick(): void {
@@ -150,6 +151,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
                 width: "90%",
               }}
               type="range"
+              value={this.props.volume}
             />
           </Modal>
         </div>
@@ -167,6 +169,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
           width: "25px",
         }}
         type="range"
+        value={this.props.volume}
       />
     );
   }

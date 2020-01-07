@@ -9,6 +9,7 @@ import React from "react";
 import Track from "./library/Track";
 
 interface HeaderProps {
+  volume: number;
   playlist: EmptyPlaylist;
   library: Library;
   playing: boolean;
@@ -31,6 +32,7 @@ export default class Header extends React.Component<HeaderProps> {
     return (
       <div id="header" style={{padding: "2px"}}>
         <ControlPanel
+          volume={this.props.volume}
           library={this.props.library}
           nextAlbum={this.props.nextAlbum}
           nextTrack={this.props.nextTrack}

@@ -46,7 +46,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
           return;
         }
         this.setState({
-          currentImg: this.state.currentImg + 1
+          currentImg: this.state.currentImg + 1,
         });
       }, time);
       if (!this.props.artist) {

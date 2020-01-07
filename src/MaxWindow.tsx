@@ -22,6 +22,7 @@ interface MaxWindowProps {
   playing: boolean;
   playlist: EmptyPlaylist;
   time: number;
+  volume: number;
   nextAlbum(): void;
   nextTrack(): void;
   playPause(): void;
@@ -64,6 +65,7 @@ export default class MaxWindow extends React.Component<MaxWindowProps, MaxWindow
     return (
       <div id="max-window" >
         <Header
+          volume={this.props.volume}
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}

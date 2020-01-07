@@ -14,6 +14,7 @@ interface MiniWindowProps {
   playing: boolean;
   playlist: EmptyPlaylist;
   time: number;
+  volume: number;
   nextAlbum(): void;
   nextTrack(): void;
   playPause(): void;
@@ -48,6 +49,7 @@ export default class MiniWindow extends React.Component<MiniWindowProps> {
             prevTrack={this.props.prevTrack}
             setVolume={this.props.setVolume}
             volumeButton={true}
+            volume={this.props.volume}
           />
         </div>
         <ProgressBar
