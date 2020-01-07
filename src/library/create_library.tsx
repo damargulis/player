@@ -8,8 +8,8 @@ import path from "path";
 import Playlist, {PlaylistParameters} from "./Playlist";
 import shortid from "shortid";
 import Track, {TrackParameters} from "./Track";
-
 import plist from "plist";
+import {remote} from "electron";
 
 interface TempArtistData {
   albums: Set<string>;
@@ -282,10 +282,16 @@ export function createLibraryFromItunes(): Promise<Library> {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR);
     }
-
-    // TODO: ask the user for this
-    const ITUNES_FILE = "/Users/damargulis/Music/iTunes/iTunes Music Library.xml";
-    const itunesData = fs.readFileSync(ITUNES_FILE);
+    alert("Select the iTunes manifest file to load library.");
+    console.log("Opening dialog");
+    const response = remote.dialog.showOpenDialogSync({properties: ['openFile']});
+    const itunesFile = response && response[0];
+    if (!itunesFile) {
+      alert("No file selected");
+      resolve(new Library())
+      return;
+    } 
+    const itunesData = fs.readFileSync(itunesFile);
     let xmlData = itunesData.toString();
     xmlData = xmlData.replace(/[\n\t\r]/g, "");
     const plistParsed = plist.parse(xmlData) as unknown as ItunesData;
