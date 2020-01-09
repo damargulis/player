@@ -1,4 +1,6 @@
 import {remote} from "electron";
+import isDev from 'electron-is-dev';
+
 
 // TODO: put this somewhere better
 // images should come from:
@@ -6,4 +8,5 @@ import {remote} from "electron";
 // music-media-player-control-play-multimedia-record/
 // if possible
 
-export const DATA_DIR = remote.app.getPath("userData") + "/data";
+export const DATA_DIR = isDev ? './data' : remote.app.getPath("userData") + "/data";
+console.log(DATA_DIR);
