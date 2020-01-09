@@ -275,6 +275,20 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
     this.setState({editing: true});
   }
 
+  private playNext(): void {
+    // TODO: this
+  }
+
+  private favorite(): void {
+    const year = new Date().getFullYear();
+    this.state.selected.forEach((id) => {
+      const song = this.state.songs[id];
+      if (song.favorites.indexOf(year) < 0) {
+        song.favorites.push(year);
+      }
+    });
+  }
+
   private doRowRightClick({index}: {index: number}): void {
     if (!this.state.selected.includes(index)) {
       this.setState({selected: [index], lastSelected: index});
@@ -282,8 +296,11 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
     const menu = new remote.Menu();
     menu.append(
       new remote.MenuItem({label: "Edit Info", click: this.edit.bind(this)}));
-    menu.append(new remote.MenuItem({label: "Play Next"}));
-    menu.append(new remote.MenuItem({label: "Favorite"}));
+    menu.append(new remote.MenuItem({label: "Play Next", click: this.playNext.bind(this)}));
+    menu.append(new remote.MenuItem({label: "Favorite", click: this.favorite.bind(this)}));
+    // TODO:
+    //  - add to end of currently playing playlist
+    //  - add to specific playlist
     menu.popup({window: remote.getCurrentWindow()});
   }
 

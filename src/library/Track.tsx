@@ -42,6 +42,7 @@ export default class Track {
     playDate = "",
     favorites = [],
   }: TrackParameters) {
+
     this.id = id;
     this.name = name;
     this.duration = duration;
@@ -54,6 +55,7 @@ export default class Track {
     this.genreIds = genreIds;
     this.dateAdded = new Date(dateAdded);
     this.playDate = new Date(playDate);
+    // change to a set?
     this.favorites = favorites;
   }
 }
