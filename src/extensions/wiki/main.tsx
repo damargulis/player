@@ -25,7 +25,7 @@ function getPool<T>(
   return new PromisePool(() => {
     const item = items[index];
     if (!item) {
-      return Promise.resolve();
+      return;
     }
     const id = index++;
     const name = getName(item);

@@ -283,7 +283,6 @@ export function createLibraryFromItunes(): Promise<Library> {
       fs.mkdirSync(DATA_DIR);
     }
     alert("Select the iTunes manifest file to load library.");
-    console.log("Opening dialog");
     const response = remote.dialog.showOpenDialogSync({properties: ["openFile"]});
     const itunesFile = response && response[0];
     if (!itunesFile) {

@@ -83,6 +83,7 @@ export default class App extends React.Component<{}, AppState> {
             library,
             playlist,
           });
+          alert("Library uploaded");
         });
       });
     });
