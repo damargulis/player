@@ -291,11 +291,19 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
 
   private doRowRightClick({index}: {index: number}): void {
     if (!this.state.selected.includes(index)) {
-      this.setState({selected: [index], lastSelected: index});
+      this.setState({selected: [index], lastSelected: index}, () => this.doRowRightClickNext(index));
+    } else {
+      this.doRowRightClickNext(index);
     }
+  }
+
+  private doRowRightClickNext(index: number): void {
     const menu = new remote.Menu();
     menu.append(
       new remote.MenuItem({label: "Edit Info", click: this.edit.bind(this)}));
+    if (this.state.selected.length === 1) {
+      menu.append(new remote.MenuItem({label: "Play", click: () => this.doDoubleClickSong(index)}));
+    }
     menu.append(new remote.MenuItem({label: "Play Next", click: this.playNext.bind(this)}));
     menu.append(new remote.MenuItem({label: "Favorite", click: this.favorite.bind(this)}));
     // TODO:
