@@ -16,6 +16,7 @@
     "electron-is-dev": "^1.1.0",
     "jsmediatags": "^3.9.2",
     "node-gyp": "^6.0.0",
+    "plist": "^3.0.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-modal": "^3.11.1",

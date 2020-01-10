@@ -65,10 +65,6 @@
   border-bottom: solid black 1px;
 }
 
-.track-label {
-  font-size: 14px;
-}
-
 .link:hover{
   text-decoration: underline;
   color: blue;

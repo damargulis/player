@@ -24,6 +24,7 @@ interface MiniWindowProps {
   setVolume(vol: number): void;
 }
 
+// TODO: set all css by doing .mini-window .innerClass {}
 export default class MiniWindow extends React.Component<MiniWindowProps> {
 
   public render(): JSX.Element {

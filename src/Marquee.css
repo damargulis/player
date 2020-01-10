@@ -1,0 +1,26 @@
+
+.marquee {
+  display: inline-block;
+  animation: marquee 15s linear infinite;
+}
+@keyframes marquee {
+  0% {
+    transform: translate(0,0);
+  }
+  33% {
+    /* percent to stay still */
+    transform: translate(0,0);
+  }
+  90% {
+    /* Width of container (make this a variable?) - actual size = hidden amount */
+    transform: translate(calc(180px - 105%) , 0);
+  }
+  100% {
+    transform: translate(calc(180px - 105%) , 0);
+  }
+}
+
+.marquee:hover {
+  transform: translate(0,0);
+  animation: none;
+}

@@ -1,0 +1,12 @@
+.track-label {
+  font-size: 14px;
+}
+
+#mini-window .track-label {
+  width: 100%;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+

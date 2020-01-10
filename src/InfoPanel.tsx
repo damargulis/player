@@ -6,6 +6,9 @@ import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
 import Track from "./library/Track";
 import {getImgSrc} from "./utils";
+import Marquee from "./Marquee";
+
+import "./InfoPanel.css";
 
 interface InfoPanelProps {
   library: Library;
@@ -37,7 +40,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
           src={src}
           style={imgStyle}
         />
-        <div>
+        <div style={{display: 'grid'}}>
           <div className="track-label" id="name">
             { this.getNameLink() }
           </div>
@@ -73,48 +76,58 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
     }
   }
 
-  private getArtistLinks(): JSX.Element[] | string {
+  private getArtistLinks(): JSX.Element | string{
     const {track, library} = this.props;
     const artists = track && library
       ? library.getArtistsByIds(track.artistIds) : [];
-    if (artists.length) {
-      return artists.map((artist: Artist) => {
-        return (
-          <div key={artist.id}>
-            <div className="link" onClick={() => this.props.goToArtist(artist)}>
-              {artist.name}
-            </div>
-          </div>
-        );
-      });
+    if (!artists.length) {
+      return "Artists";
     }
-    return "Artists";
+    return (
+      <Marquee>
+        {
+          artists.map((artist) => {
+            return (
+              <span key={artist.id} className="link" onClick={() => this.props.goToArtist(artist)}>
+                {artist.name}
+              </span>
+            );
+          })
+        }
+      </Marquee>
+    );
   }
 
-  private getAlbumLinks(): JSX.Element[] | string {
+  private getAlbumLinks(): JSX.Element | string {
     const {track, library} = this.props;
     const albums = track && library
       ? library.getAlbumsByIds(track.albumIds) : [];
-    if (albums.length) {
-      return albums.map((album: Album) => {
-        return (
-          <div key={album.id}>
-            <div className="link" onClick={() => this.props.goToAlbum(album)}>
-              {album.name}
-            </div>
-          </div>
-        );
-      });
+    if (!albums.length) {
+      return "Albums";
     }
-    return "Albums";
+    return (
+      <Marquee>
+        {
+          albums.map((album) => {
+            return (
+              <span key={album.id} className="link" onClick={() => this.props.goToAlbum(album)}>
+                {album.name}
+              </span>
+            )
+          })
+        }
+      </Marquee>
+    );
   }
 
   private getNameLink(): JSX.Element | string {
     if (this.props.track) {
       return (
-        <div className="link" onClick={() => this.goToSong(this.props.track)} >
-          {this.props.track.name}
-        </div>
+        <Marquee>
+          <span className="link" onClick={() => this.goToSong(this.props.track)} >
+            {this.props.track.name}
+          </span>
+        </Marquee>
       );
     }
     return "Track Name";
