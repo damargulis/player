@@ -2,11 +2,11 @@ import Album from "./library/Album";
 import Artist from "./library/Artist";
 import {ipcRenderer} from "electron";
 import Library from "./library/Library";
+import Marquee from "./Marquee";
 import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
 import Track from "./library/Track";
 import {getImgSrc} from "./utils";
-import Marquee from "./Marquee";
 
 import "./InfoPanel.css";
 
@@ -40,7 +40,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
           src={src}
           style={imgStyle}
         />
-        <div style={{display: 'grid'}}>
+        <div style={{display: "grid"}}>
           <div className="track-label" id="name">
             { this.getNameLink() }
           </div>
@@ -76,7 +76,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
     }
   }
 
-  private getArtistLinks(): JSX.Element | string{
+  private getArtistLinks(): JSX.Element | string {
     const {track, library} = this.props;
     const artists = track && library
       ? library.getArtistsByIds(track.artistIds) : [];
@@ -113,7 +113,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
               <span key={album.id} className="link" onClick={() => this.props.goToAlbum(album)}>
                 {album.name}
               </span>
-            )
+            );
           })
         }
       </Marquee>
