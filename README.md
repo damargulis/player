@@ -10,6 +10,3 @@ Features:
   - Mini-player window
 
 run `yarn electron-dev` to run development server.
-App will load your library from itunes automatically the first time. Delete the 
-/data/ directory to re-load from itunes.
-

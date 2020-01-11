@@ -172,9 +172,15 @@ function modifyAlbum(album: Album, library: Library): Promise<void> {
     const pics = infoBox.getElementsByTagName("img");
     // TODO: take multiple pictures (rotate them elsewhere in the app)
     const pic = pics[0];
+    let picURL = "";
+    if (pic && pic.src) {
+      const url = new URL(pic.src);
+      url.protocol = "https://";
+      picURL = url.toString();
+    }
     const options = {
       encoding: "binary",
-      url: pic && pic.src,
+      url: picURL,
     };
     return rp(options).then((data: string) => {
       if (!album.albumArtFile) {
