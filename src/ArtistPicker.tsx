@@ -52,13 +52,10 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   // reuse the grid from album view?
   // source pictures from wikipedia, rotate album covers as backup
   public render(): JSX.Element {
-    const items = this.state.withErrors
-      ? this.state.sortedArtists.filter((artist) => {
-        return artist.errors.length > 0;
-      }) : this.state.sortedArtists;
+    const items = this.state.sortedArtists;
     return (
       <div className="main">
-        <button onClick={() => this.withErrors()}>With Errors Only</button>
+        <button onClick={() => this.withErrors()}>Show Wiki Status</button>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <WrappedGrid
           cellRenderer={this.cellRenderer.bind(this)}
@@ -85,10 +82,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   }
 
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
-    const artists = this.state.withErrors
-      ? this.state.sortedArtists.filter((artist) => {
-        return artist.errors.length > 0;
-      }) : this.state.sortedArtists;
+    const artists = this.state.sortedArtists;
     return (
       <ArtistInfo
         artist={artists[index]}
