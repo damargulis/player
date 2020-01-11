@@ -1,7 +1,8 @@
 import React from "react";
 import Track from "./library/Track";
-
 import {toTime} from "./utils";
+
+import "./ProgressBar.css";
 
 interface ProgressBarProps {
   time: number;
@@ -14,7 +15,7 @@ export default class ProgressBar extends React.Component<ProgressBarProps> {
   public render(): JSX.Element {
     const totalDuration = this.props.track ? this.props.track.duration : 0;
     return (
-      <div>
+      <div className="progress-container">
         <span>{toTime(this.props.time * 1000)}</span>
         <input
           max={totalDuration}

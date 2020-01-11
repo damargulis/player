@@ -1,9 +1,13 @@
-
 .marquee {
   display: inline-block;
-  animation: marquee 15s linear infinite;
 }
-@keyframes marquee {
+#max-window .marquee {
+  animation: marquee-max 15s linear infinite;
+}
+#mini-window .marquee {
+  animation: marquee-mini 15s linear infinite;
+}
+@keyframes marquee-mini {
   0% {
     transform: translate(0,0);
   }
@@ -12,11 +16,37 @@
     transform: translate(0,0);
   }
   90% {
-    /* Width of container (make this a variable?) - actual size = hidden amount */
-    transform: translate(calc(180px - 105%) , 0);
+    /*
+     * total browser - image - text - buffer
+    */
+    transform: translateX(calc(100vw - 60px - 100% - 5px));
   }
   100% {
-    transform: translate(calc(180px - 105%) , 0);
+    /*
+     * total browser - image - text - buffer
+    */
+    transform: translateX(calc(100vw - 60px - 100% - 5px));
+  }
+}
+@keyframes marquee-max {
+  0% {
+    transform: translate(0,0);
+  }
+  33% {
+    /* percent to stay still */
+    transform: translate(0,0);
+  }
+  90% {
+    /*
+     * total browser - (image + progress + control) - text - buffer
+    */
+    transform: translateX(calc(100vw - 480px - 100% - 5px));
+  }
+  100% {
+    /*
+     * total browser - image - text - buffer
+    */
+    transform: translateX(calc(100vw - 480px - 100% - 5px));
   }
 }
 

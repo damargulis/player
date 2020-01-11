@@ -2,7 +2,7 @@
   font-size: 14px;
 }
 
-#mini-window .track-label {
+.track-label {
   width: 100%;
   line-height: 16px;
   white-space: nowrap;
