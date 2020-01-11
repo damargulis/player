@@ -9,6 +9,7 @@ interface AlbumInfoProps {
   album: Album;
   library: Library;
   style: React.CSSProperties;
+  showStatus: boolean;
   playAlbum(album: Album): void;
   goToAlbum(album: Album): void;
 }
@@ -39,11 +40,14 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps> {
         <div style={this.props.style} />
       );
     }
-    if (Object.keys(this.props.album.warnings).length > 0) {
-      newStyle.backgroundColor = "yellow";
-    }
-    if (this.props.album.errors.length > 0) {
-      newStyle.backgroundColor = "red";
+    if (this.props.showStatus) {
+      newStyle.backgroundColor = "green";
+      if (Object.keys(this.props.album.warnings).length > 0) {
+        newStyle.backgroundColor = "yellow";
+      }
+      if (this.props.album.errors.length > 0 || !this.props.album.wikiPage) {
+        newStyle.backgroundColor = "red";
+      }
     }
 
     const file = this.props.album && this.props.album.albumArtFile;

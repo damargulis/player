@@ -77,10 +77,8 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
   }
 
   public render(): JSX.Element {
-    const items = this.state.withErrors
-      ? this.state.sortedAlbums.filter((album: Album) => {
-        return album.errors.length > 0;
-      }) : this.state.sortedAlbums;
+    const items = this.state.sortedAlbums;
+    // TODO: change wiki status to be generic extension with like list of dots instead of background
     return (
       <div className="main" >
         <div id="sortPicker" style={{textAlign: "center"}}>
@@ -88,7 +86,7 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
           <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
           </button>
           <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
-          <button onClick={() => this.withErrors()}>With Errors Only</button>
+          <button onClick={() => this.withErrors()}>Show Wiki Status</button>
           <SearchBar onSearch={(search: string) => this.onSearch(search)} />
         </div>
         <WrappedGrid
@@ -111,12 +109,10 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
   }
 
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
-    const albums = this.state.withErrors
-      ? this.state.sortedAlbums.filter((album: Album) => {
-        return album.errors.length > 0;
-      }) : this.state.sortedAlbums;
+    const albums = this.state.sortedAlbums;
     return (
       <AlbumInfo
+        showStatus={this.state.withErrors}
         album={albums[index]}
         goToAlbum={(album) => this.goToAlbum(album)}
         key={key}
