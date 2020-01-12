@@ -1,3 +1,4 @@
+import { updateTime } from "./redux/actions";
 import {DATA_DIR} from "./constants";
 import {
   createLibraryFromItunes,
@@ -12,10 +13,15 @@ import MaxWindow from "./MaxWindow";
 import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
+import { connect } from "react-redux";
 
 import "./App.css";
 
 const DEFAULT_VOLUME = .1;
+
+interface AppProps {
+  updateTime(time: number): void;
+}
 
 interface AppState {
   library: Library;
@@ -25,10 +31,10 @@ interface AppState {
   time: number;
 }
 
-export default class App extends React.Component<{}, AppState> {
+class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
 
-  constructor(props: {}) {
+  constructor(props: AppProps) {
     super(props);
 
     this.state = {
@@ -112,6 +118,7 @@ export default class App extends React.Component<{}, AppState> {
       this.setState({
         time: this.audio.currentTime,
       });
+      this.props.updateTime(this.audio.currentTime);
     });
     this.audio.addEventListener("ended", () => {
       const track = this.state.playlist.getCurrentTrack();
@@ -245,3 +252,5 @@ export default class App extends React.Component<{}, AppState> {
     this.setState({playlist}, () => this.nextTrack());
   }
 }
+
+export default connect(null, {updateTime})(App);

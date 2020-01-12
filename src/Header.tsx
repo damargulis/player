@@ -45,7 +45,6 @@ export default class Header extends React.Component<HeaderProps> {
         />
         <ProgressBar
           setTime={this.props.setTime}
-          time={this.props.time}
           track={track}
         />
         <InfoPanel

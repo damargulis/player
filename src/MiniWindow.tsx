@@ -55,7 +55,6 @@ export default class MiniWindow extends React.Component<MiniWindowProps> {
         </div>
         <ProgressBar
           setTime={this.props.setTime}
-          time={this.props.time}
           track={this.props.playlist.getCurrentTrack()}
         />
       </div>

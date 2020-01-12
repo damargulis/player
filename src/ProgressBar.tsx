@@ -1,4 +1,7 @@
 import React from "react";
+import { connect } from "react-redux";
+import {getTime} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {toTime} from "./utils";
 
@@ -10,7 +13,7 @@ interface ProgressBarProps {
   setTime(time: number): void;
 }
 
-export default class ProgressBar extends React.Component<ProgressBarProps> {
+class ProgressBar extends React.Component<ProgressBarProps> {
 
   public render(): JSX.Element {
     const totalDuration = this.props.track ? this.props.track.duration : 0;
@@ -33,3 +36,11 @@ export default class ProgressBar extends React.Component<ProgressBarProps> {
     this.props.setTime(parseFloat(evt.target.value));
   }
 }
+
+function mapStateToProps(state: RootState): {time: number} {
+  return {
+    time: getTime(state),
+  };
+}
+
+export default connect(mapStateToProps)(ProgressBar);
