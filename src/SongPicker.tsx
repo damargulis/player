@@ -250,7 +250,7 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
       style.backgroundColor = "gray";
     }
     if (this.state.selected.includes(index)) {
-      style.backgroundColor = "blue";
+      style.backgroundColor = "#5e92e0";
     }
     return style;
   }
