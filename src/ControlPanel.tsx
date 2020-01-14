@@ -18,7 +18,6 @@ interface ControlPanelProps {
   playlist: EmptyPlaylist;
   volumeButton?: boolean;
   playing: boolean;
-  library: Library;
   volume: number;
   setVolume(vol: number): void;
   prevAlbum(): void;
@@ -94,7 +93,6 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
         />
         <LikeButton
           item={this.props.playlist.getCurrentTrack()}
-          library={this.props.library}
         />
       </div>
     );

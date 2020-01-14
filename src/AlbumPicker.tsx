@@ -6,14 +6,17 @@ import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import SearchBar from "./SearchBar";
 import WrappedGrid from "./WrappedGrid";
+import { connect } from "react-redux";
+import {RootState} from "./redux/store";
+import {getArtistsByIds} from "./redux/selectors";
 
 import "./App.css";
 
 interface AlbumPickerProps {
   albums: Album[];
-  library: Library;
   goToAlbum(album: Album): void;
   setPlaylistAndPlay(playlist: RandomAlbumPlaylist): void;
+  getArtistsByIds(ids: number[]): Artist[];
 }
 
 interface AlbumPickerState {
@@ -24,7 +27,7 @@ interface AlbumPickerState {
   sortMethod(album1: Album, album2: Album): number;
 }
 
-export default class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
+class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   private numCols: number;
 
   constructor(props: AlbumPickerProps) {
@@ -102,10 +105,10 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
   }
 
   private playAlbum(album: Album): void {
-    const playlist = new RandomAlbumPlaylist(
-      this.props.library, this.state.sortedAlbums);
-    playlist.addAlbum(album);
-    this.props.setPlaylistAndPlay(playlist);
+    //const playlist = new RandomAlbumPlaylist(
+    //  this.props.library, this.state.sortedAlbums);
+    //playlist.addAlbum(album);
+    //this.props.setPlaylistAndPlay(playlist);
   }
 
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
@@ -116,7 +119,6 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
         album={albums[index]}
         goToAlbum={(album) => this.goToAlbum(album)}
         key={key}
-        library={this.props.library}
         playAlbum={this.playAlbum.bind(this)}
         style={style}
       />
@@ -128,9 +130,9 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
   }
 
   private sortByArtist(album1: Album, album2: Album): number {
-    const artist1 = this.props.library.getArtistsByIds(album1.artistIds)
+    const artist1 = this.props.getArtistsByIds(album1.artistIds)
       .map((artist: Artist) => artist.name).join(",");
-    const artist2 = this.props.library.getArtistsByIds(album2.artistIds)
+    const artist2 = this.props.getArtistsByIds(album2.artistIds)
       .map((artist: Artist) => artist.name).join(",");
     return artist1.localeCompare(artist2);
   }
@@ -157,3 +159,11 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
     this.setState({ search });
   }
 }
+
+function mapStateToProps(store: RootState) {
+  return {
+    getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
+  }
+}
+
+export default connect(mapStateToProps)(AlbumPicker);

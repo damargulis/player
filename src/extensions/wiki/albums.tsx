@@ -16,6 +16,8 @@ import moment from "moment";
 import rp from "request-promise-native";
 import shortid from "shortid";
 import {findAsync, getDoc, getGenresByRow, sanitize} from "./utils";
+import {RootState} from "../../redux/store";
+import {getGenreIds, getArtistById, getTracksByIds} from "../../redux/selectors";
 
 function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || "";
@@ -39,7 +41,8 @@ function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>): number | und
   return;
 }
 
-function getAllWikiOptions(album: Album, artist: Artist): string[] {
+function getAllWikiOptions(store: RootState, album: Album): string[] {
+  const artist = getArtistById(store, album.artistIds[0]);
   const albumName = album.name.replace("#", "Number ").replace(/ /g, "_");
   const artistName = artist.name.replace(/ /g, "_");
   return [
@@ -72,9 +75,9 @@ function isRightLink(link: string, album: Album, artist: Artist): Promise<boolea
   });
 }
 
-function searchForWikiPage(album: Album, library: Library): Promise<string> {
-  const artist = library.getArtistsByIds(album.artistIds)[0];
-  const options = getAllWikiOptions(album, artist);
+function searchForWikiPage(store: RootState, album: Album): Promise<string> {
+  const options = getAllWikiOptions(store, album);
+  const artist = getArtistById(store, album.artistIds[0]);
   return findAsync(options, (option: string) => {
     return isRightLink(option, album, artist);
   });
@@ -132,7 +135,7 @@ function getTracks(doc: Document): string[] {
   return tracks;
 }
 
-function modifyAlbum(album: Album, library: Library): Promise<void> {
+function modifyAlbum(store: RootState, album: Album): Promise<void> {
   if (!album.wikiPage) {
     return Promise.resolve();
   }
@@ -151,14 +154,14 @@ function modifyAlbum(album: Album, library: Library): Promise<void> {
     }
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
-      album.genreIds = library.getGenreIds(genres);
+      album.genreIds = getGenreIds(store, genres);
       album.removeError(GENRE_ERROR);
     } else {
       album.addError(GENRE_ERROR);
     }
     const trackTitles = getTracks(doc);
     if (album.trackIds.length === trackTitles.length) {
-      const tracks = album.trackIds.map((id) => library.getTrack(id));
+      const tracks = getTracksByIds(store, album.trackIds);
       tracks.forEach((track, index) => {
         if (track.name !== trackTitles[index]) {
           album.addTrackWarning(index, trackTitles[index]);
@@ -199,18 +202,18 @@ function modifyAlbum(album: Album, library: Library): Promise<void> {
   });
 }
 
-export default function runAlbumModifier(album: Album, library: Library): Promise<void> {
+export default function runAlbumModifier(store: RootState, album: Album): Promise<void> {
   if (!album.wikiPage) {
-    return searchForWikiPage(album, library).then((wikiPage) => {
+    return searchForWikiPage(store, album).then((wikiPage) => {
       if (wikiPage) {
         album.removeError(NO_PAGE_ERROR);
         album.wikiPage = wikiPage;
-        return modifyAlbum(album, library);
+        return modifyAlbum(store, album);
       }
       // add error for no wiki page
       album.addError(NO_PAGE_ERROR);
       return Promise.resolve();
     });
   }
-  return modifyAlbum(album, library);
+  return modifyAlbum(store, album);
 }

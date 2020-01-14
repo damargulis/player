@@ -7,24 +7,26 @@ import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
 import Track from "./library/Track";
 import {getImgSrc} from "./utils";
+import {RootState} from "./redux/store";
+import {getAlbumsByIds, getArtistsByIds} from "./redux/selectors";
+import { connect } from "react-redux";
 
 import "./InfoPanel.css";
 
 interface InfoPanelProps {
-  library: Library;
   track?: Track;
   small?: boolean;
   goToAlbum(album: Album): void;
   goToArtist(artist: Artist): void;
   goToSong(track: Track): void;
+  albums: Album[];
+  artists: Artist[];
 }
 
-export default class InfoPanel extends React.Component<InfoPanelProps> {
+class InfoPanel extends React.Component<InfoPanelProps> {
 
   public render(): JSX.Element {
-    const {track, library} = this.props;
-    const albums = track && library
-      ? library.getAlbumsByIds(track.albumIds) : [];
+    const {track, albums} = this.props;
     const album = albums[0];
     const src = album && album.albumArtFile ? getImgSrc(album.albumArtFile) : defaultAlbum;
     // TODO: make rotate instead -- conditionally on playlist type??
@@ -77,9 +79,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getArtistLinks(): JSX.Element | string {
-    const {track, library} = this.props;
-    const artists = track && library
-      ? library.getArtistsByIds(track.artistIds) : [];
+    const {track, artists} = this.props;
     if (!artists.length) {
       return "Artists";
     }
@@ -99,9 +99,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getAlbumLinks(): JSX.Element | string {
-    const {track, library} = this.props;
-    const albums = track && library
-      ? library.getAlbumsByIds(track.albumIds) : [];
+    const {track, albums} = this.props;
     if (!albums.length) {
       return "Albums";
     }
@@ -133,3 +131,20 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
     return "Track Name";
   }
 }
+
+interface OwnProps {
+  track?: Track;
+}
+
+function mapStateToProps(state: RootState, ownProps: OwnProps) {
+  const track = ownProps.track;
+  return track ? {
+    albums: getAlbumsByIds(state, track.albumIds),
+    artists: getArtistsByIds(state, track.artistIds),
+  } : {
+    albums: [],
+    artists: [],
+  };
+}
+
+export default connect(mapStateToProps)(InfoPanel);

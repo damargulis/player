@@ -8,12 +8,12 @@ import Library from "./library/Library";
 import ProgressBar from "./ProgressBar";
 import React from "react";
 import Track from "./library/Track";
+import {RootState} from "./redux/store";
+import { connect } from "react-redux";
 
 interface MiniWindowProps {
-  library: Library;
   playing: boolean;
   playlist: EmptyPlaylist;
-  time: number;
   volume: number;
   nextAlbum(): void;
   nextTrack(): void;
@@ -25,7 +25,7 @@ interface MiniWindowProps {
 }
 
 // TODO: set all css by doing .mini-window .innerClass {}
-export default class MiniWindow extends React.Component<MiniWindowProps> {
+class MiniWindow extends React.Component<MiniWindowProps> {
 
   public render(): JSX.Element {
     return (
@@ -34,13 +34,11 @@ export default class MiniWindow extends React.Component<MiniWindowProps> {
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}
-          library={this.props.library}
           small={true}
           track={this.props.playlist.getCurrentTrack()}
         />
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel
-            library={this.props.library}
             nextAlbum={this.props.nextAlbum}
             nextTrack={this.props.nextTrack}
             playing={this.props.playing}
@@ -72,3 +70,5 @@ export default class MiniWindow extends React.Component<MiniWindowProps> {
     ipcRenderer.send("goToAlbum", {album});
   }
 }
+
+export default MiniWindow;

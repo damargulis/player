@@ -10,6 +10,11 @@ import SearchBar from "./SearchBar";
 import SongEditer from "./SongEditer";
 import Track from "./library/Track";
 import {toTime} from "./utils";
+import { connect } from "react-redux";
+import {RootState} from "./redux/store";
+import {getArtistsByIds, getAlbumsByIds, getGenresByIds} from "./redux/selectors";
+import Artist from "./library/Artist";
+import Album from "./library/Album";
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement("#root");
@@ -17,11 +22,13 @@ Modal.setAppElement("#root");
 type Sort = "ASC" | "DESC";
 
 interface SongPickerProps {
-  library: Library;
   songs: Track[];
   sortBy?: string;
   scrollToSong?: Track;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
+  getArtistsByIds(ids: number[]): Artist[];
+  getAlbumsByIds(ids: number[]): Album[];
+  getGenresByIds(ids: number[]): string[];
 }
 
 interface SongPickerState {
@@ -34,7 +41,7 @@ interface SongPickerState {
   editing: boolean;
 }
 
-export default class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
+class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   constructor(props: SongPickerProps) {
     super(props);
 
@@ -82,7 +89,6 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
         >
           <SongEditer
             exit={this.closeEdit.bind(this)}
-            library={this.props.library}
             tracks={selectedSongs}
           />
         </Modal>
@@ -188,27 +194,27 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
       break;
     case "artists":
       songs = songs.sort((song1, song2) => {
-        const artists1 = this.props.library.getArtistsByIds(song1.artistIds)
+        const artists1 = this.props.getArtistsByIds(song1.artistIds)
           .map((artist) => artist.name).join(", ");
-        const artists2 = this.props.library.getArtistsByIds(song2.artistIds)
+        const artists2 = this.props.getArtistsByIds(song2.artistIds)
           .map((artist) => artist.name).join(", ");
         return artists1.localeCompare(artists2);
       });
       break;
     case "albums":
       songs = songs.sort((song1, song2) => {
-        const albums1 = this.props.library.getAlbumsByIds(song1.albumIds)
+        const albums1 = this.props.getAlbumsByIds(song1.albumIds)
           .map((album) => album.name).join(", ");
-        const albums2 = this.props.library.getAlbumsByIds(song2.albumIds)
+        const albums2 = this.props.getAlbumsByIds(song2.albumIds)
           .map((album) => album.name).join(", ");
         return albums1.localeCompare(albums2);
       });
       break;
     case "genres":
       songs = songs.sort((song1, song2) => {
-        const genres1 = this.props.library.getGenresByIds(song1.genreIds)
+        const genres1 = this.props.getGenresByIds(song1.genreIds)
           .join(", ");
-        const genres2 = this.props.library.getGenresByIds(song2.genreIds)
+        const genres2 = this.props.getGenresByIds(song2.genreIds)
           .join(", ");
         return genres1.localeCompare(genres2);
       });
@@ -226,12 +232,12 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
     const song = this.state.songs[index];
     // TODO: make album (maybe artist?) rotate
     return {
-      albums: this.props.library.getAlbumsByIds(song.albumIds)
+      albums: this.props.getAlbumsByIds(song.albumIds)
         .map((album) => album.name).join(", "),
-      artists: this.props.library.getArtistsByIds(song.artistIds)
+      artists: this.props.getArtistsByIds(song.artistIds)
         .map((artist) => artist.name).join(", "),
       duration: toTime(song.duration),
-      genres: this.props.library.getGenresByIds(song.genreIds).join(", "),
+      genres: this.props.getGenresByIds(song.genreIds).join(", "),
       index: this.props.songs.indexOf(song) + 1,
       name: song.name,
       playCount: song.playCount,
@@ -378,3 +384,13 @@ export default class SongPicker extends React.Component<SongPickerProps, SongPic
     this.setState({editing: false});
   }
 }
+
+function mapStateToProps(store: RootState) {
+  return {
+    getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
+    getAlbumsByIds: (ids: number[]) => getAlbumsByIds(store, ids),
+    getGenresByIds: (ids: number[]) => getGenresByIds(store, ids),
+  }
+}
+
+export default connect(mapStateToProps)(SongPicker);

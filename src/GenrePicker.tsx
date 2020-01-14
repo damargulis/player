@@ -1,9 +1,12 @@
 import Library from "./library/Library";
 import React from "react";
+import {getGenres} from "./redux/selectors";
+import {RootState} from "./redux/store";
+import { connect } from "react-redux";
 
 interface GenrePickerProps {
-  library: Library;
   setGenres(genres: number[]): void;
+  genres: string[];
 }
 
 interface GenreElement {
@@ -13,7 +16,7 @@ interface GenreElement {
 
 // TODO: make this a part of the pages only when its needed, send in available
 // genres as a prop
-export default class GenrePicker extends React.Component<GenrePickerProps> {
+class GenrePicker extends React.Component<GenrePickerProps> {
 
   public render(): JSX.Element {
     return (
@@ -30,7 +33,7 @@ export default class GenrePicker extends React.Component<GenrePickerProps> {
   }
 
   private getOptions(): JSX.Element[] {
-    return this.props.library.getGenres().map((genre: string, index: number) => {
+    return this.props.genres.map((genre: string, index: number) => {
       return {
         html: <option key={genre} value={index}>{genre}</option>,
         value: genre,
@@ -50,3 +53,11 @@ export default class GenrePicker extends React.Component<GenrePickerProps> {
     this.props.setGenres(options);
   }
 }
+
+function mapStateToProps(state: RootState) {
+  return {
+    genres: getGenres(state),
+  }
+}
+
+export default connect(mapStateToProps)(GenrePicker);

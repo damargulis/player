@@ -4,17 +4,20 @@ import Library from "./library/Library";
 import defaultAlbum from "./resources/missing_album.png";
 import * as React from "react";
 import {getImgSrc} from "./utils";
+import { connect } from "react-redux";
+import {RootState} from "./redux/store";
+import {getArtistsByIds} from "./redux/selectors";
 
 interface AlbumInfoProps {
   album: Album;
-  library: Library;
+  artists: Artist[];
   style: React.CSSProperties;
   showStatus: boolean;
   playAlbum(album: Album): void;
   goToAlbum(album: Album): void;
 }
 
-export default class AlbumInfo extends React.Component<AlbumInfoProps> {
+class AlbumInfo extends React.Component<AlbumInfoProps> {
   private timer?: number;
   private prevent: boolean;
 
@@ -52,8 +55,7 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps> {
 
     const file = this.props.album && this.props.album.albumArtFile;
     const src = file ? getImgSrc(file) : defaultAlbum;
-    const artists = this.props.library.getArtistsByIds(
-      this.props.album.artistIds).map((artist: Artist) => {
+    const artists = this.props.artists.map((artist: Artist) => {
       return artist.name;
     }).join(", ");
     return (
@@ -106,3 +108,15 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps> {
     this.props.goToAlbum(this.props.album);
   }
 }
+
+interface OwnProps {
+  album: Album;
+}
+
+function mapStateToProps(state: RootState, ownProps: OwnProps) {
+  return {
+    artists: ownProps.album ? getArtistsByIds(state, ownProps.album.artistIds) : [],
+  }
+}
+
+export default connect(mapStateToProps)(AlbumInfo);

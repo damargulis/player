@@ -8,7 +8,6 @@ import Track from "./library/Track";
 
 interface SingleSongEditerProps {
   track: Track;
-  library: Library;
   exit(): void;
 }
 
@@ -37,35 +36,36 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
   }
 
   public save(): void {
-    const track = this.props.track;
-    if (this.name.current) {
-      track.name = this.name.current.value;
-    }
-    if (this.year.current) {
-      track.year = parseInt(this.year.current.value, 10);
-    }
-    if (this.playCount.current) {
-      track.playCount = parseInt(this.playCount.current.value, 10);
-    }
-    track.favorites = this.state.yearsFavorited;
-    track.genreIds = this.state.genreIds;
-    this.state.albumIds.forEach((albumId) => {
-      if (!track.albumIds.includes(albumId)) {
-        const album = this.props.library.getAlbumById(albumId);
-        album.trackIds.push(track.id);
-      }
-    });
-    track.albumIds = this.state.albumIds;
-    this.state.artistIds.forEach((artistId) => {
-      if (!track.artistIds.includes(artistId)) {
-        const artist = this.props.library.getArtistById(artistId);
-        artist.trackIds.push(track.id);
-      }
-    });
-    track.artistIds = this.state.artistIds;
+    // TODO: turn into action
+    //const track = this.props.track;
+    //if (this.name.current) {
+    //  track.name = this.name.current.value;
+    //}
+    //if (this.year.current) {
+    //  track.year = parseInt(this.year.current.value, 10);
+    //}
+    //if (this.playCount.current) {
+    //  track.playCount = parseInt(this.playCount.current.value, 10);
+    //}
+    //track.favorites = this.state.yearsFavorited;
+    //track.genreIds = this.state.genreIds;
+    //this.state.albumIds.forEach((albumId) => {
+    //  if (!track.albumIds.includes(albumId)) {
+    //    const album = this.props.library.getAlbumById(albumId);
+    //    album.trackIds.push(track.id);
+    //  }
+    //});
+    //track.albumIds = this.state.albumIds;
+    //this.state.artistIds.forEach((artistId) => {
+    //  if (!track.artistIds.includes(artistId)) {
+    //    const artist = this.props.library.getArtistById(artistId);
+    //    artist.trackIds.push(track.id);
+    //  }
+    //});
+    //track.artistIds = this.state.artistIds;
 
-    this.props.library.save();
-    this.props.exit();
+    //this.props.library.save();
+    //this.props.exit();
   }
 
   public render(): JSX.Element {
@@ -82,14 +82,8 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
             ref={this.name}
           />
         </div>
-        <ArtistAttributeEditor
-          artistIds={this.state.artistIds}
-          library={this.props.library}
-        />
-        <AlbumAttributeEditor
-          albumIds={this.state.albumIds}
-          library={this.props.library}
-        />
+        <ArtistAttributeEditor artistIds={this.state.artistIds} />
+        <AlbumAttributeEditor albumIds={this.state.albumIds} />
         <div className="edit-container">
           <label className="label" >Year: </label>
           <input
@@ -100,10 +94,7 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
             type="number"
           />
         </div>
-        <GenreAttributeEditor
-          genreIds={this.state.genreIds}
-          library={this.props.library}
-        />
+        <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor
           yearsFavorited={this.state.yearsFavorited}
         />

@@ -12,6 +12,8 @@ import Library from "../../library/Library";
 import rp from "request-promise-native";
 import shortid from "shortid";
 import {findAsync, getDoc, getGenresByRow} from "./utils";
+import {RootState} from "../../redux/store";
+import {getGenreIds, getArtistById, getTracksByIds} from "../../redux/selectors";
 
 function getWikiPageOptions(artist: Artist): string[] {
   const artistName = artist.name.replace(/ /g, "_");
@@ -52,7 +54,7 @@ function searchForWikiPage(artist: Artist): Promise<string>  {
   });
 }
 
-function modifyArtist(artist: Artist, library: Library): Promise<void> {
+function modifyArtist(store: RootState, artist: Artist): Promise<void> {
   if (!artist.wikiPage) {
     return Promise.resolve();
   }
@@ -64,7 +66,7 @@ function modifyArtist(artist: Artist, library: Library): Promise<void> {
     const rows = infoBox.getElementsByTagName("tr");
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
-      artist.genreIds = library.getGenreIds(genres);
+      artist.genreIds = getGenreIds(store, genres);
       artist.removeError(GENRE_ERROR);
     } else {
       artist.addError(GENRE_ERROR);
@@ -100,17 +102,17 @@ function modifyArtist(artist: Artist, library: Library): Promise<void> {
   });
 }
 
-export default function runArtistModifier(artist: Artist, library: Library): Promise<void> {
+export default function runArtistModifier(store: RootState, artist: Artist): Promise<void> {
   if (!artist.wikiPage) {
     return searchForWikiPage(artist).then((wikiPage) => {
       if (wikiPage) {
         artist.removeError(NO_PAGE_ERROR);
         artist.wikiPage = wikiPage;
-        return modifyArtist(artist, library);
+        return modifyArtist(store, artist);
       }
       artist.addError(NO_PAGE_ERROR);
       return Promise.resolve();
     });
   }
-  return modifyArtist(artist, library);
+  return modifyArtist(store, artist);
 }

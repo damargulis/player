@@ -242,6 +242,7 @@ export function loadLibrary(libraryFile: string): Promise<Library> {
       const playlists = libraryData.playlists.map(
         (playlistData: PlaylistParameters) => new Playlist(playlistData),
       );
+
       return resolve(new Library(tracks, albums, artists, genres, playlists));
     });
   });

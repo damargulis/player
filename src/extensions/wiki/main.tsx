@@ -5,17 +5,19 @@ import modifyArtist from "./artists";
 import {ipcRenderer} from "electron";
 import PromisePool from "es6-promise-pool";
 import Library from "../../library/Library";
+import {RootState} from "../../redux/store";
+import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds, getAllArtistIds} from "../../redux/selectors";
 
 // TODO: set num by isDev
 const CONCURRENT = 7;
 
 /** Returns a pool of modifiers to run. */
 function getPool<T>(
-  library: Library,
+  store: RootState,
   items: T[],
   prefix: string,
   getName: (item: T) =>  string,
-  modifyFunc: (item: T, library: Library) =>  Promise<void>,
+  modifyFunc: (store: RootState, item: T) =>  Promise<void>,
 ): PromisePool<void> {
   let index = 0;
   ipcRenderer.send("extension-update", {
@@ -34,7 +36,7 @@ function getPool<T>(
       name,
       type: "start-item",
     });
-    return modifyFunc(item, library).then(() => {
+    return modifyFunc(store, item).then(() => {
       ipcRenderer.send("extension-update", {
         id: prefix + id,
         name,
@@ -44,13 +46,13 @@ function getPool<T>(
   }, CONCURRENT);
 }
 
-function getAlbumsPool(library: Library): PromisePool<void> {
+function getAlbumsPool(store: RootState, albums: Album[]): PromisePool<void> {
   return getPool(
-    library,
-    library.getAlbums(),
+    store,
+    albums,
     /* prefix= */ "album-",
     (album) => {
-      const artist = library.getArtistsByIds(album.artistIds)
+      const artist = getArtistsByIds(store, album.artistIds)
         .map((artistData: Artist) => artistData.name)
         .join(", ");
       return album.name + " by: " + artist;
@@ -59,10 +61,10 @@ function getAlbumsPool(library: Library): PromisePool<void> {
   );
 }
 
-function getArtistPool(library: Library): PromisePool<void> {
+function getArtistPool(store: RootState, artists: Artist[]): PromisePool<void> {
   return getPool(
-    library,
-    library.getArtists(),
+    store,
+    artists,
     /* prefix= */ "artist-",
     (artist) => {
       return artist.name;
@@ -71,16 +73,16 @@ function getArtistPool(library: Library): PromisePool<void> {
   );
 }
 
-export default function runWikiExtension(library: Library): PromiseLike<void> {
+export default function runWikiExtension(store: RootState): PromiseLike<void> {
   // put these into a single pool so that you can go straight into the other
   // without having to wait for an acutal finish?
-  const albumPool = getAlbumsPool(library);
-  const artistPool = getArtistPool(library);
-  const albumErrors = library.getAlbums()
-    .reduce((total: number, album: Album) => total + album.errors.length, 0);
-  const albumWarnings = library.getAlbums()
-    .reduce((total: number, album: Album) => total + Object.keys(album.warnings).length, 0);
-  const albumGood = library.getAlbums().filter((album: Album) => {
+  const albums = getAlbumsByIds(store, getAllAlbumIds(store));
+  const artists = getArtistsByIds(store, getAllArtistIds(store));
+  const albumPool = getAlbumsPool(store, albums);
+  const artistPool = getArtistPool(store, artists);
+  const albumErrors = albums.reduce((total: number, album: Album) => total + album.errors.length, 0);
+  const albumWarnings = albums.reduce((total: number, album: Album) => total + Object.keys(album.warnings).length, 0);
+  const albumGood = albums.filter((album: Album) => {
     return album.errors.length === 0 &&
       Object.keys(album.warnings).length === 0;
   }).length;

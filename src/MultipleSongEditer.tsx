@@ -8,7 +8,6 @@ import ToggableEditableAttribute from "./ToggableEditableAttribute";
 import Track from "./library/Track";
 
 interface MultipleSongEditerProps {
-  library: Library;
   tracks: Track[];
   exit(): void;
 }
@@ -60,20 +59,14 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
           label="Artists"
           toggleEdit={this.editArtists.bind(this)}
         >
-          <ArtistAttributeEditor
-            artistIds={this.state.artistIds}
-            library={this.props.library}
-          />
+          <ArtistAttributeEditor artistIds={this.state.artistIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editAlbums}
           label="Albums"
           toggleEdit={this.editAlbums.bind(this)}
         >
-          <AlbumAttributeEditor
-            albumIds={this.state.albumIds}
-            library={this.props.library}
-          />
+          <AlbumAttributeEditor albumIds={this.state.albumIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editYear}
@@ -95,10 +88,7 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
           label="Genres"
           toggleEdit={this.editGenre.bind(this)}
         >
-          <GenreAttributeEditor
-            genreIds={this.state.genreIds}
-            library={this.props.library}
-          />
+          <GenreAttributeEditor genreIds={this.state.genreIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editFavorites}
@@ -157,45 +147,46 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
   }
 
   private saveTrack(track: Track): void {
-    if (this.state.editGenre) {
-      track.genreIds = this.state.genreIds;
-    }
-    if (this.state.editArtists) {
-      this.state.artistIds.forEach((artistId) => {
-        if (!track.artistIds.includes(artistId)) {
-          const artist = this.props.library.getArtistById(artistId);
-          artist.trackIds.push(track.id);
-        }
-      });
-      track.artistIds = this.state.artistIds;
-    }
-    if (this.state.editAlbums) {
-      this.state.albumIds.forEach((albumId) => {
-        if (!track.albumIds.includes(albumId)) {
-          const album = this.props.library.getAlbumById(albumId);
-          album.trackIds.push(track.id);
-        }
-      });
-      track.albumIds = this.state.albumIds;
-    }
-    if (this.state.editFavorites) {
-      track.favorites = this.state.yearsFavorited;
-    }
-    const year = this.year.current;
-    if (this.state.editYear && year) {
-      track.year = parseInt(year.value, 10);
-    }
-    const playCount = this.playCount.current;
-    if (this.state.editPlayCount && playCount) {
-      track.playCount = parseInt(playCount.value, 10);
-    }
+    // TODO: turn into action
+    //if (this.state.editGenre) {
+    //  track.genreIds = this.state.genreIds;
+    //}
+    //if (this.state.editArtists) {
+    //  this.state.artistIds.forEach((artistId) => {
+    //    if (!track.artistIds.includes(artistId)) {
+    //      const artist = this.props.library.getArtistById(artistId);
+    //      artist.trackIds.push(track.id);
+    //    }
+    //  });
+    //  track.artistIds = this.state.artistIds;
+    //}
+    //if (this.state.editAlbums) {
+    //  this.state.albumIds.forEach((albumId) => {
+    //    if (!track.albumIds.includes(albumId)) {
+    //      const album = this.props.library.getAlbumById(albumId);
+    //      album.trackIds.push(track.id);
+    //    }
+    //  });
+    //  track.albumIds = this.state.albumIds;
+    //}
+    //if (this.state.editFavorites) {
+    //  track.favorites = this.state.yearsFavorited;
+    //}
+    //const year = this.year.current;
+    //if (this.state.editYear && year) {
+    //  track.year = parseInt(year.value, 10);
+    //}
+    //const playCount = this.playCount.current;
+    //if (this.state.editPlayCount && playCount) {
+    //  track.playCount = parseInt(playCount.value, 10);
+    //}
   }
 
   private save(): void {
     this.props.tracks.forEach((track) => {
       this.saveTrack(track);
     });
-    this.props.library.save();
+    //this.props.library.save();
     this.props.exit();
   }
 }

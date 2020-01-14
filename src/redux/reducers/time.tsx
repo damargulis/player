@@ -1,10 +1,16 @@
 
-import { UPDATE_TIME } from "../actionTypes";
+import { UPDATE_TIME, TimeActionTypes, TimeState } from "../actionTypes";
 
-const time = (state = 0, action) => {
+const initialState: TimeState = {
+  time: 0
+}
+
+const time = (state = initialState, action: TimeActionTypes) => {
   switch (action.type) {
     case UPDATE_TIME: {
-      return action.payload.time;
+      return {
+        time: action.payload.time,
+      }
     }
     default: {
       return state;

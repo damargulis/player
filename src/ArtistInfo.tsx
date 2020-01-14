@@ -4,6 +4,9 @@ import Library from "./library/Library";
 import defaultArtist from "./resources/missing_artist.png";
 import React from "react";
 import {getImgSrc} from "./utils";
+import { connect } from "react-redux";
+import {RootState} from "./redux/store";
+import {getArtFilesByArtist} from "./redux/selectors";
 
 function getAlbumArtFiles(library: Library , artist: Artist): string[] {
   const albums = library.getAlbumsByIds(artist.albumIds).map((album: Album) => album.albumArtFile);
@@ -15,9 +18,9 @@ function getAlbumArtFiles(library: Library , artist: Artist): string[] {
 
 interface ArtistInfoProps {
   artist: Artist;
-  library: Library;
   style: React.CSSProperties;
   goToArtist(artist: Artist): void;
+  artFiles: string[];
 }
 
 interface ArtistInfoState {
@@ -25,7 +28,7 @@ interface ArtistInfoState {
   timerId?: number;
 }
 
-export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
+class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
   constructor(props: ArtistInfoProps) {
     super(props);
 
@@ -83,7 +86,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
     if (this.props.artist.errors.length > 0) {
       newStyle.backgroundColor = "red";
     }
-    const artFiles = getAlbumArtFiles(this.props.library, this.props.artist);
+    const artFiles = this.props.artFiles;
     const file = artFiles[this.state.currentImg % artFiles.length];
     const src = file ? getImgSrc(file) : defaultArtist;
     return (
@@ -109,3 +112,15 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
     );
   }
 }
+
+interface OwnProps {
+  artist: Artist,
+}
+
+function mapStateToProps(state: RootState, ownProps: OwnProps) {
+  return {
+    artFiles: getArtFilesByArtist(state, ownProps.artist),
+  }
+}
+
+export default connect(mapStateToProps)(ArtistInfo);

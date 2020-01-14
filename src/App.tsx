@@ -1,4 +1,4 @@
-import { updateTime } from "./redux/actions";
+import {updateTime, updateLibrary } from "./redux/actions";
 import {DATA_DIR} from "./constants";
 import {
   createLibraryFromItunes,
@@ -14,6 +14,7 @@ import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import { connect } from "react-redux";
+import {RootState} from "./redux/store";
 
 import "./App.css";
 
@@ -21,14 +22,14 @@ const DEFAULT_VOLUME = .1;
 
 interface AppProps {
   updateTime(time: number): void;
+  updateLibrary(library: Library): void;
+  runWikiExtension(): Promise<void>;
 }
 
 interface AppState {
-  library: Library;
   mini: boolean;
   playlist: EmptyPlaylist;
   playing: boolean;
-  time: number;
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -38,11 +39,9 @@ class App extends React.Component<AppProps, AppState> {
     super(props);
 
     this.state = {
-      library: new Library(),
       mini: false,
       playing: false,
       playlist: new EmptyPlaylist(),
-      time: 0,
     };
     ipcRenderer.on("minimize-reply", () => {
       this.onMinimize();
@@ -71,10 +70,7 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on("run-extension", (type: {}, arg: string) => {
       switch (arg) {
       case "wikipedia":
-        runWikiExtension(this.state.library).then(() => {
-          this.state.library.save();
-          this.setState({library: this.state.library});
-        });
+        this.props.runWikiExtension();
         break;
       default:
         break;
@@ -86,9 +82,9 @@ class App extends React.Component<AppProps, AppState> {
           const playlist = new RandomAlbumPlaylist(library);
           library.save();
           this.setState({
-            library,
             playlist,
           });
+          this.props.updateLibrary(library);
           alert("Library uploaded");
         });
       });
@@ -97,16 +93,16 @@ class App extends React.Component<AppProps, AppState> {
 
     loadLibrary(`${DATA_DIR}/library.json`).then((library: Library) => {
       const playlist = new RandomAlbumPlaylist(library);
+      this.props.updateLibrary(library);
       this.setState({
-        library,
         playlist,
       });
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
         const playlist = new RandomAlbumPlaylist(library);
         library.save();
+        this.props.updateLibrary(library);
         this.setState({
-          library,
           playlist,
         });
       });
@@ -115,9 +111,6 @@ class App extends React.Component<AppProps, AppState> {
     this.audio = new Audio();
     this.audio.volume = DEFAULT_VOLUME;
     this.audio.addEventListener("timeupdate", () => {
-      this.setState({
-        time: this.audio.currentTime,
-      });
       this.props.updateTime(this.audio.currentTime);
     });
     this.audio.addEventListener("ended", () => {
@@ -127,9 +120,7 @@ class App extends React.Component<AppProps, AppState> {
       }
       track.playCount++;
       track.playDate = new Date();
-      this.setState({library: this.state.library});
       this.nextTrack();
-      this.state.library.save();
     });
   }
 
@@ -142,7 +133,6 @@ class App extends React.Component<AppProps, AppState> {
       <div>
         <div style={{display: mini ? "initial" : "none"}}>
           <MiniWindow
-            library={this.state.library}
             nextAlbum={this.nextAlbum.bind(this)}
             nextTrack={this.nextTrack.bind(this)}
             playing={this.state.playing}
@@ -152,13 +142,11 @@ class App extends React.Component<AppProps, AppState> {
             prevTrack={this.prevTrack.bind(this)}
             setTime={this.setTime.bind(this)}
             setVolume={this.setVolume.bind(this)}
-            time={this.state.time}
             volume={this.audio.volume}
           />
         </div>
         <div style={{display: mini ? "none" : "initial"}}>
           <MaxWindow
-            library={this.state.library}
             nextAlbum={this.nextAlbum.bind(this)}
             nextTrack={this.nextTrack.bind(this)}
             playing={this.state.playing}
@@ -169,7 +157,6 @@ class App extends React.Component<AppProps, AppState> {
             setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
             setTime={this.setTime.bind(this)}
             setVolume={this.setVolume.bind(this)}
-            time={this.state.time}
             volume={this.audio.volume}
           />
         </div>
@@ -253,4 +240,4 @@ class App extends React.Component<AppProps, AppState> {
   }
 }
 
-export default connect(null, {updateTime})(App);
+export default connect(null, {updateTime, updateLibrary})(App);

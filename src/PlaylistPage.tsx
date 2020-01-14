@@ -5,23 +5,26 @@ import Playlist from "./library/Playlist";
 import React from "react";
 import SongPicker from "./SongPicker";
 import {toTime} from "./utils";
+import Track from "./library/Track";
+import { connect } from "react-redux";
+import {RootState} from "./redux/store";
+import {getTracksByIds} from "./redux/selectors";
 
 interface PlaylistPageProps {
+  tracks: Track[];
   canGoForward: boolean;
   genres: number[];
-  library: Library;
   playlist: Playlist;
   goBack(): void;
   goForward(): void;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
-export default class PlaylistPage extends React.Component<PlaylistPageProps> {
+class PlaylistPage extends React.Component<PlaylistPageProps> {
 
   public render(): JSX.Element {
     const src = "";
-    const allPlaylistSongs = this.props.library.getTracksByIds(
-      this.props.playlist.trackIds);
+    const allPlaylistSongs = this.props.tracks;
     const songs = allPlaylistSongs.filter((song) => {
       if (this.props.genres.length) {
         return song.genreIds.some((genreId) => {
@@ -46,7 +49,6 @@ export default class PlaylistPage extends React.Component<PlaylistPageProps> {
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>
           <SongPicker
-            library={this.props.library}
             setPlaylistAndPlay={this.props.setPlaylistAndPlay}
             songs={songs}
           />
@@ -56,9 +58,19 @@ export default class PlaylistPage extends React.Component<PlaylistPageProps> {
   }
 
   private getTotalTime(): string {
-    const songs = this.props.library.getTracksByIds(
-      this.props.playlist.trackIds);
-    const duration = songs.reduce((total, song) => total + song.duration, 0);
+    const duration = this.props.tracks.reduce((total, song) => total + song.duration, 0);
     return toTime(duration);
   }
 }
+
+interface OwnProps {
+  playlist: Playlist;
+}
+
+function mapStateToProps(store: RootState, ownProps: OwnProps) {
+  return {
+    tracks: getTracksByIds(store, ownProps.playlist.trackIds),
+  }
+}
+
+export default connect(mapStateToProps)(PlaylistPage);

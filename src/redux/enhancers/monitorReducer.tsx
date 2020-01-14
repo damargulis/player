@@ -1,12 +1,12 @@
 /* tslint:disable:no-console */
-const round = (num) => Math.round(num * 100) / 100;
+const round = (num: number) => Math.round(num * 100) / 100;
 
-const monitorReducerEnhancer = (createStore) => (
-    reducer,
-    initialState,
-    enhancer,
+const monitorReducerEnhancer = (createStore: any) => (
+    reducer: any,
+    initialState: any,
+    enhancer: any,
 ) => {
-    const monitoredReducer = (state, action) => {
+    const monitoredReducer = (state: any, action: any) => {
           const start = performance.now();
           const newState = reducer(state, action);
           const end = performance.now();

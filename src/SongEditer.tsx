@@ -8,7 +8,6 @@ import "./SongEditer.css";
 
 interface SongEditerProps {
   tracks: Track[];
-  library: Library;
   exit(): void;
 }
 
@@ -22,7 +21,6 @@ export default class SongEditer extends React.Component<SongEditerProps> {
       return (
         <SingleSongEditer
           exit={this.props.exit}
-          library={this.props.library}
           track={this.props.tracks[0]}
         />
       );
@@ -30,7 +28,6 @@ export default class SongEditer extends React.Component<SongEditerProps> {
     return (
       <MultipleSongEditer
         exit={this.props.exit}
-        library={this.props.library}
         tracks={this.props.tracks}
       />
     );

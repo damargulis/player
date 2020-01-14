@@ -5,7 +5,6 @@ import * as React from "react";
 import Track from "./library/Track";
 
 interface LikeButtonProps {
-  library: Library;
   item?: Album | Track;
 }
 
@@ -39,7 +38,6 @@ export default class LikeButton extends React.Component<LikeButtonProps> {
     } else {
       this.props.item.favorites.splice(index, 1);
     }
-    this.props.library.save();
     this.forceUpdate();
   }
 }

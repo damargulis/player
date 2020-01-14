@@ -13,7 +13,6 @@ interface ArtistPickerState {
 
 interface ArtistPickerProps {
   artists: Artist[];
-  library: Library;
   goToArtist(artist: Artist): void;
 }
 
@@ -88,7 +87,6 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
         artist={artists[index]}
         goToArtist={(artist) => this.goToArtist(artist)}
         key={key}
-        library={this.props.library}
         style={style}
       />
     );
