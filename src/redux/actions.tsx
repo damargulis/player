@@ -1,5 +1,5 @@
+import {UPDATE_LIBRARY, UPDATE_TIME } from "./actionTypes";
 import Library from "../library/Library";
-import {UPDATE_TIME, UPDATE_LIBRARY } from "./actionTypes";
 
 export const updateTime = (time: number) => ({
   payload: {time},
@@ -10,5 +10,3 @@ export const updateLibrary = (library: Library) => ({
   payload: {library},
   type: UPDATE_LIBRARY,
 });
-
-

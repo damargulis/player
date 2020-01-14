@@ -1,13 +1,12 @@
 import Album from "../library/Album";
 import Artist from "../library/Artist";
-import {RootState} from "./store";
-import Library from "../library/Library";
-import Track from "../library/Track";
 import Playlist from "../library/Playlist";
+import {RootState} from "./store";
+import Track from "../library/Track";
 
 export function getTime(store: RootState): number {
   return store.time.time;
-};
+}
 
 export function getAlbumById(store: RootState, albumId: number): Album {
   return store.library.albums[albumId];
@@ -53,7 +52,7 @@ export function getTracksByIds(store: RootState, ids: number[]): Track[] {
   return ids.map((id) => getTrackById(store, id));
 }
 
-export function getGenreIds(store: RootState, genres: string[]) {
+export function getGenreIds(store: RootState, genres: string[]): number[] {
   return genres.map((genre) => {
     if (store.library.genres.indexOf(genre) >= 0) {
       return store.library.genres.indexOf(genre);
@@ -63,7 +62,7 @@ export function getGenreIds(store: RootState, genres: string[]) {
   });
 }
 
-export function getArtFilesByArtist(store: RootState, artist: Artist) {
+export function getArtFilesByArtist(store: RootState, artist: Artist): string[] {
   const albums = getAlbumsByIds(store, artist.albumIds).map((album) => album.albumArtFile);
   return [
     artist.artFile,
@@ -71,7 +70,7 @@ export function getArtFilesByArtist(store: RootState, artist: Artist) {
   ].filter(Boolean) as string[];
 }
 
-export function getAlbumsByGenres(store: RootState, genres: number[]) {
+export function getAlbumsByGenres(store: RootState, genres: number[]): Album[] {
   return genres.length ? store.library.albums.filter((album) => {
     return album.genreIds.some((genreId) => {
       return genres.includes(genreId);
@@ -79,7 +78,7 @@ export function getAlbumsByGenres(store: RootState, genres: number[]) {
   }) : store.library.albums;
 }
 
-export function getArtistsByGenres(store: RootState, genres: number[]) {
+export function getArtistsByGenres(store: RootState, genres: number[]): Artist[] {
   return genres.length ? store.library.artists.filter((artist) => {
     return artist.genreIds.some((genreId) => {
       return genres.includes(genreId);
@@ -87,7 +86,7 @@ export function getArtistsByGenres(store: RootState, genres: number[]) {
   }) : store.library.artists;
 }
 
-export function getTracksByGenres(store: RootState, genres: number[]) {
+export function getTracksByGenres(store: RootState, genres: number[]): Track[] {
   return genres.length ? store.library.tracks.filter((track) => {
     return track.genreIds.some((genreId) => {
       return genres.includes(genreId);
@@ -95,7 +94,7 @@ export function getTracksByGenres(store: RootState, genres: number[]) {
   }) : store.library.tracks;
 }
 
-export function getPlaylists(store: RootState) {
+export function getPlaylists(store: RootState): Playlist[] {
   return store.library.playlists;
 }
 
@@ -201,7 +200,7 @@ function getAlbumLikesByYear(store: RootState): Playlist[] {
   });
 }
 
-export function getAutoPlaylists(store: RootState) {
+export function getAutoPlaylists(store: RootState): Playlist[] {
   return [
     getMostPlayed(store),
     getUnlistened(store),

@@ -8,12 +8,11 @@ import {
   PIC_ERROR,
 } from "./errors";
 import fs from "fs";
-import Library from "../../library/Library";
 import rp from "request-promise-native";
+import {getGenreIds} from "../../redux/selectors";
 import shortid from "shortid";
-import {findAsync, getDoc, getGenresByRow} from "./utils";
 import {RootState} from "../../redux/store";
-import {getGenreIds, getArtistById, getTracksByIds} from "../../redux/selectors";
+import {findAsync, getDoc, getGenresByRow} from "./utils";
 
 function getWikiPageOptions(artist: Artist): string[] {
   const artistName = artist.name.replace(/ /g, "_");

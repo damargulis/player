@@ -1,6 +1,5 @@
 import Artist from "./library/Artist";
 import ArtistInfo from "./ArtistInfo";
-import Library from "./library/Library";
 import React from "react";
 import SearchBar from "./SearchBar";
 import WrappedGrid from "./WrappedGrid";

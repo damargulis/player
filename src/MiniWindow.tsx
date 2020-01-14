@@ -4,12 +4,9 @@ import ControlPanel from "./ControlPanel";
 import {ipcRenderer} from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import InfoPanel from "./InfoPanel";
-import Library from "./library/Library";
 import ProgressBar from "./ProgressBar";
 import React from "react";
 import Track from "./library/Track";
-import {RootState} from "./redux/store";
-import { connect } from "react-redux";
 
 interface MiniWindowProps {
   playing: boolean;

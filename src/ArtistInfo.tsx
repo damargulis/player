@@ -1,27 +1,22 @@
-import Album from "./library/Album";
 import Artist from "./library/Artist";
-import Library from "./library/Library";
 import defaultArtist from "./resources/missing_artist.png";
 import React from "react";
-import {getImgSrc} from "./utils";
 import { connect } from "react-redux";
-import {RootState} from "./redux/store";
 import {getArtFilesByArtist} from "./redux/selectors";
+import {RootState} from "./redux/store";
+import {getImgSrc} from "./utils";
 
-function getAlbumArtFiles(library: Library , artist: Artist): string[] {
-  const albums = library.getAlbumsByIds(artist.albumIds).map((album: Album) => album.albumArtFile);
-  return [
-    artist.artFile,
-    ...albums,
-  ].filter(Boolean) as string[];
+interface StateProps {
+  artFiles: string[];
 }
 
-interface ArtistInfoProps {
+interface OwnProps {
   artist: Artist;
   style: React.CSSProperties;
   goToArtist(artist: Artist): void;
-  artFiles: string[];
 }
+
+type ArtistInfoProps = OwnProps & StateProps;
 
 interface ArtistInfoState {
   currentImg: number;
@@ -113,14 +108,10 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
   }
 }
 
-interface OwnProps {
-  artist: Artist,
-}
-
-function mapStateToProps(state: RootState, ownProps: OwnProps) {
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
     artFiles: getArtFilesByArtist(state, ownProps.artist),
-  }
+  };
 }
 
 export default connect(mapStateToProps)(ArtistInfo);

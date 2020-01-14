@@ -8,19 +8,18 @@ import {ipcRenderer} from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import GenrePicker from "./GenrePicker";
 import Header from "./Header";
-import Library from "./library/Library";
 import Playlist from "./library/Playlist";
 import PlaylistPage from "./PlaylistPage";
 import PlaylistPicker from "./PlaylistPicker";
 import PlaylistTypePicker from "./PlaylistTypePicker";
 import React from "react";
-import SongPicker from "./SongPicker";
-import Track from "./library/Track";
-import {RootState} from "./redux/store";
 import { connect } from "react-redux";
-import {getAlbumById, getArtistById, getTracksByGenres, getAlbumsByGenres, getArtistsByGenres} from "./redux/selectors";
+import {getAlbumById, getAlbumsByGenres, getArtistById, getArtistsByGenres, getTracksByGenres} from "./redux/selectors";
+import SongPicker from "./SongPicker";
+import {RootState} from "./redux/store";
+import Track from "./library/Track";
 
-interface MaxWindowProps {
+interface OwnProps {
   playing: boolean;
   playlist: EmptyPlaylist;
   volume: number;
@@ -32,12 +31,17 @@ interface MaxWindowProps {
   setTime(time: number): void;
   setVolume(vol: number): void;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
-  getAlbumById: (id: number) => Album;
-  getArtistById: (id: number) => Artist;
-  getTracksByGenres: (genres: number[]) => Track[];
-  getAlbumsByGenres: (genres: number[]) => Album[];
-  getArtistsByGenres: (genres: number[]) => Artist[];
 }
+
+interface StateProps {
+  getAlbumById(id: number): Album;
+  getArtistById(id: number): Artist;
+  getTracksByGenres(genres: number[]): Track[];
+  getAlbumsByGenres(genres: number[]): Album[];
+  getArtistsByGenres(genres: number[]): Artist[];
+}
+
+type MaxWindowProps = OwnProps & StateProps;
 
 interface MaxWindowState {
   curScene: number;
@@ -110,7 +114,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
   }
 
   private onArtistMessage(evt: Event, data: {artist: Artist}): void {
-    debugger;
     const artist = this.props.getArtistById(data.artist.id);
     this.goToArtist(artist);
   }
@@ -248,14 +251,14 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
   }
 }
 
-function mapStateToProps(store: RootState) {
+function mapStateToProps(store: RootState): StateProps {
   return {
     getAlbumById: (id: number) => getAlbumById(store, id),
-    getArtistById: (id: number) => getArtistById(store, id),
-    getTracksByGenres: (genres: number[]) => getTracksByGenres(store, genres),
     getAlbumsByGenres: (genres: number[]) => getAlbumsByGenres(store, genres),
+    getArtistById: (id: number) => getArtistById(store, id),
     getArtistsByGenres: (genres: number[]) => getArtistsByGenres(store, genres),
-  }
+    getTracksByGenres: (genres: number[]) => getTracksByGenres(store, genres),
+  };
 }
 
 export default connect(mapStateToProps)(MaxWindow);

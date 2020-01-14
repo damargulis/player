@@ -11,13 +11,12 @@ import {
   YEAR_ERROR,
 } from "./errors";
 import fs from "fs";
-import Library from "../../library/Library";
 import moment from "moment";
 import rp from "request-promise-native";
+import {getArtistById, getGenreIds, getTracksByIds} from "../../redux/selectors";
 import shortid from "shortid";
-import {findAsync, getDoc, getGenresByRow, sanitize} from "./utils";
 import {RootState} from "../../redux/store";
-import {getGenreIds, getArtistById, getTracksByIds} from "../../redux/selectors";
+import {findAsync, getDoc, getGenresByRow, sanitize} from "./utils";
 
 function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || "";

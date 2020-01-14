@@ -1,4 +1,4 @@
-import {updateTime, updateLibrary } from "./redux/actions";
+import {updateLibrary, updateTime } from "./redux/actions";
 import {DATA_DIR} from "./constants";
 import {
   createLibraryFromItunes,
@@ -8,13 +8,11 @@ import {
 import {ipcRenderer} from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Library from "./library/Library";
-import runWikiExtension from "./extensions/wiki/main";
 import MaxWindow from "./MaxWindow";
 import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import { connect } from "react-redux";
-import {RootState} from "./redux/store";
 
 import "./App.css";
 

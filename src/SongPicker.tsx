@@ -1,35 +1,24 @@
+import Album from "./library/Album";
+import Artist from "./library/Artist";
 import {remote} from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import RandomSongPlaylist from "./playlist/RandomSongPlaylist";
 import React from "react";
 import Modal from "react-modal";
+import { connect } from "react-redux";
 import {AutoSizer, Column, Table} from "react-virtualized";
 import "react-virtualized/styles.css";
 import SearchBar from "./SearchBar";
+import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from "./redux/selectors";
 import SongEditer from "./SongEditer";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {toTime} from "./utils";
-import { connect } from "react-redux";
-import {RootState} from "./redux/store";
-import {getArtistsByIds, getAlbumsByIds, getGenresByIds} from "./redux/selectors";
-import Artist from "./library/Artist";
-import Album from "./library/Album";
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement("#root");
 
 type Sort = "ASC" | "DESC";
-
-interface SongPickerProps {
-  songs: Track[];
-  sortBy?: string;
-  scrollToSong?: Track;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
-  getArtistsByIds(ids: number[]): Artist[];
-  getAlbumsByIds(ids: number[]): Album[];
-  getGenresByIds(ids: number[]): string[];
-}
 
 interface SongPickerState {
   sortBy: string;
@@ -40,6 +29,21 @@ interface SongPickerState {
   search: string;
   editing: boolean;
 }
+
+interface StateProps {
+  getArtistsByIds(ids: number[]): Artist[];
+  getAlbumsByIds(ids: number[]): Album[];
+  getGenresByIds(ids: number[]): string[];
+}
+
+interface OwnProps {
+  songs: Track[];
+  scrollToSong?: Track;
+  sortBy?: string;
+  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
+}
+
+type SongPickerProps = StateProps & OwnProps;
 
 class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   constructor(props: SongPickerProps) {
@@ -385,12 +389,12 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   }
 }
 
-function mapStateToProps(store: RootState) {
+function mapStateToProps(store: RootState): StateProps {
   return {
-    getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
     getAlbumsByIds: (ids: number[]) => getAlbumsByIds(store, ids),
+    getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
     getGenresByIds: (ids: number[]) => getGenresByIds(store, ids),
-  }
+  };
 }
 
 export default connect(mapStateToProps)(SongPicker);

@@ -1,21 +1,25 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
-import Library from "./library/Library";
 import defaultAlbum from "./resources/missing_album.png";
 import * as React from "react";
-import {getImgSrc} from "./utils";
 import { connect } from "react-redux";
-import {RootState} from "./redux/store";
 import {getArtistsByIds} from "./redux/selectors";
+import {RootState} from "./redux/store";
+import {getImgSrc} from "./utils";
 
-interface AlbumInfoProps {
-  album: Album;
+interface StateProps {
   artists: Artist[];
+}
+
+interface OwnProps {
+  album: Album;
   style: React.CSSProperties;
   showStatus: boolean;
   playAlbum(album: Album): void;
   goToAlbum(album: Album): void;
 }
+
+type AlbumInfoProps = OwnProps & StateProps;
 
 class AlbumInfo extends React.Component<AlbumInfoProps> {
   private timer?: number;
@@ -109,14 +113,10 @@ class AlbumInfo extends React.Component<AlbumInfoProps> {
   }
 }
 
-interface OwnProps {
-  album: Album;
-}
-
-function mapStateToProps(state: RootState, ownProps: OwnProps) {
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
     artists: ownProps.album ? getArtistsByIds(state, ownProps.album.artistIds) : [],
-  }
+  };
 }
 
 export default connect(mapStateToProps)(AlbumInfo);

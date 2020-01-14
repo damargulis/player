@@ -1,13 +1,17 @@
-import Library from "./library/Library";
 import React from "react";
+import { connect } from "react-redux";
 import {getGenres} from "./redux/selectors";
 import {RootState} from "./redux/store";
-import { connect } from "react-redux";
 
-interface GenrePickerProps {
+interface OwnProps {
   setGenres(genres: number[]): void;
+}
+
+interface StateProps {
   genres: string[];
 }
+
+type GenrePickerProps = OwnProps & StateProps;
 
 interface GenreElement {
   html: JSX.Element;
@@ -54,10 +58,10 @@ class GenrePicker extends React.Component<GenrePickerProps> {
   }
 }
 
-function mapStateToProps(state: RootState) {
+function mapStateToProps(state: RootState): StateProps {
   return {
     genres: getGenres(state),
-  }
+  };
 }
 
 export default connect(mapStateToProps)(GenrePicker);

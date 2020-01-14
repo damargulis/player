@@ -1,6 +1,5 @@
 import Album from "./library/Album";
 import favoriteButton from "./resources/favorite.png";
-import Library from "./library/Library";
 import * as React from "react";
 import Track from "./library/Track";
 

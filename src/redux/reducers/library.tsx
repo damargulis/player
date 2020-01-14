@@ -1,30 +1,29 @@
 
-import {UPDATE_LIBRARY, LibraryActionTypes, LibraryState } from "../actionTypes";
-import Library from "../../library/Library";
+import {LibraryActionTypes, LibraryState, UPDATE_LIBRARY } from "../actionTypes";
 
 const initialState: LibraryState = {
-  tracks: [],
   albums: [],
   artists: [],
+  genres: [],
   playlists: [],
-  genres: []
-}
+  tracks: [],
+};
 
 function library(state = initialState, action: LibraryActionTypes): LibraryState  {
   switch (action.type) {
     case UPDATE_LIBRARY: {
       return Object.assign({}, state, {
-        tracks: action.payload.library.getTracks(),
         albums: action.payload.library.getAlbums(),
         artists: action.payload.library.getArtists(),
+        genres: action.payload.library.getGenres(),
         playlists: action.payload.library.getPlaylists(),
-        genres: action.payload.library.getGenres()
+        tracks: action.payload.library.getTracks(),
       });
     }
     default: {
       return state;
     }
   }
-};
+}
 
 export default library;

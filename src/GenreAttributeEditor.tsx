@@ -1,15 +1,19 @@
 import AttributeList from "./AttributeList";
-import Library from "./library/Library";
 import React from "react";
 import { connect } from "react-redux";
+import {getGenreById, getGenres} from "./redux/selectors";
 import {RootState} from "./redux/store";
-import {getGenres, getGenreById} from "./redux/selectors";
 
-interface GenreAttributeEditorProps {
+interface OwnProps {
   genreIds: number[];
-  getGenreById: (id: number) => string;
-  allGenres: number[];
 }
+
+interface StateProps {
+  allGenres: number[];
+  getGenreById(id: number): string;
+}
+
+type GenreAttributeEditorProps = OwnProps & StateProps;
 
 class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
   public render(): JSX.Element {
@@ -28,11 +32,11 @@ class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
   }
 }
 
-function mapStateToProps(store: RootState) {
+function mapStateToProps(store: RootState): StateProps {
   return {
+    allGenres: [...Array(getGenres(store).length).keys()],
     getGenreById: (id: number) => getGenreById(store, id),
-    allGenres: [...Array(getGenres(store).length).keys()]
-  }
+  };
 }
 
 export default connect(mapStateToProps)(GenreAttributeEditor);

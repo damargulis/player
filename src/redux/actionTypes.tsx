@@ -1,8 +1,8 @@
 import Album from "../library/Album";
 import Artist from "../library/Artist";
-import Track from "../library/Track";
-import Playlist from "../library/Playlist";
 import Library from "../library/Library";
+import Playlist from "../library/Playlist";
+import Track from "../library/Track";
 
 export const UPDATE_TIME = "UPDATE_TIME";
 export const UPDATE_LIBRARY = "UPDATE_LIBRARY";
@@ -27,8 +27,8 @@ interface UpdateTimeAction {
 interface UpdateLibraryAction {
   type: typeof UPDATE_LIBRARY;
   payload: {
-    library: Library
-  }
+    library: Library,
+  };
 }
 
 export type TimeActionTypes = UpdateTimeAction;

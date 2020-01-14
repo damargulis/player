@@ -4,9 +4,8 @@ import Artist from "../../library/Artist";
 import modifyArtist from "./artists";
 import {ipcRenderer} from "electron";
 import PromisePool from "es6-promise-pool";
-import Library from "../../library/Library";
+import {getAlbumsByIds, getAllAlbumIds, getAllArtistIds, getArtistsByIds} from "../../redux/selectors";
 import {RootState} from "../../redux/store";
-import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds, getAllArtistIds} from "../../redux/selectors";
 
 // TODO: set num by isDev
 const CONCURRENT = 7;

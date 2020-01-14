@@ -1,19 +1,22 @@
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import Playlist from "./library/Playlist";
 import React from "react";
-import WrappedGrid from "./WrappedGrid";
 import { connect } from "react-redux";
+import {getAutoPlaylists, getPlaylists} from "./redux/selectors";
 import {RootState} from "./redux/store";
-import {getPlaylists, getAutoPlaylists} from "./redux/selectors";
+import WrappedGrid from "./WrappedGrid";
 
-
-interface PlaylistPickerProps {
+interface OwnProps {
   goToPlaylist(playlist: Playlist): void;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
+}
+
+interface StateProps {
   playlists: Playlist[];
   autoPlaylists: Playlist[];
 }
+
+type PlaylistPickerProps = OwnProps & StateProps;
 
 class PlaylistPicker extends React.Component<PlaylistPickerProps> {
   public render(): JSX.Element {
@@ -83,11 +86,11 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps> {
   }
 }
 
-function mapStateToProps(store: RootState) {
+function mapStateToProps(store: RootState): StateProps {
   return {
-    playlists: getPlaylists(store),
     autoPlaylists: getAutoPlaylists(store),
-  }
+    playlists: getPlaylists(store),
+  };
 }
 
 export default connect(mapStateToProps)(PlaylistPicker);

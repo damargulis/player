@@ -1,27 +1,31 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
 import {ipcRenderer} from "electron";
-import Library from "./library/Library";
 import Marquee from "./Marquee";
 import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
+import { connect } from "react-redux";
+import {getAlbumsByIds, getArtistsByIds} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {getImgSrc} from "./utils";
-import {RootState} from "./redux/store";
-import {getAlbumsByIds, getArtistsByIds} from "./redux/selectors";
-import { connect } from "react-redux";
 
 import "./InfoPanel.css";
 
-interface InfoPanelProps {
+interface OwnProps {
   track?: Track;
   small?: boolean;
   goToAlbum(album: Album): void;
   goToArtist(artist: Artist): void;
   goToSong(track: Track): void;
+}
+
+interface StateProps {
   albums: Album[];
   artists: Artist[];
 }
+
+type InfoPanelProps = OwnProps & StateProps;
 
 class InfoPanel extends React.Component<InfoPanelProps> {
 
@@ -79,7 +83,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getArtistLinks(): JSX.Element | string {
-    const {track, artists} = this.props;
+    const {artists} = this.props;
     if (!artists.length) {
       return "Artists";
     }
@@ -99,7 +103,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getAlbumLinks(): JSX.Element | string {
-    const {track, albums} = this.props;
+    const {albums} = this.props;
     if (!albums.length) {
       return "Albums";
     }
@@ -132,11 +136,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
   }
 }
 
-interface OwnProps {
-  track?: Track;
-}
-
-function mapStateToProps(state: RootState, ownProps: OwnProps) {
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   const track = ownProps.track;
   return track ? {
     albums: getAlbumsByIds(state, track.albumIds),

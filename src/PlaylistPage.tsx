@@ -1,24 +1,28 @@
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import NavigationBar from "./NavigationBar";
 import Playlist from "./library/Playlist";
 import React from "react";
-import SongPicker from "./SongPicker";
-import {toTime} from "./utils";
-import Track from "./library/Track";
 import { connect } from "react-redux";
-import {RootState} from "./redux/store";
 import {getTracksByIds} from "./redux/selectors";
+import SongPicker from "./SongPicker";
+import {RootState} from "./redux/store";
+import Track from "./library/Track";
+import {toTime} from "./utils";
 
-interface PlaylistPageProps {
-  tracks: Track[];
+interface OwnProps {
+  playlist: Playlist;
   canGoForward: boolean;
   genres: number[];
-  playlist: Playlist;
   goBack(): void;
   goForward(): void;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
+
+interface StateProps {
+  tracks: Track[];
+}
+
+type PlaylistPageProps = StateProps & OwnProps;
 
 class PlaylistPage extends React.Component<PlaylistPageProps> {
 
@@ -63,14 +67,10 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
   }
 }
 
-interface OwnProps {
-  playlist: Playlist;
-}
-
-function mapStateToProps(store: RootState, ownProps: OwnProps) {
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   return {
     tracks: getTracksByIds(store, ownProps.playlist.trackIds),
-  }
+  };
 }
 
 export default connect(mapStateToProps)(PlaylistPage);

@@ -3,32 +3,35 @@ import runAlbumModifier from "./extensions/wiki/albums";
 import Artist from "./library/Artist";
 import EditableAttribute from "./EditableAttribute";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import LikeButton from "./LikeButton";
 import defaultAlbum from "./resources/missing_album.png";
 import NavigationBar from "./NavigationBar";
-import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
+import { connect } from "react-redux";
+import {getArtistsByIds, getTrackById, getTracksByIds} from "./redux/selectors";
 import SongPicker from "./SongPicker";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {getImgSrc, toTime} from "./utils";
-import {RootState} from "./redux/store";
-import {getArtistsByIds, getTracksByIds, getTrackById} from "./redux/selectors";
-import { connect } from "react-redux";
 
-interface AlbumPageProps {
-  album: Album;
+interface StateProps {
   artists: Artist[];
   tracks: Track[];
+  getTracksByIds(ids: number[]): Track[];
+  getTrackById(id: number): Track;
+  runAlbumModifier(album: Album): Promise<void>;
+}
+
+interface OwnProps {
+  album: Album;
   canGoForward: boolean;
   goToArtist(artist: Artist): void;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
   goBack(): void;
   goForward(): void;
-  getTracksByIds(ids: number[]): Track[];
-  getTrackById(id: number): Track;
-  runAlbumModifier(album: Album): Promise<void>;
 }
+
+type AlbumPageProps = OwnProps & StateProps;
 
 class AlbumPage extends React.Component<AlbumPageProps> {
 
@@ -194,25 +197,21 @@ class AlbumPage extends React.Component<AlbumPageProps> {
   }
 
   private playAlbum(): void {
-    //const playlist = new RandomAlbumPlaylist(
+    // const playlist = new RandomAlbumPlaylist(
     //  this.props.library, [this.props.album]);
-    //playlist.addAlbum(this.props.album);
-    //this.props.setPlaylistAndPlay(playlist);
+    // playlist.addAlbum(this.props.album);
+    // this.props.setPlaylistAndPlay(playlist);
   }
 }
 
-interface OwnProps {
-  album: Album;
-}
-
-function mapStateToProps(state: RootState, ownProps: OwnProps) {
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
     artists: getArtistsByIds(state, ownProps.album.artistIds),
-    tracks: getTracksByIds(state, ownProps.album.trackIds),
-    getTracksByIds: (ids: number[]) => getTracksByIds(state, ids),
     getTrackById: (id: number) => getTrackById(state, id),
+    getTracksByIds: (ids: number[]) => getTracksByIds(state, ids),
     runAlbumModifier: (album: Album) => runAlbumModifier(state, album),
-  }
+    tracks: getTracksByIds(state, ownProps.album.trackIds),
+  };
 }
 
 export default connect(mapStateToProps)(AlbumPage);

@@ -2,7 +2,6 @@ import AlbumAttributeEditor from "./AlbumAttributeEditor";
 import ArtistAttributeEditor from "./ArtistAttributeEditor";
 import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
 import GenreAttributeEditor from "./GenreAttributeEditor";
-import Library from "./library/Library";
 import React from "react";
 import Track from "./library/Track";
 
@@ -37,35 +36,35 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
 
   public save(): void {
     // TODO: turn into action
-    //const track = this.props.track;
-    //if (this.name.current) {
+    // const track = this.props.track;
+    // if (this.name.current) {
     //  track.name = this.name.current.value;
-    //}
-    //if (this.year.current) {
+    // }
+    // if (this.year.current) {
     //  track.year = parseInt(this.year.current.value, 10);
-    //}
-    //if (this.playCount.current) {
+    // }
+    // if (this.playCount.current) {
     //  track.playCount = parseInt(this.playCount.current.value, 10);
-    //}
-    //track.favorites = this.state.yearsFavorited;
-    //track.genreIds = this.state.genreIds;
-    //this.state.albumIds.forEach((albumId) => {
+    // }
+    // track.favorites = this.state.yearsFavorited;
+    // track.genreIds = this.state.genreIds;
+    // this.state.albumIds.forEach((albumId) => {
     //  if (!track.albumIds.includes(albumId)) {
     //    const album = this.props.library.getAlbumById(albumId);
     //    album.trackIds.push(track.id);
     //  }
-    //});
-    //track.albumIds = this.state.albumIds;
-    //this.state.artistIds.forEach((artistId) => {
+    // });
+    // track.albumIds = this.state.albumIds;
+    // this.state.artistIds.forEach((artistId) => {
     //  if (!track.artistIds.includes(artistId)) {
     //    const artist = this.props.library.getArtistById(artistId);
     //    artist.trackIds.push(track.id);
     //  }
-    //});
-    //track.artistIds = this.state.artistIds;
+    // });
+    // track.artistIds = this.state.artistIds;
 
-    //this.props.library.save();
-    //this.props.exit();
+    // this.props.library.save();
+    // this.props.exit();
   }
 
   public render(): JSX.Element {

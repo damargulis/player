@@ -1,5 +1,4 @@
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import LikeButton from "./LikeButton";
 import nextAlbum from "./resources/next_album.png";
 import nextTrack from "./resources/next_track.png";

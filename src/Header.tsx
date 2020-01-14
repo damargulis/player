@@ -3,7 +3,6 @@ import Artist from "./library/Artist";
 import ControlPanel from "./ControlPanel";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import InfoPanel from "./InfoPanel";
-import Library from "./library/Library";
 import ProgressBar from "./ProgressBar";
 import React from "react";
 import Track from "./library/Track";

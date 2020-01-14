@@ -2,7 +2,6 @@ import AlbumAttributeEditor from "./AlbumAttributeEditor";
 import ArtistAttributeEditor from "./ArtistAttributeEditor";
 import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
 import GenreAttributeEditor from "./GenreAttributeEditor";
-import Library from "./library/Library";
 import React from "react";
 import ToggableEditableAttribute from "./ToggableEditableAttribute";
 import Track from "./library/Track";
@@ -148,10 +147,10 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
 
   private saveTrack(track: Track): void {
     // TODO: turn into action
-    //if (this.state.editGenre) {
+    // if (this.state.editGenre) {
     //  track.genreIds = this.state.genreIds;
-    //}
-    //if (this.state.editArtists) {
+    // }
+    // if (this.state.editArtists) {
     //  this.state.artistIds.forEach((artistId) => {
     //    if (!track.artistIds.includes(artistId)) {
     //      const artist = this.props.library.getArtistById(artistId);
@@ -159,8 +158,8 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
     //    }
     //  });
     //  track.artistIds = this.state.artistIds;
-    //}
-    //if (this.state.editAlbums) {
+    // }
+    // if (this.state.editAlbums) {
     //  this.state.albumIds.forEach((albumId) => {
     //    if (!track.albumIds.includes(albumId)) {
     //      const album = this.props.library.getAlbumById(albumId);
@@ -168,25 +167,25 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
     //    }
     //  });
     //  track.albumIds = this.state.albumIds;
-    //}
-    //if (this.state.editFavorites) {
+    // }
+    // if (this.state.editFavorites) {
     //  track.favorites = this.state.yearsFavorited;
-    //}
-    //const year = this.year.current;
-    //if (this.state.editYear && year) {
+    // }
+    // const year = this.year.current;
+    // if (this.state.editYear && year) {
     //  track.year = parseInt(year.value, 10);
-    //}
-    //const playCount = this.playCount.current;
-    //if (this.state.editPlayCount && playCount) {
+    // }
+    // const playCount = this.playCount.current;
+    // if (this.state.editPlayCount && playCount) {
     //  track.playCount = parseInt(playCount.value, 10);
-    //}
+    // }
   }
 
   private save(): void {
     this.props.tracks.forEach((track) => {
       this.saveTrack(track);
     });
-    //this.props.library.save();
+    // this.props.library.save();
     this.props.exit();
   }
 }

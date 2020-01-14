@@ -1,16 +1,20 @@
 import Artist from "./library/Artist";
 import AttributeList from "./AttributeList";
-import Library from "./library/Library";
 import React from "react";
 import { connect } from "react-redux";
+import {getAllArtistIds, getArtistById} from "./redux/selectors";
 import {RootState} from "./redux/store";
-import {getArtistsByIds, getArtistById, getAllArtistIds} from "./redux/selectors";
 
-interface ArtistAttributeEditorProps {
+interface OwnProps {
   artistIds: number[];
-  getArtistById: (id: number) => Artist;
-  allIds: number[];
 }
+
+interface StateProps {
+  allIds: number[];
+  getArtistById(id: number): Artist;
+}
+
+type ArtistAttributeEditorProps = OwnProps & StateProps;
 
 class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps> {
   public render(): JSX.Element {
@@ -32,16 +36,11 @@ class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps> 
   }
 }
 
-interface OwnProps {
-  artistIds: number[];
-}
-
-function mapStateToProps(state: RootState, ownProps: OwnProps) {
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
-    artists: getArtistsByIds(state, ownProps.artistIds),
-    getArtistById: (id: number) => getArtistById(state, id),
     allIds: getAllArtistIds(state),
-  }
+    getArtistById: (id: number) => getArtistById(state, id),
+  };
 }
 
 export default connect(mapStateToProps)(ArtistAttributeEditor);

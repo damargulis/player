@@ -1,23 +1,27 @@
 import Album from "./library/Album";
 import AlbumInfo from "./AlbumInfo";
 import Artist from "./library/Artist";
-import Library from "./library/Library";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
-import SearchBar from "./SearchBar";
-import WrappedGrid from "./WrappedGrid";
 import { connect } from "react-redux";
-import {RootState} from "./redux/store";
+import SearchBar from "./SearchBar";
 import {getArtistsByIds} from "./redux/selectors";
+import {RootState} from "./redux/store";
+import WrappedGrid from "./WrappedGrid";
 
 import "./App.css";
 
-interface AlbumPickerProps {
+interface OwnProps {
   albums: Album[];
   goToAlbum(album: Album): void;
   setPlaylistAndPlay(playlist: RandomAlbumPlaylist): void;
+}
+
+interface StateProps {
   getArtistsByIds(ids: number[]): Artist[];
 }
+
+type AlbumPickerProps = OwnProps & StateProps;
 
 interface AlbumPickerState {
   search?: string;
@@ -105,10 +109,10 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   }
 
   private playAlbum(album: Album): void {
-    //const playlist = new RandomAlbumPlaylist(
+    // const playlist = new RandomAlbumPlaylist(
     //  this.props.library, this.state.sortedAlbums);
-    //playlist.addAlbum(album);
-    //this.props.setPlaylistAndPlay(playlist);
+    // playlist.addAlbum(album);
+    // this.props.setPlaylistAndPlay(playlist);
   }
 
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
@@ -160,10 +164,10 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   }
 }
 
-function mapStateToProps(store: RootState) {
+function mapStateToProps(store: RootState): StateProps {
   return {
     getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
-  }
+  };
 }
 
 export default connect(mapStateToProps)(AlbumPicker);

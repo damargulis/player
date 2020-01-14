@@ -4,28 +4,32 @@ import Artist from "./library/Artist";
 import runArtistModifier from "./extensions/wiki/artists";
 import EditableAttribute from "./EditableAttribute";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import defaultArtist from "./resources/missing_artist.png";
 import NavigationBar from "./NavigationBar";
 import React from "react";
-import SongPicker from "./SongPicker";
-import {getImgSrc} from "./utils";
-import {RootState} from "./redux/store";
 import { connect } from "react-redux";
-import Track from "./library/Track";
 import {getAlbumsByIds, getTracksByIds} from "./redux/selectors";
+import SongPicker from "./SongPicker";
+import {RootState} from "./redux/store";
+import Track from "./library/Track";
+import {getImgSrc} from "./utils";
 
-interface ArtistPageProps {
-  artist: Artist;
+interface StateProps {
   albums: Album[];
+  tracks: Track[];
+  runArtistModifier(artist: Artist): Promise<void>;
+}
+
+interface OwnProps {
+  artist: Artist;
   canGoForward: boolean;
   goBack(): void;
   goForward(): void;
   goToAlbum(album: Album): void;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
-  runArtistModifier(artist: Artist): Promise<void>;
-  tracks: Track[];
 }
+
+type ArtistPageProps = OwnProps & StateProps;
 
 class ArtistPage extends React.Component<ArtistPageProps> {
 
@@ -108,16 +112,12 @@ class ArtistPage extends React.Component<ArtistPageProps> {
   }
 }
 
-interface OwnProps {
-  artist: Artist;
-}
-
-function mapStateToProps(store: RootState, ownProps: OwnProps) {
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   return {
-    runArtistModifier: (artist: Artist) => runArtistModifier(store, artist),
     albums: getAlbumsByIds(store, ownProps.artist.albumIds),
+    runArtistModifier: (artist: Artist) => runArtistModifier(store, artist),
     tracks: getTracksByIds(store, ownProps.artist.trackIds),
-  }
+  };
 }
 
 export default connect(mapStateToProps)(ArtistPage);

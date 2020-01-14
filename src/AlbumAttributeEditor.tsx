@@ -1,17 +1,21 @@
 import Album from "./library/Album";
 import AttributeList from "./AttributeList";
-import Library from "./library/Library";
 import React from "react";
 import { connect } from "react-redux";
+import {getAlbumById, getAlbumsByIds, getAllAlbumIds} from "./redux/selectors";
 import {RootState} from "./redux/store";
-import {getAlbumsByIds, getAlbumById, getAllAlbumIds} from "./redux/selectors";
 
-interface AlbumAttributeEditorProps {
-  albumIds: number[];
+interface StateProps {
   albums: Album[];
-  getAlbumById: (albumId: number) => Album;
   allIds: number[];
+  getAlbumById(albumId: number): Album;
 }
+
+interface OwnProps {
+  albumIds: number[];
+}
+
+type AlbumAttributeEditorProps = OwnProps & StateProps;
 
 class AlbumAttributeEditor extends React.Component<AlbumAttributeEditorProps> {
   public render(): JSX.Element {
@@ -34,16 +38,12 @@ class AlbumAttributeEditor extends React.Component<AlbumAttributeEditorProps> {
   }
 }
 
-interface OwnProps {
-  albumIds: number[];
-}
-
-function mapStateToProps(state: RootState, ownProps: OwnProps) {
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
     albums: getAlbumsByIds(state, ownProps.albumIds),
-    getAlbumById: (albumId: number) => getAlbumById(state, albumId),
     allIds: getAllAlbumIds(state),
-  }
+    getAlbumById: (albumId: number) => getAlbumById(state, albumId),
+  };
 }
 
 export default connect(mapStateToProps)(AlbumAttributeEditor);
