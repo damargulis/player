@@ -1,3 +1,4 @@
+import {changeVolume} from "./redux/actions";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import LikeButton from "./LikeButton";
 import nextAlbum from "./resources/next_album.png";
@@ -8,17 +9,22 @@ import prevAlbum from "./resources/previous_album.png";
 import prevTrack from "./resources/previous_track.png";
 import React, {ChangeEvent} from "react";
 import Modal from "react-modal";
+import { connect } from "react-redux";
+import {getVolume} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import volumeButton from "./resources/volume.png";
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement("#root");
 
-interface ControlPanelProps {
+interface DispatchProps {
+  changeVolume(volume: number): void;
+}
+
+interface OwnProps {
   playlist: EmptyPlaylist;
   volumeButton?: boolean;
   playing: boolean;
-  volume: number;
-  setVolume(vol: number): void;
   prevAlbum(): void;
   prevTrack(): void;
   playPause(): void;
@@ -26,11 +32,17 @@ interface ControlPanelProps {
   nextAlbum(): void;
 }
 
+interface StateProps {
+  volume: number;
+}
+
+type ControlPanelProps = OwnProps & StateProps & DispatchProps;
+
 interface ControlPanelState {
   volume: boolean;
 }
 
-export default class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState> {
+class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState> {
   constructor(props: ControlPanelProps) {
     super(props);
 
@@ -98,7 +110,7 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
   }
 
   private setVolume(evt: ChangeEvent<HTMLInputElement>): void {
-    this.props.setVolume(parseFloat(evt.currentTarget.value));
+    this.props.changeVolume(parseFloat(evt.currentTarget.value));
   }
 
   private onClick(): void {
@@ -171,3 +183,11 @@ export default class ControlPanel extends React.Component<ControlPanelProps, Con
     );
   }
 }
+
+function mapStateToProps(store: RootState): StateProps {
+  return {
+    volume: getVolume(store),
+  };
+}
+
+export default connect(mapStateToProps, {changeVolume})(ControlPanel);

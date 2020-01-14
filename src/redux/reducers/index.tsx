@@ -1,5 +1,5 @@
+import currentlyPlaying from "./currentlyPlaying";
 import library from "./library";
 import {combineReducers} from "redux";
-import time from "./time";
 
-export default combineReducers({time, library});
+export default combineReducers({currentlyPlaying, library});

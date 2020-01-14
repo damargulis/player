@@ -22,14 +22,12 @@ import Track from "./library/Track";
 interface OwnProps {
   playing: boolean;
   playlist: EmptyPlaylist;
-  volume: number;
   nextAlbum(): void;
   nextTrack(): void;
   playPause(): void;
   prevAlbum(): void;
   prevTrack(): void;
   setTime(time: number): void;
-  setVolume(vol: number): void;
   setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
@@ -75,7 +73,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     return (
       <div id="max-window" >
         <Header
-          volume={this.props.volume}
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}
@@ -87,7 +84,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
           prevAlbum={this.props.prevAlbum}
           prevTrack={this.props.prevTrack}
           setTime={this.props.setTime}
-          setVolume={this.props.setVolume}
         />
         <div className="section">
           <div id="sidebar">

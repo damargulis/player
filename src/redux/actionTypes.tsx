@@ -6,6 +6,7 @@ import Track from "../library/Track";
 
 export const UPDATE_TIME = "UPDATE_TIME";
 export const UPDATE_LIBRARY = "UPDATE_LIBRARY";
+export const CHANGE_VOLUME = "CHANGE_VOLUME";
 
 export interface LibraryState {
   tracks: Track[];
@@ -15,13 +16,19 @@ export interface LibraryState {
   genres: string[];
 }
 
-export interface TimeState {
+export interface CurrentlyPlayingState {
   time: number;
+  volume: number;
 }
 
 interface UpdateTimeAction {
   type: typeof UPDATE_TIME;
-  payload: TimeState;
+  payload: CurrentlyPlayingState;
+}
+
+interface VolumeChangeAction {
+  type: typeof CHANGE_VOLUME;
+  payload: CurrentlyPlayingState;
 }
 
 interface UpdateLibraryAction {
@@ -31,5 +38,5 @@ interface UpdateLibraryAction {
   };
 }
 
-export type TimeActionTypes = UpdateTimeAction;
+export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction;
 export type LibraryActionTypes = UpdateLibraryAction;

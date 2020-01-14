@@ -1,4 +1,3 @@
-
 import loggerMiddleware from "./middleware/logger";
 import rootReducer from "./reducers";
 import {applyMiddleware, compose} from "redux";

@@ -13,16 +13,22 @@ import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import { connect } from "react-redux";
+import {getVolume} from "./redux/selectors";
+import {RootState} from "./redux/store";
 
 import "./App.css";
 
-const DEFAULT_VOLUME = .1;
+interface StateProps {
+  volume: number;
+}
 
-interface AppProps {
+interface DispatchProps {
   updateTime(time: number): void;
   updateLibrary(library: Library): void;
   runWikiExtension(): Promise<void>;
 }
+
+type AppProps = DispatchProps & StateProps;
 
 interface AppState {
   mini: boolean;
@@ -107,7 +113,7 @@ class App extends React.Component<AppProps, AppState> {
     });
 
     this.audio = new Audio();
-    this.audio.volume = DEFAULT_VOLUME;
+    this.audio.volume = this.props.volume;
     this.audio.addEventListener("timeupdate", () => {
       this.props.updateTime(this.audio.currentTime);
     });
@@ -120,6 +126,10 @@ class App extends React.Component<AppProps, AppState> {
       track.playDate = new Date();
       this.nextTrack();
     });
+  }
+
+  public componentDidUpdate(): void {
+    this.audio.volume = this.props.volume;
   }
 
   public render(): JSX.Element {
@@ -139,8 +149,6 @@ class App extends React.Component<AppProps, AppState> {
             prevAlbum={this.prevAlbum.bind(this)}
             prevTrack={this.prevTrack.bind(this)}
             setTime={this.setTime.bind(this)}
-            setVolume={this.setVolume.bind(this)}
-            volume={this.audio.volume}
           />
         </div>
         <div style={{display: mini ? "none" : "initial"}}>
@@ -154,17 +162,10 @@ class App extends React.Component<AppProps, AppState> {
             prevTrack={this.prevTrack.bind(this)}
             setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
             setTime={this.setTime.bind(this)}
-            setVolume={this.setVolume.bind(this)}
-            volume={this.audio.volume}
           />
         </div>
       </div>
     );
-  }
-
-  private setVolume(volume: number): void {
-    this.audio.volume = volume;
-    this.setState({});
   }
 
   private setTime(time: number): void {
@@ -238,4 +239,10 @@ class App extends React.Component<AppProps, AppState> {
   }
 }
 
-export default connect(null, {updateTime, updateLibrary})(App);
+function mapStateToProps(store: RootState): StateProps {
+  return {
+    volume: getVolume(store),
+  };
+}
+
+export default connect(mapStateToProps, {updateTime, updateLibrary})(App);

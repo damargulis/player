@@ -4,8 +4,10 @@ import Playlist from "../library/Playlist";
 import {RootState} from "./store";
 import Track from "../library/Track";
 
+// TODO: SPLIT THIS UP!!!
+
 export function getTime(store: RootState): number {
-  return store.time.time;
+  return store.currentlyPlaying.time;
 }
 
 export function getAlbumById(store: RootState, albumId: number): Album {
@@ -209,4 +211,8 @@ export function getAutoPlaylists(store: RootState): Playlist[] {
     ...getLikesByYear(store),
     ...getAlbumLikesByYear(store),
   ];
+}
+
+export function getVolume(store: RootState): number {
+  return store.currentlyPlaying.volume;
 }

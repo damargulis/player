@@ -8,7 +8,6 @@ import React from "react";
 import Track from "./library/Track";
 
 interface HeaderProps {
-  volume: number;
   playlist: EmptyPlaylist;
   playing: boolean;
   nextAlbum(): void;
@@ -16,7 +15,6 @@ interface HeaderProps {
   playPause(): void;
   prevAlbum(): void;
   prevTrack(): void;
-  setVolume(vol: number): void;
   goToAlbum(album: Album): void;
   goToArtist(artist: Artist): void;
   goToSong(track: Track): void;
@@ -29,7 +27,6 @@ export default class Header extends React.Component<HeaderProps> {
     return (
       <div id="header" style={{padding: "2px"}}>
         <ControlPanel
-          volume={this.props.volume}
           nextAlbum={this.props.nextAlbum}
           nextTrack={this.props.nextTrack}
           playing={this.props.playing}
@@ -37,7 +34,6 @@ export default class Header extends React.Component<HeaderProps> {
           playPause={this.props.playPause}
           prevAlbum={this.props.prevAlbum}
           prevTrack={this.props.prevTrack}
-          setVolume={this.props.setVolume}
         />
         <ProgressBar
           setTime={this.props.setTime}
