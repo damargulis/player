@@ -1,3 +1,4 @@
+import {save} from "./redux/actions";
 import "./ArtistPage.css";
 import Album from './library/Album';
 import AlbumPicker from './AlbumPicker';
@@ -28,7 +29,11 @@ interface OwnProps {
   goToAlbum(album: Album): void;
 }
 
-type ArtistPageProps = OwnProps & StateProps;
+interface DispatchProps {
+  save(): void;
+}
+
+type ArtistPageProps = OwnProps & StateProps & DispatchProps;
 
 class ArtistPage extends React.Component<ArtistPageProps> {
 
@@ -58,10 +63,10 @@ class ArtistPage extends React.Component<ArtistPageProps> {
             {this.getErrors()}
           </div>
           <div className="artistPageBody" >
-            <div className="container" >
+            <div className="artistPageContainer" >
               <AlbumPicker albums={this.props.albums} goToAlbum={this.props.goToAlbum} />
             </div>
-            <div className="container" >
+            <div className="artistPageContainer" >
               <SongPicker songs={this.props.tracks} />
             </div>
           </div>
@@ -71,7 +76,10 @@ class ArtistPage extends React.Component<ArtistPageProps> {
   }
 
   private runWiki(): void {
-    this.props.runArtistModifier(this.props.artist);
+    this.props.runArtistModifier(this.props.artist).then(() => {
+      this.props.save();
+      this.forceUpdate();
+    });
   }
 
   private getErrors(): JSX.Element | undefined {
@@ -102,4 +110,4 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps)(ArtistPage);
+export default connect(mapStateToProps, {save})(ArtistPage);
