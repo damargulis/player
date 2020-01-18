@@ -1,0 +1,20 @@
+
+.artistPageHolder {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.artistPageHeader {
+  display: flex;
+}
+
+.artistPageBody {
+  height: 100%;
+}
+
+.artistPageContainer {
+  height: 50%;
+}
+
+

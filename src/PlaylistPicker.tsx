@@ -1,3 +1,4 @@
+import "./PlaylistPicker.css";
 import Playlist from './library/Playlist';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -20,22 +21,14 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps> {
   public render(): JSX.Element {
     // TODO: move errors to here instead of a filter
     return (
-      <div className="main">
-        <div style={{position: 'absolute', height: '100%', width: '100%'}}>
-          <div style={{height: '100%', width: '50%'}}>
+      <div className="main" >
+        <div className="playlistPickerPage" >
+          <div className="playlistPickerContainer" >
             Manual
             <WrappedGrid cellRenderer={this.cellRenderer.bind(this)} numItems={this.props.playlists.length} />
           </div>
-          <div
-            style={{
-              height: '100%',
-              position: 'absolute',
-              right: 0,
-              top: 0,
-              width: '50%',
-            }}
-          >
-            <span style={{width: '100%', textAlign: 'center'}}>Auto</span>
+          <div className="playlistInfoContainer" >
+            <span className="titleContainer" >Auto</span>
             <WrappedGrid cellRenderer={this.autoCellRenderer.bind(this)} numItems={this.props.autoPlaylists.length} />
           </div>
         </div>
@@ -57,9 +50,7 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps> {
       width: 150,
     };
     return (
-      <div key={key}
-        onClick={() => this.props.goToPlaylist(playlist)} style={newStyle}
-      >
+      <div key={key} onClick={() => this.props.goToPlaylist(playlist)} style={newStyle} >
         {playlist.name}
       </div>
     );

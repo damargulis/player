@@ -1,0 +1,20 @@
+
+.albumPageHeader {
+  display: flex;
+}
+
+.albumPageControls {
+  position: relative;
+}
+
+.playAlbum {
+  position: absolute;
+  top: 33%;
+  translate: translateY(-66%);
+}
+
+.likeButtonContainer {
+  position: absolute;
+  top: 66%;
+  translate: translateY(-33%);
+}

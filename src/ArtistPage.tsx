@@ -1,3 +1,4 @@
+import "./ArtistPage.css";
 import Album from './library/Album';
 import AlbumPicker from './AlbumPicker';
 import Artist from './library/Artist';
@@ -35,10 +36,8 @@ class ArtistPage extends React.Component<ArtistPageProps> {
     const src = this.props.artist.artFile ? getImgSrc(this.props.artist.artFile) : defaultArtist;
     return (
       <div className="main">
-        <div className="pageHolder"
-          style={{display: 'flex', flexDirection: 'column', height: '100%'}}
-        >
-          <div className="artistPageHeader" style={{display: 'flex'}}>
+        <div className="artistPageHolder" >
+          <div className="artistPageHeader" >
             <NavigationBar
               canGoForward={this.props.canGoForward}
               goBack={this.props.goBack}
@@ -58,11 +57,11 @@ class ArtistPage extends React.Component<ArtistPageProps> {
             </div>
             {this.getErrors()}
           </div>
-          <div className="artistPageBody" style={{height: '100%'}}>
-            <div className="container" style={{height: '50%'}}>
+          <div className="artistPageBody" >
+            <div className="container" >
               <AlbumPicker albums={this.props.albums} goToAlbum={this.props.goToAlbum} />
             </div>
-            <div className="container" style={{height: '50%'}}>
+            <div className="container" >
               <SongPicker songs={this.props.tracks} />
             </div>
           </div>
@@ -80,13 +79,7 @@ class ArtistPage extends React.Component<ArtistPageProps> {
       return;
     }
     return (
-      <div style={{
-        border: 'solid red 1px',
-        marginBottom: '10px',
-        marginLeft: '100px',
-        marginTop: '10px',
-      }}
-      >
+      <div className="errorsContainer" >
         <div> Errors: </div>
         {
           this.props.artist.errors.map((error) => {

@@ -74,3 +74,17 @@
 input[type=image]:disabled{
   opacity:0.5;
 }
+
+.warningsContainer {
+  border: solid yellow 3px;
+  margin-bottom: 10px;
+  margin-left: 100px;
+  margin-top: 10px;
+}
+
+.errorsContainer {
+  border: solid red 3px;
+  margin-bottom: 10px;
+  margin-left: 100px;
+  margin-top: 10px;
+}

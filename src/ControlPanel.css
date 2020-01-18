@@ -1,0 +1,22 @@
+
+.control-panel {
+  display: flex;
+}
+
+.control-button {
+  width: 25px;
+}
+
+.volume-input-modal {
+  bottom: 0px;
+  left: 5%;
+  position: absolute;
+  top: 0px;
+  width: 90%;
+}
+
+.volume-input {
+  -webkit-appearance: slider-vertical;
+  height: 80%;
+  width: 25px;
+}

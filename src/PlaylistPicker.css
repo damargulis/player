@@ -1,0 +1,24 @@
+
+.playlistPickerPage {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.playlistPickerContainer {
+  height: 100%;
+  width: 50%;
+}
+
+.playlistInfoContainer {
+  height: 100%;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  width: 50%;
+}
+
+.titleContainer {
+  width: 100%;
+  text-align: center;
+}

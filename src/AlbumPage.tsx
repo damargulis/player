@@ -16,6 +16,8 @@ import {RootState} from './redux/store';
 import Track from './library/Track';
 import {getImgSrc, toTime} from './utils';
 
+import "./AlbumPage.css";
+
 interface StateProps {
   artists: Artist[];
   tracks: Track[];
@@ -54,7 +56,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
     // TODO: add validation to edit year
     return (
       <div className="main">
-        <div className="albumPageHeader" style={{display: 'flex'}}>
+        <div className="albumPageHeader" >
           <div className="info">
             <NavigationBar
               canGoForward={this.props.canGoForward}
@@ -82,23 +84,9 @@ class AlbumPage extends React.Component<AlbumPageProps> {
               Run Wiki Extension
             </button>
           </div>
-          <div style={{position: 'relative'}}>
-            <button
-              onClick={this.playAlbum.bind(this)}
-              style={{
-                position: 'absolute',
-                top: '33%',
-                translate: 'translateY(-66%)',
-              }}
-            >Play Album
-            </button>
-            <div
-              style={{
-                position: 'absolute',
-                top: '66%',
-                translate: 'translateY(-33%)',
-              }}
-            >
+          <div className="albumPageControls" >
+            <button onClick={this.playAlbum.bind(this)} className="playAlbum" >Play Album</button>
+            <div className="likeButtonContainer">
               <LikeButton item={this.props.album} />
             </div>
           </div>
@@ -136,13 +124,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
       return;
     }
     return (
-      <div style={{
-        border: 'solid yellow 5px',
-        marginBottom: '10px',
-        marginLeft: '100px',
-        marginTop: '10px',
-      }}
-      >
+      <div className="warningsContainer" >
         <div> Warnings: </div>
         {
           warnings.map((trackIndex) => {
@@ -162,13 +144,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
       return;
     }
     return (
-      <div style={{
-        border: 'solid red 1px',
-        marginBottom: '10px',
-        marginLeft: '100px',
-        marginTop: '10px',
-      }}
-      >
+      <div className="errorsContainer" >
         <div> Errors: </div>
         {
           this.props.album.errors.map((error: string) => {

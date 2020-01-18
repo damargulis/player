@@ -1,3 +1,4 @@
+import "./ControlPanel.css";
 import {changeVolume, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack} from './redux/actions';
 import LikeButton from './LikeButton';
 import nextAlbumImg from './resources/next_album.png';
@@ -63,7 +64,7 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
 
   public render(): JSX.Element {
     return (
-      <div id="control-panel" style={{display: 'flex'}}>
+      <div className="control-panel" >
         {this.getVolumeControl()}
         <input
           alt="previous album"
@@ -71,7 +72,6 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           disabled={!this.props.hasPrevAlbum}
           onClick={this.props.prevAlbum}
           src={prevAlbumImg}
-          style={{width: '25px'}}
           type="image"
         />
         <input
@@ -80,7 +80,6 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           disabled={!this.props.hasPrevTrack}
           onClick={this.props.prevTrack}
           src={prevTrackImg}
-          style={{width: '25px'}}
           type="image"
         />
         <input
@@ -89,7 +88,6 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           disabled={!this.props.currentTrack}
           onClick={this.props.playPause}
           src={this.props.playing ? pauseButton : playButton}
-          style={{width: '25px'}}
           type="image"
         />
         <input
@@ -98,7 +96,6 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           disabled={!this.props.hasNextTrack}
           onClick={this.props.nextTrack}
           src={nextTrackImg}
-          style={{width: '25px'}}
           type="image"
         />
         <input
@@ -107,7 +104,6 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           disabled={!this.props.hasNextAlbum}
           onClick={this.props.nextAlbum}
           src={nextAlbumImg}
-          style={{width: '25px'}}
           type="image"
         />
         <LikeButton item={this.props.currentTrack} />
@@ -139,7 +135,6 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
             className="control-button"
             onClick={this.onClick.bind(this)}
             src={volumeButton}
-            style={{width: '25px'}}
             type="image"
           />
           <Modal
@@ -148,17 +143,11 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
             style={style}
           >
             <input
+              className="volume-input-modal"
               max={1}
               min={0}
               onChange={this.setVolume.bind(this)}
               step={.01}
-              style={{
-                bottom: '0px',
-                left: '5%',
-                position: 'absolute',
-                top: '0px',
-                width: '90%',
-              }}
               type="range"
               value={this.props.volume}
             />
@@ -168,15 +157,11 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
     }
     return (
       <input
+        className="volume-input"
         max={1}
         min={0}
         onChange={this.setVolume.bind(this)}
         step={.01}
-        style={{
-          WebkitAppearance: 'slider-vertical',
-          height: '80%',
-          width: '25px',
-        }}
         type="range"
         value={this.props.volume}
       />
