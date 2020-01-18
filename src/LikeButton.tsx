@@ -46,6 +46,7 @@ class LikeButton extends React.Component<LikeButtonProps> {
       this.props.item.favorites.splice(index, 1);
     }
     this.props.save();
+    this.forceUpdate();
   }
 }
 

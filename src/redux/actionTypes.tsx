@@ -15,6 +15,7 @@ export const PREV_TRACK = "PREV_TRACK";
 export const PREV_ALBUM = "PREV_ALBUM";
 export const PLAY_PAUSE = "PLAY_PAUSE";
 export const SAVE = "SAVE";
+export const SET_TIME = "SET_TIME";
 
 export interface LibraryState {
   tracks: Track[];
@@ -30,6 +31,7 @@ export interface CurrentlyPlayingState {
   playlist: EmptyPlaylist;
   currentlyPlayingId?: number;
   isPlaying: boolean;
+  setTime?: number;
 }
 
 interface UpdateTimeAction {
@@ -79,6 +81,11 @@ interface PlayPauseAction {
   type: typeof PLAY_PAUSE;
 }
 
+interface SetTimeAction {
+ type: typeof SET_TIME;
+  payload: {time: number};
+}
+
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
-  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction;
+  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | SaveAction;

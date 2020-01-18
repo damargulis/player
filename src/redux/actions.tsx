@@ -7,6 +7,7 @@ import {
   PREV_TRACK,
   SAVE,
   SET_PLAYLIST,
+  SET_TIME,
   UPDATE_LIBRARY,
   UPDATE_TIME,
 } from "./actionTypes";
@@ -55,4 +56,9 @@ export const playPause = () => ({
 
 export const save = () => ({
   type: SAVE,
+});
+
+export const setTime = (time: number) => ({
+  payload: {time},
+  type: SET_TIME,
 });

@@ -10,7 +10,7 @@ import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import {connect} from "react-redux";
-import {getCurrentTrack, getIsPlaying, getVolume} from "./redux/selectors";
+import {getCurrentTrack, getIsPlaying, getSetTime, getVolume} from "./redux/selectors";
 import {RootState} from "./redux/store";
 import Track from "./library/Track";
 
@@ -20,6 +20,7 @@ interface StateProps {
   volume: number;
   track?: Track;
   playing: boolean;
+  setTime?: number;
   runWikiExtension(): PromiseLike<void>;
 }
 
@@ -134,6 +135,9 @@ class App extends React.Component<AppProps, AppState> {
     if (path && path !== prevPath) {
       this.audio.src = new URL(path).toString();
     }
+    if (this.props.setTime !== undefined) {
+      this.audio.currentTime = this.props.setTime;
+    }
     if (this.props.playing) {
       this.audio.play();
     } else {
@@ -149,10 +153,10 @@ class App extends React.Component<AppProps, AppState> {
     return (
       <div>
         <div style={{display: mini ? "initial" : "none"}}>
-          <MiniWindow setTime={this.setTime.bind(this)} />
+          <MiniWindow />
         </div>
         <div style={{display: mini ? "none" : "initial"}}>
-          <MaxWindow setTime={this.setTime.bind(this)} />
+          <MaxWindow />
         </div>
       </div>
     );
@@ -177,6 +181,7 @@ function mapStateToProps(store: RootState): StateProps {
   return {
     playing: getIsPlaying(store),
     runWikiExtension: () => runWikiExtension(store),
+    setTime: getSetTime(store),
     track,
     volume: getVolume(store),
   };

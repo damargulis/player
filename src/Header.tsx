@@ -10,7 +10,6 @@ interface HeaderProps {
   goToAlbum(album: Album): void;
   goToArtist(artist: Artist): void;
   goToSong(track: Track): void;
-  setTime(time: number): void;
 }
 
 export default class Header extends React.Component<HeaderProps> {
@@ -18,7 +17,7 @@ export default class Header extends React.Component<HeaderProps> {
     return (
       <div id="header" style={{padding: "2px"}}>
         <ControlPanel />
-        <ProgressBar setTime={this.props.setTime} />
+        <ProgressBar />
         <InfoPanel
           goToAlbum={this.props.goToAlbum}
           goToArtist={this.props.goToArtist}

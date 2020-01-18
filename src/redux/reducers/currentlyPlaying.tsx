@@ -9,6 +9,7 @@ import {
   PREV_ALBUM,
   PREV_TRACK,
   SET_PLAYLIST,
+  SET_TIME,
   UPDATE_TIME,
 } from "../actionTypes";
 import EmptyPlaylist from "../../playlist/EmptyPlaylist";
@@ -26,7 +27,13 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
   switch (action.type) {
     case UPDATE_TIME: {
       return Object.assign({}, state, {
+        setTime: undefined,
         time: action.payload.time,
+      });
+    }
+    case SET_TIME: {
+      return Object.assign({}, state, {
+        setTime: action.payload.time,
       });
     }
     case CHANGE_VOLUME: {

@@ -7,12 +7,8 @@ import ProgressBar from "./ProgressBar";
 import React from "react";
 import Track from "./library/Track";
 
-interface MiniWindowProps {
-  setTime(time: number): void;
-}
-
 // TODO: set all css by doing .mini-window .innerClass {}
-class MiniWindow extends React.Component<MiniWindowProps> {
+class MiniWindow extends React.Component {
 
   public render(): JSX.Element {
     return (
@@ -26,7 +22,7 @@ class MiniWindow extends React.Component<MiniWindowProps> {
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel volumeButton={true} />
         </div>
-        <ProgressBar setTime={this.props.setTime} />
+        <ProgressBar />
       </div>
     );
   }

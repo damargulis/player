@@ -20,10 +20,6 @@ import SongPicker from "./SongPicker";
 import {RootState} from "./redux/store";
 import Track from "./library/Track";
 
-interface OwnProps {
-  setTime(time: number): void;
-}
-
 interface StateProps {
   getAlbumById(id: number): Album;
   getArtistById(id: number): Artist;
@@ -32,7 +28,7 @@ interface StateProps {
   getArtistsByGenres(genres: number[]): Artist[];
 }
 
-type MaxWindowProps = OwnProps & StateProps;
+type MaxWindowProps = StateProps;
 
 interface MaxWindowState {
   curScene: number;
@@ -69,7 +65,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}
-          setTime={this.props.setTime}
         />
         <div className="section">
           <div id="sidebar">

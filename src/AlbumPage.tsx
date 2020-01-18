@@ -113,6 +113,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
   private runWiki(): void {
     this.props.runAlbumModifier(this.props.album).then(() => {
       this.props.save();
+      this.forceUpdate();
     });
   }
 
@@ -126,6 +127,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
     }
     this.props.album.warnings = {};
     this.props.save();
+    this.forceUpdate();
   }
 
   private getWarnings(): JSX.Element | undefined {

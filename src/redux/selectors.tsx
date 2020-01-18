@@ -249,3 +249,7 @@ export function hasPrevTrack(store: RootState): boolean {
 export function getIsPlaying(store: RootState): boolean {
   return store.currentlyPlaying.isPlaying;
 }
+
+export function getSetTime(store: RootState): number | undefined {
+  return store.currentlyPlaying.setTime;
+}
