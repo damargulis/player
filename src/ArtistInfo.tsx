@@ -11,7 +11,7 @@ interface StateProps {
 }
 
 interface OwnProps {
-  artist: Artist;
+  artist?: Artist;
   style: React.CSSProperties;
   goToArtist(artist: Artist): void;
 }
@@ -65,7 +65,8 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
   }
 
   public render(): JSX.Element {
-    if (!this.props.artist) {
+    const artist = this.props.artist;
+    if (!artist) {
       return (
         <div style={ this.props.style} />
       );
@@ -78,7 +79,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
       paddingRight: (width - 150) / 2,
       width: 150,
     };
-    if (this.props.artist.errors.length > 0) {
+    if (artist.errors.length > 0) {
       newStyle.backgroundColor = "red";
     }
     const artFiles = this.props.artFiles;
@@ -86,21 +87,21 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
     const src = file ? getImgSrc(file) : defaultArtist;
     return (
       <div
-        onClick={ () => this.props.goToArtist(this.props.artist)}
-        style={ newStyle}
+        onClick={() => this.props.goToArtist(artist)}
+        style={newStyle}
       >
-        <div style={ { position: "absolute", left: "50%"}}>
+        <div style={{position: "absolute", left: "50%"}}>
           <img
             alt="artist art"
             height="100"
-            src={ src}
-            style={ { paddingTop: "10px", position: "relative", left: "-50%"}}
+            src={src}
+            style={{paddingTop: "10px", position: "relative", left: "-50%"}}
             width="100"
           />
           <div
-            style={ { position: "relative", left: "-50%", textAlign: "center"}}
+            style={{position: "relative", left: "-50%", textAlign: "center"}}
           >
-            { this.props.artist.name}
+            {artist.name}
           </div>
         </div>
       </div>
@@ -110,7 +111,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
 
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
-    artFiles: getArtFilesByArtist(state, ownProps.artist),
+    artFiles: ownProps.artist ? getArtFilesByArtist(state, ownProps.artist) : [],
   };
 }
 

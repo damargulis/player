@@ -83,21 +83,19 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     const artists = this.state.sortedArtists;
     return (
       <ArtistInfo
-        artist={ artists[index]}
-        goToArtist={ (artist) => this.goToArtist(artist)}
-        key={ key}
-        style={ style}
+        artist={artists[index]}
+        goToArtist={(artist) => this.goToArtist(artist)}
+        key={key}
+        style={style}
       />
     );
   }
 
   private withErrors(): void {
-    this.setState({
-      withErrors: !this.state.withErrors,
-    });
+    this.setState({withErrors: !this.state.withErrors});
   }
 
   private onSearch(search: string): void {
-    this.setState({ search});
+    this.setState({search});
   }
 }
