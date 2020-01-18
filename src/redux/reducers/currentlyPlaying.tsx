@@ -1,4 +1,3 @@
-// TODO: RENAME FILE TO PLAYLIST
 import {
   CHANGE_VOLUME,
   CurrentlyPlayingActionTypes,
