@@ -1,17 +1,17 @@
-import {changeVolume} from "./redux/actions";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import {changeVolume, nextAlbum, nextTrack, prevAlbum, prevTrack} from "./redux/actions";
 import LikeButton from "./LikeButton";
-import nextAlbum from "./resources/next_album.png";
-import nextTrack from "./resources/next_track.png";
+import nextAlbumImg from "./resources/next_album.png";
+import nextTrackImg from "./resources/next_track.png";
 import pauseButton from "./resources/pause.png";
 import playButton from "./resources/play.png";
-import prevAlbum from "./resources/previous_album.png";
-import prevTrack from "./resources/previous_track.png";
+import prevAlbumImg from "./resources/previous_album.png";
+import prevTrackImg from "./resources/previous_track.png";
 import React, {ChangeEvent} from "react";
 import Modal from "react-modal";
 import { connect } from "react-redux";
-import {getVolume} from "./redux/selectors";
+import {getCurrentTrack, getVolume, hasNextAlbum, hasNextTrack, hasPrevAlbum, hasPrevTrack} from "./redux/selectors";
 import {RootState} from "./redux/store";
+import Track from "./library/Track";
 import volumeButton from "./resources/volume.png";
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -19,21 +19,25 @@ Modal.setAppElement("#root");
 
 interface DispatchProps {
   changeVolume(volume: number): void;
+  nextTrack(): void;
+  nextAlbum(): void;
+  prevAlbum(): void;
+  prevTrack(): void;
 }
 
 interface OwnProps {
-  playlist: EmptyPlaylist;
   volumeButton?: boolean;
   playing: boolean;
-  prevAlbum(): void;
-  prevTrack(): void;
   playPause(): void;
-  nextTrack(): void;
-  nextAlbum(): void;
 }
 
 interface StateProps {
   volume: number;
+  hasPrevAlbum: boolean;
+  hasPrevTrack: boolean;
+  currentTrack?: Track;
+  hasNextTrack: boolean;
+  hasNextAlbum: boolean;
 }
 
 type ControlPanelProps = OwnProps & StateProps & DispatchProps;
@@ -60,25 +64,25 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
         <input
           alt="previous album"
           className="control-button"
-          disabled={!this.props.playlist.hasPrevAlbum()}
+          disabled={!this.props.hasPrevAlbum}
           onClick={this.props.prevAlbum}
-          src={prevAlbum}
+          src={prevAlbumImg}
           style={{width: "25px"}}
           type="image"
         />
         <input
           alt="previous track"
           className="control-button"
-          disabled={!this.props.playlist.hasPrevTrack()}
+          disabled={!this.props.hasPrevTrack}
           onClick={this.props.prevTrack}
-          src={prevTrack}
+          src={prevTrackImg}
           style={{width: "25px"}}
           type="image"
         />
         <input
           alt="play-pause"
           className="control-button"
-          disabled={!this.props.playlist.getCurrentTrack()}
+          disabled={!this.props.currentTrack}
           onClick={this.props.playPause}
           src={this.props.playing ? pauseButton : playButton}
           style={{width: "25px"}}
@@ -87,23 +91,23 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
         <input
           alt="next track"
           className="control-button"
-          disabled={!this.props.playlist.hasNextTrack()}
+          disabled={!this.props.hasNextTrack}
           onClick={this.props.nextTrack}
-          src={nextTrack}
+          src={nextTrackImg}
           style={{width: "25px"}}
           type="image"
         />
         <input
           alt="next album"
           className="control-button"
-          disabled={!this.props.playlist.hasNextAlbum()}
+          disabled={!this.props.hasNextAlbum}
           onClick={this.props.nextAlbum}
-          src={nextAlbum}
+          src={nextAlbumImg}
           style={{width: "25px"}}
           type="image"
         />
         <LikeButton
-          item={this.props.playlist.getCurrentTrack()}
+          item={this.props.currentTrack}
         />
       </div>
     );
@@ -186,8 +190,13 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
 
 function mapStateToProps(store: RootState): StateProps {
   return {
+    currentTrack: getCurrentTrack(store),
+    hasNextAlbum: hasNextAlbum(store),
+    hasNextTrack: hasNextTrack(store),
+    hasPrevAlbum: hasPrevAlbum(store),
+    hasPrevTrack: hasPrevTrack(store),
     volume: getVolume(store),
   };
 }
 
-export default connect(mapStateToProps, {changeVolume})(ControlPanel);
+export default connect(mapStateToProps, {changeVolume, nextTrack, nextAlbum, prevAlbum, prevTrack})(ControlPanel);

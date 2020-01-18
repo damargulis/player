@@ -5,7 +5,7 @@ import Marquee from "./Marquee";
 import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
 import { connect } from "react-redux";
-import {getAlbumsByIds, getArtistsByIds} from "./redux/selectors";
+import {getAlbumsByIds, getArtistsByIds, getCurrentTrack} from "./redux/selectors";
 import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {getImgSrc} from "./utils";
@@ -13,7 +13,6 @@ import {getImgSrc} from "./utils";
 import "./InfoPanel.css";
 
 interface OwnProps {
-  track?: Track;
   small?: boolean;
   goToAlbum(album: Album): void;
   goToArtist(artist: Artist): void;
@@ -23,6 +22,7 @@ interface OwnProps {
 interface StateProps {
   albums: Album[];
   artists: Artist[];
+  track?: Track;
 }
 
 type InfoPanelProps = OwnProps & StateProps;
@@ -137,13 +137,13 @@ class InfoPanel extends React.Component<InfoPanelProps> {
 }
 
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
-  const track = ownProps.track;
-  return track ? {
-    albums: getAlbumsByIds(state, track.albumIds),
-    artists: getArtistsByIds(state, track.artistIds),
-  } : {
-    albums: [],
-    artists: [],
+  const track = getCurrentTrack(state);
+  const albums = track ? getAlbumsByIds(state, track.albumIds) : [];
+  const artists = track ? getArtistsByIds(state, track.artistIds) : [];
+  return {
+    albums,
+    artists,
+    track,
   };
 }
 

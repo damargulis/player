@@ -54,6 +54,10 @@ export function getTracksByIds(store: RootState, ids: number[]): Track[] {
   return ids.map((id) => getTrackById(store, id));
 }
 
+export function getAllTrackIds(store: RootState): number[] {
+  return store.library.tracks.map((track) => track.id);
+}
+
 export function getGenreIds(store: RootState, genres: string[]): number[] {
   return genres.map((genre) => {
     if (store.library.genres.indexOf(genre) >= 0) {
@@ -215,4 +219,29 @@ export function getAutoPlaylists(store: RootState): Playlist[] {
 
 export function getVolume(store: RootState): number {
   return store.currentlyPlaying.volume;
+}
+
+export function getCurrentTrack(store: RootState): Track | undefined {
+  return store.currentlyPlaying.currentlyPlayingId ?
+    getTrackById(store, store.currentlyPlaying.currentlyPlayingId) : undefined;
+}
+
+export function getCurrentTrackId(store: RootState): number | undefined {
+  return store.currentlyPlaying.currentlyPlayingId;
+}
+
+export function hasNextAlbum(store: RootState): boolean {
+  return store.currentlyPlaying.playlist.hasNextAlbum();
+}
+
+export function hasNextTrack(store: RootState): boolean {
+  return store.currentlyPlaying.playlist.hasNextTrack();
+}
+
+export function hasPrevAlbum(store: RootState): boolean {
+  return store.currentlyPlaying.playlist.hasPrevAlbum();
+}
+
+export function hasPrevTrack(store: RootState): boolean {
+  return store.currentlyPlaying.playlist.hasPrevTrack();
 }

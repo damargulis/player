@@ -1,4 +1,3 @@
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Playlist from "./library/Playlist";
 import React from "react";
 import { connect } from "react-redux";
@@ -8,7 +7,6 @@ import WrappedGrid from "./WrappedGrid";
 
 interface OwnProps {
   goToPlaylist(playlist: Playlist): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
 interface StateProps {

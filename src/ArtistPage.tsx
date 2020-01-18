@@ -3,7 +3,6 @@ import AlbumPicker from "./AlbumPicker";
 import Artist from "./library/Artist";
 import runArtistModifier from "./extensions/wiki/artists";
 import EditableAttribute from "./EditableAttribute";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import defaultArtist from "./resources/missing_artist.png";
 import NavigationBar from "./NavigationBar";
 import React from "react";
@@ -26,7 +25,6 @@ interface OwnProps {
   goBack(): void;
   goForward(): void;
   goToAlbum(album: Album): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
 type ArtistPageProps = OwnProps & StateProps;
@@ -67,12 +65,10 @@ class ArtistPage extends React.Component<ArtistPageProps> {
               <AlbumPicker
                 albums={this.props.albums}
                 goToAlbum={this.props.goToAlbum}
-                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
               />
             </div>
             <div className="container" style={{height: "50%"}}>
               <SongPicker
-                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
                 songs={this.props.tracks}
               />
             </div>

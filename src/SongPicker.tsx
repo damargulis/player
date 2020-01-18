@@ -1,3 +1,4 @@
+import {setPlaylist} from "./redux/actions";
 import Album from "./library/Album";
 import Artist from "./library/Artist";
 import {remote} from "electron";
@@ -40,10 +41,13 @@ interface OwnProps {
   songs: Track[];
   scrollToSong?: Track;
   sortBy?: string;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
-type SongPickerProps = StateProps & OwnProps;
+interface DispatchProps {
+  setPlaylist(playlist: EmptyPlaylist): void;
+}
+
+type SongPickerProps = StateProps & OwnProps & DispatchProps;
 
 class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   constructor(props: SongPickerProps) {
@@ -366,7 +370,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     const song = this.state.songs[index];
     const playlist = new RandomSongPlaylist(this.state.songs);
     playlist.addSong(song);
-    this.props.setPlaylistAndPlay(playlist);
+    this.props.setPlaylist(playlist);
   }
 
   private sort({sortBy, sortDirection}: {sortBy: string, sortDirection: Sort}): void {
@@ -397,4 +401,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps)(SongPicker);
+export default connect(mapStateToProps, {setPlaylist})(SongPicker);

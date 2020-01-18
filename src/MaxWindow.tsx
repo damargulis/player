@@ -5,7 +5,6 @@ import Artist from "./library/Artist";
 import ArtistPage from "./ArtistPage";
 import ArtistPicker from "./ArtistPicker";
 import {ipcRenderer} from "electron";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import GenrePicker from "./GenrePicker";
 import Header from "./Header";
 import Playlist from "./library/Playlist";
@@ -21,14 +20,8 @@ import Track from "./library/Track";
 
 interface OwnProps {
   playing: boolean;
-  playlist: EmptyPlaylist;
-  nextAlbum(): void;
-  nextTrack(): void;
   playPause(): void;
-  prevAlbum(): void;
-  prevTrack(): void;
   setTime(time: number): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
 interface StateProps {
@@ -76,13 +69,8 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}
-          nextAlbum={this.props.nextAlbum}
-          nextTrack={this.props.nextTrack}
           playing={this.props.playing}
-          playlist={this.props.playlist}
           playPause={this.props.playPause}
-          prevAlbum={this.props.prevAlbum}
-          prevTrack={this.props.prevTrack}
           setTime={this.props.setTime}
         />
         <div className="section">
@@ -149,7 +137,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     scenes.push(
       () => <SongPicker
         scrollToSong={song}
-        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         songs={this.props.getTracksByGenres(this.state.genres)}
       />,
     );
@@ -166,7 +153,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}
         goToArtist={this.goToArtist.bind(this)}
-        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
       />,
     );
     const curScene = this.state.curScene + 1;
@@ -182,7 +168,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}
         goToAlbum={this.goToAlbum.bind(this)}
-        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
       />,
 
     );
@@ -199,7 +184,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}
         playlist={playlist}
-        setPlaylistAndPlay={this.props.setPlaylistAndPlay}
       />,
 
     );
@@ -217,7 +201,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         <AlbumPicker
           albums={this.props.getAlbumsByGenres(this.state.genres)}
           goToAlbum={this.goToAlbum.bind(this)}
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         />
       );
     case "artist":
@@ -230,7 +213,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     case "song":
       return (
         <SongPicker
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           songs={this.props.getTracksByGenres(this.state.genres)}
         />
       );
@@ -238,7 +220,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       return (
         <PlaylistPicker
           goToPlaylist={this.goToPlaylist.bind(this)}
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
         />
       );
     default:

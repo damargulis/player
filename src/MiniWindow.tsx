@@ -2,7 +2,6 @@ import Album from "./library/Album";
 import Artist from "./library/Artist";
 import ControlPanel from "./ControlPanel";
 import {ipcRenderer} from "electron";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import InfoPanel from "./InfoPanel";
 import ProgressBar from "./ProgressBar";
 import React from "react";
@@ -10,12 +9,7 @@ import Track from "./library/Track";
 
 interface MiniWindowProps {
   playing: boolean;
-  playlist: EmptyPlaylist;
-  nextAlbum(): void;
-  nextTrack(): void;
   playPause(): void;
-  prevAlbum(): void;
-  prevTrack(): void;
   setTime(time: number): void;
 }
 
@@ -30,23 +24,16 @@ class MiniWindow extends React.Component<MiniWindowProps> {
           goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}
           small={true}
-          track={this.props.playlist.getCurrentTrack()}
         />
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel
-            nextAlbum={this.props.nextAlbum}
-            nextTrack={this.props.nextTrack}
             playing={this.props.playing}
-            playlist={this.props.playlist}
             playPause={this.props.playPause}
-            prevAlbum={this.props.prevAlbum}
-            prevTrack={this.props.prevTrack}
             volumeButton={true}
           />
         </div>
         <ProgressBar
           setTime={this.props.setTime}
-          track={this.props.playlist.getCurrentTrack()}
         />
       </div>
     );

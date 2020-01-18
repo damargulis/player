@@ -2,7 +2,6 @@ import Album from "./library/Album";
 import runAlbumModifier from "./extensions/wiki/albums";
 import Artist from "./library/Artist";
 import EditableAttribute from "./EditableAttribute";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import LikeButton from "./LikeButton";
 import defaultAlbum from "./resources/missing_album.png";
 import NavigationBar from "./NavigationBar";
@@ -26,7 +25,6 @@ interface OwnProps {
   album: Album;
   canGoForward: boolean;
   goToArtist(artist: Artist): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
   goBack(): void;
   goForward(): void;
 }
@@ -102,7 +100,6 @@ class AlbumPage extends React.Component<AlbumPageProps> {
           }
         </div>
         <SongPicker
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
           songs={this.props.getTracksByIds(this.props.album.trackIds)}
           sortBy="index"
         />
@@ -197,6 +194,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
   }
 
   private playAlbum(): void {
+    // TODO: RENABLE:
     // const playlist = new RandomAlbumPlaylist(
     //  this.props.library, [this.props.album]);
     // playlist.addAlbum(this.props.album);

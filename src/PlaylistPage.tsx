@@ -1,4 +1,3 @@
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import NavigationBar from "./NavigationBar";
 import Playlist from "./library/Playlist";
 import React from "react";
@@ -15,7 +14,6 @@ interface OwnProps {
   genres: number[];
   goBack(): void;
   goForward(): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
 interface StateProps {
@@ -53,7 +51,6 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>
           <SongPicker
-            setPlaylistAndPlay={this.props.setPlaylistAndPlay}
             songs={songs}
           />
         </div>

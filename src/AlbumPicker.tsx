@@ -1,7 +1,6 @@
 import Album from "./library/Album";
 import AlbumInfo from "./AlbumInfo";
 import Artist from "./library/Artist";
-import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import { connect } from "react-redux";
 import SearchBar from "./SearchBar";
@@ -14,7 +13,6 @@ import "./App.css";
 interface OwnProps {
   albums: Album[];
   goToAlbum(album: Album): void;
-  setPlaylistAndPlay(playlist: RandomAlbumPlaylist): void;
 }
 
 interface StateProps {
@@ -109,6 +107,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   }
 
   private playAlbum(album: Album): void {
+    // TODO: RENABLE
     // const playlist = new RandomAlbumPlaylist(
     //  this.props.library, this.state.sortedAlbums);
     // playlist.addAlbum(album);
