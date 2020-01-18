@@ -68,5 +68,6 @@ interface SetPlaylistAction {
   payload: {playlist: EmptyPlaylist};
 }
 
-export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction | NextAlbumAction | PrevTrackAction | PrevAlbumAction;
+export type CurrentlyPlayingActionTypes = UpdateTimeAction |
+  VolumeChangeAction | NextTrackAction | SetPlaylistAction | NextAlbumAction | PrevTrackAction | PrevAlbumAction;
 export type LibraryActionTypes = UpdateLibraryAction;

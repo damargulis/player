@@ -1,6 +1,14 @@
 // TODO: RENAME FILE TO PLAYLIST
 import {
-  CHANGE_VOLUME, CurrentlyPlayingActionTypes, CurrentlyPlayingState, NEXT_TRACK, UPDATE_TIME, SET_PLAYLIST, NEXT_ALBUM, PREV_ALBUM, PREV_TRACK
+  CHANGE_VOLUME,
+  CurrentlyPlayingActionTypes,
+  CurrentlyPlayingState,
+  NEXT_ALBUM,
+  NEXT_TRACK,
+  PREV_ALBUM,
+  PREV_TRACK,
+  SET_PLAYLIST,
+  UPDATE_TIME,
 } from "../actionTypes";
 import EmptyPlaylist from "../../playlist/EmptyPlaylist";
 
@@ -28,8 +36,8 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
       const playlist = action.payload.playlist;
       const track = playlist.getCurrentTrack();
       return Object.assign({}, state, {
-        playlist,
         currentlyPlayingId: track && track.id,
+        playlist,
       });
     }
     case NEXT_TRACK: {

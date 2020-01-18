@@ -129,7 +129,6 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   public componentDidUpdate(prevProps: AppProps): void {
-    console.log('did update');
     if (this.audio.volume !== this.props.volume) {
       this.audio.volume = this.props.volume;
     }
@@ -142,7 +141,6 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   public render(): JSX.Element {
-    console.log('rendering');
     const mini = this.state.mini;
     // both kept on so that the subscriptions in max window stay, otherwise
     // message comes in before max window gets reattached
@@ -199,10 +197,10 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private setSource(): void {
-    //const filePath = this.props.filePath;
-    //if (filePath) {
+    // const filePath = this.props.filePath;
+    // if (filePath) {
     //  this.audio.src = new URL(filePath).toString();
-    //}
+    // }
   }
 
   private onMaximize(): void {
