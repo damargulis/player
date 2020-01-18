@@ -93,11 +93,11 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     return (
       <div className="main">
         <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)} >
-          <SongEditer exit={ this.closeEdit.bind(this)} tracks={selectedSongs} />
+          <SongEditer exit={this.closeEdit.bind(this)} tracks={selectedSongs} />
         </Modal>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <AutoSizer>
-          {({ height, width}) => {
+          {({height, width}) => {
             return (
               <Table
                 headerHeight={30}
@@ -116,46 +116,14 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
                 sortDirection={this.state.sortDirection}
                 width={width}
               >
-                <Column
-                  dataKey="index"
-                  label="Index"
-                  width={50}
-                />
-                <Column
-                  dataKey="name"
-                  label="Name"
-                  width={300}
-                />
-                <Column
-                  dataKey="duration"
-                  label="Time"
-                  width={50}
-                />
-                <Column
-                  dataKey="artists"
-                  label="Artists"
-                  width={150}
-                />
-                <Column
-                  dataKey="albums"
-                  label="Albums"
-                  width={150}
-                />
-                <Column
-                  dataKey="genres"
-                  label="Genres"
-                  width={100}
-                />
-                <Column
-                  dataKey="year"
-                  label="Year"
-                  width={50}
-                />
-                <Column
-                  dataKey="playCount"
-                  label="Plays"
-                  width={80}
-                />
+                <Column dataKey="index" label="Index" width={50} />
+                <Column dataKey="name" label="Name" width={300} />
+                <Column dataKey="duration" label="Time" width={50} />
+                <Column dataKey="artists" label="Artists" width={150} />
+                <Column dataKey="albums" label="Albums" width={150} />
+                <Column dataKey="genres" label="Genres" width={100} />
+                <Column dataKey="year" label="Year" width={50} />
+                <Column dataKey="playCount" label="Plays" width={80} />
               </Table>
             );
           }}

@@ -18,9 +18,7 @@ export default class Header extends React.Component<HeaderProps> {
     return (
       <div id="header" style={{padding: "2px"}}>
         <ControlPanel />
-        <ProgressBar
-          setTime={this.props.setTime}
-        />
+        <ProgressBar setTime={this.props.setTime} />
         <InfoPanel
           goToAlbum={this.props.goToAlbum}
           goToArtist={this.props.goToArtist}

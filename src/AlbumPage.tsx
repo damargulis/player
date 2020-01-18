@@ -66,6 +66,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
               attr={this.props.album && this.props.album.name}
               onSave={(value: string) => {
                 this.props.album.name = value;
+                this.props.save();
               }}
             />
             {this.getArtistLinks()}
@@ -74,6 +75,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
               attr={this.props.album.year}
               onSave={(value: number) => {
                 this.props.album.year = value;
+                this.props.save();
               }}
             />
             <button onClick={this.runWiki.bind(this)}>
@@ -211,4 +213,4 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps, { setPlaylist, save })(AlbumPage);
+export default connect(mapStateToProps, {setPlaylist, save})(AlbumPage);

@@ -122,14 +122,6 @@ class App extends React.Component<AppProps, AppState> {
         this.props.save();
       }
       this.props.nextTrack();
-      // TODO: add back playcount incrmeneting
-      // const track = this.state.playlist.getCurrentTrack();
-      // if (!track) {
-      //  return;
-      // }
-      // track.playCount++;
-      // track.playDate = new Date();
-      // this.nextTrack();
     });
   }
 

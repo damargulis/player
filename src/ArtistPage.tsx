@@ -53,22 +53,17 @@ class ArtistPage extends React.Component<ArtistPageProps> {
                 }}
               />
               <button onClick={this.runWiki.bind(this)}>
-              Run Wiki Extension
+                Run Wiki Extension
               </button>
             </div>
             {this.getErrors()}
           </div>
           <div className="artistPageBody" style={{height: "100%"}}>
             <div className="container" style={{height: "50%"}}>
-              <AlbumPicker
-                albums={this.props.albums}
-                goToAlbum={this.props.goToAlbum}
-              />
+              <AlbumPicker albums={this.props.albums} goToAlbum={this.props.goToAlbum} />
             </div>
             <div className="container" style={{height: "50%"}}>
-              <SongPicker
-                songs={this.props.tracks}
-              />
+              <SongPicker songs={this.props.tracks} />
             </div>
           </div>
         </div>

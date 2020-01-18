@@ -73,9 +73,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         />
         <div className="section">
           <div id="sidebar">
-            <PlaylistTypePicker
-              setType={this.setType.bind(this)}
-            />
+            <PlaylistTypePicker setType={this.setType.bind(this)} />
             <GenrePicker setGenres={this.setGenres.bind(this)} />
           </div>
           {this.getPicker()}

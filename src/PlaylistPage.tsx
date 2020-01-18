@@ -50,9 +50,7 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
           </div>
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>
-          <SongPicker
-            songs={songs}
-          />
+          <SongPicker songs={songs} />
         </div>
       </div>
     );
