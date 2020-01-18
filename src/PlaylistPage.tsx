@@ -1,12 +1,12 @@
 import NavigationBar from "./NavigationBar";
 import Playlist from "./library/Playlist";
 import React from "react";
-import { connect } from "react-redux";
-import { getTracksByIds } from "./redux/selectors";
+import {connect} from "react-redux";
+import {getTracksByIds} from "./redux/selectors";
 import SongPicker from "./SongPicker";
-import { RootState } from "./redux/store";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
-import { toTime } from "./utils";
+import {toTime} from "./utils";
 
 interface OwnProps {
   playlist: Playlist;
@@ -37,21 +37,21 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
     });
     return (
       <div className="main">
-        <div className="playlistPageHeader" style={ { display: "flex"}}>
+        <div className="playlistPageHeader" style={{display: "flex"}}>
           <div className="info">
             <NavigationBar
-              canGoForward={ this.props.canGoForward}
-              goBack={ this.props.goBack}
-              goForward={ this.props.goForward}
+              canGoForward={this.props.canGoForward}
+              goBack={this.props.goBack}
+              goForward={this.props.goForward}
             />
-            <img alt="playlist" height="100" src={ src} width="100" />
-            <div>{ this.props.playlist && this.props.playlist.name}</div>
-            <div>Total Time: { this.getTotalTime()}</div>
+            <img alt="playlist" height="100" src={src} width="100" />
+            <div>{this.props.playlist && this.props.playlist.name}</div>
+            <div>Total Time: {this.getTotalTime()}</div>
           </div>
         </div>
-        <div className="playlistPageBody" style={ { height: "100%"}}>
+        <div className="playlistPageBody" style={{height: "100%"}}>
           <SongPicker
-            songs={ songs}
+            songs={songs}
           />
         </div>
       </div>

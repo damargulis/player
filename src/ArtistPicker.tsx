@@ -30,9 +30,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   }
 
   public componentDidMount(): void {
-    this.setState({
-      sortedArtists: this.sortArtists(this.props.artists),
-    });
+    this.setState({sortedArtists: this.sortArtists(this.props.artists)});
   }
 
   public componentDidUpdate(): void {
@@ -41,9 +39,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
       sortedArtists.some((artist, index) => {
         return this.state.sortedArtists[index] !== artist;
       })) {
-      this.setState({
-        sortedArtists,
-      });
+      this.setState({sortedArtists});
     }
   }
 
@@ -53,11 +49,11 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     const items = this.state.sortedArtists;
     return (
       <div className="main">
-        <button onClick={ () => this.withErrors()}>Show Wiki Status</button>
-        <SearchBar onSearch={ (search) => this.onSearch(search)} />
+        <button onClick={() => this.withErrors()}>Show Wiki Status</button>
+        <SearchBar onSearch={(search) => this.onSearch(search)} />
         <WrappedGrid
-          cellRenderer={ this.cellRenderer.bind(this)}
-          numItems={ items.length}
+          cellRenderer={this.cellRenderer.bind(this)}
+          numItems={items.length}
         />
       </div>
     );
@@ -66,8 +62,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   private sortArtists(artists: Artist[]): Artist[] {
     return artists.filter((artist) => {
       if (this.state.search) {
-        return artist.name.toLowerCase()
-          .includes(this.state.search.toLowerCase());
+        return artist.name.toLowerCase().includes(this.state.search.toLowerCase());
       }
       return true;
     }).sort((artist1, artist2) => {

@@ -1,4 +1,4 @@
-import { remote } from "electron";
+import {remote} from "electron";
 import isDev from "electron-is-dev";
 
 // TODO: put this somewhere better

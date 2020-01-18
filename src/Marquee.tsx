@@ -12,14 +12,12 @@ interface MarqueeState {
   marquee: boolean;
 }
 
-export default class Marquee extends React.Component<{ }, MarqueeState> {
+export default class Marquee extends React.Component<{}, MarqueeState> {
   private marquee = React.createRef<HTMLInputElement>();
-  constructor(props: { }) {
+  constructor(props: {}) {
     super(props);
 
-    this.state = {
-      marquee: false,
-    };
+    this.state = {marquee: false};
   }
 
   public componentDidMount(): void {
@@ -32,8 +30,8 @@ export default class Marquee extends React.Component<{ }, MarqueeState> {
 
   public render(): JSX.Element {
     return (
-      <span ref={ this.marquee} className={ this.state.marquee ? "marquee" : ""}>
-      { this.props.children}
+      <span ref={this.marquee} className={this.state.marquee ? "marquee" : ""}>
+        {this.props.children}
       </span>
     );
   }
@@ -51,14 +49,10 @@ export default class Marquee extends React.Component<{ }, MarqueeState> {
     }
     if (marquee.offsetWidth > container.offsetWidth) {
       if (!this.state.marquee) {
-        this.setState({
-          marquee: true,
-        });
+        this.setState({marquee: true});
       }
     } else if (this.state.marquee) {
-      this.setState({
-        marquee: false,
-      });
+      this.setState({marquee: false});
     }
   }
 }

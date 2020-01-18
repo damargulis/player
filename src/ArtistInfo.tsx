@@ -1,10 +1,10 @@
 import Artist from "./library/Artist";
 import defaultArtist from "./resources/missing_artist.png";
 import React from "react";
-import { connect } from "react-redux";
-import { getArtFilesByArtist } from "./redux/selectors";
-import { RootState } from "./redux/store";
-import { getImgSrc } from "./utils";
+import {connect} from "react-redux";
+import {getArtFilesByArtist} from "./redux/selectors";
+import {RootState} from "./redux/store";
+import {getImgSrc} from "./utils";
 
 interface StateProps {
   artFiles: string[];
@@ -43,9 +43,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
         if (!this.props.artist) {
           return;
         }
-        this.setState({
-          currentImg: this.state.currentImg + 1,
-        });
+        this.setState({currentImg: this.state.currentImg + 1});
       }, time);
       if (!this.props.artist) {
         return;
@@ -55,9 +53,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
         timerId: id,
       });
     }, Math.random() * time);
-    this.setState({
-      timerId: timeoutId,
-    });
+    this.setState({timerId: timeoutId});
   }
 
   public componentWillUnmount(): void {
@@ -68,7 +64,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
     const artist = this.props.artist;
     if (!artist) {
       return (
-        <div style={ this.props.style} />
+        <div style={this.props.style} />
       );
     }
     // recenter with new width filling full space

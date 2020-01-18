@@ -24,7 +24,7 @@ export default class EditableAttribute<T> extends
 
   public componentDidUpdate(prevProps: EditableAttributeProps<T>): void {
     if (this.props.attr !== prevProps.attr) {
-      this.setState({ value: this.props.attr});
+      this.setState({value: this.props.attr});
     }
   }
 
@@ -32,26 +32,24 @@ export default class EditableAttribute<T> extends
     return (
       <div>
         <input
-          onBlur={ this.save.bind(this)}
-          onChange={ this.onChange.bind(this)}
-          onKeyUp={ this.onKeyUp.bind(this)}
-          ref={ this.input}
-          style={ { display: this.state.editing ? "" : "none"}}
-          value={ this.state.value as unknown as string}
+          onBlur={this.save.bind(this)}
+          onChange={this.onChange.bind(this)}
+          onKeyUp={this.onKeyUp.bind(this)}
+          ref={this.input}
+          style={{display: this.state.editing ? "" : "none"}}
+          value={this.state.value as unknown as string}
         >
         </input>
-        <div style={ { display: this.state.editing ? "none" : ""}}>
-          { this.state.value}
-          <button onClick={ this.edit.bind(this)}>Edit</button>
+        <div style={{display: this.state.editing ? "none" : ""}}>
+          {this.state.value}
+          <button onClick={this.edit.bind(this)}>Edit</button>
         </div>
       </div>
     );
   }
 
   private edit(): void {
-    this.setState({
-      editing: true,
-    }, () => {
+    this.setState({editing: true}, () => {
       const node = this.input.current;
       if (node) {
         node.focus();
@@ -60,15 +58,11 @@ export default class EditableAttribute<T> extends
   }
 
   private onChange(evt: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({
-      value: evt.target.value as unknown as T,
-    });
+    this.setState({value: evt.target.value as unknown as T});
   }
 
   private save(): void {
-    this.setState({
-      editing: false,
-    });
+    this.setState({editing: false});
     this.props.onSave(this.state.value);
   }
 

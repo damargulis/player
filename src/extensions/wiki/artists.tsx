@@ -1,18 +1,13 @@
 import Artist from "../../library/Artist";
-import { DATA_DIR } from "../../constants";
-import { BASE_URL } from "./constants";
-import {
-  GENRE_ERROR,
-  NO_PAGE_ERROR,
-  PARSER_ERROR,
-  PIC_ERROR,
-} from "./errors";
+import {DATA_DIR} from "../../constants";
+import {BASE_URL} from "./constants";
+import {GENRE_ERROR, NO_PAGE_ERROR, PARSER_ERROR, PIC_ERROR} from "./errors";
 import fs from "fs";
 import rp from "request-promise-native";
-import { getGenreIds } from "../../redux/selectors";
+import {getGenreIds} from "../../redux/selectors";
 import shortid from "shortid";
-import { RootState } from "../../redux/store";
-import { findAsync, getDoc, getGenresByRow } from "./utils";
+import {RootState} from "../../redux/store";
+import {findAsync, getDoc, getGenresByRow} from "./utils";
 
 function getWikiPageOptions(artist: Artist): string[] {
   const artistName = artist.name.replace(/ /g, "_");

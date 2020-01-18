@@ -1,7 +1,7 @@
 import React from "react";
-import { connect } from "react-redux";
-import { getGenres } from "./redux/selectors";
-import { RootState } from "./redux/store";
+import {connect} from "react-redux";
+import {getGenres} from "./redux/selectors";
+import {RootState} from "./redux/store";
 
 interface OwnProps {
   setGenres(genres: number[]): void;
@@ -25,12 +25,10 @@ class GenrePicker extends React.Component<GenrePickerProps> {
   public render(): JSX.Element {
     return (
       <div id="genre-picker">
-        <select multiple onChange={ this.onChange.bind(this)} size={ 10}
-          style={ { height: "100%", width: "100%"}}
+        <select multiple onChange={this.onChange.bind(this)} size={10}
+          style={{height: "100%", width: "100%"}}
         >
-          {
-            this.getOptions()
-          }
+          {this.getOptions()}
         </select>
       </div>
     );
@@ -39,7 +37,7 @@ class GenrePicker extends React.Component<GenrePickerProps> {
   private getOptions(): JSX.Element[] {
     return this.props.genres.map((genre: string, index: number) => {
       return {
-        html: <option key={ genre} value={ index}>{ genre}</option>,
+        html: <option key={genre} value={index}>{genre}</option>,
         value: genre,
       };
     }).sort((option1: GenreElement, option2: GenreElement) => {

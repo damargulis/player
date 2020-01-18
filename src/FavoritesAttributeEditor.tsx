@@ -9,17 +9,17 @@ export default class FavoritesAttributeEditor extends React.Component<FavoritesA
   public render(): JSX.Element {
     return (
       <AttributeList
-        attributes={ this.props.yearsFavorited}
+        attributes={this.props.yearsFavorited}
         // TODO: make this the default
-        getDisplayName={ (year) => year.toString()}
+        getDisplayName={(year) => year.toString()}
         label="Years Favorited"
         // TODO: make this the default
-        searchFilter={ (input, year) => {
+        searchFilter={(input, year) => {
           return year.toString().toLowerCase().indexOf(
             input.toLowerCase()) > -1;
         }}
         // TODO: better way of suggesting years
-        suggestions={ [2015, 2016, 2017, 2018, 2019]}
+        suggestions={[2015, 2016, 2017, 2018, 2019]}
       />
     );
   }

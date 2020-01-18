@@ -1,7 +1,7 @@
-import { nextTrack, prevTrack, save, setPlaylist, songEnded, updateLibrary, updateTime } from "./redux/actions";
-import { DATA_DIR } from "./constants";
-import { createLibraryFromItunes, deleteLibrary, loadLibrary } from "./library/create_library";
-import { ipcRenderer } from "electron";
+import {nextTrack, prevTrack, save, setPlaylist, songEnded, updateLibrary, updateTime} from "./redux/actions";
+import {DATA_DIR} from "./constants";
+import {createLibraryFromItunes, deleteLibrary, loadLibrary} from "./library/create_library";
+import {ipcRenderer} from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Library from "./library/Library";
 import runWikiExtension from "./extensions/wiki/main";
@@ -9,9 +9,9 @@ import MaxWindow from "./MaxWindow";
 import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
-import { connect } from "react-redux";
-import { getCurrentTrack, getIsPlaying, getVolume } from "./redux/selectors";
-import { RootState } from "./redux/store";
+import {connect} from "react-redux";
+import {getCurrentTrack, getIsPlaying, getVolume} from "./redux/selectors";
+import {RootState} from "./redux/store";
 
 import "./App.css";
 
@@ -72,7 +72,7 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on("playTrack", () => {
       this.props.playPause();
     });
-    ipcRenderer.on("run-extension", (type: { }, arg: string) => {
+    ipcRenderer.on("run-extension", (type: {}, arg: string) => {
       switch (arg) {
       case "wikipedia":
         this.props.runWikiExtension().then(() => {
@@ -148,15 +148,11 @@ class App extends React.Component<AppProps, AppState> {
     // fix this better?
     return (
       <div>
-        <div style={ { display: mini ? "initial" : "none"}}>
-          <MiniWindow
-            setTime={ this.setTime.bind(this)}
-          />
+        <div style={{display: mini ? "initial" : "none"}}>
+          <MiniWindow setTime={this.setTime.bind(this)} />
         </div>
-        <div style={ { display: mini ? "none" : "initial"}}>
-          <MaxWindow
-            setTime={ this.setTime.bind(this)}
-          />
+        <div style={{display: mini ? "none" : "initial"}}>
+          <MaxWindow setTime={this.setTime.bind(this)} />
         </div>
       </div>
     );
@@ -167,11 +163,11 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private onMaximize(): void {
-    this.setState({ mini: false });
+    this.setState({mini: false });
   }
 
   private onMinimize(): void {
-    this.setState({ mini: true });
+    this.setState({mini: true });
   }
 
 }
@@ -187,4 +183,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps,
-  { updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, songEnded, save })(App);
+  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, songEnded, save})(App);

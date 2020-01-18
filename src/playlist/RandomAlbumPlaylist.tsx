@@ -31,8 +31,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     this.currentAlbum++;
     this.currentTrack = 0;
     if (this.playlist.length <= this.currentAlbum) {
-      this.playlist.push(this.albums[
-        Math.floor(Math.random() * this.albums.length)]);
+      this.playlist.push(this.albums[Math.floor(Math.random() * this.albums.length)]);
     }
     return this.getCurrentTrack();
   }
@@ -60,13 +59,9 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public hasNextAlbum(): boolean {
-    return true;
-  }
+  public hasNextAlbum(): boolean {return true}
 
-  public hasNextTrack(): boolean {
-    return true;
-  }
+  public hasNextTrack(): boolean {return true}
 
   public hasPrevAlbum(): boolean {
     return this.currentAlbum > 0;

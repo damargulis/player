@@ -45,9 +45,7 @@ interface VolumeChangeAction {
 
 interface UpdateLibraryAction {
   type: typeof UPDATE_LIBRARY;
-  payload: {
-    library: Library,
-  };
+  payload: {library: Library};
 }
 
 interface SaveAction {

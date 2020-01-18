@@ -1,4 +1,4 @@
-import { LibraryActionTypes, LibraryState, SAVE, UPDATE_LIBRARY } from "../actionTypes";
+import {LibraryActionTypes, LibraryState, SAVE, UPDATE_LIBRARY} from "../actionTypes";
 import Library from "../../library/Library";
 
 const initialState: LibraryState = {
@@ -12,7 +12,7 @@ const initialState: LibraryState = {
 function library(state = initialState, action: LibraryActionTypes): LibraryState  {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return Object.assign({ }, state, {
+      return Object.assign({}, state, {
         albums: action.payload.library.getAlbums(),
         artists: action.payload.library.getArtists(),
         genres: action.payload.library.getGenres(),

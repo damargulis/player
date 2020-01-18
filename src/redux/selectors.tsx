@@ -1,7 +1,7 @@
 import Album from "../library/Album";
 import Artist from "../library/Artist";
 import Playlist from "../library/Playlist";
-import { RootState } from "./store";
+import {RootState} from "./store";
 import Track from "../library/Track";
 
 // TODO: SPLIT THIS UP!!!
@@ -113,7 +113,7 @@ function getMostPlayed(store: RootState): Playlist {
   }).slice(0, 100).map((track) => {
     return track.id;
   });
-  return new Playlist({ name: "Most Played", trackIds: tracks});
+  return new Playlist({name: "Most Played", trackIds: tracks});
 }
 
 /**
@@ -125,7 +125,7 @@ function getUnlistened(store: RootState): Playlist {
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({ name: "Unheard", trackIds: tracks});
+  return new Playlist({name: "Unheard", trackIds: tracks});
 }
 
 const THREE_MONTHS = 1000 * 60 * 60 * 24;
@@ -140,7 +140,7 @@ function getRecentlyAdded(store: RootState): Playlist {
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({ name: "Recently Added", trackIds: tracks});
+  return new Playlist({name: "Recently Added", trackIds: tracks});
 }
 
 /**
@@ -153,7 +153,7 @@ function getRecentlyPlayed(store: RootState): Playlist {
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({ name: "Recently Played", trackIds: tracks});
+  return new Playlist({name: "Recently Played", trackIds: tracks});
 }
 
 /**
@@ -165,7 +165,7 @@ function getLikesForYear(store: RootState, year: number): Playlist {
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({ name: "Favorite Tracks of " + year, trackIds: tracks});
+  return new Playlist({name: "Favorite Tracks of " + year, trackIds: tracks});
 }
 
 /**
@@ -190,7 +190,7 @@ function getAlbumLikesForYear(store: RootState, year: number): Playlist {
   }).map((album) => {
     return album.trackIds;
   }).flat();
-  return new Playlist({ name: "Favorite Albums of " + year, trackIds: tracks});
+  return new Playlist({name: "Favorite Albums of " + year, trackIds: tracks});
 }
 
 /**

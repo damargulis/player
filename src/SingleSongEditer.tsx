@@ -1,4 +1,4 @@
-import { save } from "./redux/actions";
+import {save} from "./redux/actions";
 import Album from "./library/Album";
 import AlbumAttributeEditor from "./AlbumAttributeEditor";
 import Artist from "./library/Artist";
@@ -6,9 +6,9 @@ import ArtistAttributeEditor from "./ArtistAttributeEditor";
 import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
 import GenreAttributeEditor from "./GenreAttributeEditor";
 import React from "react";
-import { connect } from "react-redux";
-import { getAlbumById, getArtistById } from "./redux/selectors";
-import { RootState } from "./redux/store";
+import {connect} from "react-redux";
+import {getAlbumById, getArtistById} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 
 interface StateProps {
@@ -92,39 +92,39 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
           <label className="label" >Name: </label>
           <input
             className="input"
-            defaultValue={ track.name}
+            defaultValue={track.name}
             placeholder="Name"
-            ref={ this.name}
+            ref={this.name}
           />
         </div>
-        <ArtistAttributeEditor artistIds={ this.state.artistIds} />
-        <AlbumAttributeEditor albumIds={ this.state.albumIds} />
+        <ArtistAttributeEditor artistIds={this.state.artistIds} />
+        <AlbumAttributeEditor albumIds={this.state.albumIds} />
         <div className="edit-container">
           <label className="label" >Year: </label>
           <input
             className="input"
-            defaultValue={ track.year}
+            defaultValue={track.year}
             placeholder="Year"
-            ref={ this.year}
+            ref={this.year}
             type="number"
           />
         </div>
-        <GenreAttributeEditor genreIds={ this.state.genreIds} />
+        <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor
-          yearsFavorited={ this.state.yearsFavorited}
+          yearsFavorited={this.state.yearsFavorited}
         />
         <div className="edit-container">
           <label className="label">Play Count:</label>
           <input
             className="input"
-            defaultValue={ track.playCount}
-            ref={ this.playCount}
+            defaultValue={track.playCount}
+            ref={this.playCount}
             type="number"
           />
         </div>
         <div className="bottom-bar">
-          <button onClick={ this.save.bind(this)}>Save</button>
-          <button onClick={ this.props.exit}>Cancel</button>
+          <button onClick={this.save.bind(this)}>Save</button>
+          <button onClick={this.props.exit}>Cancel</button>
         </div>
       </div>
     );
@@ -138,4 +138,4 @@ function mapStateToProps(state: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, { save})(SingleSongEditer);
+export default connect(mapStateToProps, {save})(SingleSongEditer);

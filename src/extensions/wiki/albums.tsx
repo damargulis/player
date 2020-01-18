@@ -1,7 +1,7 @@
 import Album from "../../library/Album";
 import Artist from "../../library/Artist";
-import { DATA_DIR } from "../../constants";
-import { BASE_URL } from "./constants";
+import {DATA_DIR} from "../../constants";
+import {BASE_URL} from "./constants";
 import {
   ALBUM_ART_ERROR,
   GENRE_ERROR,
@@ -13,10 +13,10 @@ import {
 import fs from "fs";
 import moment from "moment";
 import rp from "request-promise-native";
-import { getArtistById, getGenreIds, getTracksByIds } from "../../redux/selectors";
+import {getArtistById, getGenreIds, getTracksByIds} from "../../redux/selectors";
 import shortid from "shortid";
-import { RootState } from "../../redux/store";
-import { findAsync, getDoc, getGenresByRow, sanitize } from "./utils";
+import {RootState} from "../../redux/store";
+import {findAsync, getDoc, getGenresByRow, sanitize} from "./utils";
 
 function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || "";
