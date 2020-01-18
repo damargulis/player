@@ -1,15 +1,15 @@
-import Album, {AlbumParameters} from "./Album";
-import Artist, {ArtistParameters} from "./Artist";
-import {DATA_DIR} from "../constants";
-import {remote} from "electron";
+import Album, { AlbumParameters } from "./Album";
+import Artist, { ArtistParameters } from "./Artist";
+import { DATA_DIR } from "../constants";
+import { remote } from "electron";
 import fs from "fs";
 import Library from "./Library";
 import mm from "musicmetadata";
 import path from "path";
-import Playlist, {PlaylistParameters} from "./Playlist";
+import Playlist, { PlaylistParameters } from "./Playlist";
 import plist from "plist";
 import shortid from "shortid";
-import Track, {TrackParameters} from "./Track";
+import Track, { TrackParameters } from "./Track";
 
 interface TempArtistData {
   albums: Set<string>;
@@ -84,7 +84,7 @@ interface ItunesData {
  * "Comments" attribution, formatted as a comma separated, quoted list.
  * i.e. "Rock", "Indie Rock", "Folk Rock"
  */
-function getGenres(trackData: {Comments: string}): string[] {
+function getGenres(trackData: { Comments: string}): string[] {
   return trackData.Comments.split(", ").map((genre) => genre.slice(1, -1));
 }
 
@@ -142,12 +142,12 @@ function createGenresFromItunesData(tracks: Map<string, ItunesTrackData>): strin
  * Gets the album art from an mp3 file. Saves the the art into its own file and
  * returns a promise with the file path.
  */
-function getAlbumArt(track: TempTrackData): Promise<string|undefined> {
+function getAlbumArt(track: TempTrackData): Promise<string | undefined> {
   return new Promise((resolve) => {
     const filePath = decodeURI(track.filePath.slice(7)).replace("%23", "#");
     try {
       const readStream = fs.createReadStream(filePath);
-      mm(readStream, (err: Error | undefined, data: {picture: Array<{data: Buffer}>}) => {
+      mm(readStream, (err: Error | undefined, data: { picture: Array<{ data: Buffer}>}) => {
         const id = shortid.generate();
         if (err) {
           return;
@@ -284,7 +284,7 @@ export function createLibraryFromItunes(): Promise<Library> {
       fs.mkdirSync(DATA_DIR);
     }
     alert("Select the iTunes manifest file to load library.");
-    const response = remote.dialog.showOpenDialogSync({properties: ["openFile"]});
+    const response = remote.dialog.showOpenDialogSync({ properties: ["openFile"]});
     const itunesFile = response && response[0];
     if (!itunesFile) {
       alert("No file selected");
@@ -434,12 +434,12 @@ export function createLibraryFromItunes(): Promise<Library> {
       });
     });
     const playlists = realPlaylists.map((playlist: ItunesPlaylistData) => {
-      const trackIds = playlist["Playlist Items"].filter((track: {"Track ID": number}) => !!track)
-        .map((track: {"Track ID": number}) => {
+      const trackIds = playlist["Playlist Items"].filter((track: { "Track ID": number}) => !!track)
+        .map((track: { "Track ID": number}) => {
           const data = trackMap.get(track["Track ID"]);
           return (data && data.id) || 0;
         });
-      return new Playlist({name: playlist.Name, trackIds});
+      return new Playlist({ name: playlist.Name, trackIds});
     });
 
     const promises = [] as Array<Promise<void>>;
@@ -448,7 +448,7 @@ export function createLibraryFromItunes(): Promise<Library> {
       const album = albums[albumData.id];
       // TODO: check multiple tracks for album art data?
       if (track) {
-        promises.push(getAlbumArt(track).then((artFile: string|undefined) => {
+        promises.push(getAlbumArt(track).then((artFile: string | undefined) => {
           if (artFile) {
             album.albumArtFile = artFile;
           }

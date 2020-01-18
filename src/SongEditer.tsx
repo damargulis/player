@@ -19,15 +19,15 @@ export default class SongEditer extends React.Component<SongEditerProps> {
     if (this.props.tracks.length === 1) {
       return (
         <SingleSongEditer
-          exit={this.props.exit}
-          track={this.props.tracks[0]}
+          exit={ this.props.exit}
+          track={ this.props.tracks[0]}
         />
       );
     }
     return (
       <MultipleSongEditer
-        exit={this.props.exit}
-        tracks={this.props.tracks}
+        exit={ this.props.exit}
+        tracks={ this.props.tracks}
       />
     );
   }

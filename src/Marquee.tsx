@@ -12,9 +12,9 @@ interface MarqueeState {
   marquee: boolean;
 }
 
-export default class Marquee extends React.Component<{}, MarqueeState> {
+export default class Marquee extends React.Component<{ }, MarqueeState> {
   private marquee = React.createRef<HTMLInputElement>();
-  constructor(props: {}) {
+  constructor(props: { }) {
     super(props);
 
     this.state = {
@@ -32,8 +32,8 @@ export default class Marquee extends React.Component<{}, MarqueeState> {
 
   public render(): JSX.Element {
     return (
-      <span ref={this.marquee} className={this.state.marquee ? "marquee" : ""}>
-      {this.props.children}
+      <span ref={ this.marquee} className={ this.state.marquee ? "marquee" : ""}>
+      { this.props.children}
       </span>
     );
   }

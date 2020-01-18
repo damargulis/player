@@ -17,10 +17,10 @@ export default class LikeButton extends React.Component<LikeButtonProps> {
       <input
         alt="favorite"
         className="control-button"
-        disabled={!this.props.item}
-        onClick={this.favorite.bind(this)}
-        src={favoriteButton}
-        style={{width: "25px", opacity: favorite ? "1" : ".5"}}
+        disabled={ !this.props.item}
+        onClick={ this.favorite.bind(this)}
+        src={ favoriteButton}
+        style={ { width: "25px", opacity: favorite ? "1" : ".5"}}
         type="image"
       />
     );

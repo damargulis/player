@@ -5,6 +5,7 @@ import {
   PLAY_PAUSE,
   PREV_ALBUM,
   PREV_TRACK,
+  SAVE,
   SET_PLAYLIST,
   SONG_ENDED,
   UPDATE_LIBRARY,
@@ -14,17 +15,17 @@ import EmptyPlaylist from "../playlist/EmptyPlaylist";
 import Library from "../library/Library";
 
 export const updateTime = (time: number) => ({
-  payload: {time},
+  payload: { time},
   type: UPDATE_TIME,
 });
 
 export const updateLibrary = (library: Library) => ({
-  payload: {library},
+  payload: { library},
   type: UPDATE_LIBRARY,
 });
 
 export const changeVolume = (volume: number) => ({
-  payload: {volume},
+  payload: { volume},
   type: CHANGE_VOLUME,
 });
 
@@ -33,7 +34,7 @@ export const nextTrack = () => ({
 });
 
 export const setPlaylist = (playlist: EmptyPlaylist, play: boolean) => ({
-  payload: {playlist, play},
+  payload: { playlist, play},
   type: SET_PLAYLIST,
 });
 
@@ -55,4 +56,8 @@ export const prevAlbum = () => ({
 
 export const playPause = () => ({
   type: PLAY_PAUSE,
+});
+
+export const save = () => ({
+  type: SAVE,
 });

@@ -1,20 +1,17 @@
-import {nextTrack, prevTrack, setPlaylist, songEnded, updateLibrary, updateTime } from "./redux/actions";
-import {DATA_DIR} from "./constants";
-import {
-  createLibraryFromItunes,
-  deleteLibrary,
-  loadLibrary,
-} from "./library/create_library";
-import {ipcRenderer} from "electron";
+import { nextTrack, prevTrack, save, setPlaylist, songEnded, updateLibrary, updateTime } from "./redux/actions";
+import { DATA_DIR } from "./constants";
+import { createLibraryFromItunes, deleteLibrary, loadLibrary } from "./library/create_library";
+import { ipcRenderer } from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Library from "./library/Library";
+import runWikiExtension from "./extensions/wiki/main";
 import MaxWindow from "./MaxWindow";
 import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import { connect } from "react-redux";
-import {getCurrentTrack, getIsPlaying, getVolume} from "./redux/selectors";
-import {RootState} from "./redux/store";
+import { getCurrentTrack, getIsPlaying, getVolume } from "./redux/selectors";
+import { RootState } from "./redux/store";
 
 import "./App.css";
 
@@ -22,17 +19,18 @@ interface StateProps {
   volume: number;
   filePath?: string;
   playing: boolean;
+  runWikiExtension(): PromiseLike<void>;
 }
 
 interface DispatchProps {
   updateTime(time: number): void;
   updateLibrary(library: Library): void;
-  runWikiExtension(): Promise<void>;
   nextTrack(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   songEnded(): void;
   playPause(): void;
+  save(): void;
 }
 
 type AppProps = DispatchProps & StateProps;
@@ -74,10 +72,12 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on("playTrack", () => {
       this.props.playPause();
     });
-    ipcRenderer.on("run-extension", (type: {}, arg: string) => {
+    ipcRenderer.on("run-extension", (type: { }, arg: string) => {
       switch (arg) {
       case "wikipedia":
-        this.props.runWikiExtension();
+        this.props.runWikiExtension().then(() => {
+          this.props.save();
+        });
         break;
       default:
         break;
@@ -148,14 +148,14 @@ class App extends React.Component<AppProps, AppState> {
     // fix this better?
     return (
       <div>
-        <div style={{display: mini ? "initial" : "none"}}>
+        <div style={ { display: mini ? "initial" : "none"}}>
           <MiniWindow
-            setTime={this.setTime.bind(this)}
+            setTime={ this.setTime.bind(this)}
           />
         </div>
-        <div style={{display: mini ? "none" : "initial"}}>
+        <div style={ { display: mini ? "none" : "initial"}}>
           <MaxWindow
-            setTime={this.setTime.bind(this)}
+            setTime={ this.setTime.bind(this)}
           />
         </div>
       </div>
@@ -181,8 +181,10 @@ function mapStateToProps(store: RootState): StateProps {
   return {
     filePath: track && track.filePath,
     playing: getIsPlaying(store),
+    runWikiExtension: () => runWikiExtension(store),
     volume: getVolume(store),
   };
 }
 
-export default connect(mapStateToProps, {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, songEnded})(App);
+export default connect(mapStateToProps,
+  { updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, songEnded, save })(App);

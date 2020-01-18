@@ -1,9 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
-import {getTime} from "./redux/selectors";
-import {RootState} from "./redux/store";
+import { getTime } from "./redux/selectors";
+import { RootState } from "./redux/store";
 import Track from "./library/Track";
-import {toTime} from "./utils";
+import { toTime } from "./utils";
 
 import "./ProgressBar.css";
 
@@ -19,15 +19,15 @@ class ProgressBar extends React.Component<ProgressBarProps> {
     const totalDuration = this.props.track ? this.props.track.duration : 0;
     return (
       <div className="progress-container">
-        <span>{toTime(this.props.time * 1000)}</span>
+        <span>{ toTime(this.props.time * 1000)}</span>
         <input
-          max={totalDuration}
-          min={0}
-          onChange={this.onChange.bind(this)}
+          max={ totalDuration}
+          min={ 0}
+          onChange={ this.onChange.bind(this)}
           type="range"
-          value={this.props.time * 1000}
+          value={ this.props.time * 1000}
         />
-        <span>{toTime(totalDuration)}</span>
+        <span>{ toTime(totalDuration)}</span>
       </div>
     );
   }
@@ -37,7 +37,7 @@ class ProgressBar extends React.Component<ProgressBarProps> {
   }
 }
 
-function mapStateToProps(state: RootState): {time: number} {
+function mapStateToProps(state: RootState): { time: number} {
   return {
     time: getTime(state),
   };

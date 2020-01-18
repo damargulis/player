@@ -1,20 +1,20 @@
-import {setPlaylist} from "./redux/actions";
+import { setPlaylist } from "./redux/actions";
 import Album from "./library/Album";
 import Artist from "./library/Artist";
-import {remote} from "electron";
+import { remote } from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import RandomSongPlaylist from "./playlist/RandomSongPlaylist";
 import React from "react";
 import Modal from "react-modal";
 import { connect } from "react-redux";
-import {AutoSizer, Column, Table} from "react-virtualized";
+import { AutoSizer, Column, Table } from "react-virtualized";
 import "react-virtualized/styles.css";
 import SearchBar from "./SearchBar";
-import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from "./redux/selectors";
+import { getAlbumsByIds, getArtistsByIds, getGenresByIds } from "./redux/selectors";
 import SongEditer from "./SongEditer";
-import {RootState} from "./redux/store";
+import { RootState } from "./redux/store";
 import Track from "./library/Track";
-import {toTime} from "./utils";
+import { toTime } from "./utils";
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement("#root");
@@ -92,74 +92,74 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     });
     return (
       <div className="main">
-        <Modal isOpen={this.state.editing}
-          onRequestClose={this.closeEdit.bind(this)}
+        <Modal isOpen={ this.state.editing}
+          onRequestClose={ this.closeEdit.bind(this)}
         >
           <SongEditer
-            exit={this.closeEdit.bind(this)}
-            tracks={selectedSongs}
+            exit={ this.closeEdit.bind(this)}
+            tracks={ selectedSongs}
           />
         </Modal>
-        <SearchBar onSearch={(search) => this.onSearch(search)} />
+        <SearchBar onSearch={ (search) => this.onSearch(search)} />
         <AutoSizer>
-          {({height, width}) => {
+          { ({ height, width}) => {
             return (
               <Table
-                headerHeight={30}
-                height={height}
-                onRowClick={this.onRowClick.bind(this)}
-                onRowDoubleClick={this.onRowDoubleClick.bind(this)}
-                onRowRightClick={this.doRowRightClick.bind(this)}
+                headerHeight={ 30}
+                height={ height}
+                onRowClick={ this.onRowClick.bind(this)}
+                onRowDoubleClick={ this.onRowDoubleClick.bind(this)}
+                onRowRightClick={ this.doRowRightClick.bind(this)}
                 rowClassName="songRow"
-                rowCount={this.state.songs.length}
-                rowGetter={({index}) => this.getSongData(index)}
-                rowHeight={15}
-                rowStyle={this.getRowStyle.bind(this)}
-                scrollToIndex={scrollTo}
-                sort={this.sort.bind(this)}
-                sortBy={this.state.sortBy}
-                sortDirection={this.state.sortDirection}
-                width={width}
+                rowCount={ this.state.songs.length}
+                rowGetter={ ({ index}) => this.getSongData(index)}
+                rowHeight={ 15}
+                rowStyle={ this.getRowStyle.bind(this)}
+                scrollToIndex={ scrollTo}
+                sort={ this.sort.bind(this)}
+                sortBy={ this.state.sortBy}
+                sortDirection={ this.state.sortDirection}
+                width={ width}
               >
                 <Column
                   dataKey="index"
                   label="Index"
-                  width={50}
+                  width={ 50}
                 />
                 <Column
                   dataKey="name"
                   label="Name"
-                  width={300}
+                  width={ 300}
                 />
                 <Column
                   dataKey="duration"
                   label="Time"
-                  width={50}
+                  width={ 50}
                 />
                 <Column
                   dataKey="artists"
                   label="Artists"
-                  width={150}
+                  width={ 150}
                 />
                 <Column
                   dataKey="albums"
                   label="Albums"
-                  width={150}
+                  width={ 150}
                 />
                 <Column
                   dataKey="genres"
                   label="Genres"
-                  width={100}
+                  width={ 100}
                 />
                 <Column
                   dataKey="year"
                   label="Year"
-                  width={50}
+                  width={ 50}
                 />
                 <Column
                   dataKey="playCount"
                   label="Plays"
-                  width={80}
+                  width={ 80}
                 />
               </Table>
             );
@@ -253,7 +253,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     };
   }
 
-  private getRowStyle({index}: {index: number}): React.CSSProperties {
+  private getRowStyle({ index}: { index: number}): React.CSSProperties {
     const style = {
       backgroundColor: index % 2 === 0 ? "white" : "lightgray",
       borderTop: "solid black 1px",
@@ -282,11 +282,11 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
         selected.push(ind);
       }
     }
-    this.setState({selected});
+    this.setState({ selected});
   }
 
   private edit(): void {
-    this.setState({editing: true});
+    this.setState({ editing: true});
   }
 
   private playNext(): void {
@@ -303,9 +303,9 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     });
   }
 
-  private doRowRightClick({index}: {index: number}): void {
+  private doRowRightClick({ index}: { index: number}): void {
     if (!this.state.selected.includes(index)) {
-      this.setState({selected: [index], lastSelected: index}, () => this.doRowRightClickNext(index));
+      this.setState({ selected: [index], lastSelected: index}, () => this.doRowRightClickNext(index));
     } else {
       this.doRowRightClickNext(index);
     }
@@ -314,16 +314,16 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   private doRowRightClickNext(index: number): void {
     const menu = new remote.Menu();
     menu.append(
-      new remote.MenuItem({label: "Edit Info", click: this.edit.bind(this)}));
+      new remote.MenuItem({ label: "Edit Info", click: this.edit.bind(this)}));
     if (this.state.selected.length === 1) {
-      menu.append(new remote.MenuItem({label: "Play", click: () => this.doDoubleClickSong(index)}));
+      menu.append(new remote.MenuItem({ label: "Play", click: () => this.doDoubleClickSong(index)}));
     }
-    menu.append(new remote.MenuItem({label: "Play Next", click: this.playNext.bind(this)}));
-    menu.append(new remote.MenuItem({label: "Favorite", click: this.favorite.bind(this)}));
+    menu.append(new remote.MenuItem({ label: "Play Next", click: this.playNext.bind(this)}));
+    menu.append(new remote.MenuItem({ label: "Favorite", click: this.favorite.bind(this)}));
     // TODO:
     //  - add to end of currently playing playlist
     //  - add to specific playlist
-    menu.popup({window: remote.getCurrentWindow()});
+    menu.popup({ window: remote.getCurrentWindow()});
   }
 
   private doCmdClick(index: number): void {
@@ -339,8 +339,8 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     });
   }
 
-  private onRowClick({event, index}:
-      {event: {ctrlKey: boolean, shiftKey: boolean, metaKey: boolean}, index: number}): void {
+  private onRowClick({ event, index}:
+      { event: { ctrlKey: boolean, shiftKey: boolean, metaKey: boolean}, index: number}): void {
     if (event.shiftKey) {
       this.doShiftClick(index);
     } else if (event.metaKey || event.ctrlKey) {
@@ -350,9 +350,9 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     }
   }
 
-  private onRowDoubleClick({event, index}:
-    {event:
-      {shiftKey: boolean, metaKey: boolean, ctrlKey: boolean}, index: number},
+  private onRowDoubleClick({ event, index}:
+    { event:
+      { shiftKey: boolean, metaKey: boolean, ctrlKey: boolean}, index: number},
   ): void {
     if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
       this.doDoubleClickSong(index);
@@ -373,7 +373,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     this.props.setPlaylist(playlist, /* play= */ true);
   }
 
-  private sort({sortBy, sortDirection}: {sortBy: string, sortDirection: Sort}): void {
+  private sort({ sortBy, sortDirection}: { sortBy: string, sortDirection: Sort}): void {
     const songs = this.sortSongs(sortBy, sortDirection);
     const selectedNow = this.state.selected.map((index) => {
       return this.state.songs[index];
@@ -381,15 +381,15 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     const selected = selectedNow.map((song) => {
       return songs.indexOf(song);
     }).filter((num) => num >= 0);
-    this.setState({sortBy, sortDirection, songs, selected});
+    this.setState({ sortBy, sortDirection, songs, selected});
   }
 
   private onSearch(search: string): void {
-    this.setState({search}, () => this.sort(this.state));
+    this.setState({ search}, () => this.sort(this.state));
   }
 
   private closeEdit(): void {
-    this.setState({editing: false});
+    this.setState({ editing: false});
   }
 }
 
@@ -401,4 +401,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist})(SongPicker);
+export default connect(mapStateToProps, { setPlaylist})(SongPicker);

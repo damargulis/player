@@ -28,13 +28,13 @@ export default class AttributeList extends React.Component<AttributeListProps, A
     });
     return (
       <div className="edit-constructor">
-        <label className="label">{this.props.label}: </label>
-        {this.getAttributes()}
+        <label className="label">{ this.props.label}: </label>
+        { this.getAttributes()}
         <AutoComplete
-          getDisplayName={this.props.getDisplayName}
-          onSubmit={this.add.bind(this)}
-          searchFilter={this.props.searchFilter}
-          suggestions={suggestions}
+          getDisplayName={ this.props.getDisplayName}
+          onSubmit={ this.add.bind(this)}
+          searchFilter={ this.props.searchFilter}
+          suggestions={ suggestions}
         />
       </div>
     );
@@ -42,20 +42,20 @@ export default class AttributeList extends React.Component<AttributeListProps, A
 
   private add(attr: number): void {
     this.state.current.push(attr);
-    this.setState({current: this.state.current});
+    this.setState({ current: this.state.current});
   }
 
   private remove(index: number): void {
     this.state.current.splice(index, 1);
-    this.setState({current: this.state.current});
+    this.setState({ current: this.state.current});
   }
 
   private getAttributes(): JSX.Element[] {
     return this.state.current.map((attr, index) => {
       return (
-        <div className="list-item" key={index}>
-          {this.props.getDisplayName(attr)}
-          <span className="close" onClick={() => this.remove(index)}>
+        <div className="list-item" key={ index}>
+          { this.props.getDisplayName(attr)}
+          <span className="close" onClick={ () => this.remove(index)}>
             X
           </span>
         </div>

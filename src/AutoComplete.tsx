@@ -1,5 +1,5 @@
 import "./AutoComplete.css";
-import React, {ChangeEvent, KeyboardEvent, MouseEvent} from "react";
+import React, { ChangeEvent, KeyboardEvent, MouseEvent } from "react";
 
 interface AutoCompleteProps {
   suggestions: number[];
@@ -32,15 +32,15 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
       <>
         <input
           className="serach-input"
-          onChange={this.onChange.bind(this)}
-          onKeyDown={this.onKeyDown.bind(this)}
+          onChange={ this.onChange.bind(this)}
+          onKeyDown={ this.onKeyDown.bind(this)}
           type="text"
-          value={this.state.userInput}
+          value={ this.state.userInput}
         />
         {
           this.getSearchSuggestions()
         }
-        <button onClick={this.onSubmit.bind(this)}>
+        <button onClick={ this.onSubmit.bind(this)}>
           Add
         </button>
       </>
@@ -82,10 +82,10 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
                 className={
                   this.state.activeSuggestion === index ? "active" : ""
                 }
-                key={suggestion}
-                onClick={(evt: MouseEvent) => this.onClick(evt, suggestion)}
+                key={ suggestion}
+                onClick={ (evt: MouseEvent) => this.onClick(evt, suggestion)}
               >
-                {this.props.getDisplayName(suggestion)}
+                { this.props.getDisplayName(suggestion)}
               </li>
             );
           })

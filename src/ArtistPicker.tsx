@@ -53,11 +53,11 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     const items = this.state.sortedArtists;
     return (
       <div className="main">
-        <button onClick={() => this.withErrors()}>Show Wiki Status</button>
-        <SearchBar onSearch={(search) => this.onSearch(search)} />
+        <button onClick={ () => this.withErrors()}>Show Wiki Status</button>
+        <SearchBar onSearch={ (search) => this.onSearch(search)} />
         <WrappedGrid
-          cellRenderer={this.cellRenderer.bind(this)}
-          numItems={items.length}
+          cellRenderer={ this.cellRenderer.bind(this)}
+          numItems={ items.length}
         />
       </div>
     );
@@ -83,10 +83,10 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     const artists = this.state.sortedArtists;
     return (
       <ArtistInfo
-        artist={artists[index]}
-        goToArtist={(artist) => this.goToArtist(artist)}
-        key={key}
-        style={style}
+        artist={ artists[index]}
+        goToArtist={ (artist) => this.goToArtist(artist)}
+        key={ key}
+        style={ style}
       />
     );
   }
@@ -98,6 +98,6 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   }
 
   private onSearch(search: string): void {
-    this.setState({search});
+    this.setState({ search});
   }
 }

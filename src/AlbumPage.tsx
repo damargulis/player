@@ -1,4 +1,4 @@
-import {setPlaylist} from "./redux/actions";
+import { save, setPlaylist } from "./redux/actions";
 import Album from "./library/Album";
 import runAlbumModifier from "./extensions/wiki/albums";
 import Artist from "./library/Artist";
@@ -10,11 +10,11 @@ import NavigationBar from "./NavigationBar";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import { connect } from "react-redux";
-import {getArtistsByIds, getTrackById, getTracksByIds} from "./redux/selectors";
+import { getArtistsByIds, getTrackById, getTracksByIds } from "./redux/selectors";
 import SongPicker from "./SongPicker";
-import {RootState} from "./redux/store";
+import { RootState } from "./redux/store";
 import Track from "./library/Track";
-import {getImgSrc, toTime} from "./utils";
+import { getImgSrc, toTime } from "./utils";
 
 interface StateProps {
   artists: Artist[];
@@ -34,6 +34,7 @@ interface OwnProps {
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+  save(): void;
 }
 
 type AlbumPageProps = OwnProps & StateProps & DispatchProps;
@@ -53,36 +54,36 @@ class AlbumPage extends React.Component<AlbumPageProps> {
     // TODO: add validation to edit year
     return (
       <div className="main">
-        <div className="albumPageHeader" style={{display: "flex"}}>
+        <div className="albumPageHeader" style={ { display: "flex"}}>
           <div className="info">
             <NavigationBar
-              canGoForward={this.props.canGoForward}
-              goBack={this.props.goBack}
-              goForward={this.props.goForward}
+              canGoForward={ this.props.canGoForward}
+              goBack={ this.props.goBack}
+              goForward={ this.props.goForward}
             />
-            <img alt="album art" height="100" src={src} width="100" />
+            <img alt="album art" height="100" src={ src} width="100" />
             <EditableAttribute
-              attr={this.props.album && this.props.album.name}
-              onSave={(value: string) => {
+              attr={ this.props.album && this.props.album.name}
+              onSave={ (value: string) => {
                 this.props.album.name = value;
               }}
             />
-            {this.getArtistLinks()}
-            <div>Total Time: {this.getTotalTime()}</div>
+            { this.getArtistLinks()}
+            <div>Total Time: { this.getTotalTime()}</div>
             <EditableAttribute
-              attr={this.props.album.year}
-              onSave={(value: number) => {
+              attr={ this.props.album.year}
+              onSave={ (value: number) => {
                 this.props.album.year = value;
               }}
             />
-            <button onClick={this.runWiki.bind(this)}>
+            <button onClick={ this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>
           </div>
-          <div style={{position: "relative"}}>
+          <div style={ { position: "relative"}}>
             <button
-              onClick={this.playAlbum.bind(this)}
-              style={{
+              onClick={ this.playAlbum.bind(this)}
+              style={ {
                 position: "absolute",
                 top: "33%",
                 translate: "translateY(-66%)",
@@ -90,13 +91,13 @@ class AlbumPage extends React.Component<AlbumPageProps> {
             >Play Album
             </button>
             <div
-              style={{
+              style={ {
                 position: "absolute",
                 top: "66%",
                 translate: "translateY(-33%)",
               }}
             >
-              <LikeButton item={this.props.album} />
+              <LikeButton item={ this.props.album} />
             </div>
           </div>
           {
@@ -107,7 +108,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
           }
         </div>
         <SongPicker
-          songs={this.props.getTracksByIds(this.props.album.trackIds)}
+          songs={ this.props.getTracksByIds(this.props.album.trackIds)}
           sortBy="index"
         />
 
@@ -116,7 +117,9 @@ class AlbumPage extends React.Component<AlbumPageProps> {
   }
 
   private runWiki(): void {
-    this.props.runAlbumModifier(this.props.album);
+    this.props.runAlbumModifier(this.props.album).then(() => {
+      this.props.save();
+    });
   }
 
   private acceptTrackWarnings(): void {
@@ -127,7 +130,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
         track.name = this.props.album.warnings[indexStr];
       }
     }
-    this.props.album.warnings = {};
+    this.props.album.warnings = { };
   }
 
   private getWarnings(): JSX.Element | undefined {
@@ -136,7 +139,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
       return;
     }
     return (
-      <div style={{
+      <div style={ {
         border: "solid yellow 5px",
         marginBottom: "10px",
         marginLeft: "100px",
@@ -147,13 +150,13 @@ class AlbumPage extends React.Component<AlbumPageProps> {
         {
           warnings.map((trackIndex) => {
             return (
-              <div key={trackIndex}>{parseInt(trackIndex, 10) + 1 + ": " +
+              <div key={ trackIndex}>{ parseInt(trackIndex, 10) + 1 + ": " +
                 this.props.album.warnings[trackIndex]}
               </div>
             );
           })
         }
-        <button onClick={this.acceptTrackWarnings.bind(this)}>Accept</button>
+        <button onClick={ this.acceptTrackWarnings.bind(this)}>Accept</button>
       </div>
     );
   }
@@ -163,7 +166,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
       return;
     }
     return (
-      <div style={{
+      <div style={ {
         border: "solid red 1px",
         marginBottom: "10px",
         marginLeft: "100px",
@@ -174,7 +177,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
         {
           this.props.album.errors.map((error: string) => {
             return (
-              <div key={error}>{error}</div>
+              <div key={ error}>{ error}</div>
             );
           })
         }
@@ -186,9 +189,9 @@ class AlbumPage extends React.Component<AlbumPageProps> {
   private getArtistLinks(): JSX.Element[] | undefined {
     return this.props.artists.map((artist: Artist) => {
       return (
-        <div key={artist.id}>
-          <div className="link" onClick={() => this.props.goToArtist(artist)}>
-            {artist.name}
+        <div key={ artist.id}>
+          <div className="link" onClick={ () => this.props.goToArtist(artist)}>
+            { artist.name}
           </div>
         </div>
       );
@@ -216,4 +219,4 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist})(AlbumPage);
+export default connect(mapStateToProps, { setPlaylist, save })(AlbumPage);

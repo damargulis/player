@@ -2,9 +2,9 @@ import Artist from "./library/Artist";
 import defaultArtist from "./resources/missing_artist.png";
 import React from "react";
 import { connect } from "react-redux";
-import {getArtFilesByArtist} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import {getImgSrc} from "./utils";
+import { getArtFilesByArtist } from "./redux/selectors";
+import { RootState } from "./redux/store";
+import { getImgSrc } from "./utils";
 
 interface StateProps {
   artFiles: string[];
@@ -67,7 +67,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
   public render(): JSX.Element {
     if (!this.props.artist) {
       return (
-        <div style={this.props.style} />
+        <div style={ this.props.style} />
       );
     }
     // recenter with new width filling full space
@@ -86,21 +86,21 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
     const src = file ? getImgSrc(file) : defaultArtist;
     return (
       <div
-        onClick={() => this.props.goToArtist(this.props.artist)}
-        style={newStyle}
+        onClick={ () => this.props.goToArtist(this.props.artist)}
+        style={ newStyle}
       >
-        <div style={{position: "absolute", left: "50%"}}>
+        <div style={ { position: "absolute", left: "50%"}}>
           <img
             alt="artist art"
             height="100"
-            src={src}
-            style={{paddingTop: "10px", position: "relative", left: "-50%"}}
+            src={ src}
+            style={ { paddingTop: "10px", position: "relative", left: "-50%"}}
             width="100"
           />
           <div
-            style={{position: "relative", left: "-50%", textAlign: "center"}}
+            style={ { position: "relative", left: "-50%", textAlign: "center"}}
           >
-            {this.props.artist.name}
+            { this.props.artist.name}
           </div>
         </div>
       </div>

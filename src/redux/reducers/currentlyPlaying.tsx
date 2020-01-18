@@ -9,6 +9,7 @@ import {
   PREV_ALBUM,
   PREV_TRACK,
   SET_PLAYLIST,
+  SONG_ENDED,
   UPDATE_TIME,
 } from "../actionTypes";
 import EmptyPlaylist from "../../playlist/EmptyPlaylist";
@@ -25,19 +26,19 @@ const initialState: CurrentlyPlayingState = {
 const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTypes) => {
   switch (action.type) {
     case UPDATE_TIME: {
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         time: action.payload.time,
       });
     }
     case CHANGE_VOLUME: {
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         volume: action.payload.volume,
       });
     }
     case SET_PLAYLIST: {
       const playlist = action.payload.playlist;
       const trackId = action.payload.play && playlist.nextTrack();
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         currentlyPlayingId: trackId,
         isPlaying: action.payload.play,
         playlist,
@@ -45,35 +46,42 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
     }
     case NEXT_TRACK: {
       const nextId = state.playlist.nextTrack();
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         currentlyPlayingId: nextId,
         isPlaying: true,
       });
     }
     case NEXT_ALBUM: {
       const nextId = state.playlist.nextAlbum();
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         currentlyPlayingId: nextId,
         isPlaying: true,
       });
     }
     case PREV_TRACK: {
       const prevId = state.playlist.prevTrack();
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         currentlyPlayingId: prevId,
         isPlaying: true,
       });
     }
     case PREV_ALBUM: {
       const prevId = state.playlist.prevAlbum();
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         currentlyPlayingId: prevId,
         isPlaying: true,
       });
     }
     case PLAY_PAUSE: {
-      return Object.assign({}, state, {
+      return Object.assign({ }, state, {
         isPlaying: !state.isPlaying,
+      });
+    }
+    case SONG_ENDED: {
+      // TODO: playcount increment
+      const nextId = state.playlist.nextAlbum();
+      return Object.assign({ }, state, {
+        currentlyPlayingId: nextId,
       });
     }
     default: {

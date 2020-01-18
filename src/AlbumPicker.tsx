@@ -4,8 +4,8 @@ import Artist from "./library/Artist";
 import * as React from "react";
 import { connect } from "react-redux";
 import SearchBar from "./SearchBar";
-import {getArtistsByIds} from "./redux/selectors";
-import {RootState} from "./redux/store";
+import { getArtistsByIds } from "./redux/selectors";
+import { RootState } from "./redux/store";
 import WrappedGrid from "./WrappedGrid";
 
 import "./App.css";
@@ -86,17 +86,17 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     // TODO: change wiki status to be generic extension with like list of dots instead of background
     return (
       <div className="main" >
-        <div id="sortPicker" style={{textAlign: "center"}}>
-          <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
-          <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
+        <div id="sortPicker" style={ { textAlign: "center"}}>
+          <button onClick={ () => this.chooseSort(this.sortByName)}>Name</button>
+          <button onClick={ () => this.chooseSort(this.sortByArtist)}>Artist
           </button>
-          <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
-          <button onClick={() => this.withErrors()}>Show Wiki Status</button>
-          <SearchBar onSearch={(search: string) => this.onSearch(search)} />
+          <button onClick={ () => this.chooseSort(this.sortByYear)}>Year</button>
+          <button onClick={ () => this.withErrors()}>Show Wiki Status</button>
+          <SearchBar onSearch={ (search: string) => this.onSearch(search)} />
         </div>
         <WrappedGrid
-          cellRenderer={this.cellRenderer.bind(this)}
-          numItems={items.length}
+          cellRenderer={ this.cellRenderer.bind(this)}
+          numItems={ items.length}
         />
       </div>
     );
@@ -118,12 +118,12 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     const albums = this.state.sortedAlbums;
     return (
       <AlbumInfo
-        showStatus={this.state.withErrors}
-        album={albums[index]}
-        goToAlbum={(album) => this.goToAlbum(album)}
-        key={key}
-        playAlbum={this.playAlbum.bind(this)}
-        style={style}
+        showStatus={ this.state.withErrors}
+        album={ albums[index]}
+        goToAlbum={ (album) => this.goToAlbum(album)}
+        key={ key}
+        playAlbum={ this.playAlbum.bind(this)}
+        style={ style}
       />
     );
   }
@@ -146,7 +146,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
 
   private chooseSort(sortMethod: (album1: Album, album2: Album) => number): void {
     if (sortMethod === this.state.sortMethod) {
-      this.setState({reverse: !this.state.reverse});
+      this.setState({ reverse: !this.state.reverse});
     } else {
       this.setState({ sortMethod });
     }

@@ -39,7 +39,7 @@ export default class Album {
     albumArtFile = undefined,
     wikiPage = undefined,
     errors = [],
-    warnings = {},
+    warnings = { },
     favorites = [],
   }: AlbumParameters) {
     this.id = id;

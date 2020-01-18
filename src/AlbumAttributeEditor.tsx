@@ -2,8 +2,8 @@ import Album from "./library/Album";
 import AttributeList from "./AttributeList";
 import React from "react";
 import { connect } from "react-redux";
-import {getAlbumById, getAlbumsByIds, getAllAlbumIds} from "./redux/selectors";
-import {RootState} from "./redux/store";
+import { getAlbumById, getAlbumsByIds, getAllAlbumIds } from "./redux/selectors";
+import { RootState } from "./redux/store";
 
 interface StateProps {
   albums: Album[];
@@ -21,18 +21,18 @@ class AlbumAttributeEditor extends React.Component<AlbumAttributeEditorProps> {
   public render(): JSX.Element {
     return (
       <AttributeList
-        attributes={this.props.albumIds}
-        getDisplayName={(albumId: number) => {
+        attributes={ this.props.albumIds}
+        getDisplayName={ (albumId: number) => {
           return this.props.getAlbumById(albumId).name;
         }}
         label="Albums"
-        searchFilter={(input: string, suggest: number) => {
+        searchFilter={ (input: string, suggest: number) => {
           const album = this.props.getAlbumById(suggest);
           // todo: include artist, genre etc in search
           const name = album.name.toLowerCase();
           return name.indexOf(input.toLowerCase()) > -1;
         }}
-        suggestions={this.props.allIds}
+        suggestions={ this.props.allIds}
       />
     );
   }

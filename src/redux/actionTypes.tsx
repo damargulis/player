@@ -15,6 +15,7 @@ export const SONG_ENDED = "SONG_ENDED";
 export const PREV_TRACK = "PREV_TRACK";
 export const PREV_ALBUM = "PREV_ALBUM";
 export const PLAY_PAUSE = "PLAY_PAUSE";
+export const SAVE = "SAVE";
 
 export interface LibraryState {
   tracks: Track[];
@@ -49,6 +50,10 @@ interface UpdateLibraryAction {
   };
 }
 
+interface SaveAction {
+  type: typeof SAVE;
+}
+
 interface NextTrackAction {
   type: typeof NEXT_TRACK;
 }
@@ -77,6 +82,10 @@ interface PlayPauseAction {
   type: typeof PLAY_PAUSE;
 }
 
+interface SongEndedAction {
+  type: typeof SONG_ENDED;
+}
+
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
-  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction;
-export type LibraryActionTypes = UpdateLibraryAction;
+  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SongEndedAction;
+export type LibraryActionTypes = UpdateLibraryAction | SaveAction;

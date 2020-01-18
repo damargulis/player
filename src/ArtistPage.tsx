@@ -7,11 +7,11 @@ import defaultArtist from "./resources/missing_artist.png";
 import NavigationBar from "./NavigationBar";
 import React from "react";
 import { connect } from "react-redux";
-import {getAlbumsByIds, getTracksByIds} from "./redux/selectors";
+import { getAlbumsByIds, getTracksByIds } from "./redux/selectors";
 import SongPicker from "./SongPicker";
-import {RootState} from "./redux/store";
+import { RootState } from "./redux/store";
 import Track from "./library/Track";
-import {getImgSrc} from "./utils";
+import { getImgSrc } from "./utils";
 
 interface StateProps {
   albums: Album[];
@@ -36,23 +36,23 @@ class ArtistPage extends React.Component<ArtistPageProps> {
     return (
       <div className="main">
         <div className="pageHolder"
-          style={{display: "flex", flexDirection: "column", height: "100%"}}
+          style={ { display: "flex", flexDirection: "column", height: "100%"}}
         >
-          <div className="artistPageHeader" style={{display: "flex"}}>
+          <div className="artistPageHeader" style={ { display: "flex"}}>
             <NavigationBar
-              canGoForward={this.props.canGoForward}
-              goBack={this.props.goBack}
-              goForward={this.props.goForward}
+              canGoForward={ this.props.canGoForward}
+              goBack={ this.props.goBack}
+              goForward={ this.props.goForward}
             />
             <div className="info">
-              <img alt="artist art" height="100" src={src} width="100" />
+              <img alt="artist art" height="100" src={ src} width="100" />
               <EditableAttribute
-                attr={this.props.artist && this.props.artist.name}
-                onSave={(value: string) => {
+                attr={ this.props.artist && this.props.artist.name}
+                onSave={ (value: string) => {
                   this.props.artist.name = value;
                 }}
               />
-              <button onClick={this.runWiki.bind(this)}>
+              <button onClick={ this.runWiki.bind(this)}>
               Run Wiki Extension
               </button>
             </div>
@@ -60,16 +60,16 @@ class ArtistPage extends React.Component<ArtistPageProps> {
               this.getErrors()
             }
           </div>
-          <div className="artistPageBody" style={{height: "100%"}}>
-            <div className="container" style={{height: "50%"}}>
+          <div className="artistPageBody" style={ { height: "100%"}}>
+            <div className="container" style={ { height: "50%"}}>
               <AlbumPicker
-                albums={this.props.albums}
-                goToAlbum={this.props.goToAlbum}
+                albums={ this.props.albums}
+                goToAlbum={ this.props.goToAlbum}
               />
             </div>
-            <div className="container" style={{height: "50%"}}>
+            <div className="container" style={ { height: "50%"}}>
               <SongPicker
-                songs={this.props.tracks}
+                songs={ this.props.tracks}
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ class ArtistPage extends React.Component<ArtistPageProps> {
       return;
     }
     return (
-      <div style={{
+      <div style={ {
         border: "solid red 1px",
         marginBottom: "10px",
         marginLeft: "100px",
@@ -98,7 +98,7 @@ class ArtistPage extends React.Component<ArtistPageProps> {
         {
           this.props.artist.errors.map((error) => {
             return (
-              <div key={error}>{error}</div>
+              <div key={ error}>{ error}</div>
             );
           })
         }

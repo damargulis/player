@@ -1,14 +1,14 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
-import {ipcRenderer} from "electron";
+import { ipcRenderer } from "electron";
 import Marquee from "./Marquee";
 import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
 import { connect } from "react-redux";
-import {getAlbumsByIds, getArtistsByIds, getCurrentTrack} from "./redux/selectors";
-import {RootState} from "./redux/store";
+import { getAlbumsByIds, getArtistsByIds, getCurrentTrack } from "./redux/selectors";
+import { RootState } from "./redux/store";
 import Track from "./library/Track";
-import {getImgSrc} from "./utils";
+import { getImgSrc } from "./utils";
 
 import "./InfoPanel.css";
 
@@ -30,23 +30,23 @@ type InfoPanelProps = OwnProps & StateProps;
 class InfoPanel extends React.Component<InfoPanelProps> {
 
   public render(): JSX.Element {
-    const {track, albums} = this.props;
+    const { track, albums} = this.props;
     const album = albums[0];
     const src = album && album.albumArtFile ? getImgSrc(album.albumArtFile) : defaultAlbum;
     // TODO: make rotate instead -- conditionally on playlist type??
     // meaning like if its playing a specific album, only show that album
     // (and artwork)
     // if on song shuffle, then rotate between all.
-    const imgStyle = this.props.small ? {height: 50, width: 50, padding: 5}
-      : {height: 70, width: 70, padding: 15};
+    const imgStyle = this.props.small ? { height: 50, width: 50, padding: 5}
+      : { height: 70, width: 70, padding: 15};
     return (
-      <div id="info-panel" style={{display: "flex"}}>
+      <div id="info-panel" style={ { display: "flex"}}>
         <img alt="album-art"
-          onClick={() => this.onImageClick()}
-          src={src}
-          style={imgStyle}
+          onClick={ () => this.onImageClick()}
+          src={ src}
+          style={ imgStyle}
         />
-        <div style={{display: "grid"}}>
+        <div style={ { display: "grid"}}>
           <div className="track-label" id="name">
             { this.getNameLink() }
           </div>
@@ -61,7 +61,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
             }
           </div>
           <div className="track-label" id="year">
-            {track ? track.year : "Year"}
+            { track ? track.year : "Year"}
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getArtistLinks(): JSX.Element | string {
-    const {artists} = this.props;
+    const { artists} = this.props;
     if (!artists.length) {
       return "Artists";
     }
@@ -92,8 +92,8 @@ class InfoPanel extends React.Component<InfoPanelProps> {
         {
           artists.map((artist) => {
             return (
-              <span key={artist.id} className="link" onClick={() => this.props.goToArtist(artist)}>
-                {artist.name}
+              <span key={ artist.id} className="link" onClick={ () => this.props.goToArtist(artist)}>
+                { artist.name}
               </span>
             );
           })
@@ -103,7 +103,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getAlbumLinks(): JSX.Element | string {
-    const {albums} = this.props;
+    const { albums} = this.props;
     if (!albums.length) {
       return "Albums";
     }
@@ -112,8 +112,8 @@ class InfoPanel extends React.Component<InfoPanelProps> {
         {
           albums.map((album) => {
             return (
-              <span key={album.id} className="link" onClick={() => this.props.goToAlbum(album)}>
-                {album.name}
+              <span key={ album.id} className="link" onClick={ () => this.props.goToAlbum(album)}>
+                { album.name}
               </span>
             );
           })
@@ -126,8 +126,8 @@ class InfoPanel extends React.Component<InfoPanelProps> {
     if (this.props.track) {
       return (
         <Marquee>
-          <span className="link" onClick={() => this.goToSong(this.props.track)} >
-            {this.props.track.name}
+          <span className="link" onClick={ () => this.goToSong(this.props.track)} >
+            { this.props.track.name}
           </span>
         </Marquee>
       );

@@ -1,6 +1,6 @@
 import Album from "./Album";
 import Artist from "./Artist";
-import {DATA_DIR} from "../constants";
+import { DATA_DIR } from "../constants";
 import Playlist from "./Playlist";
 import Track from "./Track";
 
@@ -13,7 +13,7 @@ export default class Library {
     private artists: Artist[] = [],
     private genres: string[] = [],
     private playlists: Playlist[] = [],
-  ) {}
+  ) { }
 
   public getAlbums(genres?: number[]): Album[] {
     if (genres && genres.length) {
@@ -123,7 +123,7 @@ export default class Library {
     // maybe use sync if you want to do this on exit so it doesn't half write?
     // will have to see how exiting works on electron...
     return new Promise((resolve, reject) => {
-      fs.writeFile(fileName, JSON.stringify(this), (err: Error|null) => {
+      fs.writeFile(fileName, JSON.stringify(this), (err: Error | null) => {
         if (err) {
           reject(err);
         }
