@@ -1,5 +1,14 @@
 import {
-  CHANGE_VOLUME, NEXT_ALBUM, NEXT_TRACK, PREV_ALBUM, PREV_TRACK, SET_PLAYLIST, SONG_ENDED, UPDATE_LIBRARY, UPDATE_TIME,
+  CHANGE_VOLUME,
+  NEXT_ALBUM,
+  NEXT_TRACK,
+  PLAY_PAUSE,
+  PREV_ALBUM,
+  PREV_TRACK,
+  SET_PLAYLIST,
+  SONG_ENDED,
+  UPDATE_LIBRARY,
+  UPDATE_TIME,
 } from "./actionTypes";
 import EmptyPlaylist from "../playlist/EmptyPlaylist";
 import Library from "../library/Library";
@@ -23,8 +32,8 @@ export const nextTrack = () => ({
   type: NEXT_TRACK,
 });
 
-export const setPlaylist = (playlist: EmptyPlaylist) => ({
-  payload: {playlist},
+export const setPlaylist = (playlist: EmptyPlaylist, play: boolean) => ({
+  payload: {playlist, play},
   type: SET_PLAYLIST,
 });
 
@@ -42,4 +51,8 @@ export const prevTrack = () => ({
 
 export const prevAlbum = () => ({
   type: PREV_ALBUM,
+});
+
+export const playPause = () => ({
+  type: PLAY_PAUSE,
 });

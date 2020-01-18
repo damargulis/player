@@ -7,8 +7,6 @@ import React from "react";
 import Track from "./library/Track";
 
 interface HeaderProps {
-  playing: boolean;
-  playPause(): void;
   goToAlbum(album: Album): void;
   goToArtist(artist: Artist): void;
   goToSong(track: Track): void;
@@ -19,10 +17,7 @@ export default class Header extends React.Component<HeaderProps> {
   public render(): JSX.Element {
     return (
       <div id="header" style={{padding: "2px"}}>
-        <ControlPanel
-          playing={this.props.playing}
-          playPause={this.props.playPause}
-        />
+        <ControlPanel />
         <ProgressBar
           setTime={this.props.setTime}
         />

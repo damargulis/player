@@ -1,19 +1,18 @@
-import Track from "../library/Track";
 
 export default class EmptyPlaylist {
-  public getCurrentTrack(): Track | undefined {
+  public getCurrentTrack(): number | undefined {
     return undefined;
   }
-  public nextAlbum(): Track | undefined {
+  public nextAlbum(): number | undefined {
     return undefined;
   }
-  public prevTrack(): Track | undefined {
+  public prevTrack(): number | undefined {
     return undefined;
   }
-  public prevAlbum(): Track | undefined {
+  public prevAlbum(): number | undefined {
     return undefined;
   }
-  public nextTrack(): Track | undefined {
+  public nextTrack(): number | undefined {
     return undefined;
   }
   public hasPrevTrack(): boolean { return false; }

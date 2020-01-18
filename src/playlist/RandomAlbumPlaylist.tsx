@@ -1,18 +1,14 @@
 import Album from "../library/Album";
 import EmptyPlaylist from "./EmptyPlaylist";
-import Library from "../library/Library";
-import Track from "../library/Track";
 
 export default class RandomAlbumPlaylist extends EmptyPlaylist {
-  private library: Library;
   private playlist: Album[];
   private currentAlbum: number;
   private currentTrack: number;
   private albums: Album[];
 
-  constructor(library: Library, albums: Album[] = []) {
+  constructor(albums: Album[] = []) {
     super();
-    this.library = library;
     this.playlist = [];
     this.currentAlbum = -1;
     this.currentTrack = -1;
@@ -23,29 +19,25 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.playlist[this.currentAlbum];
   }
 
-  public getCurrentTrack(): Track | undefined {
+  public getCurrentTrack(): number | undefined {
     const album = this.getCurrentAlbum();
     if (!album || !album.trackIds[this.currentTrack]) {
       return undefined;
     }
-    return this.library.getTrack(album.trackIds[this.currentTrack]);
+    return album.trackIds[this.currentTrack];
   }
 
-  public nextAlbum(): Track | undefined {
+  public nextAlbum(): number | undefined {
     this.currentAlbum++;
     this.currentTrack = 0;
     if (this.playlist.length <= this.currentAlbum) {
-      if (this.albums.length) {
-        this.playlist.push(this.albums[
-          Math.floor(Math.random() * this.albums.length)]);
-      } else {
-        this.playlist.push(this.library.getRandomAlbum());
-      }
+      this.playlist.push(this.albums[
+        Math.floor(Math.random() * this.albums.length)]);
     }
     return this.getCurrentTrack();
   }
 
-  public nextTrack(): Track | undefined {
+  public nextTrack(): number | undefined {
     this.currentTrack++;
     if (!this.getCurrentTrack()) {
       return this.nextAlbum();
@@ -53,7 +45,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public prevTrack(): Track | undefined {
+  public prevTrack(): number | undefined {
     this.currentTrack -= 1;
     if (!this.getCurrentTrack()) {
       this.currentAlbum--;
@@ -62,7 +54,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public prevAlbum(): Track | undefined {
+  public prevAlbum(): number | undefined {
     this.currentAlbum -= 1;
     this.currentTrack = 0;
     return this.getCurrentTrack();

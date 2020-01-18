@@ -5,6 +5,7 @@ import {
   CurrentlyPlayingState,
   NEXT_ALBUM,
   NEXT_TRACK,
+  PLAY_PAUSE,
   PREV_ALBUM,
   PREV_TRACK,
   SET_PLAYLIST,
@@ -15,6 +16,7 @@ import EmptyPlaylist from "../../playlist/EmptyPlaylist";
 const DEFAULT_VOLUME = .1;
 
 const initialState: CurrentlyPlayingState = {
+  isPlaying: false,
   playlist: new EmptyPlaylist(),
   time: 0,
   volume: DEFAULT_VOLUME,
@@ -34,34 +36,44 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
     }
     case SET_PLAYLIST: {
       const playlist = action.payload.playlist;
-      const track = playlist.getCurrentTrack();
+      const trackId = action.payload.play && playlist.nextTrack();
       return Object.assign({}, state, {
-        currentlyPlayingId: track && track.id,
+        currentlyPlayingId: trackId,
+        isPlaying: action.payload.play,
         playlist,
       });
     }
     case NEXT_TRACK: {
-      const next = state.playlist.nextTrack();
+      const nextId = state.playlist.nextTrack();
       return Object.assign({}, state, {
-        currentlyPlayingId: next ? next.id : undefined,
+        currentlyPlayingId: nextId,
+        isPlaying: true,
       });
     }
     case NEXT_ALBUM: {
-      const next = state.playlist.nextAlbum();
+      const nextId = state.playlist.nextAlbum();
       return Object.assign({}, state, {
-        currentlyPlayingId: next ? next.id : undefined,
+        currentlyPlayingId: nextId,
+        isPlaying: true,
       });
     }
     case PREV_TRACK: {
-      const prev = state.playlist.prevTrack();
+      const prevId = state.playlist.prevTrack();
       return Object.assign({}, state, {
-        currentlyPlayingId: prev ? prev.id : undefined,
+        currentlyPlayingId: prevId,
+        isPlaying: true,
       });
     }
     case PREV_ALBUM: {
-      const prev = state.playlist.prevAlbum();
+      const prevId = state.playlist.prevAlbum();
       return Object.assign({}, state, {
-        currentlyPlayingId: prev ? prev.id : undefined,
+        currentlyPlayingId: prevId,
+        isPlaying: true,
+      });
+    }
+    case PLAY_PAUSE: {
+      return Object.assign({}, state, {
+        isPlaying: !state.isPlaying,
       });
     }
     default: {

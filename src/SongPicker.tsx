@@ -44,7 +44,7 @@ interface OwnProps {
 }
 
 interface DispatchProps {
-  setPlaylist(playlist: EmptyPlaylist): void;
+  setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
 }
 
 type SongPickerProps = StateProps & OwnProps & DispatchProps;
@@ -370,7 +370,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     const song = this.state.songs[index];
     const playlist = new RandomSongPlaylist(this.state.songs);
     playlist.addSong(song);
-    this.props.setPlaylist(playlist);
+    this.props.setPlaylist(playlist, /* play= */ true);
   }
 
   private sort({sortBy, sortDirection}: {sortBy: string, sortDirection: Sort}): void {

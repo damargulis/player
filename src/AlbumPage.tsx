@@ -1,3 +1,5 @@
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
+import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import Album from "./library/Album";
 import runAlbumModifier from "./extensions/wiki/albums";
 import Artist from "./library/Artist";
@@ -12,6 +14,7 @@ import SongPicker from "./SongPicker";
 import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {getImgSrc, toTime} from "./utils";
+import {setPlaylist} from "./redux/actions";
 
 interface StateProps {
   artists: Artist[];
@@ -29,7 +32,11 @@ interface OwnProps {
   goForward(): void;
 }
 
-type AlbumPageProps = OwnProps & StateProps;
+interface DispatchProps {
+  setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+}
+
+type AlbumPageProps = OwnProps & StateProps & DispatchProps;
 
 class AlbumPage extends React.Component<AlbumPageProps> {
 
@@ -194,11 +201,8 @@ class AlbumPage extends React.Component<AlbumPageProps> {
   }
 
   private playAlbum(): void {
-    // TODO: RENABLE:
-    // const playlist = new RandomAlbumPlaylist(
-    //  this.props.library, [this.props.album]);
-    // playlist.addAlbum(this.props.album);
-    // this.props.setPlaylistAndPlay(playlist);
+    const playlist = new RandomAlbumPlaylist([this.props.album]);
+    this.props.setPlaylist(playlist, /* play= */ true);
   }
 }
 
@@ -212,4 +216,4 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps)(AlbumPage);
+export default connect(mapStateToProps, {setPlaylist})(AlbumPage);

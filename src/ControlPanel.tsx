@@ -1,4 +1,4 @@
-import {changeVolume, nextAlbum, nextTrack, prevAlbum, prevTrack} from "./redux/actions";
+import {changeVolume, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack} from "./redux/actions";
 import LikeButton from "./LikeButton";
 import nextAlbumImg from "./resources/next_album.png";
 import nextTrackImg from "./resources/next_track.png";
@@ -9,7 +9,15 @@ import prevTrackImg from "./resources/previous_track.png";
 import React, {ChangeEvent} from "react";
 import Modal from "react-modal";
 import { connect } from "react-redux";
-import {getCurrentTrack, getVolume, hasNextAlbum, hasNextTrack, hasPrevAlbum, hasPrevTrack} from "./redux/selectors";
+import {
+  getCurrentTrack,
+  getIsPlaying,
+  getVolume,
+  hasNextAlbum,
+  hasNextTrack,
+  hasPrevAlbum,
+  hasPrevTrack,
+} from "./redux/selectors";
 import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import volumeButton from "./resources/volume.png";
@@ -23,12 +31,11 @@ interface DispatchProps {
   nextAlbum(): void;
   prevAlbum(): void;
   prevTrack(): void;
+  playPause(): void;
 }
 
 interface OwnProps {
   volumeButton?: boolean;
-  playing: boolean;
-  playPause(): void;
 }
 
 interface StateProps {
@@ -38,6 +45,7 @@ interface StateProps {
   currentTrack?: Track;
   hasNextTrack: boolean;
   hasNextAlbum: boolean;
+  playing: boolean;
 }
 
 type ControlPanelProps = OwnProps & StateProps & DispatchProps;
@@ -195,8 +203,10 @@ function mapStateToProps(store: RootState): StateProps {
     hasNextTrack: hasNextTrack(store),
     hasPrevAlbum: hasPrevAlbum(store),
     hasPrevTrack: hasPrevTrack(store),
+    playing: getIsPlaying(store),
     volume: getVolume(store),
   };
 }
 
-export default connect(mapStateToProps, {changeVolume, nextTrack, nextAlbum, prevAlbum, prevTrack})(ControlPanel);
+export default connect(mapStateToProps,
+  {playPause, changeVolume, nextTrack, nextAlbum, prevAlbum, prevTrack})(ControlPanel);

@@ -245,3 +245,7 @@ export function hasPrevAlbum(store: RootState): boolean {
 export function hasPrevTrack(store: RootState): boolean {
   return store.currentlyPlaying.playlist.hasPrevTrack();
 }
+
+export function getIsPlaying(store: RootState): boolean {
+  return store.currentlyPlaying.isPlaying;
+}

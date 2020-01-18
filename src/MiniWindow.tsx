@@ -8,8 +8,6 @@ import React from "react";
 import Track from "./library/Track";
 
 interface MiniWindowProps {
-  playing: boolean;
-  playPause(): void;
   setTime(time: number): void;
 }
 
@@ -27,8 +25,6 @@ class MiniWindow extends React.Component<MiniWindowProps> {
         />
         <div style={{height: "25px", display: "flex"}}>
           <ControlPanel
-            playing={this.props.playing}
-            playPause={this.props.playPause}
             volumeButton={true}
           />
         </div>

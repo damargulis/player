@@ -19,8 +19,6 @@ import {RootState} from "./redux/store";
 import Track from "./library/Track";
 
 interface OwnProps {
-  playing: boolean;
-  playPause(): void;
   setTime(time: number): void;
 }
 
@@ -69,8 +67,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
           goToSong={this.goToSong.bind(this)}
-          playing={this.props.playing}
-          playPause={this.props.playPause}
           setTime={this.props.setTime}
         />
         <div className="section">
