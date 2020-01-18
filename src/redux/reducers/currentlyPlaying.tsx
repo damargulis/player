@@ -11,8 +11,8 @@ import {
   SET_PLAYLIST,
   SET_TIME,
   UPDATE_TIME,
-} from "../actionTypes";
-import EmptyPlaylist from "../../playlist/EmptyPlaylist";
+} from '../actionTypes';
+import EmptyPlaylist from '../../playlist/EmptyPlaylist';
 
 const DEFAULT_VOLUME = .1;
 

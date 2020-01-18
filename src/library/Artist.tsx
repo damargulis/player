@@ -19,7 +19,7 @@ export default class Artist {
   public trackIds: number[];
 
   constructor(id: number, {
-    name = "",
+    name = '',
     albumIds = [],
     trackIds = [],
     genreIds = [],

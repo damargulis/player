@@ -1,5 +1,5 @@
-import AutoComplete from "./AutoComplete";
-import React from "react";
+import AutoComplete from './AutoComplete';
+import React from 'react';
 
 interface AttributeListProps {
   attributes: number[];

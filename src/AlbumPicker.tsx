@@ -1,17 +1,17 @@
-import {setPlaylist} from "./redux/actions";
-import Album from "./library/Album";
-import AlbumInfo from "./AlbumInfo";
-import Artist from "./library/Artist";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
-import * as React from "react";
-import {connect} from "react-redux";
-import SearchBar from "./SearchBar";
-import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import WrappedGrid from "./WrappedGrid";
+import {setPlaylist} from './redux/actions';
+import Album from './library/Album';
+import AlbumInfo from './AlbumInfo';
+import Artist from './library/Artist';
+import EmptyPlaylist from './playlist/EmptyPlaylist';
+import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
+import * as React from 'react';
+import {connect} from 'react-redux';
+import SearchBar from './SearchBar';
+import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from './redux/selectors';
+import {RootState} from './redux/store';
+import WrappedGrid from './WrappedGrid';
 
-import "./App.css";
+import './App.css';
 
 interface OwnProps {
   albums: Album[];
@@ -90,7 +90,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     // TODO: change wiki status to be generic extension with like list of dots instead of background
     return (
       <div className="main" >
-        <div id="sortPicker" style={{textAlign: "center"}}>
+        <div id="sortPicker" style={{textAlign: 'center'}}>
           <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
           <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
           </button>
@@ -136,9 +136,9 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
 
   private sortByArtist(album1: Album, album2: Album): number {
     const artist1 = this.props.getArtistsByIds(album1.artistIds)
-      .map((artist: Artist) => artist.name).join(",");
+      .map((artist: Artist) => artist.name).join(',');
     const artist2 = this.props.getArtistsByIds(album2.artistIds)
-      .map((artist: Artist) => artist.name).join(",");
+      .map((artist: Artist) => artist.name).join(',');
     return artist1.localeCompare(artist2);
   }
 

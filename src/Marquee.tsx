@@ -1,7 +1,7 @@
 
-import React from "react";
+import React from 'react';
 
-import "./Marquee.css";
+import './Marquee.css';
 
 interface LinkableItem {
   id: number;
@@ -30,7 +30,7 @@ export default class Marquee extends React.Component<{}, MarqueeState> {
 
   public render(): JSX.Element {
     return (
-      <span ref={this.marquee} className={this.state.marquee ? "marquee" : ""}>
+      <span ref={this.marquee} className={this.state.marquee ? 'marquee' : ''}>
         {this.props.children}
       </span>
     );

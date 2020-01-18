@@ -1,25 +1,25 @@
-import {setPlaylist} from "./redux/actions";
-import Album from "./library/Album";
-import Artist from "./library/Artist";
-import {remote} from "electron";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import RandomSongPlaylist from "./playlist/RandomSongPlaylist";
-import React from "react";
-import Modal from "react-modal";
-import {connect} from "react-redux";
-import {AutoSizer, Column, Table} from "react-virtualized";
-import "react-virtualized/styles.css";
-import SearchBar from "./SearchBar";
-import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from "./redux/selectors";
-import SongEditer from "./SongEditer";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
-import {toTime} from "./utils";
+import {setPlaylist} from './redux/actions';
+import Album from './library/Album';
+import Artist from './library/Artist';
+import {remote} from 'electron';
+import EmptyPlaylist from './playlist/EmptyPlaylist';
+import RandomSongPlaylist from './playlist/RandomSongPlaylist';
+import React from 'react';
+import Modal from 'react-modal';
+import {connect} from 'react-redux';
+import {AutoSizer, Column, Table} from 'react-virtualized';
+import SearchBar from './SearchBar';
+import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from './redux/selectors';
+import SongEditer from './SongEditer';
+import {RootState} from './redux/store';
+import '../node_modules/react-virtualized/styles.css';
+import Track from './library/Track';
+import {toTime} from './utils';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
-Modal.setAppElement("#root");
+Modal.setAppElement('#root');
 
-type Sort = "ASC" | "DESC";
+type Sort = 'ASC' | 'DESC';
 
 interface SongPickerState {
   sortBy: string;
@@ -53,13 +53,13 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   constructor(props: SongPickerProps) {
     super(props);
 
-    const sortDirection = "ASC";
-    const sortBy = this.props.sortBy || "name";
+    const sortDirection = 'ASC';
+    const sortBy = this.props.sortBy || 'name';
     const songs = this.sortSongs(sortBy, sortDirection);
 
     this.state = {
       editing: false,
-      search: "",
+      search: '',
       // TODO: change to a set
       selected: [],
       songs,
@@ -140,59 +140,59 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
       return true;
     });
     switch (sortBy) {
-    case "index":
+    case 'index':
       break;
-    case "name":
+    case 'name':
       songs = songs.sort((song1, song2) => {
         return song1.name.localeCompare(song2.name);
       });
       break;
-    case "duration":
+    case 'duration':
       songs = songs.sort((song1, song2) => {
         return song1.duration - song2.duration;
       });
       break;
-    case "year":
+    case 'year':
       songs = songs.sort((song1, song2) => {
         return song1.year - song2.year;
       });
       break;
-    case "playCount":
+    case 'playCount':
       songs = songs.sort((song1, song2) => {
         return song1.playCount - song2.playCount;
       });
       break;
-    case "artists":
+    case 'artists':
       songs = songs.sort((song1, song2) => {
         const artists1 = this.props.getArtistsByIds(song1.artistIds)
-          .map((artist) => artist.name).join(", ");
+          .map((artist) => artist.name).join(', ');
         const artists2 = this.props.getArtistsByIds(song2.artistIds)
-          .map((artist) => artist.name).join(", ");
+          .map((artist) => artist.name).join(', ');
         return artists1.localeCompare(artists2);
       });
       break;
-    case "albums":
+    case 'albums':
       songs = songs.sort((song1, song2) => {
         const albums1 = this.props.getAlbumsByIds(song1.albumIds)
-          .map((album) => album.name).join(", ");
+          .map((album) => album.name).join(', ');
         const albums2 = this.props.getAlbumsByIds(song2.albumIds)
-          .map((album) => album.name).join(", ");
+          .map((album) => album.name).join(', ');
         return albums1.localeCompare(albums2);
       });
       break;
-    case "genres":
+    case 'genres':
       songs = songs.sort((song1, song2) => {
         const genres1 = this.props.getGenresByIds(song1.genreIds)
-          .join(", ");
+          .join(', ');
         const genres2 = this.props.getGenresByIds(song2.genreIds)
-          .join(", ");
+          .join(', ');
         return genres1.localeCompare(genres2);
       });
       break;
     default:
       break;
     }
-    if (sortDirection === "DESC") {
+    if (sortDirection === 'DESC') {
       songs = songs.reverse();
     }
     return songs;
@@ -203,11 +203,11 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     // TODO: make album (maybe artist?) rotate
     return {
       albums: this.props.getAlbumsByIds(song.albumIds)
-        .map((album) => album.name).join(", "),
+        .map((album) => album.name).join(', '),
       artists: this.props.getArtistsByIds(song.artistIds)
-        .map((artist) => artist.name).join(", "),
+        .map((artist) => artist.name).join(', '),
       duration: toTime(song.duration),
-      genres: this.props.getGenresByIds(song.genreIds).join(", "),
+      genres: this.props.getGenresByIds(song.genreIds).join(', '),
       index: this.props.songs.indexOf(song) + 1,
       name: song.name,
       playCount: song.playCount,
@@ -217,16 +217,16 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
 
   private getRowStyle({index}: {index: number}): React.CSSProperties {
     const style = {
-      backgroundColor: index % 2 === 0 ? "white" : "lightgray",
-      borderTop: "solid black 1px",
+      backgroundColor: index % 2 === 0 ? 'white' : 'lightgray',
+      borderTop: 'solid black 1px',
       fontSize: 10,
-      userSelect: "none",
+      userSelect: 'none',
     } as React.CSSProperties;
     if (index === -1) {
-      style.backgroundColor = "gray";
+      style.backgroundColor = 'gray';
     }
     if (this.state.selected.includes(index)) {
-      style.backgroundColor = "#5e92e0";
+      style.backgroundColor = '#5e92e0';
     }
     return style;
   }
@@ -276,12 +276,12 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   private doRowRightClickNext(index: number): void {
     const menu = new remote.Menu();
     menu.append(
-      new remote.MenuItem({label: "Edit Info", click: this.edit.bind(this)}));
+      new remote.MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
     if (this.state.selected.length === 1) {
-      menu.append(new remote.MenuItem({label: "Play", click: () => this.doDoubleClickSong(index)}));
+      menu.append(new remote.MenuItem({label: 'Play', click: () => this.doDoubleClickSong(index)}));
     }
-    menu.append(new remote.MenuItem({label: "Play Next", click: this.playNext.bind(this)}));
-    menu.append(new remote.MenuItem({label: "Favorite", click: this.favorite.bind(this)}));
+    menu.append(new remote.MenuItem({label: 'Play Next', click: this.playNext.bind(this)}));
+    menu.append(new remote.MenuItem({label: 'Favorite', click: this.favorite.bind(this)}));
     // TODO:
     //  - add to end of currently playing playlist
     //  - add to specific playlist
@@ -299,7 +299,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   }
 
   private onRowClick({event, index}:
-      {event: {ctrlKey: boolean, shiftKey: boolean, metaKey: boolean}, index: number}): void {
+      {event: {ctrlKey: boolean; shiftKey: boolean; metaKey: boolean}; index: number}): void {
     if (event.shiftKey) {
       this.doShiftClick(index);
     } else if (event.metaKey || event.ctrlKey) {
@@ -310,8 +310,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   }
 
   private onRowDoubleClick({event, index}:
-    {event:
-      {shiftKey: boolean, metaKey: boolean, ctrlKey: boolean}, index: number},
+    {event: {shiftKey: boolean; metaKey: boolean; ctrlKey: boolean}; index: number},
   ): void {
     if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
       this.doDoubleClickSong(index);
@@ -329,7 +328,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     this.props.setPlaylist(playlist, /* play= */ true);
   }
 
-  private sort({sortBy, sortDirection}: {sortBy: string, sortDirection: Sort}): void {
+  private sort({sortBy, sortDirection}: {sortBy: string; sortDirection: Sort}): void {
     const songs = this.sortSongs(sortBy, sortDirection);
     const selectedNow = this.state.selected.map((index) => {
       return this.state.songs[index];

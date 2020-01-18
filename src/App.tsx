@@ -1,20 +1,20 @@
-import {nextTrack, prevTrack, save, setPlaylist, updateLibrary, updateTime} from "./redux/actions";
-import {DATA_DIR} from "./constants";
-import {createLibraryFromItunes, deleteLibrary, loadLibrary} from "./library/create_library";
-import {ipcRenderer} from "electron";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
-import runWikiExtension from "./extensions/wiki/main";
-import MaxWindow from "./MaxWindow";
-import MiniWindow from "./MiniWindow";
-import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
-import * as React from "react";
-import {connect} from "react-redux";
-import {getCurrentTrack, getIsPlaying, getSetTime, getVolume} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
+import {nextTrack, prevTrack, save, setPlaylist, updateLibrary, updateTime} from './redux/actions';
+import {DATA_DIR} from './constants';
+import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
+import {ipcRenderer} from 'electron';
+import EmptyPlaylist from './playlist/EmptyPlaylist';
+import Library from './library/Library';
+import runWikiExtension from './extensions/wiki/main';
+import MaxWindow from './MaxWindow';
+import MiniWindow from './MiniWindow';
+import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
+import * as React from 'react';
+import {connect} from 'react-redux';
+import {getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
+import {RootState} from './redux/store';
+import Track from './library/Track';
 
-import "./App.css";
+import './App.css';
 
 interface StateProps {
   volume: number;
@@ -49,33 +49,33 @@ class App extends React.Component<AppProps, AppState> {
     this.state = {
       mini: false,
     };
-    ipcRenderer.on("minimize-reply", () => {
+    ipcRenderer.on('minimize-reply', () => {
       this.onMinimize();
     });
-    ipcRenderer.on("maximize-reply", () => {
+    ipcRenderer.on('maximize-reply', () => {
       this.onMaximize();
     });
-    ipcRenderer.on("toAlbum", () => {
+    ipcRenderer.on('toAlbum', () => {
       this.onMaximize();
     });
-    ipcRenderer.on("toArtist", () => {
+    ipcRenderer.on('toArtist', () => {
       this.onMaximize();
     });
-    ipcRenderer.on("toSong", () => {
+    ipcRenderer.on('toSong', () => {
       this.onMaximize();
     });
-    ipcRenderer.on("nextTrack", () => {
+    ipcRenderer.on('nextTrack', () => {
       this.props.nextTrack();
     });
-    ipcRenderer.on("prevTrack", () => {
+    ipcRenderer.on('prevTrack', () => {
       this.props.prevTrack();
     });
-    ipcRenderer.on("playTrack", () => {
+    ipcRenderer.on('playTrack', () => {
       this.props.playPause();
     });
-    ipcRenderer.on("run-extension", (type: {}, arg: string) => {
+    ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
-      case "wikipedia":
+      case 'wikipedia':
         this.props.runWikiExtension().then(() => {
           this.props.save();
         });
@@ -84,18 +84,18 @@ class App extends React.Component<AppProps, AppState> {
         break;
       }
     });
-    ipcRenderer.on("reset-library", () => {
+    ipcRenderer.on('reset-library', () => {
       deleteLibrary().then(() => {
         createLibraryFromItunes().then((library: Library) => {
           library.save();
           this.props.updateLibrary(library);
           const playlist = new RandomAlbumPlaylist(library.getAlbums());
           this.props.setPlaylist(playlist, /* play= */ false);
-          alert("Library uploaded");
+          alert('Library uploaded');
         });
       });
     });
-    ipcRenderer.send("extension-ready");
+    ipcRenderer.send('extension-ready');
 
     loadLibrary(`${DATA_DIR}/library.json`).then((library: Library) => {
       const playlist = new RandomAlbumPlaylist(library.getAlbums());
@@ -112,10 +112,10 @@ class App extends React.Component<AppProps, AppState> {
 
     this.audio = new Audio();
     this.audio.volume = this.props.volume;
-    this.audio.addEventListener("timeupdate", () => {
+    this.audio.addEventListener('timeupdate', () => {
       this.props.updateTime(this.audio.currentTime);
     });
-    this.audio.addEventListener("ended", () => {
+    this.audio.addEventListener('ended', () => {
       const track = this.props.track;
       if (track) {
         track.playCount++;
@@ -152,10 +152,10 @@ class App extends React.Component<AppProps, AppState> {
     // fix this better?
     return (
       <div>
-        <div style={{display: mini ? "initial" : "none"}}>
+        <div style={{display: mini ? 'initial' : 'none'}}>
           <MiniWindow />
         </div>
-        <div style={{display: mini ? "none" : "initial"}}>
+        <div style={{display: mini ? 'none' : 'initial'}}>
           <MaxWindow />
         </div>
       </div>

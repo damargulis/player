@@ -6,10 +6,7 @@
   "dependencies": {
     "@types/musicmetadata": "^2.0.4",
     "@types/plist": "^3.0.2",
-    "@types/react": "^16.9.16",
-    "@types/react-dom": "^16.9.4",
     "@types/react-modal": "^3.10.1",
-    "@types/react-redux": "^7.1.5",
     "@types/react-virtualized": "^9.21.7",
     "@types/request-promise-native": "^1.0.17",
     "@types/shortid": "0.0.29",
@@ -59,6 +56,9 @@
   "devDependencies": {
     "@rescripts/cli": "^0.0.12",
     "@rescripts/rescript-env": "^0.0.10",
+    "@types/react": "^16.9.17",
+    "@types/react-dom": "^16.9.4",
+    "@types/react-redux": "^7.1.6",
     "awesome-typescript-loader": "^5.2.1",
     "bindings": "^1.5.0",
     "electron": "^6.0.11",
@@ -73,6 +73,7 @@
     "moment": "^2.24.0",
     "music-metadata": "^4.8.0",
     "musicmetadata": "^2.0.5",
+    "react-redux-typescript-scripts": "^1.6.2",
     "react-scripts": "^3.3.0",
     "react-tiny-virtual-list": "^2.2.0",
     "react-virtualized": "^9.21.1",
@@ -82,6 +83,7 @@
     "source-map-loader": "^0.2.4",
     "timers": "^0.1.1",
     "tslint": "^5.20.1",
+    "tslint-react": "^4.1.0",
     "typescript": "^3.7.4"
   },
   "react-native": {

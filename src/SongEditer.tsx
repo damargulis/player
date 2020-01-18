@@ -1,9 +1,9 @@
-import MultipleSongEditer from "./MultipleSongEditer";
-import React from "react";
-import SingleSongEditer from "./SingleSongEditer";
-import Track from "./library/Track";
+import MultipleSongEditer from './MultipleSongEditer';
+import React from 'react';
+import SingleSongEditer from './SingleSongEditer';
+import Track from './library/Track';
 
-import "./SongEditer.css";
+import './SongEditer.css';
 
 interface SongEditerProps {
   tracks: Track[];

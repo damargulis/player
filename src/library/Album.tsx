@@ -29,7 +29,7 @@ export default class Album {
   public favorites: number[];
 
   constructor(id: number, {
-    name = "",
+    name = '',
     trackIds = [],
     genreIds = [],
     artistIds = [],

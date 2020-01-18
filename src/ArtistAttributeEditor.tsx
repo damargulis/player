@@ -1,9 +1,9 @@
-import Artist from "./library/Artist";
-import AttributeList from "./AttributeList";
-import React from "react";
-import {connect} from "react-redux";
-import {getAllArtistIds, getArtistById} from "./redux/selectors";
-import {RootState} from "./redux/store";
+import Artist from './library/Artist';
+import AttributeList from './AttributeList';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getAllArtistIds, getArtistById} from './redux/selectors';
+import {RootState} from './redux/store';
 
 interface OwnProps {
   artistIds: number[];

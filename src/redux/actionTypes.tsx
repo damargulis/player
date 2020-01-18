@@ -1,21 +1,21 @@
-import Album from "../library/Album";
-import Artist from "../library/Artist";
-import EmptyPlaylist from "../playlist/EmptyPlaylist";
-import Library from "../library/Library";
-import Playlist from "../library/Playlist";
-import Track from "../library/Track";
+import Album from '../library/Album';
+import Artist from '../library/Artist';
+import EmptyPlaylist from '../playlist/EmptyPlaylist';
+import Library from '../library/Library';
+import Playlist from '../library/Playlist';
+import Track from '../library/Track';
 
-export const UPDATE_TIME = "UPDATE_TIME";
-export const UPDATE_LIBRARY = "UPDATE_LIBRARY";
-export const CHANGE_VOLUME = "CHANGE_VOLUME";
-export const NEXT_TRACK = "NEXT_TRACK";
-export const SET_PLAYLIST = "SET_PLAYLIST";
-export const NEXT_ALBUM = "NEXT_ALBUM";
-export const PREV_TRACK = "PREV_TRACK";
-export const PREV_ALBUM = "PREV_ALBUM";
-export const PLAY_PAUSE = "PLAY_PAUSE";
-export const SAVE = "SAVE";
-export const SET_TIME = "SET_TIME";
+export const UPDATE_TIME = 'UPDATE_TIME';
+export const UPDATE_LIBRARY = 'UPDATE_LIBRARY';
+export const CHANGE_VOLUME = 'CHANGE_VOLUME';
+export const NEXT_TRACK = 'NEXT_TRACK';
+export const SET_PLAYLIST = 'SET_PLAYLIST';
+export const NEXT_ALBUM = 'NEXT_ALBUM';
+export const PREV_TRACK = 'PREV_TRACK';
+export const PREV_ALBUM = 'PREV_ALBUM';
+export const PLAY_PAUSE = 'PLAY_PAUSE';
+export const SAVE = 'SAVE';
+export const SET_TIME = 'SET_TIME';
 
 export interface LibraryState {
   tracks: Track[];
@@ -72,8 +72,8 @@ interface PrevAlbumAction {
 interface SetPlaylistAction {
   type: typeof SET_PLAYLIST;
   payload: {
-    playlist: EmptyPlaylist,
-    play: boolean,
+    playlist: EmptyPlaylist;
+    play: boolean;
   };
 }
 

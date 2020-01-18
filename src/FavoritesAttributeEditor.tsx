@@ -1,5 +1,5 @@
-import AttributeList from "./AttributeList";
-import React from "react";
+import AttributeList from './AttributeList';
+import React from 'react';
 
 interface FavoritesAttributeEditorProps {
   yearsFavorited: number[];

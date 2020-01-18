@@ -1,16 +1,16 @@
-import Album from "./library/Album";
-import Artist from "./library/Artist";
-import {ipcRenderer} from "electron";
-import Marquee from "./Marquee";
-import defaultAlbum from "./resources/missing_album.png";
-import React from "react";
-import {connect} from "react-redux";
-import {getAlbumsByIds, getArtistsByIds, getCurrentTrack} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
-import {getImgSrc} from "./utils";
+import Album from './library/Album';
+import Artist from './library/Artist';
+import {ipcRenderer} from 'electron';
+import Marquee from './Marquee';
+import defaultAlbum from './resources/missing_album.png';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getAlbumsByIds, getArtistsByIds, getCurrentTrack} from './redux/selectors';
+import {RootState} from './redux/store';
+import Track from './library/Track';
+import {getImgSrc} from './utils';
 
-import "./InfoPanel.css";
+import './InfoPanel.css';
 
 interface OwnProps {
   small?: boolean;
@@ -40,13 +40,13 @@ class InfoPanel extends React.Component<InfoPanelProps> {
     const imgStyle = this.props.small ? {height: 50, width: 50, padding: 5}
       : {height: 70, width: 70, padding: 15};
     return (
-      <div id="info-panel" style={{display: "flex"}}>
+      <div id="info-panel" style={{display: 'flex'}}>
         <img alt="album-art"
           onClick={() => this.onImageClick()}
           src={src}
           style={imgStyle}
         />
-        <div style={{display: "grid"}}>
+        <div style={{display: 'grid'}}>
           <div className="track-label" id="name">
             {this.getNameLink()}
           </div>
@@ -57,7 +57,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
             {this.getAlbumLinks()}
           </div>
           <div className="track-label" id="year">
-            {track ? track.year : "Year"}
+            {track ? track.year : 'Year'}
           </div>
         </div>
       </div>
@@ -72,16 +72,16 @@ class InfoPanel extends React.Component<InfoPanelProps> {
 
   private onImageClick(): void {
     if (this.props.small) {
-      ipcRenderer.send("maximize");
+      ipcRenderer.send('maximize');
     } else {
-      ipcRenderer.send("minimize");
+      ipcRenderer.send('minimize');
     }
   }
 
   private getArtistLinks(): JSX.Element | string {
     const {artists} = this.props;
     if (!artists.length) {
-      return "Artists";
+      return 'Artists';
     }
     return (
       <Marquee>
@@ -101,7 +101,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
   private getAlbumLinks(): JSX.Element | string {
     const {albums} = this.props;
     if (!albums.length) {
-      return "Albums";
+      return 'Albums';
     }
     return (
       <Marquee>
@@ -128,7 +128,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
         </Marquee>
       );
     }
-    return "Track Name";
+    return 'Track Name';
   }
 }
 

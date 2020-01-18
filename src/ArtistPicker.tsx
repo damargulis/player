@@ -1,8 +1,8 @@
-import Artist from "./library/Artist";
-import ArtistInfo from "./ArtistInfo";
-import React from "react";
-import SearchBar from "./SearchBar";
-import WrappedGrid from "./WrappedGrid";
+import Artist from './library/Artist';
+import ArtistInfo from './ArtistInfo';
+import React from 'react';
+import SearchBar from './SearchBar';
+import WrappedGrid from './WrappedGrid';
 
 interface ArtistPickerState {
   search: string;
@@ -21,7 +21,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   constructor(props: ArtistPickerProps) {
     super(props);
     this.state = {
-      search: "",
+      search: '',
       sortedArtists: [],
       withErrors: false,
     };

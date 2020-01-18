@@ -1,10 +1,10 @@
-import Album from "./Album";
-import Artist from "./Artist";
-import {DATA_DIR} from "../constants";
-import Playlist from "./Playlist";
-import Track from "./Track";
+import Album from './Album';
+import Artist from './Artist';
+import {DATA_DIR} from '../constants';
+import Playlist from './Playlist';
+import Track from './Track';
 
-import fs from "fs";
+import fs from 'fs';
 
 export default class Library {
   constructor(

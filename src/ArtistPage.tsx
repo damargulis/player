@@ -1,17 +1,17 @@
-import Album from "./library/Album";
-import AlbumPicker from "./AlbumPicker";
-import Artist from "./library/Artist";
-import runArtistModifier from "./extensions/wiki/artists";
-import EditableAttribute from "./EditableAttribute";
-import defaultArtist from "./resources/missing_artist.png";
-import NavigationBar from "./NavigationBar";
-import React from "react";
-import {connect} from "react-redux";
-import {getAlbumsByIds, getTracksByIds} from "./redux/selectors";
-import SongPicker from "./SongPicker";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
-import {getImgSrc} from "./utils";
+import Album from './library/Album';
+import AlbumPicker from './AlbumPicker';
+import Artist from './library/Artist';
+import runArtistModifier from './extensions/wiki/artists';
+import EditableAttribute from './EditableAttribute';
+import defaultArtist from './resources/missing_artist.png';
+import NavigationBar from './NavigationBar';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getAlbumsByIds, getTracksByIds} from './redux/selectors';
+import SongPicker from './SongPicker';
+import {RootState} from './redux/store';
+import Track from './library/Track';
+import {getImgSrc} from './utils';
 
 interface StateProps {
   albums: Album[];
@@ -36,9 +36,9 @@ class ArtistPage extends React.Component<ArtistPageProps> {
     return (
       <div className="main">
         <div className="pageHolder"
-          style={{display: "flex", flexDirection: "column", height: "100%"}}
+          style={{display: 'flex', flexDirection: 'column', height: '100%'}}
         >
-          <div className="artistPageHeader" style={{display: "flex"}}>
+          <div className="artistPageHeader" style={{display: 'flex'}}>
             <NavigationBar
               canGoForward={this.props.canGoForward}
               goBack={this.props.goBack}
@@ -58,11 +58,11 @@ class ArtistPage extends React.Component<ArtistPageProps> {
             </div>
             {this.getErrors()}
           </div>
-          <div className="artistPageBody" style={{height: "100%"}}>
-            <div className="container" style={{height: "50%"}}>
+          <div className="artistPageBody" style={{height: '100%'}}>
+            <div className="container" style={{height: '50%'}}>
               <AlbumPicker albums={this.props.albums} goToAlbum={this.props.goToAlbum} />
             </div>
-            <div className="container" style={{height: "50%"}}>
+            <div className="container" style={{height: '50%'}}>
               <SongPicker songs={this.props.tracks} />
             </div>
           </div>
@@ -81,10 +81,10 @@ class ArtistPage extends React.Component<ArtistPageProps> {
     }
     return (
       <div style={{
-        border: "solid red 1px",
-        marginBottom: "10px",
-        marginLeft: "100px",
-        marginTop: "10px",
+        border: 'solid red 1px',
+        marginBottom: '10px',
+        marginLeft: '100px',
+        marginTop: '10px',
       }}
       >
         <div> Errors: </div>

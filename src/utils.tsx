@@ -1,4 +1,4 @@
-import path from "path";
+import path from 'path';
 
 /**
  * Formats a duration to a time "minutes:seconds".
@@ -10,11 +10,11 @@ export function toTime(ms: number): string {
   const seconds = totalSeconds % 60;
   let secondsString = `${seconds}`;
   if (seconds < 10) {
-    secondsString = "0" + seconds;
+    secondsString = '0' + seconds;
   }
   return `${minutes}:${secondsString}`;
 }
 
 export function getImgSrc(fileName: string): string {
-  return fileName ? new URL("file://" + path.resolve(fileName)).toString() : "";
+  return fileName ? new URL('file://' + path.resolve(fileName)).toString() : '';
 }

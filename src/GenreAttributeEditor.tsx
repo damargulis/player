@@ -1,8 +1,8 @@
-import AttributeList from "./AttributeList";
-import React from "react";
-import {connect} from "react-redux";
-import {getGenreById, getGenres} from "./redux/selectors";
-import {RootState} from "./redux/store";
+import AttributeList from './AttributeList';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getGenreById, getGenres} from './redux/selectors';
+import {RootState} from './redux/store';
 
 interface OwnProps {
   genreIds: number[];

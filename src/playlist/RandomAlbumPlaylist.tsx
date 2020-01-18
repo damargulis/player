@@ -1,5 +1,5 @@
-import Album from "../library/Album";
-import EmptyPlaylist from "./EmptyPlaylist";
+import Album from '../library/Album';
+import EmptyPlaylist from './EmptyPlaylist';
 
 export default class RandomAlbumPlaylist extends EmptyPlaylist {
   private playlist: Album[];

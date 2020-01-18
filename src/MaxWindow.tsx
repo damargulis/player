@@ -1,24 +1,24 @@
-import Album from "./library/Album";
-import AlbumPage from "./AlbumPage";
-import AlbumPicker from "./AlbumPicker";
-import Artist from "./library/Artist";
-import ArtistPage from "./ArtistPage";
-import ArtistPicker from "./ArtistPicker";
-import {ipcRenderer} from "electron";
-import GenrePicker from "./GenrePicker";
-import Header from "./Header";
-import Playlist from "./library/Playlist";
-import PlaylistPage from "./PlaylistPage";
-import PlaylistPicker from "./PlaylistPicker";
-import PlaylistTypePicker from "./PlaylistTypePicker";
-import React from "react";
-import {connect} from "react-redux";
+import Album from './library/Album';
+import AlbumPage from './AlbumPage';
+import AlbumPicker from './AlbumPicker';
+import Artist from './library/Artist';
+import ArtistPage from './ArtistPage';
+import ArtistPicker from './ArtistPicker';
+import {ipcRenderer} from 'electron';
+import GenrePicker from './GenrePicker';
+import Header from './Header';
+import Playlist from './library/Playlist';
+import PlaylistPage from './PlaylistPage';
+import PlaylistPicker from './PlaylistPicker';
+import PlaylistTypePicker from './PlaylistTypePicker';
+import React from 'react';
+import {connect} from 'react-redux';
 import {
   getAlbumById, getAlbumsByGenres, getArtistById, getArtistsByGenres, getTracksByGenres,
-} from "./redux/selectors";
-import SongPicker from "./SongPicker";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
+} from './redux/selectors';
+import SongPicker from './SongPicker';
+import {RootState} from './redux/store';
+import Track from './library/Track';
 
 interface StateProps {
   getAlbumById(id: number): Album;
@@ -44,18 +44,18 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.state = {
       curScene: -1,
       genres: [],
-      playlistType: "album",
+      playlistType: 'album',
       scenes: [],
     };
     this.onArtistMessage = this.onArtistMessage.bind(this);
     this.onAlbumMessage = this.onAlbumMessage.bind(this);
-    ipcRenderer.on("toArtist", this.onArtistMessage);
-    ipcRenderer.on("toAlbum", this.onAlbumMessage);
-    ipcRenderer.on("toSong", this.onSongMessage.bind(this));
+    ipcRenderer.on('toArtist', this.onArtistMessage);
+    ipcRenderer.on('toAlbum', this.onAlbumMessage);
+    ipcRenderer.on('toSong', this.onSongMessage.bind(this));
   }
 
   public componentWillUnmount(): void {
-    ipcRenderer.removeListener("toArtist", this.onArtistMessage);
+    ipcRenderer.removeListener('toArtist', this.onArtistMessage);
   }
 
   public render(): JSX.Element {
@@ -179,27 +179,27 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       return this.state.scenes[this.state.curScene](this.state.genres);
     }
     switch (this.state.playlistType) {
-    case "album":
+    case 'album':
       return (
         <AlbumPicker
           albums={this.props.getAlbumsByGenres(this.state.genres)}
           goToAlbum={this.goToAlbum.bind(this)}
         />
       );
-    case "artist":
+    case 'artist':
       return (
         <ArtistPicker
           artists={this.props.getArtistsByGenres(this.state.genres)}
           goToArtist={this.goToArtist.bind(this)}
         />
       );
-    case "song":
+    case 'song':
       return (
         <SongPicker
           songs={this.props.getTracksByGenres(this.state.genres)}
         />
       );
-    case "playlist":
+    case 'playlist':
       return (
         <PlaylistPicker
           goToPlaylist={this.goToPlaylist.bind(this)}

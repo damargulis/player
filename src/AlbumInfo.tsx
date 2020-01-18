@@ -1,11 +1,11 @@
-import Album from "./library/Album";
-import Artist from "./library/Artist";
-import defaultAlbum from "./resources/missing_album.png";
-import * as React from "react";
-import {connect} from "react-redux";
-import {getArtistsByIds} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import {getImgSrc} from "./utils";
+import Album from './library/Album';
+import Artist from './library/Artist';
+import defaultAlbum from './resources/missing_album.png';
+import * as React from 'react';
+import {connect} from 'react-redux';
+import {getArtistsByIds} from './redux/selectors';
+import {RootState} from './redux/store';
+import {getImgSrc} from './utils';
 
 interface StateProps {
   artists: Artist[];
@@ -48,12 +48,12 @@ class AlbumInfo extends React.Component<AlbumInfoProps> {
       );
     }
     if (this.props.showStatus) {
-      newStyle.backgroundColor = "green";
+      newStyle.backgroundColor = 'green';
       if (Object.keys(this.props.album.warnings).length > 0) {
-        newStyle.backgroundColor = "yellow";
+        newStyle.backgroundColor = 'yellow';
       }
       if (this.props.album.errors.length > 0 || !this.props.album.wikiPage) {
-        newStyle.backgroundColor = "red";
+        newStyle.backgroundColor = 'red';
       }
     }
 
@@ -61,26 +61,26 @@ class AlbumInfo extends React.Component<AlbumInfoProps> {
     const src = file ? getImgSrc(file) : defaultAlbum;
     const artists = this.props.artists.map((artist: Artist) => {
       return artist.name;
-    }).join(", ");
+    }).join(', ');
     return (
       <div style={newStyle} >
-        <div style={{position: "absolute", left: "50%"}}>
+        <div style={{position: 'absolute', left: '50%'}}>
           <img
             alt="album art"
             height="100"
             onClick={() => this.onClickAlbum()}
             onDoubleClick={() => this.onDoubleClickAlbum()}
             src={src.toString()}
-            style={{paddingTop: "10px", position: "relative", left: "-50%"}}
+            style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />
           <div
-            style={{position: "relative", left: "-50%", textAlign: "center"}}
+            style={{position: 'relative', left: '-50%', textAlign: 'center'}}
           >
             {this.props.album && this.props.album.name}
           </div>
           <div
-            style={{position: "relative", left: "-50%", textAlign: "center"}}
+            style={{position: 'relative', left: '-50%', textAlign: 'center'}}
           >
             {artists}
           </div>

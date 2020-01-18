@@ -1,12 +1,12 @@
-import {setTime} from "./redux/actions";
-import React from "react";
-import {connect} from "react-redux";
-import {getTime} from "./redux/selectors";
-import {getCurrentTrack} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import {toTime} from "./utils";
+import {setTime} from './redux/actions';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getTime} from './redux/selectors';
+import {getCurrentTrack} from './redux/selectors';
+import {RootState} from './redux/store';
+import {toTime} from './utils';
 
-import "./ProgressBar.css";
+import './ProgressBar.css';
 
 interface StateProps {
   time: number;

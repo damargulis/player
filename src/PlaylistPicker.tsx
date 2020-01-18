@@ -1,9 +1,9 @@
-import Playlist from "./library/Playlist";
-import React from "react";
-import {connect} from "react-redux";
-import {getAutoPlaylists, getPlaylists} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import WrappedGrid from "./WrappedGrid";
+import Playlist from './library/Playlist';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getAutoPlaylists, getPlaylists} from './redux/selectors';
+import {RootState} from './redux/store';
+import WrappedGrid from './WrappedGrid';
 
 interface OwnProps {
   goToPlaylist(playlist: Playlist): void;
@@ -21,21 +21,21 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps> {
     // TODO: move errors to here instead of a filter
     return (
       <div className="main">
-        <div style={{position: "absolute", height: "100%", width: "100%"}}>
-          <div style={{height: "100%", width: "50%"}}>
+        <div style={{position: 'absolute', height: '100%', width: '100%'}}>
+          <div style={{height: '100%', width: '50%'}}>
             Manual
             <WrappedGrid cellRenderer={this.cellRenderer.bind(this)} numItems={this.props.playlists.length} />
           </div>
           <div
             style={{
-              height: "100%",
-              position: "absolute",
+              height: '100%',
+              position: 'absolute',
               right: 0,
               top: 0,
-              width: "50%",
+              width: '50%',
             }}
           >
-            <span style={{width: "100%", textAlign: "center"}}>Auto</span>
+            <span style={{width: '100%', textAlign: 'center'}}>Auto</span>
             <WrappedGrid cellRenderer={this.autoCellRenderer.bind(this)} numItems={this.props.autoPlaylists.length} />
           </div>
         </div>

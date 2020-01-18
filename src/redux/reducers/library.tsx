@@ -1,5 +1,5 @@
-import {LibraryActionTypes, LibraryState, SAVE, UPDATE_LIBRARY} from "../actionTypes";
-import Library from "../../library/Library";
+import {LibraryActionTypes, LibraryState, SAVE, UPDATE_LIBRARY} from '../actionTypes';
+import Library from '../../library/Library';
 
 const initialState: LibraryState = {
   albums: [],
@@ -9,7 +9,7 @@ const initialState: LibraryState = {
   tracks: [],
 };
 
-function library(state = initialState, action: LibraryActionTypes): LibraryState  {
+function library(state: LibraryState = initialState, action: LibraryActionTypes): LibraryState  {
   switch (action.type) {
     case UPDATE_LIBRARY: {
       return Object.assign({}, state, {

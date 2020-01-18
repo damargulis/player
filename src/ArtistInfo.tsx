@@ -1,10 +1,10 @@
-import Artist from "./library/Artist";
-import defaultArtist from "./resources/missing_artist.png";
-import React from "react";
-import {connect} from "react-redux";
-import {getArtFilesByArtist} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import {getImgSrc} from "./utils";
+import Artist from './library/Artist';
+import defaultArtist from './resources/missing_artist.png';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getArtFilesByArtist} from './redux/selectors';
+import {RootState} from './redux/store';
+import {getImgSrc} from './utils';
 
 interface StateProps {
   artFiles: string[];
@@ -76,7 +76,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
       width: 150,
     };
     if (artist.errors.length > 0) {
-      newStyle.backgroundColor = "red";
+      newStyle.backgroundColor = 'red';
     }
     const artFiles = this.props.artFiles;
     const file = artFiles[this.state.currentImg % artFiles.length];
@@ -86,16 +86,16 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
         onClick={() => this.props.goToArtist(artist)}
         style={newStyle}
       >
-        <div style={{position: "absolute", left: "50%"}}>
+        <div style={{position: 'absolute', left: '50%'}}>
           <img
             alt="artist art"
             height="100"
             src={src}
-            style={{paddingTop: "10px", position: "relative", left: "-50%"}}
+            style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />
           <div
-            style={{position: "relative", left: "-50%", textAlign: "center"}}
+            style={{position: 'relative', left: '-50%', textAlign: 'center'}}
           >
             {artist.name}
           </div>

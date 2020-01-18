@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface EditableAttributeProps<T> {
   attr: T;
@@ -36,11 +36,11 @@ export default class EditableAttribute<T> extends
           onChange={this.onChange.bind(this)}
           onKeyUp={this.onKeyUp.bind(this)}
           ref={this.input}
-          style={{display: this.state.editing ? "" : "none"}}
+          style={{display: this.state.editing ? '' : 'none'}}
           value={this.state.value as unknown as string}
         >
         </input>
-        <div style={{display: this.state.editing ? "none" : ""}}>
+        <div style={{display: this.state.editing ? 'none' : ''}}>
           {this.state.value}
           <button onClick={this.edit.bind(this)}>Edit</button>
         </div>
@@ -67,7 +67,7 @@ export default class EditableAttribute<T> extends
   }
 
   private onKeyUp(evt: React.KeyboardEvent): void {
-    if (evt.key === "Enter") {
+    if (evt.key === 'Enter') {
       this.save();
     }
   }

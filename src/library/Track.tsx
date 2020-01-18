@@ -29,17 +29,17 @@ export default class Track {
   public favorites: number[];
 
   constructor(id: number, {
-    name = "",
+    name = '',
     duration = 0,
-    filePath = "",
+    filePath = '',
     year = 0,
     playCount = 0,
     skipCount = 0,
     artistIds = [],
     albumIds = [],
     genreIds = [],
-    dateAdded = "",
-    playDate = "",
+    dateAdded = '',
+    playDate = '',
     favorites = [],
   }: TrackParameters) {
 

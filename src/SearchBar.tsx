@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface SearchBarProps {
   onSearch(search: string): void;
@@ -14,7 +14,7 @@ export default class SearchBar extends React.Component<SearchBarProps, SearchBar
   constructor(props: SearchBarProps) {
     super(props);
 
-    this.state = {value: ""};
+    this.state = {value: ''};
   }
 
   public render(): JSX.Element {

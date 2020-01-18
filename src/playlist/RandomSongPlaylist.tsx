@@ -1,5 +1,5 @@
-import EmptyPlaylist from "./EmptyPlaylist";
-import Track from "../library/Track";
+import EmptyPlaylist from './EmptyPlaylist';
+import Track from '../library/Track';
 
 export default class RandomSongPlaylist extends EmptyPlaylist {
   private tracks: Track[];

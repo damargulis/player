@@ -1,9 +1,9 @@
-import {save} from "./redux/actions";
-import Album from "./library/Album";
-import favoriteButton from "./resources/favorite.png";
-import * as React from "react";
-import {connect} from "react-redux";
-import Track from "./library/Track";
+import {save} from './redux/actions';
+import Album from './library/Album';
+import favoriteButton from './resources/favorite.png';
+import * as React from 'react';
+import {connect} from 'react-redux';
+import Track from './library/Track';
 
 interface DispatchProps {
   save(): void;
@@ -28,7 +28,7 @@ class LikeButton extends React.Component<LikeButtonProps> {
         disabled={!this.props.item}
         onClick={this.favorite.bind(this)}
         src={favoriteButton}
-        style={{width: "25px", opacity: favorite ? "1" : ".5"}}
+        style={{width: '25px', opacity: favorite ? '1' : '.5'}}
         type="image"
       />
     );

@@ -1,15 +1,15 @@
-import {save} from "./redux/actions";
-import Album from "./library/Album";
-import AlbumAttributeEditor from "./AlbumAttributeEditor";
-import Artist from "./library/Artist";
-import ArtistAttributeEditor from "./ArtistAttributeEditor";
-import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
-import GenreAttributeEditor from "./GenreAttributeEditor";
-import React from "react";
-import {connect} from "react-redux";
-import {getAlbumById, getArtistById} from "./redux/selectors";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
+import {save} from './redux/actions';
+import Album from './library/Album';
+import AlbumAttributeEditor from './AlbumAttributeEditor';
+import Artist from './library/Artist';
+import ArtistAttributeEditor from './ArtistAttributeEditor';
+import FavoritesAttributeEditor from './FavoritesAttributeEditor';
+import GenreAttributeEditor from './GenreAttributeEditor';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getAlbumById, getArtistById} from './redux/selectors';
+import {RootState} from './redux/store';
+import Track from './library/Track';
 
 interface StateProps {
   getAlbumById(albumId: number): Album;

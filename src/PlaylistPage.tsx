@@ -1,12 +1,12 @@
-import NavigationBar from "./NavigationBar";
-import Playlist from "./library/Playlist";
-import React from "react";
-import {connect} from "react-redux";
-import {getTracksByIds} from "./redux/selectors";
-import SongPicker from "./SongPicker";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
-import {toTime} from "./utils";
+import NavigationBar from './NavigationBar';
+import Playlist from './library/Playlist';
+import React from 'react';
+import {connect} from 'react-redux';
+import {getTracksByIds} from './redux/selectors';
+import SongPicker from './SongPicker';
+import {RootState} from './redux/store';
+import Track from './library/Track';
+import {toTime} from './utils';
 
 interface OwnProps {
   playlist: Playlist;
@@ -25,7 +25,7 @@ type PlaylistPageProps = StateProps & OwnProps;
 class PlaylistPage extends React.Component<PlaylistPageProps> {
 
   public render(): JSX.Element {
-    const src = "";
+    const src = '';
     const allPlaylistSongs = this.props.tracks;
     const songs = allPlaylistSongs.filter((song) => {
       if (this.props.genres.length) {
@@ -37,7 +37,7 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
     });
     return (
       <div className="main">
-        <div className="playlistPageHeader" style={{display: "flex"}}>
+        <div className="playlistPageHeader" style={{display: 'flex'}}>
           <div className="info">
             <NavigationBar
               canGoForward={this.props.canGoForward}
@@ -49,7 +49,7 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
             <div>Total Time: {this.getTotalTime()}</div>
           </div>
         </div>
-        <div className="playlistPageBody" style={{height: "100%"}}>
+        <div className="playlistPageBody" style={{height: '100%'}}>
           <SongPicker songs={songs} />
         </div>
       </div>

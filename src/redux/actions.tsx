@@ -10,9 +10,9 @@ import {
   SET_TIME,
   UPDATE_LIBRARY,
   UPDATE_TIME,
-} from "./actionTypes";
-import EmptyPlaylist from "../playlist/EmptyPlaylist";
-import Library from "../library/Library";
+} from './actionTypes';
+import EmptyPlaylist from '../playlist/EmptyPlaylist';
+import Library from '../library/Library';
 
 export const updateTime = (time: number) => ({
   payload: {time},

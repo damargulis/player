@@ -1,11 +1,11 @@
-import Album from "../../library/Album";
-import modifyAlbum from "./albums";
-import Artist from "../../library/Artist";
-import modifyArtist from "./artists";
-import {ipcRenderer} from "electron";
-import PromisePool from "es6-promise-pool";
-import {getAlbumsByIds, getAllAlbumIds, getAllArtistIds, getArtistsByIds} from "../../redux/selectors";
-import {RootState} from "../../redux/store";
+import Album from '../../library/Album';
+import modifyAlbum from './albums';
+import Artist from '../../library/Artist';
+import modifyArtist from './artists';
+import {ipcRenderer} from 'electron';
+import PromisePool from 'es6-promise-pool';
+import {getAlbumsByIds, getAllAlbumIds, getAllArtistIds, getArtistsByIds} from '../../redux/selectors';
+import {RootState} from '../../redux/store';
 
 // TODO: set num by isDev
 const CONCURRENT = 7;
@@ -19,9 +19,9 @@ function getPool<T>(
   modifyFunc: (store: RootState, item: T) =>  Promise<void>,
 ): PromisePool<void> {
   let index = 0;
-  ipcRenderer.send("extension-update", {
+  ipcRenderer.send('extension-update', {
     items: items.length,
-    type: "start-section",
+    type: 'start-section',
   });
   return new PromisePool(() => {
     const item = items[index];
@@ -30,16 +30,16 @@ function getPool<T>(
     }
     const id = index++;
     const name = getName(item);
-    ipcRenderer.send("extension-update", {
+    ipcRenderer.send('extension-update', {
       id: prefix + id,
       name,
-      type: "start-item",
+      type: 'start-item',
     });
     return modifyFunc(store, item).then(() => {
-      ipcRenderer.send("extension-update", {
+      ipcRenderer.send('extension-update', {
         id: prefix + id,
         name,
-        type: "end-item",
+        type: 'end-item',
       });
     });
   }, CONCURRENT);
@@ -49,12 +49,12 @@ function getAlbumsPool(store: RootState, albums: Album[]): PromisePool<void> {
   return getPool(
     store,
     albums,
-    /* prefix= */ "album-",
+    /* prefix= */ 'album-',
     (album) => {
       const artist = getArtistsByIds(store, album.artistIds)
         .map((artistData: Artist) => artistData.name)
-        .join(", ");
-      return album.name + " by: " + artist;
+        .join(', ');
+      return `${album.name} by: ${artist}`;
     },
     modifyAlbum,
   );
@@ -64,7 +64,7 @@ function getArtistPool(store: RootState, artists: Artist[]): PromisePool<void> {
   return getPool(
     store,
     artists,
-    /* prefix= */ "artist-",
+    /* prefix= */ 'artist-',
     (artist) => {
       return artist.name;
     },
@@ -88,11 +88,11 @@ export default function runWikiExtension(store: RootState): PromiseLike<void> {
   return albumPool.start()
     .then(() => artistPool.start())
     .then(() => {
-      ipcRenderer.send("extension-update", {
+      ipcRenderer.send('extension-update', {
         albumErrors,
         albumGood,
         albumWarnings,
-        type: "done",
+        type: 'done',
       });
     });
 }

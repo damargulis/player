@@ -1,7 +1,7 @@
-import React from "react";
-import {AutoSizer, Grid} from "react-virtualized";
+import React from 'react';
+import {AutoSizer, Grid} from 'react-virtualized';
 
-import "./App.css";
+import './App.css';
 
 interface WrappedGridProps {
   numItems: number;
@@ -47,7 +47,7 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
 
   private cellRenderer(
     {columnIndex, key, rowIndex, style}:
-    {columnIndex: number, key: string, rowIndex: number, style: object},
+    {columnIndex: number; key: string; rowIndex: number; style: object},
   ): JSX.Element {
     return this.props.cellRenderer(rowIndex * this.numCols + columnIndex, key, style);
   }

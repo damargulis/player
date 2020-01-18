@@ -1,20 +1,20 @@
-import {save, setPlaylist} from "./redux/actions";
-import Album from "./library/Album";
-import runAlbumModifier from "./extensions/wiki/albums";
-import Artist from "./library/Artist";
-import EditableAttribute from "./EditableAttribute";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import LikeButton from "./LikeButton";
-import defaultAlbum from "./resources/missing_album.png";
-import NavigationBar from "./NavigationBar";
-import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
-import * as React from "react";
-import {connect} from "react-redux";
-import {getArtistsByIds, getTrackById, getTracksByIds} from "./redux/selectors";
-import SongPicker from "./SongPicker";
-import {RootState} from "./redux/store";
-import Track from "./library/Track";
-import {getImgSrc, toTime} from "./utils";
+import {save, setPlaylist} from './redux/actions';
+import Album from './library/Album';
+import runAlbumModifier from './extensions/wiki/albums';
+import Artist from './library/Artist';
+import EditableAttribute from './EditableAttribute';
+import EmptyPlaylist from './playlist/EmptyPlaylist';
+import LikeButton from './LikeButton';
+import defaultAlbum from './resources/missing_album.png';
+import NavigationBar from './NavigationBar';
+import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
+import * as React from 'react';
+import {connect} from 'react-redux';
+import {getArtistsByIds, getTrackById, getTracksByIds} from './redux/selectors';
+import SongPicker from './SongPicker';
+import {RootState} from './redux/store';
+import Track from './library/Track';
+import {getImgSrc, toTime} from './utils';
 
 interface StateProps {
   artists: Artist[];
@@ -54,7 +54,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
     // TODO: add validation to edit year
     return (
       <div className="main">
-        <div className="albumPageHeader" style={{display: "flex"}}>
+        <div className="albumPageHeader" style={{display: 'flex'}}>
           <div className="info">
             <NavigationBar
               canGoForward={this.props.canGoForward}
@@ -82,21 +82,21 @@ class AlbumPage extends React.Component<AlbumPageProps> {
               Run Wiki Extension
             </button>
           </div>
-          <div style={{position: "relative"}}>
+          <div style={{position: 'relative'}}>
             <button
               onClick={this.playAlbum.bind(this)}
               style={{
-                position: "absolute",
-                top: "33%",
-                translate: "translateY(-66%)",
+                position: 'absolute',
+                top: '33%',
+                translate: 'translateY(-66%)',
               }}
             >Play Album
             </button>
             <div
               style={{
-                position: "absolute",
-                top: "66%",
-                translate: "translateY(-33%)",
+                position: 'absolute',
+                top: '66%',
+                translate: 'translateY(-33%)',
               }}
             >
               <LikeButton item={this.props.album} />
@@ -137,18 +137,17 @@ class AlbumPage extends React.Component<AlbumPageProps> {
     }
     return (
       <div style={{
-        border: "solid yellow 5px",
-        marginBottom: "10px",
-        marginLeft: "100px",
-        marginTop: "10px",
+        border: 'solid yellow 5px',
+        marginBottom: '10px',
+        marginLeft: '100px',
+        marginTop: '10px',
       }}
       >
         <div> Warnings: </div>
         {
           warnings.map((trackIndex) => {
             return (
-              <div key={trackIndex}>{parseInt(trackIndex, 10) + 1 + ": " +
-                this.props.album.warnings[trackIndex]}
+              <div key={trackIndex}>{`${parseInt(trackIndex, 10) + 1}: ${this.props.album.warnings[trackIndex]}`}
               </div>
             );
           })
@@ -164,10 +163,10 @@ class AlbumPage extends React.Component<AlbumPageProps> {
     }
     return (
       <div style={{
-        border: "solid red 1px",
-        marginBottom: "10px",
-        marginLeft: "100px",
-        marginTop: "10px",
+        border: 'solid red 1px',
+        marginBottom: '10px',
+        marginLeft: '100px',
+        marginTop: '10px',
       }}
       >
         <div> Errors: </div>
