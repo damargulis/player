@@ -9,7 +9,6 @@ import {
   PREV_ALBUM,
   PREV_TRACK,
   SET_PLAYLIST,
-  SONG_ENDED,
   UPDATE_TIME,
 } from "../actionTypes";
 import EmptyPlaylist from "../../playlist/EmptyPlaylist";
@@ -75,13 +74,6 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
     case PLAY_PAUSE: {
       return Object.assign({}, state, {
         isPlaying: !state.isPlaying,
-      });
-    }
-    case SONG_ENDED: {
-      // TODO: playcount increment
-      const nextId = state.playlist.nextAlbum();
-      return Object.assign({}, state, {
-        currentlyPlayingId: nextId,
       });
     }
     default: {

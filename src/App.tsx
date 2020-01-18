@@ -1,4 +1,4 @@
-import {nextTrack, prevTrack, save, setPlaylist, songEnded, updateLibrary, updateTime} from "./redux/actions";
+import {nextTrack, prevTrack, save, setPlaylist, updateLibrary, updateTime} from "./redux/actions";
 import {DATA_DIR} from "./constants";
 import {createLibraryFromItunes, deleteLibrary, loadLibrary} from "./library/create_library";
 import {ipcRenderer} from "electron";
@@ -12,12 +12,13 @@ import * as React from "react";
 import {connect} from "react-redux";
 import {getCurrentTrack, getIsPlaying, getVolume} from "./redux/selectors";
 import {RootState} from "./redux/store";
+import Track from "./library/Track";
 
 import "./App.css";
 
 interface StateProps {
   volume: number;
-  filePath?: string;
+  track?: Track;
   playing: boolean;
   runWikiExtension(): PromiseLike<void>;
 }
@@ -28,7 +29,6 @@ interface DispatchProps {
   nextTrack(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  songEnded(): void;
   playPause(): void;
   save(): void;
 }
@@ -115,7 +115,13 @@ class App extends React.Component<AppProps, AppState> {
       this.props.updateTime(this.audio.currentTime);
     });
     this.audio.addEventListener("ended", () => {
-      this.props.songEnded();
+      const track = this.props.track;
+      if (track) {
+        track.playCount++;
+        track.playDate = new Date();
+        this.props.save();
+      }
+      this.props.nextTrack();
       // TODO: add back playcount incrmeneting
       // const track = this.state.playlist.getCurrentTrack();
       // if (!track) {
@@ -131,8 +137,10 @@ class App extends React.Component<AppProps, AppState> {
     if (this.audio.volume !== this.props.volume) {
       this.audio.volume = this.props.volume;
     }
-    if (this.props.filePath && this.props.filePath !== prevProps.filePath) {
-      this.audio.src = new URL(this.props.filePath).toString();
+    const path = this.props.track && this.props.track.filePath;
+    const prevPath = prevProps.track && prevProps.track.filePath;
+    if (path && path !== prevPath) {
+      this.audio.src = new URL(path).toString();
     }
     if (this.props.playing) {
       this.audio.play();
@@ -163,11 +171,11 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private onMaximize(): void {
-    this.setState({mini: false });
+    this.setState({mini: false});
   }
 
   private onMinimize(): void {
-    this.setState({mini: true });
+    this.setState({mini: true});
   }
 
 }
@@ -175,12 +183,12 @@ class App extends React.Component<AppProps, AppState> {
 function mapStateToProps(store: RootState): StateProps {
   const track = getCurrentTrack(store);
   return {
-    filePath: track && track.filePath,
     playing: getIsPlaying(store),
     runWikiExtension: () => runWikiExtension(store),
+    track,
     volume: getVolume(store),
   };
 }
 
 export default connect(mapStateToProps,
-  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, songEnded, save})(App);
+  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, save})(App);

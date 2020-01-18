@@ -7,7 +7,6 @@ import {
   PREV_TRACK,
   SAVE,
   SET_PLAYLIST,
-  SONG_ENDED,
   UPDATE_LIBRARY,
   UPDATE_TIME,
 } from "./actionTypes";
@@ -36,10 +35,6 @@ export const nextTrack = () => ({
 export const setPlaylist = (playlist: EmptyPlaylist, play: boolean) => ({
   payload: {playlist, play},
   type: SET_PLAYLIST,
-});
-
-export const songEnded = () => ({
-  type: SONG_ENDED,
 });
 
 export const nextAlbum = () => ({

@@ -11,7 +11,6 @@ export const CHANGE_VOLUME = "CHANGE_VOLUME";
 export const NEXT_TRACK = "NEXT_TRACK";
 export const SET_PLAYLIST = "SET_PLAYLIST";
 export const NEXT_ALBUM = "NEXT_ALBUM";
-export const SONG_ENDED = "SONG_ENDED";
 export const PREV_TRACK = "PREV_TRACK";
 export const PREV_ALBUM = "PREV_ALBUM";
 export const PLAY_PAUSE = "PLAY_PAUSE";
@@ -80,10 +79,6 @@ interface PlayPauseAction {
   type: typeof PLAY_PAUSE;
 }
 
-interface SongEndedAction {
-  type: typeof SONG_ENDED;
-}
-
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
-  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SongEndedAction;
+  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction;
 export type LibraryActionTypes = UpdateLibraryAction | SaveAction;

@@ -59,9 +59,13 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public hasNextAlbum(): boolean {return true}
+  public hasNextAlbum(): boolean {
+    return true;
+  }
 
-  public hasNextTrack(): boolean {return true}
+  public hasNextTrack(): boolean {
+    return true;
+  }
 
   public hasPrevAlbum(): boolean {
     return this.currentAlbum > 0;

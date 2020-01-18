@@ -31,11 +31,17 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public hasNextAlbum(): boolean {return false}
+  public hasNextAlbum(): boolean {
+    return false;
+  }
 
-  public hasNextTrack(): boolean {return true}
+  public hasNextTrack(): boolean {
+    return true;
+  }
 
-  public hasPrevAlbum(): boolean {return false}
+  public hasPrevAlbum(): boolean {
+    return false;
+  }
 
   public hasPrevTrack(): boolean {
     return this.currentTrack > 0;

@@ -97,20 +97,13 @@ class AlbumPage extends React.Component<AlbumPageProps> {
                 translate: "translateY(-33%)",
               }}
             >
-              <LikeButton item={ this.props.album} />
+              <LikeButton item={this.props.album} />
             </div>
           </div>
-          {
-            this.getErrors()
-          }
-          {
-            this.getWarnings()
-          }
+          {this.getErrors()}
+          {this.getWarnings()}
         </div>
-        <SongPicker
-          songs={this.props.getTracksByIds(this.props.album.trackIds)}
-          sortBy="index"
-        />
+        <SongPicker songs={this.props.getTracksByIds(this.props.album.trackIds)} sortBy="index" />
       </div>
     );
   }
@@ -129,7 +122,8 @@ class AlbumPage extends React.Component<AlbumPageProps> {
         track.name = this.props.album.warnings[indexStr];
       }
     }
-    this.props.album.warnings = { };
+    this.props.album.warnings = {};
+    this.props.save();
   }
 
   private getWarnings(): JSX.Element | undefined {
