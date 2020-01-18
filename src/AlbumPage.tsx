@@ -1,12 +1,13 @@
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
+import {setPlaylist} from "./redux/actions";
 import Album from "./library/Album";
 import runAlbumModifier from "./extensions/wiki/albums";
 import Artist from "./library/Artist";
 import EditableAttribute from "./EditableAttribute";
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import LikeButton from "./LikeButton";
 import defaultAlbum from "./resources/missing_album.png";
 import NavigationBar from "./NavigationBar";
+import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
 import { connect } from "react-redux";
 import {getArtistsByIds, getTrackById, getTracksByIds} from "./redux/selectors";
@@ -14,7 +15,6 @@ import SongPicker from "./SongPicker";
 import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {getImgSrc, toTime} from "./utils";
-import {setPlaylist} from "./redux/actions";
 
 interface StateProps {
   artists: Artist[];
