@@ -91,7 +91,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
             >Play Album
             </button>
             <div
-              style={ {
+              style={{
                 position: "absolute",
                 top: "66%",
                 translate: "translateY(-33%)",
