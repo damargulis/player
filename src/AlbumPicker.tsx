@@ -1,20 +1,33 @@
+import {setPlaylist} from "./redux/actions";
 import Album from "./library/Album";
 import AlbumInfo from "./AlbumInfo";
 import Artist from "./library/Artist";
-import Library from "./library/Library";
+import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
+import {connect} from "react-redux";
 import SearchBar from "./SearchBar";
+import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import WrappedGrid from "./WrappedGrid";
 
 import "./App.css";
 
-interface AlbumPickerProps {
+interface OwnProps {
   albums: Album[];
-  library: Library;
   goToAlbum(album: Album): void;
-  setPlaylistAndPlay(playlist: RandomAlbumPlaylist): void;
 }
+
+interface StateProps {
+  allAlbums: Album[];
+  getArtistsByIds(ids: number[]): Artist[];
+}
+
+interface DispatchProps {
+  setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+}
+
+type AlbumPickerProps = OwnProps & StateProps & DispatchProps;
 
 interface AlbumPickerState {
   search?: string;
@@ -24,7 +37,7 @@ interface AlbumPickerState {
   sortMethod(album1: Album, album2: Album): number;
 }
 
-export default class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
+class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   private numCols: number;
 
   constructor(props: AlbumPickerProps) {
@@ -59,9 +72,7 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
   }
 
   public componentDidMount(): void {
-    this.setState({
-      sortedAlbums: this.sortAlbums(this.props.albums),
-    });
+    this.setState({sortedAlbums: this.sortAlbums(this.props.albums)});
   }
 
   public componentDidUpdate(): void {
@@ -70,9 +81,7 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
       sortedAlbums.some((album, index) => {
         return this.state.sortedAlbums[index] !== album;
       })) {
-      this.setState({
-        sortedAlbums,
-      });
+      this.setState({sortedAlbums});
     }
   }
 
@@ -102,10 +111,9 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
   }
 
   private playAlbum(album: Album): void {
-    const playlist = new RandomAlbumPlaylist(
-      this.props.library, this.state.sortedAlbums);
+    const playlist = new RandomAlbumPlaylist(this.props.allAlbums);
     playlist.addAlbum(album);
-    this.props.setPlaylistAndPlay(playlist);
+    this.props.setPlaylist(playlist, /* play= */ true);
   }
 
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
@@ -116,7 +124,6 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
         album={albums[index]}
         goToAlbum={(album) => this.goToAlbum(album)}
         key={key}
-        library={this.props.library}
         playAlbum={this.playAlbum.bind(this)}
         style={style}
       />
@@ -128,9 +135,9 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
   }
 
   private sortByArtist(album1: Album, album2: Album): number {
-    const artist1 = this.props.library.getArtistsByIds(album1.artistIds)
+    const artist1 = this.props.getArtistsByIds(album1.artistIds)
       .map((artist: Artist) => artist.name).join(",");
-    const artist2 = this.props.library.getArtistsByIds(album2.artistIds)
+    const artist2 = this.props.getArtistsByIds(album2.artistIds)
       .map((artist: Artist) => artist.name).join(",");
     return artist1.localeCompare(artist2);
   }
@@ -143,17 +150,24 @@ export default class AlbumPicker extends React.Component<AlbumPickerProps, Album
     if (sortMethod === this.state.sortMethod) {
       this.setState({reverse: !this.state.reverse});
     } else {
-      this.setState({ sortMethod });
+      this.setState({sortMethod});
     }
   }
 
   private withErrors(): void {
-    this.setState({
-      withErrors: !this.state.withErrors,
-    });
+    this.setState({withErrors: !this.state.withErrors});
   }
 
   private onSearch(search: string): void {
-    this.setState({ search });
+    this.setState({search});
   }
 }
+
+function mapStateToProps(store: RootState): StateProps {
+  return {
+    allAlbums: getAlbumsByIds(store, getAllAlbumIds(store)),
+    getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
+  };
+}
+
+export default connect(mapStateToProps, {setPlaylist})(AlbumPicker);

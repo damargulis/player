@@ -1,31 +1,29 @@
-import Album from "./library/Album";
 import Artist from "./library/Artist";
-import Library from "./library/Library";
 import defaultArtist from "./resources/missing_artist.png";
 import React from "react";
+import {connect} from "react-redux";
+import {getArtFilesByArtist} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import {getImgSrc} from "./utils";
 
-function getAlbumArtFiles(library: Library , artist: Artist): string[] {
-  const albums = library.getAlbumsByIds(artist.albumIds).map((album: Album) => album.albumArtFile);
-  return [
-    artist.artFile,
-    ...albums,
-  ].filter(Boolean) as string[];
+interface StateProps {
+  artFiles: string[];
 }
 
-interface ArtistInfoProps {
-  artist: Artist;
-  library: Library;
+interface OwnProps {
+  artist?: Artist;
   style: React.CSSProperties;
   goToArtist(artist: Artist): void;
 }
+
+type ArtistInfoProps = OwnProps & StateProps;
 
 interface ArtistInfoState {
   currentImg: number;
   timerId?: number;
 }
 
-export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
+class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
   constructor(props: ArtistInfoProps) {
     super(props);
 
@@ -45,9 +43,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
         if (!this.props.artist) {
           return;
         }
-        this.setState({
-          currentImg: this.state.currentImg + 1,
-        });
+        this.setState({currentImg: this.state.currentImg + 1});
       }, time);
       if (!this.props.artist) {
         return;
@@ -57,9 +53,7 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
         timerId: id,
       });
     }, Math.random() * time);
-    this.setState({
-      timerId: timeoutId,
-    });
+    this.setState({timerId: timeoutId});
   }
 
   public componentWillUnmount(): void {
@@ -67,7 +61,8 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
   }
 
   public render(): JSX.Element {
-    if (!this.props.artist) {
+    const artist = this.props.artist;
+    if (!artist) {
       return (
         <div style={this.props.style} />
       );
@@ -80,15 +75,15 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
       paddingRight: (width - 150) / 2,
       width: 150,
     };
-    if (this.props.artist.errors.length > 0) {
+    if (artist.errors.length > 0) {
       newStyle.backgroundColor = "red";
     }
-    const artFiles = getAlbumArtFiles(this.props.library, this.props.artist);
+    const artFiles = this.props.artFiles;
     const file = artFiles[this.state.currentImg % artFiles.length];
     const src = file ? getImgSrc(file) : defaultArtist;
     return (
       <div
-        onClick={() => this.props.goToArtist(this.props.artist)}
+        onClick={() => this.props.goToArtist(artist)}
         style={newStyle}
       >
         <div style={{position: "absolute", left: "50%"}}>
@@ -102,10 +97,18 @@ export default class ArtistInfo extends React.Component<ArtistInfoProps, ArtistI
           <div
             style={{position: "relative", left: "-50%", textAlign: "center"}}
           >
-            {this.props.artist.name}
+            {artist.name}
           </div>
         </div>
       </div>
     );
   }
 }
+
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+  return {
+    artFiles: ownProps.artist ? getArtFilesByArtist(state, ownProps.artist) : [],
+  };
+}
+
+export default connect(mapStateToProps)(ArtistInfo);

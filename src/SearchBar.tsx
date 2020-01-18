@@ -14,9 +14,7 @@ export default class SearchBar extends React.Component<SearchBarProps, SearchBar
   constructor(props: SearchBarProps) {
     super(props);
 
-    this.state = {
-      value: "",
-    };
+    this.state = {value: ""};
   }
 
   public render(): JSX.Element {
@@ -30,9 +28,7 @@ export default class SearchBar extends React.Component<SearchBarProps, SearchBar
   }
 
   private onChange(evt: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({
-      value: evt.target.value,
-    });
+    this.setState({value: evt.target.value});
 
     if (this.searchDebounce) {
       window.clearInterval(this.searchDebounce);

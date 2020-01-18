@@ -1,29 +1,45 @@
+import {save, setPlaylist} from "./redux/actions";
 import Album from "./library/Album";
-import modifyAlbum from "./extensions/wiki/albums";
+import runAlbumModifier from "./extensions/wiki/albums";
 import Artist from "./library/Artist";
 import EditableAttribute from "./EditableAttribute";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import LikeButton from "./LikeButton";
 import defaultAlbum from "./resources/missing_album.png";
 import NavigationBar from "./NavigationBar";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
+import {connect} from "react-redux";
+import {getArtistsByIds, getTrackById, getTracksByIds} from "./redux/selectors";
 import SongPicker from "./SongPicker";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {getImgSrc, toTime} from "./utils";
 
-interface AlbumPageProps {
+interface StateProps {
+  artists: Artist[];
+  tracks: Track[];
+  getTracksByIds(ids: number[]): Track[];
+  getTrackById(id: number): Track;
+  runAlbumModifier(album: Album): Promise<void>;
+}
+
+interface OwnProps {
   album: Album;
-  library: Library;
   canGoForward: boolean;
   goToArtist(artist: Artist): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
   goBack(): void;
   goForward(): void;
 }
 
-export default class AlbumPage extends React.Component<AlbumPageProps> {
+interface DispatchProps {
+  setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+  save(): void;
+}
+
+type AlbumPageProps = OwnProps & StateProps & DispatchProps;
+
+class AlbumPage extends React.Component<AlbumPageProps> {
 
   public render(): JSX.Element {
     // TODO: use albumInfo or combine logic
@@ -50,7 +66,7 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
               attr={this.props.album && this.props.album.name}
               onSave={(value: string) => {
                 this.props.album.name = value;
-                this.props.library.save();
+                this.props.save();
               }}
             />
             {this.getArtistLinks()}
@@ -59,7 +75,7 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
               attr={this.props.album.year}
               onSave={(value: number) => {
                 this.props.album.year = value;
-                this.props.library.save();
+                this.props.save();
               }}
             />
             <button onClick={this.runWiki.bind(this)}>
@@ -83,35 +99,21 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
                 translate: "translateY(-33%)",
               }}
             >
-              <LikeButton
-                item={this.props.album}
-                library={this.props.library}
-              />
+              <LikeButton item={this.props.album} />
             </div>
           </div>
-          {
-            this.getErrors()
-          }
-          {
-            this.getWarnings()
-          }
+          {this.getErrors()}
+          {this.getWarnings()}
         </div>
-        <SongPicker
-          library={this.props.library}
-          setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-          songs={this.props.library.getAlbumTracks(this.props.album)}
-          sortBy="index"
-        />
-
+        <SongPicker songs={this.props.getTracksByIds(this.props.album.trackIds)} sortBy="index" />
       </div>
     );
   }
 
   private runWiki(): void {
-    modifyAlbum(this.props.album, this.props.library).then(() => {
-      this.props.library.save().then(() => {
-        this.forceUpdate();
-      });
+    this.props.runAlbumModifier(this.props.album).then(() => {
+      this.props.save();
+      this.forceUpdate();
     });
   }
 
@@ -119,15 +121,13 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
     for (const indexStr in this.props.album.warnings) {
       if (this.props.album.warnings.hasOwnProperty(indexStr)) {
         const index = parseInt(indexStr, 10);
-        const track = this.props.library.getTrack(
-          this.props.album.trackIds[index]);
+        const track = this.props.getTrackById(this.props.album.trackIds[index]);
         track.name = this.props.album.warnings[indexStr];
       }
     }
     this.props.album.warnings = {};
-    this.props.library.save().then(() => {
-      this.forceUpdate();
-    });
+    this.props.save();
+    this.forceUpdate();
   }
 
   private getWarnings(): JSX.Element | undefined {
@@ -179,17 +179,11 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
           })
         }
       </div>
-
     );
   }
 
   private getArtistLinks(): JSX.Element[] | undefined {
-    if (!this.props.album) {
-      return;
-    }
-    const artists = this.props.library.getArtistsByIds(
-      this.props.album.artistIds);
-    return artists.map((artist: Artist) => {
+    return this.props.artists.map((artist: Artist) => {
       return (
         <div key={artist.id}>
           <div className="link" onClick={() => this.props.goToArtist(artist)}>
@@ -201,15 +195,24 @@ export default class AlbumPage extends React.Component<AlbumPageProps> {
   }
 
   private getTotalTime(): string {
-    const songs = this.props.library.getAlbumTracks(this.props.album);
-    const duration = songs.reduce((total: number, song: Track) => total + song.duration, 0);
+    const duration = this.props.tracks.reduce((total: number, song: Track) => total + song.duration, 0);
     return toTime(duration);
   }
 
   private playAlbum(): void {
-    const playlist = new RandomAlbumPlaylist(
-      this.props.library, [this.props.album]);
-    playlist.addAlbum(this.props.album);
-    this.props.setPlaylistAndPlay(playlist);
+    const playlist = new RandomAlbumPlaylist([this.props.album]);
+    this.props.setPlaylist(playlist, /* play= */ true);
   }
 }
+
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+  return {
+    artists: getArtistsByIds(state, ownProps.album.artistIds),
+    getTrackById: (id: number) => getTrackById(state, id),
+    getTracksByIds: (ids: number[]) => getTracksByIds(state, ids),
+    runAlbumModifier: (album: Album) => runAlbumModifier(state, album),
+    tracks: getTracksByIds(state, ownProps.album.trackIds),
+  };
+}
+
+export default connect(mapStateToProps, {setPlaylist, save})(AlbumPage);

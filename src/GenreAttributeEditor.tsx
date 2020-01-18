@@ -1,25 +1,42 @@
 import AttributeList from "./AttributeList";
-import Library from "./library/Library";
 import React from "react";
+import {connect} from "react-redux";
+import {getGenreById, getGenres} from "./redux/selectors";
+import {RootState} from "./redux/store";
 
-interface GenreAttributeEditorProps {
+interface OwnProps {
   genreIds: number[];
-  library: Library;
 }
 
-export default class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
+interface StateProps {
+  allGenres: number[];
+  getGenreById(id: number): string;
+}
+
+type GenreAttributeEditorProps = OwnProps & StateProps;
+
+class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
   public render(): JSX.Element {
     return (
       <AttributeList
         attributes={this.props.genreIds}
-        getDisplayName={(genreId) => this.props.library.getGenreById(genreId)}
+        getDisplayName={(genreId) => this.props.getGenreById(genreId)}
         label="Genres"
         searchFilter={(input, suggest) => {
-          const genre = this.props.library.getGenreById(suggest);
+          const genre = this.props.getGenreById(suggest);
           return genre.toLowerCase().indexOf(input.toLowerCase()) > -1;
         }}
-        suggestions={[...Array(this.props.library.getGenres().length).keys()]}
+        suggestions={this.props.allGenres}
       />
     );
   }
 }
+
+function mapStateToProps(store: RootState): StateProps {
+  return {
+    allGenres: [...Array(getGenres(store).length).keys()],
+    getGenreById: (id: number) => getGenreById(store, id),
+  };
+}
+
+export default connect(mapStateToProps)(GenreAttributeEditor);

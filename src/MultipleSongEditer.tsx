@@ -1,17 +1,32 @@
+import {save} from "./redux/actions";
+import Album from "./library/Album";
 import AlbumAttributeEditor from "./AlbumAttributeEditor";
+import Artist from "./library/Artist";
 import ArtistAttributeEditor from "./ArtistAttributeEditor";
 import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
 import GenreAttributeEditor from "./GenreAttributeEditor";
-import Library from "./library/Library";
 import React from "react";
+import {connect} from "react-redux";
+import {getAlbumById, getArtistById} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import ToggableEditableAttribute from "./ToggableEditableAttribute";
 import Track from "./library/Track";
 
-interface MultipleSongEditerProps {
-  library: Library;
+interface DispatchProps {
+  save(): void;
+}
+
+interface StateProps {
+  getArtistById(id: number): Artist;
+  getAlbumById(id: number): Album;
+}
+
+interface OwnProps {
   tracks: Track[];
   exit(): void;
 }
+
+type MultipleSongEditerProps = StateProps & OwnProps & DispatchProps;
 
 interface MultipleSongEditerState {
   editGenre: boolean;
@@ -26,7 +41,7 @@ interface MultipleSongEditerState {
   editPlayCount: boolean;
 }
 
-export default class MultipleSongEditer extends React.Component<MultipleSongEditerProps, MultipleSongEditerState> {
+class MultipleSongEditer extends React.Component<MultipleSongEditerProps, MultipleSongEditerState> {
   private year = React.createRef<HTMLInputElement>();
   private playCount = React.createRef<HTMLInputElement>();
 
@@ -60,20 +75,14 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
           label="Artists"
           toggleEdit={this.editArtists.bind(this)}
         >
-          <ArtistAttributeEditor
-            artistIds={this.state.artistIds}
-            library={this.props.library}
-          />
+          <ArtistAttributeEditor artistIds={this.state.artistIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editAlbums}
           label="Albums"
           toggleEdit={this.editAlbums.bind(this)}
         >
-          <AlbumAttributeEditor
-            albumIds={this.state.albumIds}
-            library={this.props.library}
-          />
+          <AlbumAttributeEditor albumIds={this.state.albumIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editYear}
@@ -95,10 +104,7 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
           label="Genres"
           toggleEdit={this.editGenre.bind(this)}
         >
-          <GenreAttributeEditor
-            genreIds={this.state.genreIds}
-            library={this.props.library}
-          />
+          <GenreAttributeEditor genreIds={this.state.genreIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editFavorites}
@@ -158,36 +164,36 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
 
   private saveTrack(track: Track): void {
     if (this.state.editGenre) {
-      track.genreIds = this.state.genreIds;
+     track.genreIds = this.state.genreIds;
     }
     if (this.state.editArtists) {
-      this.state.artistIds.forEach((artistId) => {
-        if (!track.artistIds.includes(artistId)) {
-          const artist = this.props.library.getArtistById(artistId);
-          artist.trackIds.push(track.id);
-        }
-      });
-      track.artistIds = this.state.artistIds;
+     this.state.artistIds.forEach((artistId) => {
+       if (!track.artistIds.includes(artistId)) {
+         const artist = this.props.getArtistById(artistId);
+         artist.trackIds.push(track.id);
+       }
+     });
+     track.artistIds = this.state.artistIds;
     }
     if (this.state.editAlbums) {
-      this.state.albumIds.forEach((albumId) => {
-        if (!track.albumIds.includes(albumId)) {
-          const album = this.props.library.getAlbumById(albumId);
-          album.trackIds.push(track.id);
-        }
-      });
-      track.albumIds = this.state.albumIds;
+     this.state.albumIds.forEach((albumId) => {
+       if (!track.albumIds.includes(albumId)) {
+         const album = this.props.getAlbumById(albumId);
+         album.trackIds.push(track.id);
+       }
+     });
+     track.albumIds = this.state.albumIds;
     }
     if (this.state.editFavorites) {
-      track.favorites = this.state.yearsFavorited;
+     track.favorites = this.state.yearsFavorited;
     }
     const year = this.year.current;
     if (this.state.editYear && year) {
-      track.year = parseInt(year.value, 10);
+     track.year = parseInt(year.value, 10);
     }
     const playCount = this.playCount.current;
     if (this.state.editPlayCount && playCount) {
-      track.playCount = parseInt(playCount.value, 10);
+     track.playCount = parseInt(playCount.value, 10);
     }
   }
 
@@ -195,7 +201,16 @@ export default class MultipleSongEditer extends React.Component<MultipleSongEdit
     this.props.tracks.forEach((track) => {
       this.saveTrack(track);
     });
-    this.props.library.save();
+    this.props.save();
     this.props.exit();
   }
 }
+
+function mapStateToProps(store: RootState): StateProps {
+  return {
+    getAlbumById: (id: number) => getAlbumById(store, id),
+    getArtistById: (id: number) => getArtistById(store, id),
+  };
+}
+
+export default connect(mapStateToProps, {save})(MultipleSongEditer);

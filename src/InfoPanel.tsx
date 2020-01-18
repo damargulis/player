@@ -1,30 +1,36 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
 import {ipcRenderer} from "electron";
-import Library from "./library/Library";
 import Marquee from "./Marquee";
 import defaultAlbum from "./resources/missing_album.png";
 import React from "react";
+import {connect} from "react-redux";
+import {getAlbumsByIds, getArtistsByIds, getCurrentTrack} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 import {getImgSrc} from "./utils";
 
 import "./InfoPanel.css";
 
-interface InfoPanelProps {
-  library: Library;
-  track?: Track;
+interface OwnProps {
   small?: boolean;
   goToAlbum(album: Album): void;
   goToArtist(artist: Artist): void;
   goToSong(track: Track): void;
 }
 
-export default class InfoPanel extends React.Component<InfoPanelProps> {
+interface StateProps {
+  albums: Album[];
+  artists: Artist[];
+  track?: Track;
+}
+
+type InfoPanelProps = OwnProps & StateProps;
+
+class InfoPanel extends React.Component<InfoPanelProps> {
 
   public render(): JSX.Element {
-    const {track, library} = this.props;
-    const albums = track && library
-      ? library.getAlbumsByIds(track.albumIds) : [];
+    const {track, albums} = this.props;
     const album = albums[0];
     const src = album && album.albumArtFile ? getImgSrc(album.albumArtFile) : defaultAlbum;
     // TODO: make rotate instead -- conditionally on playlist type??
@@ -42,17 +48,13 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
         />
         <div style={{display: "grid"}}>
           <div className="track-label" id="name">
-            { this.getNameLink() }
+            {this.getNameLink()}
           </div>
           <div className="track-label" id="author">
-            {
-              this.getArtistLinks()
-            }
+            {this.getArtistLinks()}
           </div>
           <div className="track-label" id="album">
-            {
-              this.getAlbumLinks()
-            }
+            {this.getAlbumLinks()}
           </div>
           <div className="track-label" id="year">
             {track ? track.year : "Year"}
@@ -77,9 +79,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getArtistLinks(): JSX.Element | string {
-    const {track, library} = this.props;
-    const artists = track && library
-      ? library.getArtistsByIds(track.artistIds) : [];
+    const {artists} = this.props;
     if (!artists.length) {
       return "Artists";
     }
@@ -99,9 +99,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   private getAlbumLinks(): JSX.Element | string {
-    const {track, library} = this.props;
-    const albums = track && library
-      ? library.getAlbumsByIds(track.albumIds) : [];
+    const {albums} = this.props;
     if (!albums.length) {
       return "Albums";
     }
@@ -133,3 +131,16 @@ export default class InfoPanel extends React.Component<InfoPanelProps> {
     return "Track Name";
   }
 }
+
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+  const track = getCurrentTrack(state);
+  const albums = track ? getAlbumsByIds(state, track.albumIds) : [];
+  const artists = track ? getArtistsByIds(state, track.artistIds) : [];
+  return {
+    albums,
+    artists,
+    track,
+  };
+}
+
+export default connect(mapStateToProps)(InfoPanel);

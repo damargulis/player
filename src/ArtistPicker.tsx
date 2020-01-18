@@ -1,6 +1,5 @@
 import Artist from "./library/Artist";
 import ArtistInfo from "./ArtistInfo";
-import Library from "./library/Library";
 import React from "react";
 import SearchBar from "./SearchBar";
 import WrappedGrid from "./WrappedGrid";
@@ -13,7 +12,6 @@ interface ArtistPickerState {
 
 interface ArtistPickerProps {
   artists: Artist[];
-  library: Library;
   goToArtist(artist: Artist): void;
 }
 
@@ -32,9 +30,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   }
 
   public componentDidMount(): void {
-    this.setState({
-      sortedArtists: this.sortArtists(this.props.artists),
-    });
+    this.setState({sortedArtists: this.sortArtists(this.props.artists)});
   }
 
   public componentDidUpdate(): void {
@@ -43,9 +39,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
       sortedArtists.some((artist, index) => {
         return this.state.sortedArtists[index] !== artist;
       })) {
-      this.setState({
-        sortedArtists,
-      });
+      this.setState({sortedArtists});
     }
   }
 
@@ -68,8 +62,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   private sortArtists(artists: Artist[]): Artist[] {
     return artists.filter((artist) => {
       if (this.state.search) {
-        return artist.name.toLowerCase()
-          .includes(this.state.search.toLowerCase());
+        return artist.name.toLowerCase().includes(this.state.search.toLowerCase());
       }
       return true;
     }).sort((artist1, artist2) => {
@@ -88,16 +81,13 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
         artist={artists[index]}
         goToArtist={(artist) => this.goToArtist(artist)}
         key={key}
-        library={this.props.library}
         style={style}
       />
     );
   }
 
   private withErrors(): void {
-    this.setState({
-      withErrors: !this.state.withErrors,
-    });
+    this.setState({withErrors: !this.state.withErrors});
   }
 
   private onSearch(search: string): void {

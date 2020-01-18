@@ -1,9 +1,6 @@
+import {nextTrack, prevTrack, save, setPlaylist, updateLibrary, updateTime} from "./redux/actions";
 import {DATA_DIR} from "./constants";
-import {
-  createLibraryFromItunes,
-  deleteLibrary,
-  loadLibrary,
-} from "./library/create_library";
+import {createLibraryFromItunes, deleteLibrary, loadLibrary} from "./library/create_library";
 import {ipcRenderer} from "electron";
 import EmptyPlaylist from "./playlist/EmptyPlaylist";
 import Library from "./library/Library";
@@ -12,31 +9,45 @@ import MaxWindow from "./MaxWindow";
 import MiniWindow from "./MiniWindow";
 import RandomAlbumPlaylist from "./playlist/RandomAlbumPlaylist";
 import * as React from "react";
+import {connect} from "react-redux";
+import {getCurrentTrack, getIsPlaying, getSetTime, getVolume} from "./redux/selectors";
+import {RootState} from "./redux/store";
+import Track from "./library/Track";
 
 import "./App.css";
 
-const DEFAULT_VOLUME = .1;
-
-interface AppState {
-  library: Library;
-  mini: boolean;
-  playlist: EmptyPlaylist;
+interface StateProps {
+  volume: number;
+  track?: Track;
   playing: boolean;
-  time: number;
+  setTime?: number;
+  runWikiExtension(): PromiseLike<void>;
 }
 
-export default class App extends React.Component<{}, AppState> {
+interface DispatchProps {
+  updateTime(time: number): void;
+  updateLibrary(library: Library): void;
+  nextTrack(): void;
+  prevTrack(): void;
+  setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+  playPause(): void;
+  save(): void;
+}
+
+type AppProps = DispatchProps & StateProps;
+
+interface AppState {
+  mini: boolean;
+}
+
+class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
 
-  constructor(props: {}) {
+  constructor(props: AppProps) {
     super(props);
 
     this.state = {
-      library: new Library(),
       mini: false,
-      playing: false,
-      playlist: new EmptyPlaylist(),
-      time: 0,
     };
     ipcRenderer.on("minimize-reply", () => {
       this.onMinimize();
@@ -54,20 +65,19 @@ export default class App extends React.Component<{}, AppState> {
       this.onMaximize();
     });
     ipcRenderer.on("nextTrack", () => {
-      this.nextTrack();
+      this.props.nextTrack();
     });
     ipcRenderer.on("prevTrack", () => {
-      this.prevTrack();
+      this.props.prevTrack();
     });
     ipcRenderer.on("playTrack", () => {
-      this.playPause();
+      this.props.playPause();
     });
     ipcRenderer.on("run-extension", (type: {}, arg: string) => {
       switch (arg) {
       case "wikipedia":
-        runWikiExtension(this.state.library).then(() => {
-          this.state.library.save();
-          this.setState({library: this.state.library});
+        this.props.runWikiExtension().then(() => {
+          this.props.save();
         });
         break;
       default:
@@ -77,12 +87,10 @@ export default class App extends React.Component<{}, AppState> {
     ipcRenderer.on("reset-library", () => {
       deleteLibrary().then(() => {
         createLibraryFromItunes().then((library: Library) => {
-          const playlist = new RandomAlbumPlaylist(library);
           library.save();
-          this.setState({
-            library,
-            playlist,
-          });
+          this.props.updateLibrary(library);
+          const playlist = new RandomAlbumPlaylist(library.getAlbums());
+          this.props.setPlaylist(playlist, /* play= */ false);
           alert("Library uploaded");
         });
       });
@@ -90,40 +98,51 @@ export default class App extends React.Component<{}, AppState> {
     ipcRenderer.send("extension-ready");
 
     loadLibrary(`${DATA_DIR}/library.json`).then((library: Library) => {
-      const playlist = new RandomAlbumPlaylist(library);
-      this.setState({
-        library,
-        playlist,
-      });
+      const playlist = new RandomAlbumPlaylist(library.getAlbums());
+      this.props.updateLibrary(library);
+      this.props.setPlaylist(playlist, /* play= */ false);
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
-        const playlist = new RandomAlbumPlaylist(library);
+        const playlist = new RandomAlbumPlaylist(library.getAlbums());
         library.save();
-        this.setState({
-          library,
-          playlist,
-        });
+        this.props.updateLibrary(library);
+        this.props.setPlaylist(playlist, /* play= */ false);
       });
     });
 
     this.audio = new Audio();
-    this.audio.volume = DEFAULT_VOLUME;
+    this.audio.volume = this.props.volume;
     this.audio.addEventListener("timeupdate", () => {
-      this.setState({
-        time: this.audio.currentTime,
-      });
+      this.props.updateTime(this.audio.currentTime);
     });
     this.audio.addEventListener("ended", () => {
-      const track = this.state.playlist.getCurrentTrack();
-      if (!track) {
-        return;
+      const track = this.props.track;
+      if (track) {
+        track.playCount++;
+        track.playDate = new Date();
+        this.props.save();
       }
-      track.playCount++;
-      track.playDate = new Date();
-      this.setState({library: this.state.library});
-      this.nextTrack();
-      this.state.library.save();
+      this.props.nextTrack();
     });
+  }
+
+  public componentDidUpdate(prevProps: AppProps): void {
+    if (this.audio.volume !== this.props.volume) {
+      this.audio.volume = this.props.volume;
+    }
+    const path = this.props.track && this.props.track.filePath;
+    const prevPath = prevProps.track && prevProps.track.filePath;
+    if (path && path !== prevPath) {
+      this.audio.src = new URL(path).toString();
+    }
+    if (this.props.setTime !== undefined) {
+      this.audio.currentTime = this.props.setTime;
+    }
+    if (this.props.playing) {
+      this.audio.play();
+    } else {
+      this.audio.pause();
+    }
   }
 
   public render(): JSX.Element {
@@ -134,114 +153,39 @@ export default class App extends React.Component<{}, AppState> {
     return (
       <div>
         <div style={{display: mini ? "initial" : "none"}}>
-          <MiniWindow
-            library={this.state.library}
-            nextAlbum={this.nextAlbum.bind(this)}
-            nextTrack={this.nextTrack.bind(this)}
-            playing={this.state.playing}
-            playlist={this.state.playlist}
-            playPause={this.playPause.bind(this)}
-            prevAlbum={this.prevAlbum.bind(this)}
-            prevTrack={this.prevTrack.bind(this)}
-            setTime={this.setTime.bind(this)}
-            setVolume={this.setVolume.bind(this)}
-            time={this.state.time}
-            volume={this.audio.volume}
-          />
+          <MiniWindow />
         </div>
         <div style={{display: mini ? "none" : "initial"}}>
-          <MaxWindow
-            library={this.state.library}
-            nextAlbum={this.nextAlbum.bind(this)}
-            nextTrack={this.nextTrack.bind(this)}
-            playing={this.state.playing}
-            playlist={this.state.playlist}
-            playPause={this.playPause.bind(this)}
-            prevAlbum={this.prevAlbum.bind(this)}
-            prevTrack={this.prevTrack.bind(this)}
-            setPlaylistAndPlay={this.setPlaylistAndPlay.bind(this)}
-            setTime={this.setTime.bind(this)}
-            setVolume={this.setVolume.bind(this)}
-            time={this.state.time}
-            volume={this.audio.volume}
-          />
+          <MaxWindow />
         </div>
       </div>
     );
-  }
-
-  private setVolume(volume: number): void {
-    this.audio.volume = volume;
-    this.setState({});
   }
 
   private setTime(time: number): void {
     this.audio.currentTime = time / 1000;
   }
 
-  private setSourceAndPlay(): void {
-    this.setSource();
-    this.play();
-  }
-
-  private playPause(): void {
-    if (this.state.playing) {
-      this.pause();
-    } else {
-      this.play();
-    }
-  }
-
-  private play(): void {
-    this.audio.play();
-    this.setState({
-      playing: true,
-    });
-  }
-
-  private pause(): void {
-    this.audio.pause();
-    this.setState({
-      playing: false,
-    });
-  }
-
-  private setSource(): void {
-    const track = this.state.playlist.getCurrentTrack();
-    if (track) {
-      this.audio.src = new URL(track.filePath).toString();
-    }
-  }
-
   private onMaximize(): void {
-    this.setState({ mini: false });
+    this.setState({mini: false});
   }
 
   private onMinimize(): void {
-    this.setState({ mini: true });
+    this.setState({mini: true});
   }
 
-  private nextTrack(): void {
-    this.state.playlist.nextTrack();
-    this.setSourceAndPlay();
-  }
-
-  private nextAlbum(): void {
-    this.state.playlist.nextAlbum();
-    this.setSourceAndPlay();
-  }
-
-  private prevAlbum(): void {
-    this.state.playlist.prevAlbum();
-    this.setSourceAndPlay();
-  }
-
-  private prevTrack(): void {
-    this.state.playlist.prevTrack();
-    this.setSourceAndPlay();
-  }
-
-  private setPlaylistAndPlay(playlist: EmptyPlaylist): void {
-    this.setState({playlist}, () => this.nextTrack());
-  }
 }
+
+function mapStateToProps(store: RootState): StateProps {
+  const track = getCurrentTrack(store);
+  return {
+    playing: getIsPlaying(store),
+    runWikiExtension: () => runWikiExtension(store),
+    setTime: getSetTime(store),
+    track,
+    volume: getVolume(store),
+  };
+}
+
+export default connect(mapStateToProps,
+  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, save})(App);

@@ -1,15 +1,21 @@
+import {save} from "./redux/actions";
 import Album from "./library/Album";
 import favoriteButton from "./resources/favorite.png";
-import Library from "./library/Library";
 import * as React from "react";
+import {connect} from "react-redux";
 import Track from "./library/Track";
 
-interface LikeButtonProps {
-  library: Library;
+interface DispatchProps {
+  save(): void;
+}
+
+interface OwnProps {
   item?: Album | Track;
 }
 
-export default class LikeButton extends React.Component<LikeButtonProps> {
+type LikeButtonProps = DispatchProps & OwnProps;
+
+class LikeButton extends React.Component<LikeButtonProps> {
 
   public render(): JSX.Element {
     const year = new Date().getFullYear();
@@ -39,7 +45,9 @@ export default class LikeButton extends React.Component<LikeButtonProps> {
     } else {
       this.props.item.favorites.splice(index, 1);
     }
-    this.props.library.save();
+    this.props.save();
     this.forceUpdate();
   }
 }
+
+export default connect(null, {save})(LikeButton);

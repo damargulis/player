@@ -64,9 +64,7 @@ interface ItunesTrackData {
 }
 
 interface ItunesPlaylistData {
-  "Playlist Items": Array<{
-    "Track ID": number;
-  }>;
+  "Playlist Items": Array<{"Track ID": number}>;
   Name: string;
   "Smart Criteria": string;
   "Distinguished Kind": number;
@@ -142,7 +140,7 @@ function createGenresFromItunesData(tracks: Map<string, ItunesTrackData>): strin
  * Gets the album art from an mp3 file. Saves the the art into its own file and
  * returns a promise with the file path.
  */
-function getAlbumArt(track: TempTrackData): Promise<string|undefined> {
+function getAlbumArt(track: TempTrackData): Promise<string | undefined> {
   return new Promise((resolve) => {
     const filePath = decodeURI(track.filePath.slice(7)).replace("%23", "#");
     try {
@@ -242,6 +240,7 @@ export function loadLibrary(libraryFile: string): Promise<Library> {
       const playlists = libraryData.playlists.map(
         (playlistData: PlaylistParameters) => new Playlist(playlistData),
       );
+
       return resolve(new Library(tracks, albums, artists, genres, playlists));
     });
   });
@@ -332,9 +331,7 @@ export function createLibraryFromItunes(): Promise<Library> {
     });
     const artists = [] as Artist[];
     artistMap.forEach((artistData) => {
-      artists.push(new Artist(artists.length, {
-        name: artistData.name,
-      }));
+      artists.push(new Artist(artists.length, {name: artistData.name}));
       artistData.id = artists.length - 1;
     });
     const albums = [] as Album[];
@@ -433,7 +430,7 @@ export function createLibraryFromItunes(): Promise<Library> {
       });
     });
     const playlists = realPlaylists.map((playlist: ItunesPlaylistData) => {
-      const trackIds = playlist["Playlist Items"].filter((track: {"Track ID": number}) => !!track)
+      const trackIds = playlist["Playlist Items"].filter((track: { "Track ID": number}) => !!track)
         .map((track: {"Track ID": number}) => {
           const data = trackMap.get(track["Track ID"]);
           return (data && data.id) || 0;
@@ -447,7 +444,7 @@ export function createLibraryFromItunes(): Promise<Library> {
       const album = albums[albumData.id];
       // TODO: check multiple tracks for album art data?
       if (track) {
-        promises.push(getAlbumArt(track).then((artFile: string|undefined) => {
+        promises.push(getAlbumArt(track).then((artFile: string | undefined) => {
           if (artFile) {
             album.albumArtFile = artFile;
           }

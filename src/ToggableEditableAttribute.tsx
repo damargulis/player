@@ -10,9 +10,7 @@ export default class ToggableEditableAttribute extends React.Component<ToggableE
   public render(): JSX.Element {
     return (
       <>
-        {
-          this.props.editing && this.props.children
-        }
+        {this.props.editing && this.props.children}
         <div>Edit {this.props.label}:
           <input onChange={this.toggleEdit.bind(this)} type="checkbox" />
         </div>

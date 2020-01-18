@@ -1,20 +1,27 @@
 import Album from "./library/Album";
 import Artist from "./library/Artist";
-import Library from "./library/Library";
 import defaultAlbum from "./resources/missing_album.png";
 import * as React from "react";
+import {connect} from "react-redux";
+import {getArtistsByIds} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import {getImgSrc} from "./utils";
 
-interface AlbumInfoProps {
+interface StateProps {
+  artists: Artist[];
+}
+
+interface OwnProps {
   album: Album;
-  library: Library;
   style: React.CSSProperties;
   showStatus: boolean;
   playAlbum(album: Album): void;
   goToAlbum(album: Album): void;
 }
 
-export default class AlbumInfo extends React.Component<AlbumInfoProps> {
+type AlbumInfoProps = OwnProps & StateProps;
+
+class AlbumInfo extends React.Component<AlbumInfoProps> {
   private timer?: number;
   private prevent: boolean;
 
@@ -27,7 +34,7 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps> {
   }
 
   public render(): JSX.Element {
-    // recenter with new width filling full space
+    // make width 150, fill remaining space w/ padding
     const width = this.props.style.width as number;
     const newStyle = {
       ...this.props.style,
@@ -52,8 +59,7 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps> {
 
     const file = this.props.album && this.props.album.albumArtFile;
     const src = file ? getImgSrc(file) : defaultAlbum;
-    const artists = this.props.library.getArtistsByIds(
-      this.props.album.artistIds).map((artist: Artist) => {
+    const artists = this.props.artists.map((artist: Artist) => {
       return artist.name;
     }).join(", ");
     return (
@@ -106,3 +112,11 @@ export default class AlbumInfo extends React.Component<AlbumInfoProps> {
     this.props.goToAlbum(this.props.album);
   }
 }
+
+function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+  return {
+    artists: ownProps.album ? getArtistsByIds(state, ownProps.album.artistIds) : [],
+  };
+}
+
+export default connect(mapStateToProps)(AlbumInfo);

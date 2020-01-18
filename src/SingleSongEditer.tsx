@@ -1,16 +1,31 @@
+import {save} from "./redux/actions";
+import Album from "./library/Album";
 import AlbumAttributeEditor from "./AlbumAttributeEditor";
+import Artist from "./library/Artist";
 import ArtistAttributeEditor from "./ArtistAttributeEditor";
 import FavoritesAttributeEditor from "./FavoritesAttributeEditor";
 import GenreAttributeEditor from "./GenreAttributeEditor";
-import Library from "./library/Library";
 import React from "react";
+import {connect} from "react-redux";
+import {getAlbumById, getArtistById} from "./redux/selectors";
+import {RootState} from "./redux/store";
 import Track from "./library/Track";
 
-interface SingleSongEditerProps {
+interface StateProps {
+  getAlbumById(albumId: number): Album;
+  getArtistById(artistId: number): Artist;
+}
+
+interface OwnProps {
   track: Track;
-  library: Library;
   exit(): void;
 }
+
+interface DispatchProps {
+  save(): void;
+}
+
+type SingleSongEditerProps = StateProps & OwnProps & DispatchProps;
 
 interface SingleSongEditerState {
   genreIds: number[];
@@ -19,7 +34,7 @@ interface SingleSongEditerState {
   yearsFavorited: number[];
 }
 
-export default class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSongEditerState> {
+class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSongEditerState> {
   private name = React.createRef<HTMLInputElement>();
   private year = React.createRef<HTMLInputElement>();
   private playCount = React.createRef<HTMLInputElement>();
@@ -39,32 +54,32 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
   public save(): void {
     const track = this.props.track;
     if (this.name.current) {
-      track.name = this.name.current.value;
+     track.name = this.name.current.value;
     }
     if (this.year.current) {
-      track.year = parseInt(this.year.current.value, 10);
+     track.year = parseInt(this.year.current.value, 10);
     }
     if (this.playCount.current) {
-      track.playCount = parseInt(this.playCount.current.value, 10);
+     track.playCount = parseInt(this.playCount.current.value, 10);
     }
     track.favorites = this.state.yearsFavorited;
     track.genreIds = this.state.genreIds;
     this.state.albumIds.forEach((albumId) => {
-      if (!track.albumIds.includes(albumId)) {
-        const album = this.props.library.getAlbumById(albumId);
-        album.trackIds.push(track.id);
-      }
+     if (!track.albumIds.includes(albumId)) {
+       const album = this.props.getAlbumById(albumId);
+       album.trackIds.push(track.id);
+     }
     });
     track.albumIds = this.state.albumIds;
     this.state.artistIds.forEach((artistId) => {
-      if (!track.artistIds.includes(artistId)) {
-        const artist = this.props.library.getArtistById(artistId);
-        artist.trackIds.push(track.id);
-      }
+     if (!track.artistIds.includes(artistId)) {
+       const artist = this.props.getArtistById(artistId);
+       artist.trackIds.push(track.id);
+     }
     });
     track.artistIds = this.state.artistIds;
 
-    this.props.library.save();
+    this.props.save();
     this.props.exit();
   }
 
@@ -82,14 +97,8 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
             ref={this.name}
           />
         </div>
-        <ArtistAttributeEditor
-          artistIds={this.state.artistIds}
-          library={this.props.library}
-        />
-        <AlbumAttributeEditor
-          albumIds={this.state.albumIds}
-          library={this.props.library}
-        />
+        <ArtistAttributeEditor artistIds={this.state.artistIds} />
+        <AlbumAttributeEditor albumIds={this.state.albumIds} />
         <div className="edit-container">
           <label className="label" >Year: </label>
           <input
@@ -100,10 +109,7 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
             type="number"
           />
         </div>
-        <GenreAttributeEditor
-          genreIds={this.state.genreIds}
-          library={this.props.library}
-        />
+        <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor
           yearsFavorited={this.state.yearsFavorited}
         />
@@ -124,3 +130,12 @@ export default class SingleSongEditer extends React.Component<SingleSongEditerPr
     );
   }
 }
+
+function mapStateToProps(state: RootState): StateProps {
+  return {
+    getAlbumById: (id: number) => getAlbumById(state, id),
+    getArtistById: (id: number) => getArtistById(state, id),
+  };
+}
+
+export default connect(mapStateToProps, {save})(SingleSongEditer);

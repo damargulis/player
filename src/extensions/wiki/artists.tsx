@@ -1,16 +1,12 @@
 import Artist from "../../library/Artist";
 import {DATA_DIR} from "../../constants";
 import {BASE_URL} from "./constants";
-import {
-  GENRE_ERROR,
-  NO_PAGE_ERROR,
-  PARSER_ERROR,
-  PIC_ERROR,
-} from "./errors";
+import {GENRE_ERROR, NO_PAGE_ERROR, PARSER_ERROR, PIC_ERROR} from "./errors";
 import fs from "fs";
-import Library from "../../library/Library";
 import rp from "request-promise-native";
+import {getGenreIds} from "../../redux/selectors";
 import shortid from "shortid";
+import {RootState} from "../../redux/store";
 import {findAsync, getDoc, getGenresByRow} from "./utils";
 
 function getWikiPageOptions(artist: Artist): string[] {
@@ -52,7 +48,7 @@ function searchForWikiPage(artist: Artist): Promise<string>  {
   });
 }
 
-function modifyArtist(artist: Artist, library: Library): Promise<void> {
+function modifyArtist(store: RootState, artist: Artist): Promise<void> {
   if (!artist.wikiPage) {
     return Promise.resolve();
   }
@@ -64,7 +60,7 @@ function modifyArtist(artist: Artist, library: Library): Promise<void> {
     const rows = infoBox.getElementsByTagName("tr");
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
-      artist.genreIds = library.getGenreIds(genres);
+      artist.genreIds = getGenreIds(store, genres);
       artist.removeError(GENRE_ERROR);
     } else {
       artist.addError(GENRE_ERROR);
@@ -100,17 +96,17 @@ function modifyArtist(artist: Artist, library: Library): Promise<void> {
   });
 }
 
-export default function runArtistModifier(artist: Artist, library: Library): Promise<void> {
+export default function runArtistModifier(store: RootState, artist: Artist): Promise<void> {
   if (!artist.wikiPage) {
     return searchForWikiPage(artist).then((wikiPage) => {
       if (wikiPage) {
         artist.removeError(NO_PAGE_ERROR);
         artist.wikiPage = wikiPage;
-        return modifyArtist(artist, library);
+        return modifyArtist(store, artist);
       }
       artist.addError(NO_PAGE_ERROR);
       return Promise.resolve();
     });
   }
-  return modifyArtist(artist, library);
+  return modifyArtist(store, artist);
 }

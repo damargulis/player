@@ -1,27 +1,35 @@
 import Album from "./library/Album";
 import AlbumPicker from "./AlbumPicker";
 import Artist from "./library/Artist";
-import modifyArtist from "./extensions/wiki/artists";
+import runArtistModifier from "./extensions/wiki/artists";
 import EditableAttribute from "./EditableAttribute";
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import defaultArtist from "./resources/missing_artist.png";
 import NavigationBar from "./NavigationBar";
 import React from "react";
+import {connect} from "react-redux";
+import {getAlbumsByIds, getTracksByIds} from "./redux/selectors";
 import SongPicker from "./SongPicker";
+import {RootState} from "./redux/store";
+import Track from "./library/Track";
 import {getImgSrc} from "./utils";
 
-interface ArtistPageProps {
+interface StateProps {
+  albums: Album[];
+  tracks: Track[];
+  runArtistModifier(artist: Artist): Promise<void>;
+}
+
+interface OwnProps {
   artist: Artist;
-  library: Library;
   canGoForward: boolean;
   goBack(): void;
   goForward(): void;
   goToAlbum(album: Album): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
-export default class ArtistPage extends React.Component<ArtistPageProps> {
+type ArtistPageProps = OwnProps & StateProps;
+
+class ArtistPage extends React.Component<ArtistPageProps> {
 
   public render(): JSX.Element {
     const src = this.props.artist.artFile ? getImgSrc(this.props.artist.artFile) : defaultArtist;
@@ -42,33 +50,20 @@ export default class ArtistPage extends React.Component<ArtistPageProps> {
                 attr={this.props.artist && this.props.artist.name}
                 onSave={(value: string) => {
                   this.props.artist.name = value;
-                  this.props.library.save();
                 }}
               />
               <button onClick={this.runWiki.bind(this)}>
-              Run Wiki Extension
+                Run Wiki Extension
               </button>
             </div>
-            {
-              this.getErrors()
-            }
+            {this.getErrors()}
           </div>
           <div className="artistPageBody" style={{height: "100%"}}>
             <div className="container" style={{height: "50%"}}>
-              <AlbumPicker
-                albums={this.props.library.getAlbumsByArtist(this.props.artist)}
-                goToAlbum={this.props.goToAlbum}
-                library={this.props.library}
-                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-              />
+              <AlbumPicker albums={this.props.albums} goToAlbum={this.props.goToAlbum} />
             </div>
             <div className="container" style={{height: "50%"}}>
-              <SongPicker
-                library={this.props.library}
-                setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-                songs={this.props.library.getTracksByIds(this.props.artist.trackIds)}
-
-              />
+              <SongPicker songs={this.props.tracks} />
             </div>
           </div>
         </div>
@@ -77,9 +72,7 @@ export default class ArtistPage extends React.Component<ArtistPageProps> {
   }
 
   private runWiki(): void {
-    modifyArtist(this.props.artist, this.props.library).then(() => {
-      this.props.library.save();
-    });
+    this.props.runArtistModifier(this.props.artist);
   }
 
   private getErrors(): JSX.Element | undefined {
@@ -107,3 +100,13 @@ export default class ArtistPage extends React.Component<ArtistPageProps> {
     );
   }
 }
+
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+  return {
+    albums: getAlbumsByIds(store, ownProps.artist.albumIds),
+    runArtistModifier: (artist: Artist) => runArtistModifier(store, artist),
+    tracks: getTracksByIds(store, ownProps.artist.trackIds),
+  };
+}
+
+export default connect(mapStateToProps)(ArtistPage);

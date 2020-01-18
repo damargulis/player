@@ -37,9 +37,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
           type="text"
           value={this.state.userInput}
         />
-        {
-          this.getSearchSuggestions()
-        }
+        {this.getSearchSuggestions()}
         <button onClick={this.onSubmit.bind(this)}>
           Add
         </button>
@@ -61,9 +59,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
       this.state.activeSuggestion];
     if (suggestion) {
       this.props.onSubmit(suggestion);
-      this.setState({
-        userInput: "",
-      });
+      this.setState({userInput: ""});
     }
     // TODO: else if (this.props.addNew)
   }
@@ -79,9 +75,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
           this.state.filteredSuggestions.map((suggestion, index) => {
             return (
               <li
-                className={
-                  this.state.activeSuggestion === index ? "active" : ""
-                }
+                className={this.state.activeSuggestion === index ? "active" : ""}
                 key={suggestion}
                 onClick={(evt: MouseEvent) => this.onClick(evt, suggestion)}
               >
@@ -117,9 +111,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
       break;
     // up arrow
     case 38:
-      this.setState({
-        activeSuggestion: Math.max(0, this.state.activeSuggestion - 1),
-      });
+      this.setState({activeSuggestion: Math.max(0, this.state.activeSuggestion - 1)});
       break;
     // down arrow
     case 40:

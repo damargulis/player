@@ -12,11 +12,11 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
     this.currentTrack = -1;
   }
 
-  public getCurrentTrack(): Track | undefined {
-    return this.playlist[this.currentTrack];
+  public getCurrentTrack(): number | undefined {
+    return this.playlist[this.currentTrack].id;
   }
 
-  public nextTrack(): Track | undefined {
+  public nextTrack(): number | undefined {
     // todo: switch to play through and reshuffle on repeat only
     this.currentTrack++;
     if (this.playlist.length <= this.currentTrack) {
@@ -26,7 +26,7 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public prevTrack(): Track | undefined {
+  public prevTrack(): number | undefined {
     this.currentTrack--;
     return this.getCurrentTrack();
   }

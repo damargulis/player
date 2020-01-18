@@ -1,27 +1,32 @@
-import EmptyPlaylist from "./playlist/EmptyPlaylist";
-import Library from "./library/Library";
 import NavigationBar from "./NavigationBar";
 import Playlist from "./library/Playlist";
 import React from "react";
+import {connect} from "react-redux";
+import {getTracksByIds} from "./redux/selectors";
 import SongPicker from "./SongPicker";
+import {RootState} from "./redux/store";
+import Track from "./library/Track";
 import {toTime} from "./utils";
 
-interface PlaylistPageProps {
+interface OwnProps {
+  playlist: Playlist;
   canGoForward: boolean;
   genres: number[];
-  library: Library;
-  playlist: Playlist;
   goBack(): void;
   goForward(): void;
-  setPlaylistAndPlay(playlist: EmptyPlaylist): void;
 }
 
-export default class PlaylistPage extends React.Component<PlaylistPageProps> {
+interface StateProps {
+  tracks: Track[];
+}
+
+type PlaylistPageProps = StateProps & OwnProps;
+
+class PlaylistPage extends React.Component<PlaylistPageProps> {
 
   public render(): JSX.Element {
     const src = "";
-    const allPlaylistSongs = this.props.library.getTracksByIds(
-      this.props.playlist.trackIds);
+    const allPlaylistSongs = this.props.tracks;
     const songs = allPlaylistSongs.filter((song) => {
       if (this.props.genres.length) {
         return song.genreIds.some((genreId) => {
@@ -45,20 +50,22 @@ export default class PlaylistPage extends React.Component<PlaylistPageProps> {
           </div>
         </div>
         <div className="playlistPageBody" style={{height: "100%"}}>
-          <SongPicker
-            library={this.props.library}
-            setPlaylistAndPlay={this.props.setPlaylistAndPlay}
-            songs={songs}
-          />
+          <SongPicker songs={songs} />
         </div>
       </div>
     );
   }
 
   private getTotalTime(): string {
-    const songs = this.props.library.getTracksByIds(
-      this.props.playlist.trackIds);
-    const duration = songs.reduce((total, song) => total + song.duration, 0);
+    const duration = this.props.tracks.reduce((total, song) => total + song.duration, 0);
     return toTime(duration);
   }
 }
+
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+  return {
+    tracks: getTracksByIds(store, ownProps.playlist.trackIds),
+  };
+}
+
+export default connect(mapStateToProps)(PlaylistPage);

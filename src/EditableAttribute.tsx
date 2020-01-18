@@ -49,9 +49,7 @@ export default class EditableAttribute<T> extends
   }
 
   private edit(): void {
-    this.setState({
-      editing: true,
-    }, () => {
+    this.setState({editing: true}, () => {
       const node = this.input.current;
       if (node) {
         node.focus();
@@ -60,15 +58,11 @@ export default class EditableAttribute<T> extends
   }
 
   private onChange(evt: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({
-      value: evt.target.value as unknown as T,
-    });
+    this.setState({value: evt.target.value as unknown as T});
   }
 
   private save(): void {
-    this.setState({
-      editing: false,
-    });
+    this.setState({editing: false});
     this.props.onSave(this.state.value);
   }
 
