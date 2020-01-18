@@ -110,9 +110,7 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
           />
         </div>
         <GenreAttributeEditor genreIds={this.state.genreIds} />
-        <FavoritesAttributeEditor
-          yearsFavorited={this.state.yearsFavorited}
-        />
+        <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
         <div className="edit-container">
           <label className="label">Play Count:</label>
           <input

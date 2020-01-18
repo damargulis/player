@@ -111,9 +111,7 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
           label="Favorite Years"
           toggleEdit={this.editFavorites.bind(this)}
         >
-          <FavoritesAttributeEditor
-            yearsFavorited={this.state.yearsFavorited}
-          />
+          <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editPlayCount}
