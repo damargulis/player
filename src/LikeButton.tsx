@@ -1,8 +1,8 @@
-import {connect} from "react-redux";
 import {save} from "./redux/actions";
 import Album from "./library/Album";
 import favoriteButton from "./resources/favorite.png";
 import * as React from "react";
+import {connect} from "react-redux";
 import Track from "./library/Track";
 
 interface DispatchProps {
