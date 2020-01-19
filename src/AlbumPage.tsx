@@ -4,6 +4,7 @@ import AlbumEditer from './AlbumEditer';
 import './AlbumPage.css';
 import runAlbumModifier from './extensions/wiki/albums';
 import Artist from './library/Artist';
+import {shell} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import defaultAlbum from './resources/missing_album.png';
@@ -78,6 +79,10 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             {this.getArtistLinks()}
             <div>Total Time: {this.getTotalTime()}</div>
             <div>{this.props.album.year}</div>
+            <div>
+              <label>Wiki Page: </label>
+              <span className="link" onClick={this.openWiki.bind(this)}>{this.props.album.wikiPage}</span>
+            </div>
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>
@@ -184,6 +189,12 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
 
   private closeEdit(): void {
     this.setState({editing: false});
+  }
+
+  private openWiki(): void {
+    if (this.props.album.wikiPage) {
+      shell.openExternal(this.props.album.wikiPage);
+    }
   }
 }
 

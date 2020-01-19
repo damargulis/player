@@ -34,6 +34,7 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
   private name = React.createRef<HTMLInputElement>();
   private year = React.createRef<HTMLInputElement>();
   private playCount = React.createRef<HTMLInputElement>();
+  private wikiPage = React.createRef<HTMLInputElement>();
 
   constructor(props: AlbumEditerProps) {
     super(props);
@@ -68,6 +69,9 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
       }
     });
     album.artistIds = this.state.artistIds;
+    if (this.wikiPage.current) {
+      album.wikiPage = this.wikiPage.current.value;
+    }
 
     this.props.save();
     this.props.exit();
@@ -92,6 +96,10 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
         <div className="edit-container">
           <label className="label">Play Count:</label>
           <input className="input" defaultValue={album.playCount} ref={this.playCount} type="number" />
+        </div>
+        <div className="edit-container">
+          <label className="label">Wiki page:</label>
+          <input className="input" defaultValue={album.wikiPage} ref={this.wikiPage} />
         </div>
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>

@@ -1,15 +1,16 @@
 import {save} from './redux/actions';
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from './redux/selectors';
 import {setPlaylist} from './redux/actions';
-import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
-import AlbumEditer from './AlbumEditer'; import Modal from 'react-modal';
 import Album from './library/Album';
+import AlbumEditer from './AlbumEditer';
 import Artist from './library/Artist';
 import {remote} from 'electron';
+import EmptyPlaylist from './playlist/EmptyPlaylist';
 import defaultAlbum from './resources/missing_album.png';
+import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
+import Modal from 'react-modal';
 import {connect} from 'react-redux';
+import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import {getImgSrc} from './utils';
 
