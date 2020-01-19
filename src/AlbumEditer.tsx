@@ -10,6 +10,7 @@ import {connect} from 'react-redux';
 import {getArtistById, getTrackById} from './redux/selectors';
 import {RootState} from './redux/store';
 import Track from './library/Track';
+import {setMemberIds} from './utils';
 
 interface OwnProps {
   album: Album;
@@ -92,22 +93,12 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
     }
     album.favorites = this.state.yearsFavorited;
     album.genreIds = this.state.genreIds;
-    this.state.artistIds.forEach((artistId) => {
-      if (!album.artistIds.includes(artistId)) {
-        const artist = this.props.getArtistById(artistId);
-        artist.albumIds.push(album.id);
-      }
-    });
+    setMemberIds(album.id, this.state.artistIds, album.artistIds, (id) => this.props.getArtistById(id).albumIds);
     album.artistIds = this.state.artistIds;
     if (this.wikiPage.current) {
       album.wikiPage = this.wikiPage.current.value;
     }
-    this.state.trackIds.forEach((trackId) => {
-      if (!album.trackIds.includes(trackId)) {
-        const track = this.props.getTrackById(trackId);
-        track.albumIds.push(album.id);
-      }
-    });
+    setMemberIds(album.id, this.state.trackIds, album.trackIds, (id) => this.props.getTrackById(id).albumIds);
     album.trackIds = this.state.trackIds;
 
     this.props.save();

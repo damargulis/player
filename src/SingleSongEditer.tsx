@@ -10,6 +10,7 @@ import {connect} from 'react-redux';
 import {getAlbumById, getArtistById} from './redux/selectors';
 import {RootState} from './redux/store';
 import Track from './library/Track';
+import {setMemberIds} from './utils';
 
 interface StateProps {
   getAlbumById(albumId: number): Album;
@@ -65,19 +66,9 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
     }
     track.favorites = this.state.yearsFavorited;
     track.genreIds = this.state.genreIds;
-    this.state.albumIds.forEach((albumId) => {
-     if (!track.albumIds.includes(albumId)) {
-       const album = this.props.getAlbumById(albumId);
-       album.trackIds.push(track.id);
-     }
-    });
+    setMemberIds(track.id, this.state.albumIds, track.albumIds, (id) => this.props.getAlbumById(id).trackIds);
     track.albumIds = this.state.albumIds;
-    this.state.artistIds.forEach((artistId) => {
-     if (!track.artistIds.includes(artistId)) {
-       const artist = this.props.getArtistById(artistId);
-       artist.trackIds.push(track.id);
-     }
-    });
+    setMemberIds(track.id, this.state.artistIds, track.artistIds, (id) => this.props.getArtistById(id).trackIds);
     track.artistIds = this.state.artistIds;
 
     this.props.save();

@@ -11,6 +11,7 @@ import {getAlbumById, getArtistById} from './redux/selectors';
 import {RootState} from './redux/store';
 import ToggableEditableAttribute from './ToggableEditableAttribute';
 import Track from './library/Track';
+import {setMemberIds} from './utils';
 
 interface DispatchProps {
   save(): void;
@@ -165,21 +166,11 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
      track.genreIds = this.state.genreIds;
     }
     if (this.state.editArtists) {
-     this.state.artistIds.forEach((artistId) => {
-       if (!track.artistIds.includes(artistId)) {
-         const artist = this.props.getArtistById(artistId);
-         artist.trackIds.push(track.id);
-       }
-     });
+     setMemberIds(track.id, this.state.artistIds, track.artistIds, (id) => this.props.getArtistById(id).trackIds);
      track.artistIds = this.state.artistIds;
     }
     if (this.state.editAlbums) {
-     this.state.albumIds.forEach((albumId) => {
-       if (!track.albumIds.includes(albumId)) {
-         const album = this.props.getAlbumById(albumId);
-         album.trackIds.push(track.id);
-       }
-     });
+     setMemberIds(track.id, this.state.albumIds, track.albumIds, (id) => this.props.getAlbumById(id).trackIds);
      track.albumIds = this.state.albumIds;
     }
     if (this.state.editFavorites) {
