@@ -22,7 +22,7 @@ interface StateProps {
 }
 
 interface OwnProps {
-  album: Album;
+  album?: Album;
   style: React.CSSProperties;
   showStatus: boolean;
   goToAlbum(album: Album): void;
@@ -78,7 +78,7 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
       }
     }
 
-    const file = this.props.album && this.props.album.albumArtFile;
+    const file = this.props.album.albumArtFile;
     const src = file ? getImgSrc(file) : defaultAlbum;
     const artists = this.props.artists.map((artist: Artist) => {
       return artist.name;
@@ -126,13 +126,17 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
   }
 
   private doDoubleClickAlbum(): void {
-    const playlist = new RandomAlbumPlaylist(this.props.allAlbums);
-    playlist.addAlbum(this.props.album);
-    this.props.setPlaylist(playlist, /* play= */ true);
+    if (this.props.album) {
+      const playlist = new RandomAlbumPlaylist(this.props.allAlbums);
+      playlist.addAlbum(this.props.album);
+      this.props.setPlaylist(playlist, /* play= */ true);
+    }
   }
 
   private doClickAlbum(): void {
-    this.props.goToAlbum(this.props.album);
+    if (this.props.album) {
+      this.props.goToAlbum(this.props.album);
+    }
   }
 
   private onRightClickAlbum(): void {
@@ -151,19 +155,21 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
   }
 
   private favorite(): void {
-    const year = new Date().getFullYear();
-    if (this.props.album.favorites.indexOf(year) < 0) {
-      this.props.album.favorites.push(year);
+    if (this.props.album) {
+      const year = new Date().getFullYear();
+      if (this.props.album.favorites.indexOf(year) < 0) {
+        this.props.album.favorites.push(year);
+      }
+      this.props.save();
+      this.forceUpdate();
     }
-    this.props.save();
-    this.forceUpdate();
   }
 
 }
 
 function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   return {
-    artists: getArtistsByIds(store, ownProps.album.artistIds),
+    artists: ownProps.album ? getArtistsByIds(store, ownProps.album.artistIds) : [],
     allAlbums: getAlbumsByIds(store, getAllAlbumIds(store)),
   };
 }
