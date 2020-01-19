@@ -1,4 +1,8 @@
 import {save} from './redux/actions';
+import EmptyPlaylist from './playlist/EmptyPlaylist';
+import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from './redux/selectors';
+import {setPlaylist} from './redux/actions';
+import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import AlbumEditer from './AlbumEditer'; import Modal from 'react-modal';
 import Album from './library/Album';
 import Artist from './library/Artist';
@@ -6,7 +10,6 @@ import {remote} from 'electron';
 import defaultAlbum from './resources/missing_album.png';
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {getArtistsByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import {getImgSrc} from './utils';
 
@@ -15,13 +18,13 @@ Modal.setAppElement('#root');
 
 interface StateProps {
   artists: Artist[];
+  allAlbums: Album[];
 }
 
 interface OwnProps {
   album: Album;
   style: React.CSSProperties;
   showStatus: boolean;
-  playAlbum(album: Album): void;
   goToAlbum(album: Album): void;
 }
 
@@ -31,6 +34,7 @@ interface AlbumInfoState {
 
 interface DispatchProps {
   save(): void;
+  setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
 }
 
 type AlbumInfoProps = OwnProps & StateProps & DispatchProps;
@@ -122,7 +126,9 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
   }
 
   private doDoubleClickAlbum(): void {
-    this.props.playAlbum(this.props.album);
+    const playlist = new RandomAlbumPlaylist(this.props.allAlbums);
+    playlist.addAlbum(this.props.album);
+    this.props.setPlaylist(playlist, /* play= */ true);
   }
 
   private doClickAlbum(): void {
@@ -152,12 +158,14 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
     this.props.save();
     this.forceUpdate();
   }
+
 }
 
-function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   return {
-    artists: ownProps.album ? getArtistsByIds(state, ownProps.album.artistIds) : [],
+    artists: getArtistsByIds(store, ownProps.album.artistIds),
+    allAlbums: getAlbumsByIds(store, getAllAlbumIds(store)),
   };
 }
 
-export default connect(mapStateToProps, {save})(AlbumInfo);
+export default connect(mapStateToProps, {save, setPlaylist})(AlbumInfo);

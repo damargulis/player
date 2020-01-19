@@ -1,13 +1,10 @@
-import {setPlaylist} from './redux/actions';
 import Album from './library/Album';
 import AlbumInfo from './AlbumInfo';
 import Artist from './library/Artist';
-import EmptyPlaylist from './playlist/EmptyPlaylist';
-import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import SearchBar from './SearchBar';
-import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from './redux/selectors';
+import {getArtistsByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import WrappedGrid from './WrappedGrid';
 
@@ -19,15 +16,10 @@ interface OwnProps {
 }
 
 interface StateProps {
-  allAlbums: Album[];
   getArtistsByIds(ids: number[]): Artist[];
 }
 
-interface DispatchProps {
-  setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-}
-
-type AlbumPickerProps = OwnProps & StateProps & DispatchProps;
+type AlbumPickerProps = OwnProps & StateProps;
 
 interface AlbumPickerState {
   search?: string;
@@ -110,12 +102,6 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     this.props.goToAlbum(album);
   }
 
-  private playAlbum(album: Album): void {
-    const playlist = new RandomAlbumPlaylist(this.props.allAlbums);
-    playlist.addAlbum(album);
-    this.props.setPlaylist(playlist, /* play= */ true);
-  }
-
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
     const albums = this.state.sortedAlbums;
     return (
@@ -124,7 +110,6 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
         album={albums[index]}
         goToAlbum={(album) => this.goToAlbum(album)}
         key={key}
-        playAlbum={this.playAlbum.bind(this)}
         style={style}
       />
     );
@@ -165,9 +150,8 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
 
 function mapStateToProps(store: RootState): StateProps {
   return {
-    allAlbums: getAlbumsByIds(store, getAllAlbumIds(store)),
     getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist})(AlbumPicker);
+export default connect(mapStateToProps)(AlbumPicker);
