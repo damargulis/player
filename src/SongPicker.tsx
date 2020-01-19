@@ -1,4 +1,4 @@
-import {setPlaylist} from './redux/actions';
+import {save, setPlaylist} from './redux/actions';
 import Album from './library/Album';
 import Artist from './library/Artist';
 import {remote} from 'electron';
@@ -45,6 +45,7 @@ interface OwnProps {
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+  save(): void;
 }
 
 type SongPickerProps = StateProps & OwnProps & DispatchProps;
@@ -263,6 +264,8 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
         song.favorites.push(year);
       }
     });
+    this.props.save();
+    this.forceUpdate();
   }
 
   private doRowRightClick({index}: {index: number}): void {
@@ -275,8 +278,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
 
   private doRowRightClickNext(index: number): void {
     const menu = new remote.Menu();
-    menu.append(
-      new remote.MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
+    menu.append(new remote.MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
     if (this.state.selected.length === 1) {
       menu.append(new remote.MenuItem({label: 'Play', click: () => this.doDoubleClickSong(index)}));
     }
@@ -356,4 +358,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist})(SongPicker);
+export default connect(mapStateToProps, {setPlaylist, save})(SongPicker);

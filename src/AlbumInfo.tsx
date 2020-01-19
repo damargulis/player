@@ -1,11 +1,17 @@
+import {save} from './redux/actions';
+import AlbumEditer from './AlbumEditer'; import Modal from 'react-modal';
 import Album from './library/Album';
 import Artist from './library/Artist';
+import {remote} from 'electron';
 import defaultAlbum from './resources/missing_album.png';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {getArtistsByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import {getImgSrc} from './utils';
+
+// see: http://reactcommunity.org/react-modal/accessibility/#app-element
+Modal.setAppElement('#root');
 
 interface StateProps {
   artists: Artist[];
@@ -19,9 +25,17 @@ interface OwnProps {
   goToAlbum(album: Album): void;
 }
 
-type AlbumInfoProps = OwnProps & StateProps;
+interface AlbumInfoState {
+  editing: boolean;
+}
 
-class AlbumInfo extends React.Component<AlbumInfoProps> {
+interface DispatchProps {
+  save(): void;
+}
+
+type AlbumInfoProps = OwnProps & StateProps & DispatchProps;
+
+class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
   private timer?: number;
   private prevent: boolean;
 
@@ -29,8 +43,11 @@ class AlbumInfo extends React.Component<AlbumInfoProps> {
     super(props);
 
     this.timer = undefined;
-
     this.prevent = false;
+
+    this.state = {
+      editing: false,
+    };
   }
 
   public render(): JSX.Element {
@@ -64,24 +81,24 @@ class AlbumInfo extends React.Component<AlbumInfoProps> {
     }).join(', ');
     return (
       <div style={newStyle} >
+        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
+          <AlbumEditer exit={this.closeEdit.bind(this)} album={this.props.album} />
+        </Modal>
         <div style={{position: 'absolute', left: '50%'}}>
           <img
             alt="album art"
             height="100"
             onClick={() => this.onClickAlbum()}
             onDoubleClick={() => this.onDoubleClickAlbum()}
+            onContextMenu={() => this.onRightClickAlbum()}
             src={src.toString()}
             style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />
-          <div
-            style={{position: 'relative', left: '-50%', textAlign: 'center'}}
-          >
-            {this.props.album && this.props.album.name}
+          <div style={{position: 'relative', left: '-50%', textAlign: 'center'}} >
+            {this.props.album.name}
           </div>
-          <div
-            style={{position: 'relative', left: '-50%', textAlign: 'center'}}
-          >
+          <div style={{position: 'relative', left: '-50%', textAlign: 'center'}} >
             {artists}
           </div>
         </div>
@@ -111,6 +128,30 @@ class AlbumInfo extends React.Component<AlbumInfoProps> {
   private doClickAlbum(): void {
     this.props.goToAlbum(this.props.album);
   }
+
+  private onRightClickAlbum(): void {
+    const menu = new remote.Menu();
+    menu.append(new remote.MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
+    menu.append(new remote.MenuItem({label: 'Favorite', click: this.favorite.bind(this)}));
+    menu.popup({window: remote.getCurrentWindow()});
+  }
+
+  private edit(): void {
+    this.setState({editing: true});
+  }
+
+  private closeEdit(): void {
+    this.setState({editing: false});
+  }
+
+  private favorite(): void {
+    const year = new Date().getFullYear();
+    if (this.props.album.favorites.indexOf(year) < 0) {
+      this.props.album.favorites.push(year);
+    }
+    this.props.save();
+    this.forceUpdate();
+  }
 }
 
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
@@ -119,4 +160,4 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps)(AlbumInfo);
+export default connect(mapStateToProps, {save})(AlbumInfo);
