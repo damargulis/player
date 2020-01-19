@@ -52,6 +52,7 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
   }
 
   public save(): void {
+    // TODO: turn into action
     const track = this.props.track;
     if (this.name.current) {
      track.name = this.name.current.value;
@@ -90,35 +91,19 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
         <h3 className="title">Edit Track</h3>
         <div className="edit-container">
           <label className="label" >Name: </label>
-          <input
-            className="input"
-            defaultValue={track.name}
-            placeholder="Name"
-            ref={this.name}
-          />
+          <input className="input" defaultValue={track.name} placeholder="Name" ref={this.name} />
         </div>
         <ArtistAttributeEditor artistIds={this.state.artistIds} />
         <AlbumAttributeEditor albumIds={this.state.albumIds} />
         <div className="edit-container">
           <label className="label" >Year: </label>
-          <input
-            className="input"
-            defaultValue={track.year}
-            placeholder="Year"
-            ref={this.year}
-            type="number"
-          />
+          <input className="input" defaultValue={track.year} placeholder="Year" ref={this.year} type="number" />
         </div>
         <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
         <div className="edit-container">
           <label className="label">Play Count:</label>
-          <input
-            className="input"
-            defaultValue={track.playCount}
-            ref={this.playCount}
-            type="number"
-          />
+          <input className="input" defaultValue={track.playCount} ref={this.playCount} type="number" />
         </div>
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>

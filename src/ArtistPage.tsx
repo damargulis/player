@@ -1,8 +1,8 @@
-import {save} from "./redux/actions";
-import "./ArtistPage.css";
+import {save} from './redux/actions';
 import Album from './library/Album';
 import AlbumPicker from './AlbumPicker';
 import Artist from './library/Artist';
+import './ArtistPage.css';
 import runArtistModifier from './extensions/wiki/artists';
 import EditableAttribute from './EditableAttribute';
 import defaultArtist from './resources/missing_artist.png';

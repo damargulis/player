@@ -1,5 +1,5 @@
-import "./PlaylistPicker.css";
 import Playlist from './library/Playlist';
+import './PlaylistPicker.css';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAutoPlaylists, getPlaylists} from './redux/selectors';

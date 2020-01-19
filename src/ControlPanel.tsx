@@ -1,5 +1,5 @@
-import "./ControlPanel.css";
 import {changeVolume, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack} from './redux/actions';
+import './ControlPanel.css';
 import LikeButton from './LikeButton';
 import nextAlbumImg from './resources/next_album.png';
 import nextTrackImg from './resources/next_track.png';

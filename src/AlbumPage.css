@@ -9,12 +9,18 @@
 
 .playAlbum {
   position: absolute;
-  top: 33%;
-  translate: translateY(-66%);
+  top: 25%;
+  translate: translateY(-75%);
 }
 
 .likeButtonContainer {
   position: absolute;
-  top: 66%;
-  translate: translateY(-33%);
+  top: 50%;
+  translate: translateY(-50%);
+}
+
+.editAlbum {
+  position: absolute;
+  top: 75%;
+  translate: translateY(-75%);
 }

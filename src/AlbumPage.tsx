@@ -1,14 +1,16 @@
 import {save, setPlaylist} from './redux/actions';
 import Album from './library/Album';
+import AlbumEditer from './AlbumEditer';
+import './AlbumPage.css';
 import runAlbumModifier from './extensions/wiki/albums';
 import Artist from './library/Artist';
-import EditableAttribute from './EditableAttribute';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import defaultAlbum from './resources/missing_album.png';
 import NavigationBar from './NavigationBar';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
+import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import {getArtistsByIds, getTrackById, getTracksByIds} from './redux/selectors';
 import SongPicker from './SongPicker';
@@ -16,7 +18,8 @@ import {RootState} from './redux/store';
 import Track from './library/Track';
 import {getImgSrc, toTime} from './utils';
 
-import "./AlbumPage.css";
+// see: http://reactcommunity.org/react-modal/accessibility/#app-element
+Modal.setAppElement('#root');
 
 interface StateProps {
   artists: Artist[];
@@ -39,23 +42,30 @@ interface DispatchProps {
   save(): void;
 }
 
+interface AlbumPageState {
+  editing: boolean;
+}
+
 type AlbumPageProps = OwnProps & StateProps & DispatchProps;
 
-class AlbumPage extends React.Component<AlbumPageProps> {
+class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
+  constructor(props: AlbumPageProps) {
+    super(props);
+
+    this.state = {editing: false};
+  }
 
   public render(): JSX.Element {
     // TODO: use albumInfo or combine logic
     // ya know actually separate conscers and shit
-    const file = this.props.album && this.props.album.albumArtFile;
+    const file = this.props.album.albumArtFile;
     const src = file ? getImgSrc(file).toString() : defaultAlbum;
-    // const artist = this.props.library.getArtistsByIds(
-    //  this.props.album.artistIds).map((artist) => {
-    //  return artist.name;
-    // }).join(", ");
     // todo: set playSong to play an album playlist of by artist ?
-    // TODO: add validation to edit year
     return (
       <div className="main">
+        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
+          <AlbumEditer exit={this.closeEdit.bind(this)} album={this.props.album} />
+        </Modal>
         <div className="albumPageHeader" >
           <div className="info">
             <NavigationBar
@@ -64,22 +74,10 @@ class AlbumPage extends React.Component<AlbumPageProps> {
               goForward={this.props.goForward}
             />
             <img alt="album art" height="100" src={src} width="100" />
-            <EditableAttribute
-              attr={this.props.album && this.props.album.name}
-              onSave={(value: string) => {
-                this.props.album.name = value;
-                this.props.save();
-              }}
-            />
+            <div>{this.props.album.name}</div>
             {this.getArtistLinks()}
             <div>Total Time: {this.getTotalTime()}</div>
-            <EditableAttribute
-              attr={this.props.album.year}
-              onSave={(value: number) => {
-                this.props.album.year = value;
-                this.props.save();
-              }}
-            />
+            <div>{this.props.album.year}</div>
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
             </button>
@@ -89,6 +87,7 @@ class AlbumPage extends React.Component<AlbumPageProps> {
             <div className="likeButtonContainer">
               <LikeButton item={this.props.album} />
             </div>
+            <button onClick={this.editAlbum.bind(this)} className="editAlbum" >Edit Album</button>
           </div>
           {this.getErrors()}
           {this.getWarnings()}
@@ -177,6 +176,14 @@ class AlbumPage extends React.Component<AlbumPageProps> {
   private playAlbum(): void {
     const playlist = new RandomAlbumPlaylist([this.props.album]);
     this.props.setPlaylist(playlist, /* play= */ true);
+  }
+
+  private editAlbum(): void {
+    this.setState({editing: true});
+  }
+
+  private closeEdit(): void {
+    this.setState({editing: false});
   }
 }
 
