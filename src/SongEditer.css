@@ -32,3 +32,11 @@
   border: solid black 1px;
   border-radius: 100%;
 }
+
+.remove {
+  margin-left: 10px;
+  color: red;
+  cursor: pointer;
+  border: solid red 1px;
+  border-radius: 50%;
+}

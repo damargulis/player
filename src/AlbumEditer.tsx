@@ -158,7 +158,8 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
                           innerProvided.draggableProps.style
                         )}
                       >
-                        {this.props.getTrackById(track).name}
+                        {`${index + 1}. ${this.props.getTrackById(track).name}`}
+                        <span className="remove" onClick={() => this.removeTrack(index)}>X</span>
                       </div>
                     )}
                   </Draggable>
@@ -186,6 +187,12 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
       result.source.index,
       result.destination.index
     );
+    this.setState({trackIds});
+  }
+
+  private removeTrack(index: number): void {
+    const trackIds = this.state.trackIds;
+    trackIds.splice(index, 1);
     this.setState({trackIds});
   }
 }
