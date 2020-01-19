@@ -5,9 +5,11 @@ import ArtistAttributeEditor from './ArtistAttributeEditor';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
 import React from 'react';
+import {DragDropContext, Draggable, Droppable, DropResult} from 'react-beautiful-dnd';
 import {connect} from 'react-redux';
-import {getArtistById} from './redux/selectors';
+import {getArtistById, getTrackById} from './redux/selectors';
 import {RootState} from './redux/store';
+import Track from './library/Track';
 
 interface OwnProps {
   album: Album;
@@ -16,11 +18,14 @@ interface OwnProps {
 
 interface StateProps {
   getArtistById(id: number): Artist;
+  getTrackById(id: number): Track;
 }
 
 interface DispatchProps {
   save(): void;
 }
+
+const GRID = 8;
 
 type AlbumEditerProps = OwnProps & StateProps & DispatchProps;
 
@@ -28,6 +33,30 @@ interface AlbumEditerState {
   artistIds: number[];
   genreIds: number[];
   yearsFavorited: number[];
+  trackIds: number[];
+}
+
+const getListStyle = (isDraggingOver: boolean) => ({
+  background: isDraggingOver ? 'lightblue' : 'lightgrey',
+  padding: GRID,
+  width: 250,
+});
+
+function getItemStyle(isDragging: boolean, draggableStyle?: React.CSSProperties): React.CSSProperties {
+  return {
+    userSelect: 'none',
+    padding: GRID * 2,
+    margin: `0 0 ${GRID}px 0`,
+    background: isDragging ? 'lightgreen' : 'grey',
+    ...draggableStyle,
+  };
+}
+
+function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+  return result;
 }
 
 class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
@@ -44,6 +73,7 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
       artistIds: [...album.artistIds],
       genreIds: [...album.genreIds],
       yearsFavorited: [...album.favorites],
+      trackIds: [...album.trackIds],
     };
 
   }
@@ -72,6 +102,13 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
     if (this.wikiPage.current) {
       album.wikiPage = this.wikiPage.current.value;
     }
+    this.state.trackIds.forEach((trackId) => {
+      if (!album.trackIds.includes(trackId)) {
+        const track = this.props.getTrackById(trackId);
+        track.albumIds.push(album.id);
+      }
+    });
+    album.trackIds = this.state.trackIds;
 
     this.props.save();
     this.props.exit();
@@ -101,6 +138,36 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
           <label className="label">Wiki page:</label>
           <input className="input" defaultValue={album.wikiPage} ref={this.wikiPage} />
         </div>
+        <DragDropContext onDragEnd={this.onDragEnd.bind(this)} >
+          <Droppable droppableId="droppable">
+            {(provided, snapshot) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                style={getListStyle(snapshot.isDraggingOver)}
+              >
+                {this.state.trackIds.map((track, index) => (
+                  <Draggable key={track} draggableId={track.toString()} index={index}>
+                    {(innerProvided, innerSnapshot) => (
+                      <div
+                        ref={innerProvided.innerRef}
+                        {...innerProvided.draggableProps}
+                        {...innerProvided.dragHandleProps}
+                        style={getItemStyle(
+                          innerSnapshot.isDragging,
+                          innerProvided.draggableProps.style
+                        )}
+                      >
+                        {this.props.getTrackById(track).name}
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+              {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>
           <button onClick={this.props.exit}>Cancel</button>
@@ -108,11 +175,25 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
       </div>
     );
   }
+
+  private onDragEnd(result: DropResult): void {
+    if (!result.destination) {
+      return;
+    }
+
+    const trackIds = reorder(
+      this.state.trackIds,
+      result.source.index,
+      result.destination.index
+    );
+    this.setState({trackIds});
+  }
 }
 
 function mapStateToProps(state: RootState): StateProps {
   return {
     getArtistById: (id: number) => getArtistById(state, id),
+    getTrackById: (id: number) => getTrackById(state, id),
   };
 }
 
