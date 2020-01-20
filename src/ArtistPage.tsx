@@ -5,6 +5,7 @@ import Artist from './library/Artist';
 import './ArtistPage.css';
 import runArtistModifier from './extensions/wiki/artists';
 import EditableAttribute from './EditableAttribute';
+import {shell} from 'electron';
 import defaultArtist from './resources/missing_artist.png';
 import NavigationBar from './NavigationBar';
 import React from 'react';
@@ -56,6 +57,10 @@ class ArtistPage extends React.Component<ArtistPageProps> {
                   this.props.artist.name = value;
                 }}
               />
+              <div>
+                <label>Wiki Page: </label>
+                <span className="link" onClick={this.openWiki.bind(this)}>{this.props.artist.wikiPage}</span>
+              </div>
               <button onClick={this.runWiki.bind(this)}>
                 Run Wiki Extension
               </button>
@@ -99,6 +104,12 @@ class ArtistPage extends React.Component<ArtistPageProps> {
       </div>
 
     );
+  }
+
+  private openWiki(): void {
+    if (this.props.artist.wikiPage) {
+      shell.openExternal(this.props.artist.wikiPage);
+    }
   }
 }
 
