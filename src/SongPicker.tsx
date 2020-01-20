@@ -1,4 +1,6 @@
 import {save, setPlaylist} from './redux/actions';
+import {getPlaylists} from './redux/selectors';
+import Playlist from './library/Playlist';
 import Album from './library/Album';
 import Artist from './library/Artist';
 import {remote} from 'electron';
@@ -35,6 +37,7 @@ interface StateProps {
   getArtistsByIds(ids: number[]): Artist[];
   getAlbumsByIds(ids: number[]): Album[];
   getGenresByIds(ids: number[]): string[];
+  playlists: Playlist[];
 }
 
 interface OwnProps {
@@ -284,6 +287,17 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     }
     menu.append(new remote.MenuItem({label: 'Play Next', click: this.playNext.bind(this)}));
     menu.append(new remote.MenuItem({label: 'Favorite', click: this.favorite.bind(this)}));
+    const playlists = this.props.playlists.map((playlist) => {
+      return {
+        label: playlist.name,
+        click: () => {
+          const ids = this.state.selected.map((index) => this.state.songs[index].id);
+          playlist.trackIds.push(...ids);
+          this.props.save()
+        }
+      }
+    });
+    menu.append(new remote.MenuItem({label: 'Add To Playlist', submenu: playlists}));
     // TODO:
     //  - add to end of currently playing playlist
     //  - add to specific playlist
@@ -355,6 +369,7 @@ function mapStateToProps(store: RootState): StateProps {
     getAlbumsByIds: (ids: number[]) => getAlbumsByIds(store, ids),
     getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
     getGenresByIds: (ids: number[]) => getGenresByIds(store, ids),
+    playlists: getPlaylists(store),
   };
 }
 
