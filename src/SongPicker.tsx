@@ -1,16 +1,16 @@
 import {save, setPlaylist} from './redux/actions';
-import {getPlaylists} from './redux/selectors';
-import Playlist from './library/Playlist';
 import Album from './library/Album';
 import Artist from './library/Artist';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import Playlist from './library/Playlist';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
 import React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import SearchBar from './SearchBar';
+import {getPlaylists} from './redux/selectors';
 import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from './redux/selectors';
 import SongEditer from './SongEditer';
 import {RootState} from './redux/store';
@@ -34,10 +34,10 @@ interface SongPickerState {
 }
 
 interface StateProps {
+  playlists: Playlist[];
   getArtistsByIds(ids: number[]): Artist[];
   getAlbumsByIds(ids: number[]): Album[];
   getGenresByIds(ids: number[]): string[];
-  playlists: Playlist[];
 }
 
 interface OwnProps {
@@ -291,11 +291,11 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
       return {
         label: playlist.name,
         click: () => {
-          const ids = this.state.selected.map((index) => this.state.songs[index].id);
+          const ids = this.state.selected.map((songIndex) => this.state.songs[songIndex].id);
           playlist.trackIds.push(...ids);
-          this.props.save()
-        }
-      }
+          this.props.save();
+        },
+      };
     });
     menu.append(new remote.MenuItem({label: 'Add To Playlist', submenu: playlists}));
     // TODO:

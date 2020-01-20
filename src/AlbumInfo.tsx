@@ -1,8 +1,8 @@
-import "./AlbumInfo.css";
 import {save} from './redux/actions';
 import {setPlaylist} from './redux/actions';
 import Album from './library/Album';
 import AlbumEditer from './AlbumEditer';
+import './AlbumInfo.css';
 import Artist from './library/Artist';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
