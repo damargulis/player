@@ -1,0 +1,11 @@
+
+.info-label {
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100px;
+  position: relative;
+  left: -50%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10px;
+}

@@ -1,3 +1,4 @@
+import "./AlbumInfo.css";
 import {save} from './redux/actions';
 import {setPlaylist} from './redux/actions';
 import Album from './library/Album';
@@ -63,6 +64,7 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
       paddingLeft: (width - 150) / 2,
       paddingRight: (width - 150) / 2,
       width: 150,
+      overflow: 'hidden',
     };
     if (!this.props.album) {
       return (
@@ -100,10 +102,10 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
             style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />
-          <div style={{position: 'relative', left: '-50%', textAlign: 'center'}} >
+          <div className="info-label" >
             {this.props.album.name}
           </div>
-          <div style={{position: 'relative', left: '-50%', textAlign: 'center'}} >
+          <div className="info-label" >
             {artists}
           </div>
         </div>

@@ -84,16 +84,12 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
       <div className="main" >
         <div id="sortPicker" style={{textAlign: 'center'}}>
           <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
-          <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist
-          </button>
+          <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist</button>
           <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
           <button onClick={() => this.withErrors()}>Show Wiki Status</button>
           <SearchBar onSearch={(search: string) => this.onSearch(search)} />
         </div>
-        <WrappedGrid
-          cellRenderer={this.cellRenderer.bind(this)}
-          numItems={items.length}
-        />
+        <WrappedGrid cellRenderer={this.cellRenderer.bind(this)} numItems={items.length} />
       </div>
     );
   }
