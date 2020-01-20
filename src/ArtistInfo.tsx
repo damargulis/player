@@ -94,11 +94,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
             style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />
-          <div
-            style={{position: 'relative', left: '-50%', textAlign: 'center'}}
-          >
-            {artist.name}
-          </div>
+          <div className="info-label" >{artist.name}</div>
         </div>
       </div>
     );
