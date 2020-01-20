@@ -34,9 +34,25 @@
 }
 
 .remove {
+  float: right;
   margin-left: 10px;
   color: red;
   cursor: pointer;
   border: solid red 1px;
   border-radius: 50%;
+}
+
+.sectionLabel {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.add {
+  float: right;
+  background-color: green;
+  border-radius: 50%;
+  height: 15px;
+  width: 15px;
+  text-align: center;
+  cursor: pointer;
 }

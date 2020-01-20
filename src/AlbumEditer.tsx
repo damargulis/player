@@ -26,7 +26,7 @@ interface DispatchProps {
   save(): void;
 }
 
-const GRID = 8;
+const GRID = 4;
 
 type AlbumEditerProps = OwnProps & StateProps & DispatchProps;
 
@@ -38,9 +38,11 @@ interface AlbumEditerState {
 }
 
 const getListStyle = (isDraggingOver: boolean) => ({
+  height: '400px',
+  overflow: 'scroll',
   background: isDraggingOver ? 'lightblue' : 'lightgrey',
   padding: GRID,
-  width: 250,
+  width: '100%',
 });
 
 function getItemStyle(isDragging: boolean, draggableStyle?: React.CSSProperties): React.CSSProperties {
@@ -129,6 +131,7 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
           <label className="label">Wiki page:</label>
           <input className="input" defaultValue={album.wikiPage} ref={this.wikiPage} />
         </div>
+        <h5 className="sectionLabel">Tracks: <span onClick={this.addTrack.bind(this)} className="add">+</span></h5>
         <DragDropContext onDragEnd={this.onDragEnd.bind(this)} >
           <Droppable droppableId="droppable">
             {(provided, snapshot) => (
@@ -185,6 +188,11 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
     const trackIds = this.state.trackIds;
     trackIds.splice(index, 1);
     this.setState({trackIds});
+  }
+
+  private addTrack(): void {
+    // TODO:
+    alert('Not implemented yet! Complain if you actually want to use this');
   }
 }
 
