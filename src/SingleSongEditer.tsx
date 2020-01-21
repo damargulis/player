@@ -1,3 +1,4 @@
+import AttributeEditer from "./AttributeEditer";
 import {save} from './redux/actions';
 import Album from './library/Album';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
@@ -36,9 +37,9 @@ interface SingleSongEditerState {
 }
 
 class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSongEditerState> {
-  private name = React.createRef<HTMLInputElement>();
-  private year = React.createRef<HTMLInputElement>();
-  private playCount = React.createRef<HTMLInputElement>();
+  private name = React.createRef<AttributeEditer>();
+  private year = React.createRef<AttributeEditer>();
+  private playCount = React.createRef<AttributeEditer>();
 
   constructor(props: SingleSongEditerProps) {
     super(props);
@@ -80,22 +81,13 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
     return (
       <div>
         <h3 className="title">Edit Track</h3>
-        <div className="edit-container">
-          <label className="label" >Name: </label>
-          <input className="input" defaultValue={track.name} placeholder="Name" ref={this.name} />
-        </div>
+        <AttributeEditer name="Name" val={track.name} ref={this.name} />
         <ArtistAttributeEditor artistIds={this.state.artistIds} />
         <AlbumAttributeEditor albumIds={this.state.albumIds} />
-        <div className="edit-container">
-          <label className="label" >Year: </label>
-          <input className="input" defaultValue={track.year} placeholder="Year" ref={this.year} type="number" />
-        </div>
+        <AttributeEditer name="Year" val={track.year} ref={this.year} />
         <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
-        <div className="edit-container">
-          <label className="label">Play Count:</label>
-          <input className="input" defaultValue={track.playCount} ref={this.playCount} type="number" />
-        </div>
+        <AttributeEditer name="Play Count" val={track.playCount} ref={this.playCount} />
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>
           <button onClick={this.props.exit}>Cancel</button>

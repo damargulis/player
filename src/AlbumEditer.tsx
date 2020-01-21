@@ -1,4 +1,6 @@
+// TODO: rename all editer to editor lol
 import {save} from './redux/actions';
+import AttributeEditer from "./AttributeEditer";
 import Album from './library/Album';
 import Artist from './library/Artist';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
@@ -63,10 +65,10 @@ function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
 }
 
 class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
-  private name = React.createRef<HTMLInputElement>();
-  private year = React.createRef<HTMLInputElement>();
-  private playCount = React.createRef<HTMLInputElement>();
-  private wikiPage = React.createRef<HTMLInputElement>();
+  private name = React.createRef<AttributeEditer>();
+  private year = React.createRef<AttributeEditer>();
+  private playCount = React.createRef<AttributeEditer>();
+  private wikiPage = React.createRef<AttributeEditer>();
 
   constructor(props: AlbumEditerProps) {
     super(props);
@@ -112,25 +114,13 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
     return (
       <div>
         <h3 className="title">Edit Album</h3>
-        <div className="edit-container">
-          <label className="label">Name: </label>
-          <input className="input" defaultValue={album.name} placeholder="Name" ref={this.name} />
-        </div>
+        <AttributeEditer name="Name" val={album.name} ref={this.name} />
         <ArtistAttributeEditor artistIds={this.state.artistIds} />
-        <div className="edit-container">
-          <label className="label">Year: </label>
-          <input className="input" defaultValue={album.year} placeholder="Year" ref={this.year} type="number" />
-        </div>
+        <AttributeEditer name="Year" val={album.year} ref={this.year} />
         <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
-        <div className="edit-container">
-          <label className="label">Play Count:</label>
-          <input className="input" defaultValue={album.playCount} ref={this.playCount} type="number" />
-        </div>
-        <div className="edit-container">
-          <label className="label">Wiki page:</label>
-          <input className="input" defaultValue={album.wikiPage} ref={this.wikiPage} />
-        </div>
+        <AttributeEditer name="Play Count" val={album.playCount} ref={this.playCount} />
+        <AttributeEditer name="Wiki Page" val={album.wikiPage} ref={this.wikiPage} />
         <h5 className="sectionLabel">Tracks: <span onClick={this.addTrack.bind(this)} className="add">+</span></h5>
         <DragDropContext onDragEnd={this.onDragEnd.bind(this)} >
           <Droppable droppableId="droppable">

@@ -1,4 +1,5 @@
 import {save} from './redux/actions';
+import AttributeEditer from "./AttributeEditer";
 import Album from './library/Album';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
 import Artist from './library/Artist';
@@ -43,8 +44,8 @@ interface MultipleSongEditerState {
 }
 
 class MultipleSongEditer extends React.Component<MultipleSongEditerProps, MultipleSongEditerState> {
-  private year = React.createRef<HTMLInputElement>();
-  private playCount = React.createRef<HTMLInputElement>();
+  private year = React.createRef<AttributeEditer>();
+  private playCount = React.createRef<AttributeEditer>();
 
   constructor(props: MultipleSongEditerProps) {
     super(props);
@@ -90,15 +91,7 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
           label="Year"
           toggleEdit={this.editYear.bind(this)}
         >
-          <div className="edit-container">
-            <label className="label">Year: </label>
-            <input
-              className="input"
-              placeholder="Year"
-              ref={this.year}
-              type="number"
-            />
-          </div>
+          <AttributeEditer name="Year" ref={this.year} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editGenre}
@@ -119,15 +112,7 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
           label="Play Count"
           toggleEdit={this.editPlayCount.bind(this)}
         >
-          <div className="edit-container">
-            <label className="label">Play Count: </label>
-            <input
-              className="input"
-              placeholder="Play Count"
-              ref={this.playCount}
-              type="number"
-            />
-          </div>
+          <AttributeEditer name="Play Count" ref={this.playCount} />
         </ToggableEditableAttribute>
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>
