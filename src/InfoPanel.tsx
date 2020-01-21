@@ -1,7 +1,7 @@
 import Album from './library/Album';
 import Artist from './library/Artist';
 import {ipcRenderer} from 'electron';
-import Marquee from './Marquee';
+import Links from './Links';
 import defaultAlbum from './resources/missing_album.png';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -31,6 +31,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
 
   public render(): JSX.Element {
     const {track, albums} = this.props;
+    const tracks = track ? [track] : [];
     const album = albums[0];
     const src = album && album.albumArtFile ? getImgSrc(album.albumArtFile) : defaultAlbum;
     // TODO: make rotate instead -- conditionally on playlist type??
@@ -43,9 +44,15 @@ class InfoPanel extends React.Component<InfoPanelProps> {
       <div id="info-panel" style={{display: 'flex'}}>
         <img alt="album-art" onClick={() => this.onImageClick()} src={src} style={imgStyle} />
         <div style={{display: 'grid'}}>
-          <div className="track-label" id="name">{this.getNameLink()}</div>
-          <div className="track-label" id="author">{this.getArtistLinks()}</div>
-          <div className="track-label" id="album">{this.getAlbumLinks()}</div>
+          <div className="track-label" id="name">
+            <Links items={tracks} goToItem={this.props.goToSong} name="Track Name" />
+          </div>
+          <div className="track-label" id="author">
+            <Links items={this.props.artists} goToItem={this.props.goToArtist} name="Artists" />
+          </div>
+          <div className="track-label" id="album">
+            <Links items={this.props.albums} goToItem={this.props.goToAlbum} name="Albums" />
+          </div>
           <div className="track-label" id="year">{track ? track.year : 'Year'}</div>
         </div>
       </div>
@@ -66,58 +73,6 @@ class InfoPanel extends React.Component<InfoPanelProps> {
     }
   }
 
-  private getArtistLinks(): JSX.Element | string {
-    const {artists} = this.props;
-    if (!artists.length) {
-      return 'Artists';
-    }
-    return (
-      <Marquee>
-        {
-          artists.map((artist) => {
-            return (
-              <span key={artist.id} className="link" onClick={() => this.props.goToArtist(artist)}>
-                {artist.name}
-              </span>
-            );
-          })
-        }
-      </Marquee>
-    );
-  }
-
-  private getAlbumLinks(): JSX.Element | string {
-    const {albums} = this.props;
-    if (!albums.length) {
-      return 'Albums';
-    }
-    return (
-      <Marquee>
-        {
-          albums.map((album) => {
-            return (
-              <span key={album.id} className="link" onClick={() => this.props.goToAlbum(album)}>
-                {album.name}
-              </span>
-            );
-          })
-        }
-      </Marquee>
-    );
-  }
-
-  private getNameLink(): JSX.Element | string {
-    if (this.props.track) {
-      return (
-        <Marquee>
-          <span className="link" onClick={() => this.goToSong(this.props.track)} >
-            {this.props.track.name}
-          </span>
-        </Marquee>
-      );
-    }
-    return 'Track Name';
-  }
 }
 
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {

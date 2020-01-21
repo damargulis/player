@@ -7,6 +7,7 @@ import Artist from './library/Artist';
 import {shell} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
+import Links from './Links';
 import defaultAlbum from './resources/missing_album.png';
 import NavigationBar from './NavigationBar';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
@@ -77,7 +78,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             />
             <img alt="album art" height="100" src={src} width="100" />
             <div>{this.props.album.name}</div>
-            {this.getArtistLinks()}
+            <Links items={this.props.artists} goToItem={this.props.goToArtist} name="Artists" />
             <div>Total Time: {this.getTotalTime()}</div>
             <div>{this.props.album.year}</div>
             <WikiLabel wikiPage={this.props.album.wikiPage} />
@@ -157,18 +158,6 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
         }
       </div>
     );
-  }
-
-  private getArtistLinks(): JSX.Element[] | undefined {
-    return this.props.artists.map((artist: Artist) => {
-      return (
-        <div key={artist.id}>
-          <div className="link" onClick={() => this.props.goToArtist(artist)}>
-            {artist.name}
-          </div>
-        </div>
-      );
-    });
   }
 
   private getTotalTime(): string {
