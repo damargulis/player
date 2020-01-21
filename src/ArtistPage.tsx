@@ -5,7 +5,6 @@ import Artist from './library/Artist';
 import './ArtistPage.css';
 import runArtistModifier from './extensions/wiki/artists';
 import EditableAttribute from './EditableAttribute';
-import {shell} from 'electron';
 import defaultArtist from './resources/missing_artist.png';
 import NavigationBar from './NavigationBar';
 import React from 'react';
@@ -100,12 +99,6 @@ class ArtistPage extends React.Component<ArtistPageProps> {
       </div>
 
     );
-  }
-
-  private openWiki(): void {
-    if (this.props.artist.wikiPage) {
-      shell.openExternal(this.props.artist.wikiPage);
-    }
   }
 }
 

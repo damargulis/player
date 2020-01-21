@@ -43,7 +43,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     }
   }
 
-  // reuse the grid from album view?
+  // TODO reuse the grid from album view?
   // source pictures from wikipedia, rotate album covers as backup
   public render(): JSX.Element {
     const items = this.state.sortedArtists;

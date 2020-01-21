@@ -4,7 +4,6 @@ import AlbumEditer from './AlbumEditer';
 import './AlbumPage.css';
 import runAlbumModifier from './extensions/wiki/albums';
 import Artist from './library/Artist';
-import {shell} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
@@ -88,9 +87,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
           </div>
           <div className="albumPageControls" >
             <button onClick={this.playAlbum.bind(this)} className="playAlbum" >Play Album</button>
-            <div className="likeButtonContainer">
-              <LikeButton item={this.props.album} />
-            </div>
+            <div className="likeButtonContainer"><LikeButton item={this.props.album}/></div>
             <button onClick={this.editAlbum.bind(this)} className="editAlbum" >Edit Album</button>
           </div>
           {this.getErrors()}
@@ -176,12 +173,6 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
 
   private closeEdit(): void {
     this.setState({editing: false});
-  }
-
-  private openWiki(): void {
-    if (this.props.album.wikiPage) {
-      shell.openExternal(this.props.album.wikiPage);
-    }
   }
 }
 

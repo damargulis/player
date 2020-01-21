@@ -67,9 +67,7 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
       overflow: 'hidden',
     };
     if (!this.props.album) {
-      return (
-        <div style={this.props.style} />
-      );
+      return <div style={this.props.style} />;
     }
     if (this.props.showStatus) {
       newStyle.backgroundColor = 'green';
@@ -102,12 +100,8 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
             style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />
-          <div className="info-label" >
-            {this.props.album.name}
-          </div>
-          <div className="info-label" >
-            {artists}
-          </div>
+          <div className="info-label" >{this.props.album.name}</div>
+          <div className="info-label" >{artists}</div>
         </div>
       </div>
     );

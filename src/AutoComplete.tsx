@@ -38,9 +38,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
           value={this.state.userInput}
         />
         {this.getSearchSuggestions()}
-        <button onClick={this.onSubmit.bind(this)}>
-          Add
-        </button>
+        <button onClick={this.onSubmit.bind(this)}>Add</button>
       </>
     );
   }

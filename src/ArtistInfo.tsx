@@ -63,9 +63,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
   public render(): JSX.Element {
     const artist = this.props.artist;
     if (!artist) {
-      return (
-        <div style={this.props.style} />
-      );
+      return <div style={this.props.style} />;
     }
     // recenter with new width filling full space
     const width = this.props.style.width as number;
@@ -82,10 +80,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
     const file = artFiles[this.state.currentImg % artFiles.length];
     const src = file ? getImgSrc(file) : defaultArtist;
     return (
-      <div
-        onClick={() => this.props.goToArtist(artist)}
-        style={newStyle}
-      >
+      <div onClick={() => this.props.goToArtist(artist)} style={newStyle} >
         <div style={{position: 'absolute', left: '50%'}}>
           <img
             alt="artist art"
