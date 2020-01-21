@@ -1,4 +1,3 @@
-import WikiLabel from "./WikiLabel";
 import {save, setPlaylist} from './redux/actions';
 import Album from './library/Album';
 import AlbumEditer from './AlbumEditer';
@@ -19,6 +18,7 @@ import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
 import Track from './library/Track';
 import {getImgSrc, toTime} from './utils';
+import WikiLabel from './WikiLabel';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement('#root');

@@ -89,15 +89,6 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     }
   }
 
-  private setScroll(): void {
-    const scrollTo = this.state.songs.findIndex((song) => {
-      return song.id === this.props.scrollToSongId;
-    })
-    if (scrollTo) {
-      this.setState({scrollTo, selected: [scrollTo]});
-    }
-  }
-
   public render(): JSX.Element {
     const selectedSongs = this.state.selected.map((songId) => {
       return this.state.songs[songId];
@@ -142,6 +133,15 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
         </AutoSizer>
       </div>
     );
+  }
+
+  private setScroll(): void {
+    const scrollTo = this.state.songs.findIndex((song) => {
+      return song.id === this.props.scrollToSongId;
+    });
+    if (scrollTo) {
+      this.setState({scrollTo, selected: [scrollTo]});
+    }
   }
 
   private sortSongs(sortBy: string, sortDirection: string): Track[] {

@@ -1,3 +1,4 @@
+import './PlaylistTypePicker.css';
 import React from 'react';
 
 interface PlaylistTypePickerProps {
@@ -9,25 +10,11 @@ export default class PlaylistTypePicker extends React.Component<PlaylistTypePick
   public render(): JSX.Element {
     return (
       <div id="playlist-picker">
-        <select size={4}
-          style={{width: '80%', height: '80%', margin: '10%'}}
-        >
-          <option onClick={() => this.props.setType('album')}
-            style={{padding: '5px'}}
-          >Albums
-          </option>
-          <option onClick={() => this.props.setType('artist')}
-            style={{padding: '5px'}}
-          >Artists
-          </option>
-          <option onClick={() => this.props.setType('song')}
-            style={{padding: '5px'}}
-          >Songs
-          </option>
-          <option onClick={() => this.props.setType('playlist')}
-            style={{padding: '5px'}}
-          >Playlists
-          </option>
+        <select size={4} className="playlist-type-container">
+          <option onClick={() => this.props.setType('album')} className="playlist-type-option" >Albums</option>
+          <option onClick={() => this.props.setType('artist')} className="playlist-type-option" >Artists</option>
+          <option onClick={() => this.props.setType('song')} className="playlist-type-option" >Songs</option>
+          <option onClick={() => this.props.setType('playlist')} className="playlist-type-option" >Playlists</option>
         </select>
       </div>
     );

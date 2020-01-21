@@ -1,0 +1,10 @@
+
+.playlist-type-container {
+  width: '80%';
+ height: '80%';
+ margin: '10%';
+}
+
+.playlist-type-option {
+  padding: 5px;
+}

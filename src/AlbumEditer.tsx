@@ -1,9 +1,9 @@
 // TODO: rename all editer to editor lol
 import {save} from './redux/actions';
-import AttributeEditer from "./AttributeEditer";
 import Album from './library/Album';
 import Artist from './library/Artist';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
+import AttributeEditer from './AttributeEditer';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
 import React from 'react';

@@ -1,4 +1,3 @@
-import WikiLabel from "./WikiLabel";
 import {save} from './redux/actions';
 import Album from './library/Album';
 import AlbumPicker from './AlbumPicker';
@@ -16,6 +15,7 @@ import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
 import Track from './library/Track';
 import {getImgSrc} from './utils';
+import WikiLabel from './WikiLabel';
 
 interface StateProps {
   albums: Album[];
