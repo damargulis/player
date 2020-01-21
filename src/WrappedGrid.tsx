@@ -26,7 +26,7 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
           // TODO: make 150 a prop (w/ default?)
           this.numCols = Math.floor(width / 150);
           const rows = Math.ceil(this.props.numItems / this.numCols);
-          if (this.numCols <= 0 || this.numCols <= 0) {
+          if (this.numCols <= 0) {
             return;
           }
           return (
