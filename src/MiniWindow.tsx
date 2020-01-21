@@ -26,6 +26,7 @@ class MiniWindow extends React.Component {
       </div>
     );
   }
+
   private goToSong(song: Track): void {
     ipcRenderer.send('goToSong', {song});
   }

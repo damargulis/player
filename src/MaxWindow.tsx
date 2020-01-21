@@ -181,10 +181,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     switch (this.state.playlistType) {
     case 'album':
       return (
-        <AlbumPicker
-          albums={this.props.getAlbumsByGenres(this.state.genres)}
-          goToAlbum={this.goToAlbum.bind(this)}
-        />
+        <AlbumPicker albums={this.props.getAlbumsByGenres(this.state.genres)} goToAlbum={this.goToAlbum.bind(this)} />
       );
     case 'artist':
       return (
@@ -194,17 +191,9 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         />
       );
     case 'song':
-      return (
-        <SongPicker
-          songs={this.props.getTracksByGenres(this.state.genres)}
-        />
-      );
+      return <SongPicker songs={this.props.getTracksByGenres(this.state.genres)} />;
     case 'playlist':
-      return (
-        <PlaylistPicker
-          goToPlaylist={this.goToPlaylist.bind(this)}
-        />
-      );
+      return <PlaylistPicker goToPlaylist={this.goToPlaylist.bind(this)} />;
     default:
       return;
     }

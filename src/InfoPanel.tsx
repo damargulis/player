@@ -41,24 +41,12 @@ class InfoPanel extends React.Component<InfoPanelProps> {
       : {height: 70, width: 70, padding: 15};
     return (
       <div id="info-panel" style={{display: 'flex'}}>
-        <img alt="album-art"
-          onClick={() => this.onImageClick()}
-          src={src}
-          style={imgStyle}
-        />
+        <img alt="album-art" onClick={() => this.onImageClick()} src={src} style={imgStyle} />
         <div style={{display: 'grid'}}>
-          <div className="track-label" id="name">
-            {this.getNameLink()}
-          </div>
-          <div className="track-label" id="author">
-            {this.getArtistLinks()}
-          </div>
-          <div className="track-label" id="album">
-            {this.getAlbumLinks()}
-          </div>
-          <div className="track-label" id="year">
-            {track ? track.year : 'Year'}
-          </div>
+          <div className="track-label" id="name">{this.getNameLink()}</div>
+          <div className="track-label" id="author">{this.getArtistLinks()}</div>
+          <div className="track-label" id="album">{this.getAlbumLinks()}</div>
+          <div className="track-label" id="year">{track ? track.year : 'Year'}</div>
         </div>
       </div>
     );

@@ -11,11 +11,7 @@ export default class NavigationBar extends React.Component<NavigationBarProps> {
     return (
       <div>
         <button onClick={this.props.goBack}>&lt;</button>
-        <button
-          disabled={!this.props.canGoForward}
-          onClick={this.props.goForward}
-        >&gt;
-        </button>
+        <button disabled={!this.props.canGoForward} onClick={this.props.goForward} >&gt;</button>
       </div>
     );
   }

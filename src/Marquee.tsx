@@ -30,9 +30,7 @@ export default class Marquee extends React.Component<{}, MarqueeState> {
 
   public render(): JSX.Element {
     return (
-      <span ref={this.marquee} className={this.state.marquee ? 'marquee' : ''}>
-        {this.props.children}
-      </span>
+      <span ref={this.marquee} className={this.state.marquee ? 'marquee' : ''}>{this.props.children}</span>
     );
   }
 
