@@ -70,7 +70,6 @@
     "electron-rebuild": "^1.8.6",
     "es6-promise-pool": "^2.5.0",
     "eslint-plugin-react": "^7.17.0",
-    "invariant": "^2.2.4",
     "jimp": "^0.8.4",
     "libxmljs": "^0.19.7",
     "moment": "^2.24.0",
