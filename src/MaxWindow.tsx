@@ -119,7 +119,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <SongPicker
-        scrollToSong={song}
+        scrollToSongId={song.id}
         songs={this.props.getTracksByGenres(this.state.genres)}
       />,
     );

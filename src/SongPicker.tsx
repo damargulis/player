@@ -28,6 +28,7 @@ interface SongPickerState {
   sortDirection: Sort;
   songs: Track[];
   selected: number[];
+  scrollTo: number;
   lastSelected?: number;
   search: string;
   editing: boolean;
@@ -42,7 +43,7 @@ interface StateProps {
 
 interface OwnProps {
   songs: Track[];
-  scrollToSong?: Track;
+  scrollToSongId?: number;
   sortBy?: string;
 }
 
@@ -69,28 +70,35 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
       songs,
       sortBy,
       sortDirection,
+      scrollTo: -1,
     };
   }
 
   public componentDidMount(): void {
     this.sort(this.state);
+    this.setScroll();
   }
 
   public componentDidUpdate(prevProps: SongPickerProps): void {
     if (prevProps.songs !== this.props.songs) {
       this.sort(this.state);
     }
+    // TODO: scroll doesnt happen again if you click same song title, maybe change this to an action?
+    if (prevProps.scrollToSongId !== this.props.scrollToSongId) {
+      this.setScroll();
+    }
+  }
+
+  private setScroll(): void {
+    const scrollTo = this.state.songs.findIndex((song) => {
+      return song.id === this.props.scrollToSongId;
+    })
+    if (scrollTo) {
+      this.setState({scrollTo, selected: [scrollTo]});
+    }
   }
 
   public render(): JSX.Element {
-    // TODO: do this by id or something instead, this kind of check is bad but needed
-    // because object gets serialized from miniwindow -> maxwindow
-    const scrollToSong = this.props.scrollToSong;
-    const scrollTo = scrollToSong
-      ? this.state.songs.findIndex((song) => {
-        return song.id === scrollToSong.id;
-      })
-      : -1;
     const selectedSongs = this.state.selected.map((songId) => {
       return this.state.songs[songId];
     });
@@ -114,7 +122,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
                 rowGetter={({index}) => this.getSongData(index)}
                 rowHeight={15}
                 rowStyle={this.getRowStyle.bind(this)}
-                scrollToIndex={scrollTo}
+                scrollToIndex={this.state.scrollTo}
                 sort={this.sort.bind(this)}
                 sortBy={this.state.sortBy}
                 sortDirection={this.state.sortDirection}
