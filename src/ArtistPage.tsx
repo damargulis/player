@@ -1,3 +1,4 @@
+import WikiLabel from "./WikiLabel";
 import {save} from './redux/actions';
 import Album from './library/Album';
 import AlbumPicker from './AlbumPicker';
@@ -57,10 +58,7 @@ class ArtistPage extends React.Component<ArtistPageProps> {
                   this.props.artist.name = value;
                 }}
               />
-              <div>
-                <label>Wiki Page: </label>
-                <span className="link" onClick={this.openWiki.bind(this)}>{this.props.artist.wikiPage}</span>
-              </div>
+              <WikiLabel wikiPage={this.props.artist.wikiPage} />
               <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
             </div>
             {this.getErrors()}
