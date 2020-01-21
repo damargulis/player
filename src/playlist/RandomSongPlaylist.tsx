@@ -17,7 +17,7 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
   }
 
   public nextTrack(): number | undefined {
-    // todo: switch to play through and reshuffle on repeat only
+    // TODO: switch to play through and reshuffle on repeat only
     this.currentTrack++;
     if (this.playlist.length <= this.currentTrack) {
       this.playlist.push(this.tracks[

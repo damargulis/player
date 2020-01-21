@@ -62,7 +62,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     // ya know actually separate conscers and shit
     const file = this.props.album.albumArtFile;
     const src = file ? getImgSrc(file).toString() : defaultAlbum;
-    // todo: set playSong to play an album playlist of by artist ?
+    // TODO: set playSong to play an album playlist of by artist ?
     return (
       <div className="main">
         <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>

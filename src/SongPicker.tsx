@@ -83,7 +83,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   }
 
   public render(): JSX.Element {
-    // do this by id or something instead, this kind of check is bad but needed
+    // TODO: do this by id or something instead, this kind of check is bad but needed
     // because object gets serialized from miniwindow -> maxwindow
     const scrollToSong = this.props.scrollToSong;
     const scrollTo = scrollToSong

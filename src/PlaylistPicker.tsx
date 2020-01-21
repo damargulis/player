@@ -56,7 +56,7 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps> {
     );
   }
 
-  // todo: make wrappedGrids items actually work and get rid of this
+  // TODO: make wrappedGrids items actually work and get rid of this
   private autoCellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {
     const playlist = this.props.autoPlaylists[index];
     return this.renderPlaylist(index, key, style, playlist);
