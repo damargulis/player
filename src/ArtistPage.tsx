@@ -61,9 +61,7 @@ class ArtistPage extends React.Component<ArtistPageProps> {
                 <label>Wiki Page: </label>
                 <span className="link" onClick={this.openWiki.bind(this)}>{this.props.artist.wikiPage}</span>
               </div>
-              <button onClick={this.runWiki.bind(this)}>
-                Run Wiki Extension
-              </button>
+              <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
             </div>
             {this.getErrors()}
           </div>
