@@ -1,4 +1,4 @@
-import {nextTrack, prevTrack, save, setPlaylist, updateLibrary, updateTime} from './redux/actions';
+import {addPlay, nextTrack, prevTrack, save, setPlaylist, updateLibrary, updateTime} from './redux/actions';
 import {DATA_DIR} from './constants';
 import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
 import {ipcRenderer} from 'electron';
@@ -32,6 +32,7 @@ interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   playPause(): void;
   save(): void;
+  addPlay(item: Track): void;
 }
 
 type AppProps = DispatchProps & StateProps;
@@ -118,9 +119,10 @@ class App extends React.Component<AppProps, AppState> {
     this.audio.addEventListener('ended', () => {
       const track = this.props.track;
       if (track) {
-        track.playCount++;
-        track.playDate = new Date();
+        this.props.addPlay(track);
         this.props.save();
+        // track.playCount++;
+        // track.playDate = new Date();
       }
       this.props.nextTrack();
     });
@@ -188,4 +190,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps,
-  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, save})(App);
+  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, save, addPlay})(App);

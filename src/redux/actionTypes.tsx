@@ -6,6 +6,7 @@ import Playlist from '../library/Playlist';
 import Track from '../library/Track';
 
 export const UPDATE_TIME = 'UPDATE_TIME';
+export const ADD_PLAY = 'ADD_PLAY';
 export const UPDATE_LIBRARY = 'UPDATE_LIBRARY';
 export const CHANGE_VOLUME = 'CHANGE_VOLUME';
 export const NEXT_TRACK = 'NEXT_TRACK';
@@ -82,10 +83,20 @@ interface PlayPauseAction {
 }
 
 interface SetTimeAction {
- type: typeof SET_TIME;
+  type: typeof SET_TIME;
   payload: {time: number};
+}
+
+export interface Playable {
+  playCount: number;
+  playDate: Date;
+}
+
+interface AddPlayAction {
+  type: typeof ADD_PLAY;
+  payload: {item: Playable};
 }
 
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
-export type LibraryActionTypes = UpdateLibraryAction | SaveAction;
+export type LibraryActionTypes = UpdateLibraryAction | SaveAction | AddPlayAction;

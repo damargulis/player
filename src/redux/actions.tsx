@@ -1,8 +1,10 @@
 import {
+  ADD_PLAY,
   CHANGE_VOLUME,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
+  Playable,
   PREV_ALBUM,
   PREV_TRACK,
   SAVE,
@@ -61,4 +63,9 @@ export const save = () => ({
 export const setTime = (time: number) => ({
   payload: {time},
   type: SET_TIME,
+});
+
+export const addPlay = (item: Playable) => ({
+  payload: {item},
+  type: ADD_PLAY,
 });
