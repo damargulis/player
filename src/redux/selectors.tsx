@@ -1,8 +1,6 @@
 import {AlbumParams, Artist, PlaylistParams, Track} from './actionTypes';
 import {RootState} from './store';
 
-// TODO: SPLIT THIS UP!!!
-
 export function getTime(store: RootState): number {
   return store.currentlyPlaying.time;
 }

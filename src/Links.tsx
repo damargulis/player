@@ -9,7 +9,7 @@ interface Linkable {
 interface OwnProps<T> {
   items: T[];
   name: string;
-  goToItem(item: T): void;
+  goToItem(itemId: number): void;
 }
 
 type LinksProps<T> = OwnProps<T>;
@@ -24,7 +24,7 @@ export default class Links<T extends Linkable> extends React.Component<LinksProp
         {
           this.props.items.map((item) => {
             return (
-              <span key={item.id} className="link" onClick={() => this.props.goToItem(item)}>
+              <span key={item.id} className="link" onClick={() => this.props.goToItem(item.id)}>
                 {item.name}
               </span>
             );

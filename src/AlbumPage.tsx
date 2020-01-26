@@ -12,7 +12,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import {getArtistsByIds, getAlbumById, getTrackById, getTracksByIds} from './redux/selectors';
+import {getAlbumById, getArtistsByIds, getTrackById, getTracksByIds} from './redux/selectors';
 import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
 import {getImgSrc, toTime} from './utils';
@@ -24,16 +24,16 @@ Modal.setAppElement('#root');
 interface StateProps {
   artists: Artist[];
   tracks: Track[];
+  album: AlbumParams;
   getTracksByIds(ids: number[]): Track[];
   getTrackById(id: number): Track;
   runAlbumModifier(album: AlbumInfo): Promise<AlbumInfo>;
-  album: AlbumParams;
 }
 
 interface OwnProps {
   albumId: number;
   canGoForward: boolean;
-  goToArtist(artist: Artist): void;
+  goToArtist(artistId: number): void;
   goBack(): void;
   goForward(): void;
 }

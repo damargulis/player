@@ -8,7 +8,7 @@ import defaultArtist from './resources/missing_artist.png';
 import NavigationBar from './NavigationBar';
 import React from 'react';
 import {connect} from 'react-redux';
-import {getAlbumsByIds, getTracksByIds} from './redux/selectors';
+import {getAlbumsByIds, getArtistById, getTracksByIds} from './redux/selectors';
 import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
 import {getImgSrc} from './utils';
@@ -17,15 +17,16 @@ import WikiLabel from './WikiLabel';
 interface StateProps {
   albums: AlbumParams[];
   tracks: Track[];
+  artist: Artist;
   runArtistModifier(artist: Artist): Promise<ArtistInfo>;
 }
 
 interface OwnProps {
-  artist: Artist;
+  artistId: number;
   canGoForward: boolean;
   goBack(): void;
   goForward(): void;
-  goToAlbum(album: AlbumParams): void;
+  goToAlbum(albumId: number): void;
 }
 
 interface DispatchProps {
@@ -100,10 +101,12 @@ class ArtistPage extends React.Component<ArtistPageProps> {
 }
 
 function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+  const artist = getArtistById(store, ownProps.artistId);
   return {
-    albums: getAlbumsByIds(store, ownProps.artist.albumIds),
-    runArtistModifier: (artist: Artist) => runArtistModifier(store, artist),
-    tracks: getTracksByIds(store, ownProps.artist.trackIds),
+    albums: getAlbumsByIds(store, artist.albumIds),
+    runArtistModifier: (a: Artist) => runArtistModifier(store, a),
+    tracks: getTracksByIds(store, artist.trackIds),
+    artist: artist,
   };
 }
 

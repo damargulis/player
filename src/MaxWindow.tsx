@@ -74,18 +74,16 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     );
   }
 
-  private onSongMessage(evt: Event, data: {song: Track}): void {
-    this.goToSong(data.song);
+  private onSongMessage(evt: Event, data: {trackId: number}): void {
+    this.goToSong(data.trackId);
   }
 
-  private onAlbumMessage(evt: Event, data: {album: AlbumParams}): void {
-    const album = this.props.getAlbumById(data.album.id);
-    this.goToAlbum(album);
+  private onAlbumMessage(evt: Event, data: {albumId: number}): void {
+    this.goToAlbum(data.albumId);
   }
 
-  private onArtistMessage(evt: Event, data: {artist: Artist}): void {
-    const artist = this.props.getArtistById(data.artist.id);
-    this.goToArtist(artist);
+  private onArtistMessage(evt: Event, data: {artistId: number}): void {
+    this.goToArtist(data.artistId);
   }
 
   private setGenres(genres: number[]): void {
@@ -112,11 +110,11 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     return this.state.curScene < this.state.scenes.length - 1;
   }
 
-  private goToSong(song: Track): void {
+  private goToSong(trackId: number): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <SongPicker
-        scrollToSongId={song.id}
+        scrollToSongId={trackId}
         songs={this.props.getTracksByGenres(this.state.genres)}
       />,
     );
@@ -124,11 +122,11 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
-  private goToAlbum(album: AlbumParams): void {
+  private goToAlbum(albumId: number): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <AlbumPage
-        albumId={album.id}
+        albumId={albumId}
         canGoForward={this.canGoForward()}
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}
@@ -139,11 +137,11 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
-  private goToArtist(artist: Artist): void {
+  private goToArtist(artistId: number): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <ArtistPage
-        artist={artist}
+        artistId={artistId}
         canGoForward={this.canGoForward()}
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}

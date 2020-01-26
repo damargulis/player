@@ -11,7 +11,7 @@ import './App.css';
 
 interface OwnProps {
   albums: AlbumParams[];
-  goToAlbum(album: AlbumParams): void;
+  goToAlbum(albumId: number): void;
 }
 
 interface StateProps {
@@ -94,7 +94,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   }
 
   private goToAlbum(album: AlbumParams): void {
-    this.props.goToAlbum(album);
+    this.props.goToAlbum(album.id);
   }
 
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {

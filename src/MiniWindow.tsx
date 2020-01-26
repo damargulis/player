@@ -1,11 +1,8 @@
-import Album from './library/Album';
-import Artist from './library/Artist';
 import ControlPanel from './ControlPanel';
 import {ipcRenderer} from 'electron';
 import InfoPanel from './InfoPanel';
 import ProgressBar from './ProgressBar';
 import React from 'react';
-import Track from './library/Track';
 
 // TODO: set all css by doing .mini-window .innerClass {}
 class MiniWindow extends React.Component {
@@ -27,16 +24,16 @@ class MiniWindow extends React.Component {
     );
   }
 
-  private goToSong(song: Track): void {
-    ipcRenderer.send('goToSong', {song});
+  private goToSong(trackId: number): void {
+    ipcRenderer.send('goToSong', {trackId});
   }
 
-  private goToArtist(artist: Artist): void {
-    ipcRenderer.send('goToArtist', {artist});
+  private goToArtist(artistId: number): void {
+    ipcRenderer.send('goToArtist', {artistId});
   }
 
-  private goToAlbum(album: Album): void {
-    ipcRenderer.send('goToAlbum', {album});
+  private goToAlbum(albumId: number): void {
+    ipcRenderer.send('goToAlbum', {albumId});
   }
 }
 

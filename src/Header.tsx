@@ -1,15 +1,12 @@
-import Album from './library/Album';
-import Artist from './library/Artist';
 import ControlPanel from './ControlPanel';
 import InfoPanel from './InfoPanel';
 import ProgressBar from './ProgressBar';
 import React from 'react';
-import Track from './library/Track';
 
 interface HeaderProps {
-  goToAlbum(album: Album): void;
-  goToArtist(artist: Artist): void;
-  goToSong(track: Track): void;
+  goToAlbum(albumId: number): void;
+  goToArtist(artistId: number): void;
+  goToSong(trackId: number): void;
 }
 
 export default class Header extends React.Component<HeaderProps> {

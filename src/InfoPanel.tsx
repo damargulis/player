@@ -12,9 +12,9 @@ import './InfoPanel.css';
 
 interface OwnProps {
   small?: boolean;
-  goToAlbum(album: AlbumParams): void;
-  goToArtist(artist: Artist): void;
-  goToSong(track: Track): void;
+  goToAlbum(albumId: number): void;
+  goToArtist(artistId: number): void;
+  goToSong(trackId: number): void;
 }
 
 interface StateProps {
@@ -57,9 +57,9 @@ class InfoPanel extends React.Component<InfoPanelProps> {
     );
   }
 
-  private goToSong(song?: Track): void {
-    if (song) {
-      this.props.goToSong(song);
+  private goToSong(track?: Track): void {
+    if (track) {
+      this.props.goToSong(track.id);
     }
   }
 

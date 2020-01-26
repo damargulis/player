@@ -13,7 +13,7 @@ interface StateProps {
 interface OwnProps {
   artist?: Artist;
   style: React.CSSProperties;
-  goToArtist(artist: Artist): void;
+  goToArtist(artistId: number): void;
 }
 
 type ArtistInfoProps = OwnProps & StateProps;
@@ -80,7 +80,7 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
     const file = artFiles[this.state.currentImg % artFiles.length];
     const src = file ? getImgSrc(file) : defaultArtist;
     return (
-      <div onClick={() => this.props.goToArtist(artist)} style={newStyle} >
+      <div onClick={() => this.props.goToArtist(artist.id)} style={newStyle} >
         <div style={{position: 'absolute', left: '50%'}}>
           <img
             alt="artist art"
