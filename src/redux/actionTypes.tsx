@@ -1,28 +1,75 @@
-import Album from '../library/Album';
-import Artist from '../library/Artist';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import Library from '../library/Library';
-import Playlist from '../library/Playlist';
-import Track from '../library/Track';
 
 export const UPDATE_TIME = 'UPDATE_TIME';
-export const ADD_PLAY = 'ADD_PLAY';
+export const ADD_TO_PLAYLIST = 'ADD_TO_PLAYLIST';
 export const UPDATE_LIBRARY = 'UPDATE_LIBRARY';
 export const CHANGE_VOLUME = 'CHANGE_VOLUME';
 export const NEXT_TRACK = 'NEXT_TRACK';
 export const SET_PLAYLIST = 'SET_PLAYLIST';
 export const NEXT_ALBUM = 'NEXT_ALBUM';
+export const UPDATE_ALBUM = 'UPDATE_ALBUM';
+export const UPDATE_TRACK = 'UPDATE_TRACK';
+export const UPDATE_ARTIST = 'UPDATE_ARTIST';
 export const PREV_TRACK = 'PREV_TRACK';
 export const PREV_ALBUM = 'PREV_ALBUM';
 export const PLAY_PAUSE = 'PLAY_PAUSE';
-export const SAVE = 'SAVE';
 export const SET_TIME = 'SET_TIME';
+
+// TODO: figure out why this naming has to be weird?
+export interface PlaylistParams {
+  name: string;
+  trackIds: number[];
+}
+
+export interface Track {
+  id: number;
+  duration: number;
+  playCount: number;
+  playDate: Date;
+  filePath: string;
+  artistIds: number[];
+  albumIds: number[];
+  name: string;
+  year: number;
+  genreIds: number[];
+  skipCount: number;
+  dateAdded: Date;
+  favorites: number[];
+}
+
+export interface Artist {
+  id: number;
+  name: string;
+  albumIds: number[];
+  artFile?: string;
+  errors: string[];
+  wikiPage?: string;
+  genreIds: number[];
+  trackIds: number[];
+}
+
+export interface AlbumParams {
+  id: number;
+  warnings: Record<string, string>;
+  errors: string[];
+  albumArtFile?: string;
+  artistIds: number[];
+  name: string;
+  trackIds: number[];
+  year: number;
+  wikiPage?: string;
+  genreIds: number[];
+  playCount: number;
+  skipCount: number;
+  favorites: number[];
+}
 
 export interface LibraryState {
   tracks: Track[];
-  albums: Album[];
+  albums: AlbumParams[];
   artists: Artist[];
-  playlists: Playlist[];
+  playlists: PlaylistParams[];
   genres: string[];
 }
 
@@ -48,10 +95,6 @@ interface VolumeChangeAction {
 interface UpdateLibraryAction {
   type: typeof UPDATE_LIBRARY;
   payload: {library: Library};
-}
-
-interface SaveAction {
-  type: typeof SAVE;
 }
 
 interface NextTrackAction {
@@ -87,16 +130,70 @@ interface SetTimeAction {
   payload: {time: number};
 }
 
-export interface Playable {
-  playCount: number;
-  playDate: Date;
+export interface AlbumInfo {
+  warnings?: Record<string, string>;
+  errors?: string[];
+  albumArtFile?: string;
+  artistIds?: number[];
+  name?: string;
+  trackIds?: number[];
+  year?: number;
+  wikiPage?: string;
+  genreIds?: number[];
+  playCount?: number;
+  skipCount?: number;
+  favorites?: number[];
 }
 
-interface AddPlayAction {
-  type: typeof ADD_PLAY;
-  payload: {item: Playable};
+export interface ArtistInfo {
+  name?: string;
+  albumIds?: number[];
+  artFile?: string;
+  errors?: string[];
+  wikiPage?: string;
+  genreIds?: number[];
+  trackIds?: number[];
+}
+
+export interface TrackInfo {
+  duration?: number;
+  playCount?: number;
+  playDate?: Date;
+  filePath?: string;
+  artistIds?: number[];
+  albumIds?: number[];
+  name?: string;
+  year?: number;
+  genreIds?: number[];
+  skipCount?: number;
+  dateAdded?: Date;
+  favorites?: number[];
+}
+
+interface UpdateAlbum {
+  type: typeof UPDATE_ALBUM;
+  payload: {
+    info: AlbumInfo;
+    id: number;
+  };
+}
+
+interface UpdateArtist {
+  type: typeof UPDATE_ARTIST;
+  payload: {
+    info: ArtistInfo;
+    id: number;
+  };
+}
+
+interface UpdateTrack {
+  type: typeof UPDATE_TRACK;
+  payload: {
+    info: TrackInfo;
+    id: number;
+  };
 }
 
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
-export type LibraryActionTypes = UpdateLibraryAction | SaveAction | AddPlayAction;
+export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack;

@@ -1,7 +1,6 @@
-import {save} from './redux/actions';
-import Album from './library/Album';
+import {updateArtist} from './redux/actions';
+import {AlbumParams, Artist, ArtistInfo, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
-import Artist from './library/Artist';
 import './ArtistPage.css';
 import runArtistModifier from './extensions/wiki/artists';
 import EditableAttribute from './EditableAttribute';
@@ -12,14 +11,13 @@ import {connect} from 'react-redux';
 import {getAlbumsByIds, getTracksByIds} from './redux/selectors';
 import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
-import Track from './library/Track';
 import {getImgSrc} from './utils';
 import WikiLabel from './WikiLabel';
 
 interface StateProps {
-  albums: Album[];
+  albums: AlbumParams[];
   tracks: Track[];
-  runArtistModifier(artist: Artist): Promise<void>;
+  runArtistModifier(artist: Artist): Promise<ArtistInfo>;
 }
 
 interface OwnProps {
@@ -27,11 +25,11 @@ interface OwnProps {
   canGoForward: boolean;
   goBack(): void;
   goForward(): void;
-  goToAlbum(album: Album): void;
+  goToAlbum(album: AlbumParams): void;
 }
 
 interface DispatchProps {
-  save(): void;
+  updateArtist(id: number, info: ArtistInfo): void;
 }
 
 type ArtistPageProps = OwnProps & StateProps & DispatchProps;
@@ -76,9 +74,8 @@ class ArtistPage extends React.Component<ArtistPageProps> {
   }
 
   private runWiki(): void {
-    this.props.runArtistModifier(this.props.artist).then(() => {
-      this.props.save();
-      this.forceUpdate();
+    this.props.runArtistModifier(this.props.artist).then((info: ArtistInfo) => {
+      this.props.updateArtist(this.props.artist.id, info);
     });
   }
 
@@ -110,4 +107,4 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {save})(ArtistPage);
+export default connect(mapStateToProps, {updateArtist})(ArtistPage);

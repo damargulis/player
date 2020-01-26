@@ -1,4 +1,4 @@
-import Artist from './library/Artist';
+import {Artist} from './redux/actionTypes';
 import ArtistInfo from './ArtistInfo';
 import React from 'react';
 import SearchBar from './SearchBar';

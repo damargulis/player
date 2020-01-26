@@ -1,21 +1,27 @@
-import {save} from './redux/actions';
-import Album from './library/Album';
 import favoriteButton from './resources/favorite.png';
 import * as React from 'react';
 import {connect} from 'react-redux';
-import Track from './library/Track';
+
+interface Likeable {
+  id: number;
+  favorites: number[];
+}
+
+interface LikeableInternal {
+  favorites: number[];
+}
 
 interface DispatchProps {
-  save(): void;
 }
 
-interface OwnProps {
-  item?: Album | Track;
+interface OwnProps<T> {
+  item?: T;
+  update(id: number, item: LikeableInternal): void;
 }
 
-type LikeButtonProps = DispatchProps & OwnProps;
+type LikeButtonProps<T> = DispatchProps & OwnProps<T>;
 
-class LikeButton extends React.Component<LikeButtonProps> {
+class LikeButton<T extends Likeable> extends React.Component<LikeButtonProps<T>> {
 
   public render(): JSX.Element {
     const year = new Date().getFullYear();
@@ -38,16 +44,16 @@ class LikeButton extends React.Component<LikeButtonProps> {
     if (!this.props.item) {
       return;
     }
+    const favorites = this.props.item.favorites.slice();
     const year = new Date().getFullYear();
-    const index = this.props.item.favorites.indexOf(year);
+    const index = favorites.indexOf(year);
     if (index === -1) {
-      this.props.item.favorites.push(year);
+      favorites.push(year);
     } else {
-      this.props.item.favorites.splice(index, 1);
+      favorites.splice(index, 1);
     }
-    this.props.save();
-    this.forceUpdate();
+    this.props.update(this.props.item.id, {favorites: favorites});
   }
 }
 
-export default connect(null, {save})(LikeButton);
+export default connect(null, {})(LikeButton);

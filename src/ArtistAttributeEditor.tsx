@@ -1,4 +1,4 @@
-import Artist from './library/Artist';
+import {Artist} from './redux/actionTypes';
 import AttributeList from './AttributeList';
 import React from 'react';
 import {connect} from 'react-redux';

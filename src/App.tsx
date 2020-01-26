@@ -1,4 +1,5 @@
-import {addPlay, nextTrack, prevTrack, save, setPlaylist, updateLibrary, updateTime} from './redux/actions';
+import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
+import {TrackInfo} from './redux/actionTypes';
 import {DATA_DIR} from './constants';
 import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
 import {ipcRenderer} from 'electron';
@@ -21,7 +22,7 @@ interface StateProps {
   track?: Track;
   playing: boolean;
   setTime?: number;
-  runWikiExtension(): PromiseLike<void>;
+  runWikiExtension(): PromiseLike<Library>;
 }
 
 interface DispatchProps {
@@ -31,8 +32,7 @@ interface DispatchProps {
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   playPause(): void;
-  save(): void;
-  addPlay(item: Track): void;
+  updateTrack(id: number, info: TrackInfo): void;
 }
 
 type AppProps = DispatchProps & StateProps;
@@ -77,8 +77,8 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
       case 'wikipedia':
-        this.props.runWikiExtension().then(() => {
-          this.props.save();
+        this.props.runWikiExtension().then((library: Library) => {
+          this.props.updateLibrary(library);
         });
         break;
       default:
@@ -88,7 +88,6 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('reset-library', () => {
       deleteLibrary().then(() => {
         createLibraryFromItunes().then((library: Library) => {
-          library.save();
           this.props.updateLibrary(library);
           const playlist = new RandomAlbumPlaylist(library.getAlbums());
           this.props.setPlaylist(playlist, /* play= */ false);
@@ -105,7 +104,6 @@ class App extends React.Component<AppProps, AppState> {
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
         const playlist = new RandomAlbumPlaylist(library.getAlbums());
-        library.save();
         this.props.updateLibrary(library);
         this.props.setPlaylist(playlist, /* play= */ false);
       });
@@ -119,10 +117,10 @@ class App extends React.Component<AppProps, AppState> {
     this.audio.addEventListener('ended', () => {
       const track = this.props.track;
       if (track) {
-        this.props.addPlay(track);
-        this.props.save();
-        // track.playCount++;
-        // track.playDate = new Date();
+        this.props.updateTrack(track.id, {
+          playCount: track.playCount + 1,
+          playDate: new Date(),
+        });
       }
       this.props.nextTrack();
     });
@@ -190,4 +188,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps,
-  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, save, addPlay})(App);
+  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, updateTrack})(App);

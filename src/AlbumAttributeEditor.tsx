@@ -1,4 +1,4 @@
-import Album from './library/Album';
+import {AlbumParams} from './redux/actionTypes';
 import AttributeList from './AttributeList';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -6,9 +6,9 @@ import {getAlbumById, getAlbumsByIds, getAllAlbumIds} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface StateProps {
-  albums: Album[];
+  albums: AlbumParams[];
   allIds: number[];
-  getAlbumById(albumId: number): Album;
+  getAlbumById(albumId: number): AlbumParams;
 }
 
 interface OwnProps {

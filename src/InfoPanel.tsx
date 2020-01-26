@@ -1,5 +1,4 @@
-import Album from './library/Album';
-import Artist from './library/Artist';
+import {AlbumParams, Artist, Track} from './redux/actionTypes';
 import {ipcRenderer} from 'electron';
 import Links from './Links';
 import defaultAlbum from './resources/missing_album.png';
@@ -7,20 +6,19 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumsByIds, getArtistsByIds, getCurrentTrack} from './redux/selectors';
 import {RootState} from './redux/store';
-import Track from './library/Track';
 import {getImgSrc} from './utils';
 
 import './InfoPanel.css';
 
 interface OwnProps {
   small?: boolean;
-  goToAlbum(album: Album): void;
+  goToAlbum(album: AlbumParams): void;
   goToArtist(artist: Artist): void;
   goToSong(track: Track): void;
 }
 
 interface StateProps {
-  albums: Album[];
+  albums: AlbumParams[];
   artists: Artist[];
   track?: Track;
 }

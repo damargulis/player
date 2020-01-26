@@ -1,4 +1,4 @@
-import Artist from '../../library/Artist';
+import {Artist, ArtistInfo} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {GENRE_ERROR, NO_PAGE_ERROR, PARSER_ERROR, PIC_ERROR} from './errors';
@@ -7,7 +7,7 @@ import rp from 'request-promise-native';
 import {getGenreIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
-import {findAsync, getDoc, getGenresByRow} from './utils';
+import {addError, findAsync, getDoc, getGenresByRow, removeError} from './utils';
 
 function getWikiPageOptions(artist: Artist): string[] {
   const artistName = artist.name.replace(/ /g, '_');
@@ -53,7 +53,7 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     return Promise.resolve();
   }
   return rp(artist.wikiPage).then((htmlString: string) => {
-    artist.removeError(PARSER_ERROR);
+    removeError(artist, PARSER_ERROR);
     const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
@@ -61,9 +61,9 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
       artist.genreIds = getGenreIds(store, genres);
-      artist.removeError(GENRE_ERROR);
+      removeError(artist, GENRE_ERROR);
     } else {
-      artist.addError(GENRE_ERROR);
+      addError(artist, GENRE_ERROR);
     }
     const pics = infoBox.getElementsByTagName('img');
     // TODO: take multiple pictures (rotate them elsewhere in the app)
@@ -85,28 +85,31 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
       }
       fs.writeFileSync(artist.artFile, data, 'binary');
       // should this even be an error?
-      artist.removeError(PIC_ERROR);
+      removeError(artist, PIC_ERROR);
     }).catch(() => {
-      artist.addError(PIC_ERROR);
+      addError(artist, PIC_ERROR);
       return Promise.resolve();
     });
   }).catch(() => {
-    artist.addError(PARSER_ERROR);
+    addError(artist, PARSER_ERROR);
     return Promise.resolve();
   });
 }
 
-export default function runArtistModifier(store: RootState, artist: Artist): Promise<void> {
+export default function runArtistModifier(store: RootState, artist: Artist): Promise<ArtistInfo> {
   if (!artist.wikiPage) {
     return searchForWikiPage(artist).then((wikiPage) => {
       if (wikiPage) {
-        artist.removeError(NO_PAGE_ERROR);
+        removeError(artist, NO_PAGE_ERROR);
         artist.wikiPage = wikiPage;
-        return modifyArtist(store, artist);
+        return modifyArtist(store, artist).then(() => {
+          return {...artist};
+        });
       }
-      artist.addError(NO_PAGE_ERROR);
-      return Promise.resolve();
+      return Promise.resolve({errors: [NO_PAGE_ERROR]});
     });
   }
-  return modifyArtist(store, artist);
+  return modifyArtist(store, artist).then(() => {
+    return {...artist};
+  });
 }

@@ -1,7 +1,6 @@
 // TODO: rename all editer to editor lol
-import {save} from './redux/actions';
-import Album from './library/Album';
-import Artist from './library/Artist';
+import {updateAlbum} from './redux/actions';
+import {AlbumParams, Artist, Track} from './redux/actionTypes';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditer from './AttributeEditer';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
@@ -11,11 +10,9 @@ import {DragDropContext, Draggable, Droppable, DropResult} from 'react-beautiful
 import {connect} from 'react-redux';
 import {getArtistById, getTrackById} from './redux/selectors';
 import {RootState} from './redux/store';
-import Track from './library/Track';
-import {setMemberIds} from './utils';
 
 interface OwnProps {
-  album: Album;
+  album: AlbumParams;
   exit(): void;
 }
 
@@ -25,7 +22,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  save(): void;
+  updateAlbum(id: number, info: object): void;
 }
 
 const GRID = 4;
@@ -85,27 +82,36 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
 
   public save(): void {
     // TODO: turn into action
-    const album = this.props.album;
-    if (this.name.current) {
-      album.name = this.name.current.value;
-    }
-    if (this.year.current) {
-      album.year = parseInt(this.year.current.value, 10);
-    }
-    if (this.playCount.current) {
-      album.playCount = parseInt(this.playCount.current.value, 10);
-    }
-    album.favorites = this.state.yearsFavorited;
-    album.genreIds = this.state.genreIds;
-    setMemberIds(album.id, this.state.artistIds, album.artistIds, (id) => this.props.getArtistById(id).albumIds);
-    album.artistIds = this.state.artistIds;
-    if (this.wikiPage.current) {
-      album.wikiPage = this.wikiPage.current.value;
-    }
-    setMemberIds(album.id, this.state.trackIds, album.trackIds, (id) => this.props.getTrackById(id).albumIds);
-    album.trackIds = this.state.trackIds;
+    // const album = this.props.album;
+    // if (this.name.current) {
+    //   album.name = this.name.current.value;
+    // }
+    // if (this.year.current) {
+    //   album.year = parseInt(this.year.current.value, 10);
+    // }
+    // if (this.playCount.current) {
+    //   album.playCount = parseInt(this.playCount.current.value, 10);
+    // }
+    // album.favorites = this.state.yearsFavorited;
+    // album.genreIds = this.state.genreIds;
+    // setMemberIds(album.id, this.state.artistIds, album.artistIds, (id) => this.props.getArtistById(id).albumIds);
+    // album.artistIds = this.state.artistIds;
+    // if (this.wikiPage.current) {
+    //   album.wikiPage = this.wikiPage.current.value;
+    // }
+    // setMemberIds(album.id, this.state.trackIds, album.trackIds, (id) => this.props.getTrackById(id).albumIds);
+    // album.trackIds = this.state.trackIds;
 
-    this.props.save();
+    this.props.updateAlbum(this.props.album.id, {
+      name: this.name.current && this.name.current.value,
+      year: this.year.current && parseInt(this.year.current.value, 10),
+      playCount: this.playCount.current && parseInt(this.playCount.current.value, 10),
+      favorites: this.state.yearsFavorited,
+      genreIds: this.state.genreIds,
+      artistIds: this.state.artistIds,
+      wikiPage: this.wikiPage.current && this.wikiPage.current.value,
+      trackIds: this.state.trackIds,
+    });
     this.props.exit();
   }
 
@@ -193,4 +199,4 @@ function mapStateToProps(state: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {save})(AlbumEditer);
+export default connect(mapStateToProps, {updateAlbum})(AlbumEditer);

@@ -1,13 +1,13 @@
-import Album from '../library/Album';
+import {AlbumParams} from '../redux/actionTypes';
 import EmptyPlaylist from './EmptyPlaylist';
 
 export default class RandomAlbumPlaylist extends EmptyPlaylist {
-  private playlist: Album[];
+  private playlist: AlbumParams[];
   private currentAlbum: number;
   private currentTrack: number;
-  private albums: Album[];
+  private albums: AlbumParams[];
 
-  constructor(albums: Album[] = []) {
+  constructor(albums: AlbumParams[] = []) {
     super();
     this.playlist = [];
     this.currentAlbum = -1;
@@ -15,7 +15,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     this.albums = albums;
   }
 
-  public getCurrentAlbum(): Album {
+  public getCurrentAlbum(): AlbumParams {
     return this.playlist[this.currentAlbum];
   }
 
@@ -75,7 +75,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.currentAlbum > 0 || this.currentTrack > 0;
   }
 
-  public addAlbum(album: Album): void {
+  public addAlbum(album: AlbumParams): void {
     this.playlist = this.playlist.slice(0, this.currentAlbum + 1);
     this.playlist.push(album);
   }

@@ -1,9 +1,9 @@
-import Album from '../../library/Album';
+import {AlbumInfo, AlbumParams, Artist, ArtistInfo} from '../../redux/actionTypes';
 import modifyAlbum from './albums';
-import Artist from '../../library/Artist';
 import modifyArtist from './artists';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
+import Library from '../../library/Library';
 import {getAlbumsByIds, getAllAlbumIds, getAllArtistIds, getArtistsByIds} from '../../redux/selectors';
 import {RootState} from '../../redux/store';
 
@@ -16,17 +16,17 @@ function getPool<T>(
   items: T[],
   prefix: string,
   getName: (item: T) =>  string,
-  modifyFunc: (store: RootState, item: T) =>  Promise<void>,
-): PromisePool<void> {
+  modifyFunc: (store: RootState, item: T) =>  Promise<object>,
+): PromisePool<object> {
   let index = 0;
   ipcRenderer.send('extension-update', {
     items: items.length,
     type: 'start-section',
   });
-  return new PromisePool(() => {
+  return new PromisePool<object>(() => {
     const item = items[index];
     if (!item) {
-      return;
+      return Promise.resolve({});
     }
     const id = index++;
     const name = getName(item);
@@ -41,11 +41,12 @@ function getPool<T>(
         name,
         type: 'end-item',
       });
+      return {...item};
     });
   }, CONCURRENT);
 }
 
-function getAlbumsPool(store: RootState, albums: Album[]): PromisePool<void> {
+function getAlbumsPool(store: RootState, albums: AlbumParams[]): PromisePool<AlbumInfo> {
   return getPool(
     store,
     albums,
@@ -60,7 +61,7 @@ function getAlbumsPool(store: RootState, albums: Album[]): PromisePool<void> {
   );
 }
 
-function getArtistPool(store: RootState, artists: Artist[]): PromisePool<void> {
+function getArtistPool(store: RootState, artists: Artist[]): PromisePool<ArtistInfo> {
   return getPool(
     store,
     artists,
@@ -72,16 +73,17 @@ function getArtistPool(store: RootState, artists: Artist[]): PromisePool<void> {
   );
 }
 
-export default function runWikiExtension(store: RootState): PromiseLike<void> {
+export default function runWikiExtension(store: RootState): PromiseLike<Library> {
   // put these into a single pool so that you can go straight into the other
   // without having to wait for an acutal finish?
   const albums = getAlbumsByIds(store, getAllAlbumIds(store));
   const artists = getArtistsByIds(store, getAllArtistIds(store));
   const albumPool = getAlbumsPool(store, albums);
   const artistPool = getArtistPool(store, artists);
-  const albumErrors = albums.reduce((total: number, album: Album) => total + album.errors.length, 0);
-  const albumWarnings = albums.reduce((total: number, album: Album) => total + Object.keys(album.warnings).length, 0);
-  const albumGood = albums.filter((album: Album) => {
+  const albumErrors = albums.reduce((total: number, album: AlbumParams) => total + album.errors.length, 0);
+  const albumWarnings = albums.reduce(
+    (total: number, album: AlbumParams) => total + Object.keys(album.warnings).length, 0);
+  const albumGood = albums.filter((album: AlbumParams) => {
     return album.errors.length === 0 &&
       Object.keys(album.warnings).length === 0;
   }).length;
@@ -94,5 +96,13 @@ export default function runWikiExtension(store: RootState): PromiseLike<void> {
         albumWarnings,
         type: 'done',
       });
+    }).then(() => {
+      return new Library(
+        [...store.library.tracks],
+        [...albums],
+        [...artists],
+        [...store.library.genres],
+        [...store.library.playlists]
+      );
     });
 }

@@ -1,6 +1,5 @@
-import Album from './library/Album';
+import {AlbumParams, Artist} from './redux/actionTypes';
 import AlbumInfo from './AlbumInfo';
-import Artist from './library/Artist';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import SearchBar from './SearchBar';
@@ -11,8 +10,8 @@ import WrappedGrid from './WrappedGrid';
 import './App.css';
 
 interface OwnProps {
-  albums: Album[];
-  goToAlbum(album: Album): void;
+  albums: AlbumParams[];
+  goToAlbum(album: AlbumParams): void;
 }
 
 interface StateProps {
@@ -24,9 +23,9 @@ type AlbumPickerProps = OwnProps & StateProps;
 interface AlbumPickerState {
   search?: string;
   reverse: boolean;
-  sortedAlbums: Album[];
+  sortedAlbums: AlbumParams[];
   withErrors: boolean;
-  sortMethod(album1: Album, album2: Album): number;
+  sortMethod(album1: AlbumParams, album2: AlbumParams): number;
 }
 
 class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
@@ -49,7 +48,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     this.numCols = 0;
   }
 
-  public sortAlbums(albums: Album[]): Album[] {
+  public sortAlbums(albums: AlbumParams[]): AlbumParams[] {
     return albums.filter((album) => {
       if (!this.state.search) {
         return true;
@@ -94,7 +93,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     );
   }
 
-  private goToAlbum(album: Album): void {
+  private goToAlbum(album: AlbumParams): void {
     this.props.goToAlbum(album);
   }
 
@@ -111,11 +110,11 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     );
   }
 
-  private sortByName(album1: Album, album2: Album): number {
+  private sortByName(album1: AlbumParams, album2: AlbumParams): number {
     return album1.name.localeCompare(album2.name);
   }
 
-  private sortByArtist(album1: Album, album2: Album): number {
+  private sortByArtist(album1: AlbumParams, album2: AlbumParams): number {
     const artist1 = this.props.getArtistsByIds(album1.artistIds)
       .map((artist: Artist) => artist.name).join(',');
     const artist2 = this.props.getArtistsByIds(album2.artistIds)
@@ -123,11 +122,11 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     return artist1.localeCompare(artist2);
   }
 
-  private sortByYear(album1: Album, album2: Album): number {
+  private sortByYear(album1: AlbumParams, album2: AlbumParams): number {
     return album1.year - album2.year;
   }
 
-  private chooseSort(sortMethod: (album1: Album, album2: Album) => number): void {
+  private chooseSort(sortMethod: (album1: AlbumParams, album2: AlbumParams) => number): void {
     if (sortMethod === this.state.sortMethod) {
       this.setState({reverse: !this.state.reverse});
     } else {

@@ -1,5 +1,4 @@
-import Album from '../../library/Album';
-import Artist from '../../library/Artist';
+import {AlbumInfo, AlbumParams, Artist} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {
@@ -16,7 +15,7 @@ import rp from 'request-promise-native';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
-import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
+import {addError, findAsync, getDoc, getGenresByRow, removeError, sanitize} from './utils';
 
 function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || '';
@@ -40,7 +39,7 @@ function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>): number | und
   return;
 }
 
-function getAllWikiOptions(store: RootState, album: Album): string[] {
+function getAllWikiOptions(store: RootState, album: AlbumParams): string[] {
   const artist = getArtistById(store, album.artistIds[0]);
   const albumName = album.name.replace('#', 'Number ').replace(/ /g, '_');
   const artistName = artist.name.replace(/ /g, '_');
@@ -58,7 +57,7 @@ function getAllWikiOptions(store: RootState, album: Album): string[] {
   ];
 }
 
-function isRightLink(link: string, album: Album, artist: Artist): Promise<boolean> {
+function isRightLink(link: string, album: AlbumParams, artist: Artist): Promise<boolean> {
   return rp(link).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
@@ -74,7 +73,7 @@ function isRightLink(link: string, album: Album, artist: Artist): Promise<boolea
   });
 }
 
-function searchForWikiPage(store: RootState, album: Album): Promise<string> {
+function searchForWikiPage(store: RootState, album: AlbumParams): Promise<string> {
   const options = getAllWikiOptions(store, album);
   const artist = getArtistById(store, album.artistIds[0]);
   return findAsync(options, (option: string) => {
@@ -134,12 +133,16 @@ function getTracks(doc: Document): string[] {
   return tracks;
 }
 
-function modifyAlbum(store: RootState, album: Album): Promise<void> {
+function addTrackWarning(album: AlbumParams, index: number, trackTitles: string): void {
+  album.warnings[index] = trackTitles;
+}
+
+function modifyAlbum(store: RootState, album: AlbumParams): Promise<void> {
   if (!album.wikiPage) {
     return Promise.resolve();
   }
   return rp(album.wikiPage).then((htmlString: string) => {
-    album.removeError(PARSER_ERROR);
+    removeError(album, PARSER_ERROR);
     const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
@@ -147,28 +150,28 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     const year = getYearByRow(rows);
     if (year) {
       album.year = year;
-      album.removeError(YEAR_ERROR);
+      removeError(album, YEAR_ERROR);
     } else {
-      album.addError(YEAR_ERROR);
+      addError(album, YEAR_ERROR);
     }
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
       album.genreIds = getGenreIds(store, genres);
-      album.removeError(GENRE_ERROR);
+      removeError(album, GENRE_ERROR);
     } else {
-      album.addError(GENRE_ERROR);
+      addError(album, GENRE_ERROR);
     }
     const trackTitles = getTracks(doc);
     if (album.trackIds.length === trackTitles.length) {
       const tracks = getTracksByIds(store, album.trackIds);
       tracks.forEach((track, index) => {
         if (track.name !== trackTitles[index]) {
-          album.addTrackWarning(index, trackTitles[index]);
+          addTrackWarning(album, index, trackTitles[index]);
         }
       });
-      album.removeError(TRACK_ERROR);
+      removeError(album, TRACK_ERROR);
     } else {
-      album.addError(TRACK_ERROR);
+      addError(album, TRACK_ERROR);
     }
 
     const pics = infoBox.getElementsByTagName('img');
@@ -190,29 +193,32 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
         album.albumArtFile = `${DATA_DIR}/${id}.png`;
       }
       fs.writeFileSync(album.albumArtFile, data, 'binary');
-      album.removeError(ALBUM_ART_ERROR);
+      removeError(album, ALBUM_ART_ERROR);
     }).catch(() => {
-      album.addError(ALBUM_ART_ERROR);
+      addError(album, ALBUM_ART_ERROR);
       return Promise.resolve();
     });
   }).catch(() => {
-    album.addError(PARSER_ERROR);
+    addError(album, PARSER_ERROR);
     return Promise.resolve();
   });
 }
 
-export default function runAlbumModifier(store: RootState, album: Album): Promise<void> {
+export default function runAlbumModifier(store: RootState, album: AlbumParams): Promise<AlbumInfo> {
+  // TODO: fix this so you don't modify album ...pass in new data object and pass aronud?
   if (!album.wikiPage) {
     return searchForWikiPage(store, album).then((wikiPage) => {
       if (wikiPage) {
-        album.removeError(NO_PAGE_ERROR);
+        removeError(album, NO_PAGE_ERROR);
         album.wikiPage = wikiPage;
-        return modifyAlbum(store, album);
+        return modifyAlbum(store, album).then(() => {
+          return {...album};
+        });
       }
-      // add error for no wiki page
-      album.addError(NO_PAGE_ERROR);
-      return Promise.resolve();
+      return Promise.resolve({errors: [NO_PAGE_ERROR]});
     });
   }
-  return modifyAlbum(store, album);
+  return modifyAlbum(store, album).then(() => {
+    return {...album};
+  });
 }

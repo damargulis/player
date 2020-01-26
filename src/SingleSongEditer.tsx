@@ -1,7 +1,6 @@
-import {save} from './redux/actions';
-import Album from './library/Album';
+import {updateTrack} from './redux/actions';
+import {AlbumParams, Artist, Track, TrackInfo} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
-import Artist from './library/Artist';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditer from './AttributeEditer';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
@@ -10,11 +9,9 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumById, getArtistById} from './redux/selectors';
 import {RootState} from './redux/store';
-import Track from './library/Track';
-import {setMemberIds} from './utils';
 
 interface StateProps {
-  getAlbumById(albumId: number): Album;
+  getAlbumById(albumId: number): AlbumParams;
   getArtistById(artistId: number): Artist;
 }
 
@@ -24,7 +21,7 @@ interface OwnProps {
 }
 
 interface DispatchProps {
-  save(): void;
+  updateTrack(id: number, info: TrackInfo): void;
 }
 
 type SingleSongEditerProps = StateProps & OwnProps & DispatchProps;
@@ -54,25 +51,15 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
   }
 
   public save(): void {
-    // TODO: turn into action
-    const track = this.props.track;
-    if (this.name.current) {
-     track.name = this.name.current.value;
-    }
-    if (this.year.current) {
-     track.year = parseInt(this.year.current.value, 10);
-    }
-    if (this.playCount.current) {
-     track.playCount = parseInt(this.playCount.current.value, 10);
-    }
-    track.favorites = this.state.yearsFavorited;
-    track.genreIds = this.state.genreIds;
-    setMemberIds(track.id, this.state.albumIds, track.albumIds, (id) => this.props.getAlbumById(id).trackIds);
-    track.albumIds = this.state.albumIds;
-    setMemberIds(track.id, this.state.artistIds, track.artistIds, (id) => this.props.getArtistById(id).trackIds);
-    track.artistIds = this.state.artistIds;
-
-    this.props.save();
+    this.props.updateTrack(this.props.track.id, {
+      name: this.name.current ? this.name.current.value : undefined,
+      year: this.year.current ? parseInt(this.year.current.value, 10) : undefined,
+      playCount: this.playCount.current ? parseInt(this.playCount.current.value, 10) : undefined,
+      favorites: this.state.yearsFavorited,
+      genreIds: this.state.genreIds,
+      albumIds: this.state.albumIds,
+      artistIds: this.state.artistIds,
+    });
     this.props.exit();
   }
 
@@ -104,4 +91,4 @@ function mapStateToProps(state: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {save})(SingleSongEditer);
+export default connect(mapStateToProps, {updateTrack})(SingleSongEditer);

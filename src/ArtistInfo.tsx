@@ -1,4 +1,4 @@
-import Artist from './library/Artist';
+import {Artist} from './redux/actionTypes';
 import defaultArtist from './resources/missing_artist.png';
 import React from 'react';
 import {connect} from 'react-redux';

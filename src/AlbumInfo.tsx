@@ -1,9 +1,7 @@
-import {save} from './redux/actions';
-import {setPlaylist} from './redux/actions';
-import Album from './library/Album';
+import {setPlaylist, updateAlbum} from './redux/actions';
+import {AlbumParams, Artist} from './redux/actionTypes';
 import AlbumEditer from './AlbumEditer';
 import './AlbumInfo.css';
-import Artist from './library/Artist';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import defaultAlbum from './resources/missing_album.png';
@@ -20,14 +18,14 @@ Modal.setAppElement('#root');
 
 interface StateProps {
   artists: Artist[];
-  allAlbums: Album[];
+  allAlbums: AlbumParams[];
 }
 
 interface OwnProps {
-  album?: Album;
+  album?: AlbumParams;
   style: React.CSSProperties;
   showStatus: boolean;
-  goToAlbum(album: Album): void;
+  goToAlbum(album: AlbumParams): void;
 }
 
 interface AlbumInfoState {
@@ -35,8 +33,8 @@ interface AlbumInfoState {
 }
 
 interface DispatchProps {
-  save(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+  updateAlbum(id: number, info: object): void;
 }
 
 type AlbumInfoProps = OwnProps & StateProps & DispatchProps;
@@ -153,12 +151,12 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
 
   private favorite(): void {
     if (this.props.album) {
+      const favorites = this.props.album.favorites.slice();
       const year = new Date().getFullYear();
-      if (this.props.album.favorites.indexOf(year) < 0) {
-        this.props.album.favorites.push(year);
+      if (favorites.indexOf(year) < 0) {
+        favorites.push(year);
       }
-      this.props.save();
-      this.forceUpdate();
+      this.props.updateAlbum(this.props.album.id, {favorites: favorites});
     }
   }
 
@@ -171,4 +169,4 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {save, setPlaylist})(AlbumInfo);
+export default connect(mapStateToProps, {setPlaylist, updateAlbum})(AlbumInfo);

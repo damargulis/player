@@ -1,7 +1,6 @@
-import {save} from './redux/actions';
-import Album from './library/Album';
+import {updateTrack} from './redux/actions';
+import {AlbumParams, Artist, Track, TrackInfo} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
-import Artist from './library/Artist';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditer from './AttributeEditer';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
@@ -11,16 +10,14 @@ import {connect} from 'react-redux';
 import {getAlbumById, getArtistById} from './redux/selectors';
 import {RootState} from './redux/store';
 import ToggableEditableAttribute from './ToggableEditableAttribute';
-import Track from './library/Track';
-import {setMemberIds} from './utils';
 
 interface DispatchProps {
-  save(): void;
+  updateTrack(id: number, info: TrackInfo): void;
 }
 
 interface StateProps {
   getArtistById(id: number): Artist;
-  getAlbumById(id: number): Album;
+  getAlbumById(id: number): AlbumParams;
 }
 
 interface OwnProps {
@@ -147,35 +144,21 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
   }
 
   private saveTrack(track: Track): void {
-    if (this.state.editGenre) {
-     track.genreIds = this.state.genreIds;
-    }
-    if (this.state.editArtists) {
-     setMemberIds(track.id, this.state.artistIds, track.artistIds, (id) => this.props.getArtistById(id).trackIds);
-     track.artistIds = this.state.artistIds;
-    }
-    if (this.state.editAlbums) {
-     setMemberIds(track.id, this.state.albumIds, track.albumIds, (id) => this.props.getAlbumById(id).trackIds);
-     track.albumIds = this.state.albumIds;
-    }
-    if (this.state.editFavorites) {
-     track.favorites = this.state.yearsFavorited;
-    }
-    const year = this.year.current;
-    if (this.state.editYear && year) {
-     track.year = parseInt(year.value, 10);
-    }
-    const playCount = this.playCount.current;
-    if (this.state.editPlayCount && playCount) {
-     track.playCount = parseInt(playCount.value, 10);
-    }
+    this.props.updateTrack(track.id, {
+      genreIds: this.state.genreIds,
+      artistIds: this.state.editArtists ? this.state.artistIds : undefined,
+      albumIds: this.state.editAlbums ? this.state.albumIds : undefined,
+      favorites: this.state.editFavorites ? this.state.yearsFavorited : undefined,
+      year: this.year.current && this.state.editYear ? parseInt(this.year.current.value, 10) : undefined,
+      playCount: this.playCount.current && this.state.editPlayCount ?
+        parseInt(this.playCount.current.value, 10) : undefined,
+    });
   }
 
   private save(): void {
     this.props.tracks.forEach((track) => {
       this.saveTrack(track);
     });
-    this.props.save();
     this.props.exit();
   }
 }
@@ -187,4 +170,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {save})(MultipleSongEditer);
+export default connect(mapStateToProps, {updateTrack})(MultipleSongEditer);

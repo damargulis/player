@@ -1,8 +1,5 @@
-import Album from '../library/Album';
-import Artist from '../library/Artist';
-import Playlist from '../library/Playlist';
+import {AlbumParams, Artist, PlaylistParams, Track} from './actionTypes';
 import {RootState} from './store';
-import Track from '../library/Track';
 
 // TODO: SPLIT THIS UP!!!
 
@@ -10,11 +7,11 @@ export function getTime(store: RootState): number {
   return store.currentlyPlaying.time;
 }
 
-export function getAlbumById(store: RootState, albumId: number): Album {
+export function getAlbumById(store: RootState, albumId: number): AlbumParams {
   return store.library.albums[albumId];
 }
 
-export function getAlbumsByIds(store: RootState, albumIds: number[]): Album[] {
+export function getAlbumsByIds(store: RootState, albumIds: number[]): AlbumParams[] {
   return albumIds.map((id) => getAlbumById(store, id));
 }
 
@@ -76,7 +73,7 @@ export function getArtFilesByArtist(store: RootState, artist: Artist): string[] 
   ].filter(Boolean) as string[];
 }
 
-export function getAlbumsByGenres(store: RootState, genres: number[]): Album[] {
+export function getAlbumsByGenres(store: RootState, genres: number[]): AlbumParams[] {
   return genres.length ? store.library.albums.filter((album) => {
     return album.genreIds.some((genreId) => {
       return genres.includes(genreId);
@@ -100,32 +97,32 @@ export function getTracksByGenres(store: RootState, genres: number[]): Track[] {
   }) : store.library.tracks;
 }
 
-export function getPlaylists(store: RootState): Playlist[] {
+export function getPlaylists(store: RootState): PlaylistParams[] {
   return store.library.playlists;
 }
 
 /**
  * Gets the 100 most played songs in the library.
  */
-function getMostPlayed(store: RootState): Playlist {
+function getMostPlayed(store: RootState): PlaylistParams {
   const tracks = store.library.tracks.slice().sort((track1, track2) => {
     return track2.playCount - track1.playCount;
   }).slice(0, 100).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Most Played', trackIds: tracks});
+  return {name: 'Most Played', trackIds: tracks};
 }
 
 /**
  * Gets the unlistened songs in the library.
  */
-function getUnlistened(store: RootState): Playlist {
+function getUnlistened(store: RootState): PlaylistParams {
   const tracks = store.library.tracks.filter((track) => {
     return track.playCount === 0;
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Unheard', trackIds: tracks});
+  return {name: 'Unheard', trackIds: tracks};
 }
 
 const THREE_MONTHS = 1000 * 60 * 60 * 24;
@@ -133,45 +130,45 @@ const THREE_MONTHS = 1000 * 60 * 60 * 24;
 /**
  * Gets the songs added to the library in the last 3 months.
  */
-function getRecentlyAdded(store: RootState): Playlist {
+function getRecentlyAdded(store: RootState): PlaylistParams {
   const now = new Date().getTime();
   const tracks = store.library.tracks.filter((track) => {
     return now - track.dateAdded.getTime() < THREE_MONTHS;
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Recently Added', trackIds: tracks});
+  return {name: 'Recently Added', trackIds: tracks};
 }
 
 /**
  * Gets the songs listened to in the last 3 months.
  */
-function getRecentlyPlayed(store: RootState): Playlist {
+function getRecentlyPlayed(store: RootState): PlaylistParams {
   const now = new Date().getTime();
   const tracks = store.library.tracks.filter((track) => {
     return now - track.playDate.getTime() < THREE_MONTHS;
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Recently Played', trackIds: tracks});
+  return {name: 'Recently Played', trackIds: tracks};
 }
 
 /**
  * Gets playlist for likes in a given year.
  */
-function getLikesForYear(store: RootState, year: number): Playlist {
+function getLikesForYear(store: RootState, year: number): PlaylistParams {
   const tracks = store.library.tracks.filter((track) => {
     return track.favorites.indexOf(year) !== -1;
   }).map((track) => {
     return track.id;
   });
-  return new Playlist({name: 'Favorite Tracks of ' + year, trackIds: tracks});
+  return {name: 'Favorite Tracks of ' + year, trackIds: tracks};
 }
 
 /**
  * Gets a playlist of songs liked in each year.
  */
-function getLikesByYear(store: RootState): Playlist[] {
+function getLikesByYear(store: RootState): PlaylistParams[] {
   const years = new Set<number>();
   store.library.tracks.forEach((track) => {
     track.favorites.forEach((year) => years.add(year));
@@ -184,19 +181,19 @@ function getLikesByYear(store: RootState): Playlist[] {
 /**
  * Gets playlist for album likes in a given year.
  */
-function getAlbumLikesForYear(store: RootState, year: number): Playlist {
+function getAlbumLikesForYear(store: RootState, year: number): PlaylistParams {
   const tracks = store.library.albums.filter((album) => {
     return album.favorites.indexOf(year) !== -1;
   }).map((album) => {
     return album.trackIds;
   }).flat();
-  return new Playlist({name: 'Favorite Albums of ' + year, trackIds: tracks});
+  return {name: 'Favorite Albums of ' + year, trackIds: tracks};
 }
 
 /**
  * Gets a playlist of albums liked in each year.
  */
-function getAlbumLikesByYear(store: RootState): Playlist[] {
+function getAlbumLikesByYear(store: RootState): PlaylistParams[] {
   const years = new Set<number>();
   store.library.albums.forEach((album) => {
     album.favorites.forEach((year) => years.add(year));
@@ -206,7 +203,7 @@ function getAlbumLikesByYear(store: RootState): Playlist[] {
   });
 }
 
-export function getAutoPlaylists(store: RootState): Playlist[] {
+export function getAutoPlaylists(store: RootState): PlaylistParams[] {
   return [
     getMostPlayed(store),
     getUnlistened(store),

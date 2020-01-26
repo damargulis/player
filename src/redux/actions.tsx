@@ -1,17 +1,21 @@
 import {
-  ADD_PLAY,
+  ADD_TO_PLAYLIST,
+  AlbumInfo,
+  ArtistInfo,
   CHANGE_VOLUME,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
-  Playable,
   PREV_ALBUM,
   PREV_TRACK,
-  SAVE,
   SET_PLAYLIST,
   SET_TIME,
+  TrackInfo,
+  UPDATE_ALBUM,
+  UPDATE_ARTIST,
   UPDATE_LIBRARY,
   UPDATE_TIME,
+  UPDATE_TRACK,
 } from './actionTypes';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import Library from '../library/Library';
@@ -56,16 +60,27 @@ export const playPause = () => ({
   type: PLAY_PAUSE,
 });
 
-export const save = () => ({
-  type: SAVE,
-});
-
 export const setTime = (time: number) => ({
   payload: {time},
   type: SET_TIME,
 });
 
-export const addPlay = (item: Playable) => ({
-  payload: {item},
-  type: ADD_PLAY,
+export const updateAlbum = (id: number, info: AlbumInfo) => ({
+  payload: {id, info},
+  type: UPDATE_ALBUM,
+});
+
+export const updateArtist = (id: number, info: ArtistInfo) => ({
+  payload: {id, info},
+  type: UPDATE_ARTIST,
+});
+
+export const updateTrack = (id: number, info: TrackInfo) => ({
+  payload: {id, info},
+  type: UPDATE_TRACK,
+});
+
+export const addToPlaylist = (index: number, trackIds: number[]) => ({
+  payload: {index, trackIds},
+  track: ADD_TO_PLAYLIST,
 });

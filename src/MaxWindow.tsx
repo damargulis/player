@@ -1,13 +1,11 @@
-import Album from './library/Album';
+import {AlbumParams, Artist, PlaylistParams, Track} from './redux/actionTypes';
 import AlbumPage from './AlbumPage';
 import AlbumPicker from './AlbumPicker';
-import Artist from './library/Artist';
 import ArtistPage from './ArtistPage';
 import ArtistPicker from './ArtistPicker';
 import {ipcRenderer} from 'electron';
 import GenrePicker from './GenrePicker';
 import Header from './Header';
-import Playlist from './library/Playlist';
 import PlaylistPage from './PlaylistPage';
 import PlaylistPicker from './PlaylistPicker';
 import PlaylistTypePicker from './PlaylistTypePicker';
@@ -18,13 +16,12 @@ import {
 } from './redux/selectors';
 import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
-import Track from './library/Track';
 
 interface StateProps {
-  getAlbumById(id: number): Album;
+  getAlbumById(id: number): AlbumParams;
   getArtistById(id: number): Artist;
   getTracksByGenres(genres: number[]): Track[];
-  getAlbumsByGenres(genres: number[]): Album[];
+  getAlbumsByGenres(genres: number[]): AlbumParams[];
   getArtistsByGenres(genres: number[]): Artist[];
 }
 
@@ -81,7 +78,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.goToSong(data.song);
   }
 
-  private onAlbumMessage(evt: Event, data: {album: Album}): void {
+  private onAlbumMessage(evt: Event, data: {album: AlbumParams}): void {
     const album = this.props.getAlbumById(data.album.id);
     this.goToAlbum(album);
   }
@@ -127,7 +124,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
-  private goToAlbum(album: Album): void {
+  private goToAlbum(album: AlbumParams): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <AlbumPage
@@ -158,7 +155,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
-  private goToPlaylist(playlist: Playlist): void {
+  private goToPlaylist(playlist: PlaylistParams): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       (genres) => <PlaylistPage

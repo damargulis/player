@@ -1,9 +1,8 @@
-import {save, setPlaylist} from './redux/actions';
-import Album from './library/Album';
+import {setPlaylist, updateAlbum, updateTrack} from './redux/actions';
+import {AlbumInfo, AlbumParams, Artist, Track, TrackInfo} from './redux/actionTypes';
 import AlbumEditer from './AlbumEditer';
 import './AlbumPage.css';
 import runAlbumModifier from './extensions/wiki/albums';
-import Artist from './library/Artist';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
@@ -16,7 +15,6 @@ import {connect} from 'react-redux';
 import {getArtistsByIds, getTrackById, getTracksByIds} from './redux/selectors';
 import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
-import Track from './library/Track';
 import {getImgSrc, toTime} from './utils';
 import WikiLabel from './WikiLabel';
 
@@ -28,11 +26,11 @@ interface StateProps {
   tracks: Track[];
   getTracksByIds(ids: number[]): Track[];
   getTrackById(id: number): Track;
-  runAlbumModifier(album: Album): Promise<void>;
+  runAlbumModifier(album: AlbumInfo): Promise<AlbumInfo>;
 }
 
 interface OwnProps {
-  album: Album;
+  album: AlbumParams;
   canGoForward: boolean;
   goToArtist(artist: Artist): void;
   goBack(): void;
@@ -41,7 +39,8 @@ interface OwnProps {
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  save(): void;
+  updateAlbum(id: number, info: AlbumInfo): void;
+  updateTrack(id: number, info: TrackInfo): void;
 }
 
 interface AlbumPageState {
@@ -87,7 +86,9 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
           </div>
           <div className="albumPageControls" >
             <button onClick={this.playAlbum.bind(this)} className="playAlbum" >Play Album</button>
-            <div className="likeButtonContainer"><LikeButton item={this.props.album}/></div>
+            <div className="likeButtonContainer">
+              <LikeButton item={this.props.album} update={this.props.updateAlbum}/>
+            </div>
             <button onClick={this.editAlbum.bind(this)} className="editAlbum" >Edit Album</button>
           </div>
           {this.getErrors()}
@@ -99,23 +100,22 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   private runWiki(): void {
-    this.props.runAlbumModifier(this.props.album).then(() => {
-      this.props.save();
-      this.forceUpdate();
+    this.props.runAlbumModifier(this.props.album).then((info: AlbumInfo) => {
+      this.props.updateAlbum(this.props.album.id, info);
     });
   }
 
   private acceptTrackWarnings(): void {
-    for (const indexStr in this.props.album.warnings) {
-      if (this.props.album.warnings.hasOwnProperty(indexStr)) {
+    const warnings = {...this.props.album.warnings};
+    for (const indexStr in warnings) {
+      if (warnings.hasOwnProperty(indexStr)) {
         const index = parseInt(indexStr, 10);
         const track = this.props.getTrackById(this.props.album.trackIds[index]);
-        track.name = this.props.album.warnings[indexStr];
+        const name = warnings[indexStr];
+        this.props.updateTrack(track.id, {name});
       }
     }
-    this.props.album.warnings = {};
-    this.props.save();
-    this.forceUpdate();
+    this.props.updateAlbum(this.props.album.id, {warnings: {}});
   }
 
   private getWarnings(): JSX.Element | undefined {
@@ -181,9 +181,9 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
     artists: getArtistsByIds(state, ownProps.album.artistIds),
     getTrackById: (id: number) => getTrackById(state, id),
     getTracksByIds: (ids: number[]) => getTracksByIds(state, ids),
-    runAlbumModifier: (album: Album) => runAlbumModifier(state, album),
+    runAlbumModifier: (album: AlbumParams) => runAlbumModifier(state, album),
     tracks: getTracksByIds(state, ownProps.album.trackIds),
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, save})(AlbumPage);
+export default connect(mapStateToProps, {setPlaylist, updateAlbum, updateTrack})(AlbumPage);

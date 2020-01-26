@@ -63,3 +63,23 @@ export function getDoc(htmlString: string): Document {
   const parser = new DOMParser();
   return parser.parseFromString(htmlString, 'text/html');
 }
+
+interface Errorable {
+  errors: string[];
+}
+
+export function removeError(item: Errorable, err: string): void {
+  const index = item.errors.indexOf(err);
+  if (index >= 0) {
+    item.errors = [
+      ...item.errors.slice(0, index),
+      ...item.errors.slice(index + 1),
+    ];
+  }
+}
+
+export function addError(item: Errorable, err: string): void {
+  if (!item.errors.includes(err)) {
+    item.errors.push(err);
+  }
+}

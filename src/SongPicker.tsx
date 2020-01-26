@@ -1,6 +1,5 @@
-import {save, setPlaylist} from './redux/actions';
-import Album from './library/Album';
-import Artist from './library/Artist';
+import {addToPlaylist, setPlaylist, updateTrack} from './redux/actions';
+import {AlbumParams, Artist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import Playlist from './library/Playlist';
@@ -15,7 +14,6 @@ import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from './redux/selectors
 import SongEditer from './SongEditer';
 import {RootState} from './redux/store';
 import '../node_modules/react-virtualized/styles.css';
-import Track from './library/Track';
 import {toTime} from './utils';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -37,7 +35,7 @@ interface SongPickerState {
 interface StateProps {
   playlists: Playlist[];
   getArtistsByIds(ids: number[]): Artist[];
-  getAlbumsByIds(ids: number[]): Album[];
+  getAlbumsByIds(ids: number[]): AlbumParams[];
   getGenresByIds(ids: number[]): string[];
 }
 
@@ -49,7 +47,8 @@ interface OwnProps {
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  save(): void;
+  updateTrack(id: number, info: TrackInfo): void;
+  addToPlaylist(index: number, trackIds: number[]): void;
 }
 
 type SongPickerProps = StateProps & OwnProps & DispatchProps;
@@ -272,11 +271,10 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     this.state.selected.forEach((id) => {
       const song = this.state.songs[id];
       if (song.favorites.indexOf(year) < 0) {
-        song.favorites.push(year);
+        const favorites = [...song.favorites, year];
+        this.props.updateTrack(song.id, {favorites});
       }
     });
-    this.props.save();
-    this.forceUpdate();
   }
 
   private doRowRightClick({index}: {index: number}): void {
@@ -295,13 +293,12 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     }
     menu.append(new remote.MenuItem({label: 'Play Next', click: this.playNext.bind(this)}));
     menu.append(new remote.MenuItem({label: 'Favorite', click: this.favorite.bind(this)}));
-    const playlists = this.props.playlists.map((playlist) => {
+    const playlists = this.props.playlists.map((playlist, playlistIndex) => {
       return {
         label: playlist.name,
         click: () => {
           const ids = this.state.selected.map((songIndex) => this.state.songs[songIndex].id);
-          playlist.trackIds.push(...ids);
-          this.props.save();
+          this.props.addToPlaylist(playlistIndex, ids);
         },
       };
     });
@@ -381,4 +378,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, save})(SongPicker);
+export default connect(mapStateToProps, {setPlaylist, updateTrack, addToPlaylist})(SongPicker);

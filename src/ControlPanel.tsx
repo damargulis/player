@@ -1,4 +1,5 @@
-import {changeVolume, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack} from './redux/actions';
+import {changeVolume, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, updateTrack} from './redux/actions';
+import {Track, TrackInfo} from './redux/actionTypes';
 import './ControlPanel.css';
 import LikeButton from './LikeButton';
 import nextAlbumImg from './resources/next_album.png';
@@ -20,7 +21,6 @@ import {
   hasPrevTrack,
 } from './redux/selectors';
 import {RootState} from './redux/store';
-import Track from './library/Track';
 import volumeButton from './resources/volume.png';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -33,6 +33,7 @@ interface DispatchProps {
   prevAlbum(): void;
   prevTrack(): void;
   playPause(): void;
+  updateTrack(id: number, track: TrackInfo): void;
 }
 
 interface OwnProps {
@@ -106,7 +107,7 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           src={nextAlbumImg}
           type="image"
         />
-        <LikeButton item={this.props.currentTrack} />
+        <LikeButton item={this.props.currentTrack} update={this.props.updateTrack} />
       </div>
     );
   }
@@ -182,4 +183,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps,
-  {playPause, changeVolume, nextTrack, nextAlbum, prevAlbum, prevTrack})(ControlPanel);
+  {playPause, changeVolume, nextTrack, nextAlbum, prevAlbum, prevTrack, updateTrack})(ControlPanel);
