@@ -79,8 +79,8 @@ function tracks(state: Track[], action: LibraryActionTypes): Track[] {
       }
       return state.map((track) => {
         return {
-          albumIds: getUpdatedMemberIds(track.artistIds, action.payload.id, trackIds, track.id),
           ...track,
+          albumIds: getUpdatedMemberIds(track.artistIds, action.payload.id, trackIds, track.id),
         };
       });
     }
@@ -91,8 +91,8 @@ function tracks(state: Track[], action: LibraryActionTypes): Track[] {
       }
       return state.map((track) => {
         return {
-          albumIds: getUpdatedMemberIds(track.albumIds, action.payload.id, trackIds, track.id),
           ...track,
+          albumIds: getUpdatedMemberIds(track.albumIds, action.payload.id, trackIds, track.id),
         };
       });
     }
@@ -147,8 +147,8 @@ function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
       }
       return state.map((artist) => {
         return {
-          albumIds: getUpdatedMemberIds(artist.albumIds, action.payload.id, artistIds, artist.id),
           ...artist,
+          albumIds: getUpdatedMemberIds(artist.albumIds, action.payload.id, artistIds, artist.id),
         };
       });
     }
@@ -159,8 +159,8 @@ function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
       }
       return state.map((artist) => {
         return {
-          trackIds: getUpdatedMemberIds(artist.trackIds, action.payload.id, artistIds, artist.id),
           ...artist,
+          trackIds: getUpdatedMemberIds(artist.trackIds, action.payload.id, artistIds, artist.id),
         };
       });
     }
@@ -182,8 +182,8 @@ function albums(state: AlbumParams[], action: LibraryActionTypes): AlbumParams[]
       }
       return state.map((album) => {
         return {
-          artistIds: getUpdatedMemberIds(album.artistIds, action.payload.id, albumIds, album.id),
           ...album,
+          artistIds: getUpdatedMemberIds(album.artistIds, action.payload.id, albumIds, album.id),
         };
       });
     }
@@ -194,8 +194,8 @@ function albums(state: AlbumParams[], action: LibraryActionTypes): AlbumParams[]
       }
       return state.map((album) => {
         return {
-          trackIds: getUpdatedMemberIds(album.trackIds, action.payload.id, albumIds, album.id),
           ...album,
+          trackIds: getUpdatedMemberIds(album.trackIds, action.payload.id, albumIds, album.id),
         };
       });
     }
@@ -224,6 +224,9 @@ export default function reducer(state: LibraryState = initialState, action: Libr
     playlists: playlists(state.playlists, action),
     tracks: tracks(state.tracks, action),
   };
-  save(library);
+  // only save if there is something to save, otherwise you overwrite when defaulting to the empty library
+  if (library.albums.length) {
+    save(library);
+  }
   return library;
 }
