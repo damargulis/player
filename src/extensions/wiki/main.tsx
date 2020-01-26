@@ -17,16 +17,16 @@ function getPool<T>(
   prefix: string,
   getName: (item: T) =>  string,
   modifyFunc: (store: RootState, item: T) =>  Promise<object>,
-): PromisePool<object> {
+): PromisePool<void | T> {
   let index = 0;
   ipcRenderer.send('extension-update', {
     items: items.length,
     type: 'start-section',
   });
-  return new PromisePool<object>(() => {
+  return new PromisePool<void | T>(() => {
     const item = items[index];
     if (!item) {
-      return Promise.resolve({});
+      return;
     }
     const id = index++;
     const name = getName(item);
@@ -46,7 +46,7 @@ function getPool<T>(
   }, CONCURRENT);
 }
 
-function getAlbumsPool(store: RootState, albums: AlbumParams[]): PromisePool<AlbumInfo> {
+function getAlbumsPool(store: RootState, albums: AlbumParams[]): PromisePool<AlbumInfo | void> {
   return getPool(
     store,
     albums,
@@ -61,7 +61,7 @@ function getAlbumsPool(store: RootState, albums: AlbumParams[]): PromisePool<Alb
   );
 }
 
-function getArtistPool(store: RootState, artists: Artist[]): PromisePool<ArtistInfo> {
+function getArtistPool(store: RootState, artists: Artist[]): PromisePool<ArtistInfo | void> {
   return getPool(
     store,
     artists,

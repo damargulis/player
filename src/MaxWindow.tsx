@@ -128,7 +128,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <AlbumPage
-        album={album}
+        albumId={album.id}
         canGoForward={this.canGoForward()}
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}

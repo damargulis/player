@@ -12,7 +12,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import {getArtistsByIds, getTrackById, getTracksByIds} from './redux/selectors';
+import {getArtistsByIds, getAlbumById, getTrackById, getTracksByIds} from './redux/selectors';
 import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
 import {getImgSrc, toTime} from './utils';
@@ -27,10 +27,11 @@ interface StateProps {
   getTracksByIds(ids: number[]): Track[];
   getTrackById(id: number): Track;
   runAlbumModifier(album: AlbumInfo): Promise<AlbumInfo>;
+  album: AlbumParams;
 }
 
 interface OwnProps {
-  album: AlbumParams;
+  albumId: number;
   canGoForward: boolean;
   goToArtist(artist: Artist): void;
   goBack(): void;
@@ -177,12 +178,14 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
 }
 
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+  const album = getAlbumById(state, ownProps.albumId);
   return {
-    artists: getArtistsByIds(state, ownProps.album.artistIds),
+    artists: getArtistsByIds(state, album.artistIds),
     getTrackById: (id: number) => getTrackById(state, id),
     getTracksByIds: (ids: number[]) => getTracksByIds(state, ids),
-    runAlbumModifier: (album: AlbumParams) => runAlbumModifier(state, album),
-    tracks: getTracksByIds(state, ownProps.album.trackIds),
+    runAlbumModifier: (a: AlbumParams) => runAlbumModifier(state, a),
+    tracks: getTracksByIds(state, album.trackIds),
+    album: album,
   };
 }
 
