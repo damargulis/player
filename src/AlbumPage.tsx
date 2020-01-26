@@ -1,5 +1,5 @@
 import {setPlaylist, updateAlbum, updateTrack} from './redux/actions';
-import {AlbumInfo, AlbumParams, ArtistParams, TrackInfo, TrackParams} from './redux/actionTypes';
+import {Album, AlbumInfo, Artist, Track, TrackInfo} from './redux/actionTypes';
 import AlbumEditer from './AlbumEditer';
 import './AlbumPage.css';
 import runAlbumModifier from './extensions/wiki/albums';
@@ -22,11 +22,11 @@ import WikiLabel from './WikiLabel';
 Modal.setAppElement('#root');
 
 interface StateProps {
-  artists: ArtistParams[];
-  tracks: TrackParams[];
-  album: AlbumParams;
-  getTracksByIds(ids: number[]): TrackParams[];
-  getTrackById(id: number): TrackParams;
+  artists: Artist[];
+  tracks: Track[];
+  album: Album;
+  getTracksByIds(ids: number[]): Track[];
+  getTrackById(id: number): Track;
   runAlbumModifier(album: AlbumInfo): Promise<AlbumInfo>;
 }
 
@@ -159,7 +159,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   private getTotalTime(): string {
-    const duration = this.props.tracks.reduce((total: number, song: TrackParams) => total + song.duration, 0);
+    const duration = this.props.tracks.reduce((total: number, song: Track) => total + song.duration, 0);
     return toTime(duration);
   }
 
@@ -183,7 +183,7 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
     artists: getArtistsByIds(state, album.artistIds),
     getTrackById: (id: number) => getTrackById(state, id),
     getTracksByIds: (ids: number[]) => getTracksByIds(state, ids),
-    runAlbumModifier: (a: AlbumParams) => runAlbumModifier(state, a),
+    runAlbumModifier: (a: Album) => runAlbumModifier(state, a),
     tracks: getTracksByIds(state, album.trackIds),
     album: album,
   };

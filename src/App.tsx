@@ -1,5 +1,5 @@
 import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
-import {LibraryState, TrackInfo, TrackParams} from './redux/actionTypes';
+import {LibraryState, Track, TrackInfo} from './redux/actionTypes';
 import {DATA_DIR} from './constants';
 import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
 import {ipcRenderer} from 'electron';
@@ -17,7 +17,7 @@ import './App.css';
 
 interface StateProps {
   volume: number;
-  track?: TrackParams;
+  track?: Track;
   playing: boolean;
   setTime?: number;
   runWikiExtension(): PromiseLike<LibraryState>;

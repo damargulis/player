@@ -1,4 +1,4 @@
-import {AlbumInfo, AlbumParams, ArtistParams} from '../../redux/actionTypes';
+import {Album, AlbumInfo, Artist} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {
@@ -39,7 +39,7 @@ function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>): number | und
   return;
 }
 
-function getAllWikiOptions(store: RootState, album: AlbumParams): string[] {
+function getAllWikiOptions(store: RootState, album: Album): string[] {
   const artist = getArtistById(store, album.artistIds[0]);
   const albumName = album.name.replace('#', 'Number ').replace(/ /g, '_');
   const artistName = artist.name.replace(/ /g, '_');
@@ -57,7 +57,7 @@ function getAllWikiOptions(store: RootState, album: AlbumParams): string[] {
   ];
 }
 
-function isRightLink(link: string, album: AlbumParams, artist: ArtistParams): Promise<boolean> {
+function isRightLink(link: string, album: Album, artist: Artist): Promise<boolean> {
   return rp(link).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
@@ -73,7 +73,7 @@ function isRightLink(link: string, album: AlbumParams, artist: ArtistParams): Pr
   });
 }
 
-function searchForWikiPage(store: RootState, album: AlbumParams): Promise<string> {
+function searchForWikiPage(store: RootState, album: Album): Promise<string> {
   const options = getAllWikiOptions(store, album);
   const artist = getArtistById(store, album.artistIds[0]);
   return findAsync(options, (option: string) => {
@@ -133,11 +133,11 @@ function getTracks(doc: Document): string[] {
   return tracks;
 }
 
-function addTrackWarning(album: AlbumParams, index: number, trackTitles: string): void {
+function addTrackWarning(album: Album, index: number, trackTitles: string): void {
   album.warnings[index] = trackTitles;
 }
 
-function modifyAlbum(store: RootState, album: AlbumParams): Promise<void> {
+function modifyAlbum(store: RootState, album: Album): Promise<void> {
   if (!album.wikiPage) {
     return Promise.resolve();
   }
@@ -204,7 +204,7 @@ function modifyAlbum(store: RootState, album: AlbumParams): Promise<void> {
   });
 }
 
-export default function runAlbumModifier(store: RootState, album: AlbumParams): Promise<AlbumInfo> {
+export default function runAlbumModifier(store: RootState, album: Album): Promise<AlbumInfo> {
   // TODO: fix this so you don't modify album ...pass in new data object and pass aronud?
   if (!album.wikiPage) {
     return searchForWikiPage(store, album).then((wikiPage) => {

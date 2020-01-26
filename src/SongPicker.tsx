@@ -1,5 +1,5 @@
 import {addToPlaylist, setPlaylist, updateTrack} from './redux/actions';
-import {AlbumParams, ArtistParams, PlaylistParams, TrackInfo, TrackParams} from './redux/actionTypes';
+import {Album, Artist, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import RandomSongPlaylist from './playlist/RandomSongPlaylist';
@@ -23,7 +23,7 @@ type Sort = 'ASC' | 'DESC';
 interface SongPickerState {
   sortBy: string;
   sortDirection: Sort;
-  songs: TrackParams[];
+  songs: Track[];
   selected: number[];
   scrollTo: number;
   lastSelected?: number;
@@ -32,14 +32,14 @@ interface SongPickerState {
 }
 
 interface StateProps {
-  playlists: PlaylistParams[];
-  getArtistsByIds(ids: number[]): ArtistParams[];
-  getAlbumsByIds(ids: number[]): AlbumParams[];
+  playlists: Playlist[];
+  getArtistsByIds(ids: number[]): Artist[];
+  getAlbumsByIds(ids: number[]): Album[];
   getGenresByIds(ids: number[]): string[];
 }
 
 interface OwnProps {
-  songs: TrackParams[];
+  songs: Track[];
   scrollToSongId?: number;
   sortBy?: string;
 }
@@ -142,7 +142,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     }
   }
 
-  private sortSongs(sortBy: string, sortDirection: string): TrackParams[] {
+  private sortSongs(sortBy: string, sortDirection: string): Track[] {
     let songs = this.props.songs.slice().filter((song) => {
       if (this.state && this.state.search) {
         return song.name.toLowerCase().includes(this.state.search.toLowerCase());

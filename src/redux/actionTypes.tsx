@@ -15,13 +15,12 @@ export const PREV_ALBUM = 'PREV_ALBUM';
 export const PLAY_PAUSE = 'PLAY_PAUSE';
 export const SET_TIME = 'SET_TIME';
 
-// TODO: figure out why this naming has to be weird?
-export interface PlaylistParams {
+export interface Playlist {
   name: string;
   trackIds: number[];
 }
 
-export interface TrackParams {
+export interface Track {
   id: number;
   duration: number;
   playCount: number;
@@ -37,7 +36,7 @@ export interface TrackParams {
   favorites: number[];
 }
 
-export interface ArtistParams {
+export interface Artist {
   id: number;
   name: string;
   albumIds: number[];
@@ -48,7 +47,7 @@ export interface ArtistParams {
   trackIds: number[];
 }
 
-export interface AlbumParams {
+export interface Album {
   id: number;
   warnings: Record<string, string>;
   errors: string[];
@@ -65,10 +64,10 @@ export interface AlbumParams {
 }
 
 export interface LibraryState {
-  tracks: TrackParams[];
-  albums: AlbumParams[];
-  artists: ArtistParams[];
-  playlists: PlaylistParams[];
+  tracks: Track[];
+  albums: Album[];
+  artists: Artist[];
+  playlists: Playlist[];
   genres: string[];
 }
 

@@ -1,5 +1,5 @@
 import {setPlaylist, updateAlbum} from './redux/actions';
-import {AlbumParams, ArtistParams} from './redux/actionTypes';
+import {Album, Artist} from './redux/actionTypes';
 import AlbumEditer from './AlbumEditer';
 import './AlbumInfo.css';
 import {remote} from 'electron';
@@ -17,15 +17,15 @@ import {getImgSrc} from './utils';
 Modal.setAppElement('#root');
 
 interface StateProps {
-  artists: ArtistParams[];
-  allAlbums: AlbumParams[];
+  artists: Artist[];
+  allAlbums: Album[];
 }
 
 interface OwnProps {
-  album?: AlbumParams;
+  album?: Album;
   style: React.CSSProperties;
   showStatus: boolean;
-  goToAlbum(album: AlbumParams): void;
+  goToAlbum(album: Album): void;
 }
 
 interface AlbumInfoState {
@@ -79,7 +79,7 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
 
     const file = this.props.album.albumArtFile;
     const src = file ? getImgSrc(file) : defaultAlbum;
-    const artists = this.props.artists.map((artist: ArtistParams) => {
+    const artists = this.props.artists.map((artist: Artist) => {
       return artist.name;
     }).join(', ');
     return (

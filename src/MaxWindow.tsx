@@ -1,4 +1,4 @@
-import {AlbumParams, ArtistParams, PlaylistParams, TrackParams} from './redux/actionTypes';
+import {Album, Artist, Playlist, Track} from './redux/actionTypes';
 import AlbumPage from './AlbumPage';
 import AlbumPicker from './AlbumPicker';
 import ArtistPage from './ArtistPage';
@@ -18,11 +18,11 @@ import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
 
 interface StateProps {
-  getAlbumById(id: number): AlbumParams;
-  getArtistById(id: number): ArtistParams;
-  getTracksByGenres(genres: number[]): TrackParams[];
-  getAlbumsByGenres(genres: number[]): AlbumParams[];
-  getArtistsByGenres(genres: number[]): ArtistParams[];
+  getAlbumById(id: number): Album;
+  getArtistById(id: number): Artist;
+  getTracksByGenres(genres: number[]): Track[];
+  getAlbumsByGenres(genres: number[]): Album[];
+  getArtistsByGenres(genres: number[]): Artist[];
 }
 
 type MaxWindowProps = StateProps;
@@ -153,7 +153,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
-  private goToPlaylist(playlist: PlaylistParams): void {
+  private goToPlaylist(playlist: Playlist): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       (genres) => <PlaylistPage

@@ -1,11 +1,11 @@
-import {TrackParams} from './redux/actionTypes';
+import {Track} from './redux/actionTypes';
 import MultipleSongEditer from './MultipleSongEditer';
 import React from 'react';
 import SingleSongEditer from './SingleSongEditer';
 import './SongEditer.css';
 
 interface SongEditerProps {
-  tracks: TrackParams[];
+  tracks: Track[];
   exit(): void;
 }
 

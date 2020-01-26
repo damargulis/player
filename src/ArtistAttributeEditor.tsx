@@ -1,4 +1,4 @@
-import {ArtistParams} from './redux/actionTypes';
+import {Artist} from './redux/actionTypes';
 import AttributeList from './AttributeList';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -11,7 +11,7 @@ interface OwnProps {
 
 interface StateProps {
   allIds: number[];
-  getArtistById(id: number): ArtistParams;
+  getArtistById(id: number): Artist;
 }
 
 type ArtistAttributeEditorProps = OwnProps & StateProps;

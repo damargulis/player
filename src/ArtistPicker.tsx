@@ -1,4 +1,4 @@
-import {ArtistParams} from './redux/actionTypes';
+import {Artist} from './redux/actionTypes';
 import ArtistInfo from './ArtistInfo';
 import React from 'react';
 import SearchBar from './SearchBar';
@@ -6,12 +6,12 @@ import WrappedGrid from './WrappedGrid';
 
 interface ArtistPickerState {
   search: string;
-  sortedArtists: ArtistParams[];
+  sortedArtists: Artist[];
   withErrors: boolean;
 }
 
 interface ArtistPickerProps {
-  artists: ArtistParams[];
+  artists: Artist[];
   goToArtist(artistId: number): void;
 }
 
@@ -59,7 +59,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     );
   }
 
-  private sortArtists(artists: ArtistParams[]): ArtistParams[] {
+  private sortArtists(artists: Artist[]): Artist[] {
     return artists.filter((artist) => {
       if (this.state.search) {
         return artist.name.toLowerCase().includes(this.state.search.toLowerCase());

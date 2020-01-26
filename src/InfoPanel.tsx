@@ -1,4 +1,4 @@
-import {AlbumParams, ArtistParams, TrackParams} from './redux/actionTypes';
+import {Album, Artist, Track} from './redux/actionTypes';
 import {ipcRenderer} from 'electron';
 import Links from './Links';
 import defaultAlbum from './resources/missing_album.png';
@@ -18,9 +18,9 @@ interface OwnProps {
 }
 
 interface StateProps {
-  albums: AlbumParams[];
-  artists: ArtistParams[];
-  track?: TrackParams;
+  albums: Album[];
+  artists: Artist[];
+  track?: Track;
 }
 
 type InfoPanelProps = OwnProps & StateProps;
@@ -57,7 +57,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
     );
   }
 
-  private goToSong(track?: TrackParams): void {
+  private goToSong(track?: Track): void {
     if (track) {
       this.props.goToSong(track.id);
     }

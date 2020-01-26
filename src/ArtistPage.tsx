@@ -1,5 +1,5 @@
 import {updateArtist} from './redux/actions';
-import {AlbumParams, ArtistInfo, ArtistParams, TrackParams} from './redux/actionTypes';
+import {Album, Artist, ArtistInfo, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
 import './ArtistPage.css';
 import runArtistModifier from './extensions/wiki/artists';
@@ -15,10 +15,10 @@ import {getImgSrc} from './utils';
 import WikiLabel from './WikiLabel';
 
 interface StateProps {
-  albums: AlbumParams[];
-  tracks: TrackParams[];
-  artist: ArtistParams;
-  runArtistModifier(artist: ArtistParams): Promise<ArtistInfo>;
+  albums: Album[];
+  tracks: Track[];
+  artist: Artist;
+  runArtistModifier(artist: Artist): Promise<ArtistInfo>;
 }
 
 interface OwnProps {
@@ -104,7 +104,7 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   const artist = getArtistById(store, ownProps.artistId);
   return {
     albums: getAlbumsByIds(store, artist.albumIds),
-    runArtistModifier: (a: ArtistParams) => runArtistModifier(store, a),
+    runArtistModifier: (a: Artist) => runArtistModifier(store, a),
     tracks: getTracksByIds(store, artist.trackIds),
     artist: artist,
   };

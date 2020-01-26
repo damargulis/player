@@ -1,4 +1,4 @@
-import {AlbumParams, ArtistParams, LibraryState, TrackParams} from '../redux/actionTypes';
+import {Album, Artist, LibraryState, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
 import {remote} from 'electron';
 import fs from 'fs';
@@ -320,7 +320,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
     genreArray.forEach((genre, index) => {
       genreMap.set(genre, index);
     });
-    const artists = [] as ArtistParams[];
+    const artists = [] as Artist[];
     artistMap.forEach((artistData) => {
       artists.push({
         id: artists.length,
@@ -332,7 +332,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
       });
       artistData.id = artists.length - 1;
     });
-    const albums = [] as AlbumParams[];
+    const albums = [] as Album[];
     albumMap.forEach((albumData) => {
       albums.push({
         id: albums.length,
@@ -350,7 +350,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
       });
       albumData.id = albums.length - 1;
     });
-    const tracks = [] as TrackParams[];
+    const tracks = [] as Track[];
     trackMap.forEach((data) => {
       data.id = tracks.length;
       tracks.push({

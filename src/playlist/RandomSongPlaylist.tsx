@@ -1,11 +1,11 @@
-import {TrackParams} from '../redux/actionTypes';
+import {Track} from '../redux/actionTypes';
 import EmptyPlaylist from './EmptyPlaylist';
 
 export default class RandomSongPlaylist extends EmptyPlaylist {
-  private tracks: TrackParams[];
-  private playlist: TrackParams[];
+  private tracks: Track[];
+  private playlist: Track[];
   private currentTrack: number;
-  constructor(tracks: TrackParams[]) {
+  constructor(tracks: Track[]) {
     super();
     this.tracks = tracks;
     this.playlist = [];
@@ -47,7 +47,7 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
     return this.currentTrack > 0;
   }
 
-  public addSong(song: TrackParams): void {
+  public addSong(song: Track): void {
     this.playlist = this.playlist.slice(0, this.currentTrack + 1);
     this.playlist.push(song);
   }
