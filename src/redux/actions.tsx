@@ -3,6 +3,7 @@ import {
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
+  LibraryState,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
@@ -18,14 +19,13 @@ import {
   UPDATE_TRACK,
 } from './actionTypes';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
-import Library from '../library/Library';
 
 export const updateTime = (time: number) => ({
   payload: {time},
   type: UPDATE_TIME,
 });
 
-export const updateLibrary = (library: Library) => ({
+export const updateLibrary = (library: LibraryState) => ({
   payload: {library},
   type: UPDATE_LIBRARY,
 });

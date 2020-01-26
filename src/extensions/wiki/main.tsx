@@ -1,9 +1,8 @@
-import {AlbumInfo, AlbumParams, Artist, ArtistInfo} from '../../redux/actionTypes';
+import {AlbumInfo, AlbumParams, Artist, ArtistInfo, LibraryState} from '../../redux/actionTypes';
 import modifyAlbum from './albums';
 import modifyArtist from './artists';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
-import Library from '../../library/Library';
 import {getAlbumsByIds, getAllAlbumIds, getAllArtistIds, getArtistsByIds} from '../../redux/selectors';
 import {RootState} from '../../redux/store';
 
@@ -73,7 +72,7 @@ function getArtistPool(store: RootState, artists: Artist[]): PromisePool<ArtistI
   );
 }
 
-export default function runWikiExtension(store: RootState): PromiseLike<Library> {
+export default function runWikiExtension(store: RootState): PromiseLike<LibraryState> {
   // put these into a single pool so that you can go straight into the other
   // without having to wait for an acutal finish?
   const albums = getAlbumsByIds(store, getAllAlbumIds(store));
@@ -97,12 +96,12 @@ export default function runWikiExtension(store: RootState): PromiseLike<Library>
         type: 'done',
       });
     }).then(() => {
-      return new Library(
-        [...store.library.tracks],
-        [...albums],
-        [...artists],
-        [...store.library.genres],
-        [...store.library.playlists]
-      );
+      return {
+        tracks: [...store.library.tracks],
+        albums: [...albums],
+        artists: [...artists],
+        genres: [...store.library.genres],
+        playlists: [...store.library.playlists],
+      };
     });
 }

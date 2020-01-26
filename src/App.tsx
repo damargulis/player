@@ -1,10 +1,9 @@
 import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
-import {TrackInfo} from './redux/actionTypes';
+import {LibraryState, TrackInfo} from './redux/actionTypes';
 import {DATA_DIR} from './constants';
 import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
 import {ipcRenderer} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
-import Library from './library/Library';
 import runWikiExtension from './extensions/wiki/main';
 import MaxWindow from './MaxWindow';
 import MiniWindow from './MiniWindow';
@@ -22,12 +21,12 @@ interface StateProps {
   track?: Track;
   playing: boolean;
   setTime?: number;
-  runWikiExtension(): PromiseLike<Library>;
+  runWikiExtension(): PromiseLike<LibraryState>;
 }
 
 interface DispatchProps {
   updateTime(time: number): void;
-  updateLibrary(library: Library): void;
+  updateLibrary(library: LibraryState): void;
   nextTrack(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
@@ -77,7 +76,7 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
       case 'wikipedia':
-        this.props.runWikiExtension().then((library: Library) => {
+        this.props.runWikiExtension().then((library: LibraryState) => {
           this.props.updateLibrary(library);
         });
         break;
@@ -87,9 +86,9 @@ class App extends React.Component<AppProps, AppState> {
     });
     ipcRenderer.on('reset-library', () => {
       deleteLibrary().then(() => {
-        createLibraryFromItunes().then((library: Library) => {
+        createLibraryFromItunes().then((library: LibraryState) => {
           this.props.updateLibrary(library);
-          const playlist = new RandomAlbumPlaylist(library.getAlbums());
+          const playlist = new RandomAlbumPlaylist(library.albums);
           this.props.setPlaylist(playlist, /* play= */ false);
           alert('Library uploaded');
         });
@@ -97,13 +96,13 @@ class App extends React.Component<AppProps, AppState> {
     });
     ipcRenderer.send('extension-ready');
 
-    loadLibrary(`${DATA_DIR}/library.json`).then((library: Library) => {
-      const playlist = new RandomAlbumPlaylist(library.getAlbums());
+    loadLibrary(`${DATA_DIR}/library.json`).then((library: LibraryState) => {
+      const playlist = new RandomAlbumPlaylist(library.albums);
       this.props.updateLibrary(library);
       this.props.setPlaylist(playlist, /* play= */ false);
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
-        const playlist = new RandomAlbumPlaylist(library.getAlbums());
+        const playlist = new RandomAlbumPlaylist(library.albums);
         this.props.updateLibrary(library);
         this.props.setPlaylist(playlist, /* play= */ false);
       });

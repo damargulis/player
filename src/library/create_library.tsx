@@ -1,15 +1,15 @@
-import Album, {AlbumParameters} from './Album';
-import Artist, {ArtistParameters} from './Artist';
+import {LibraryState} from '../redux/actionTypes';
+import Album from './Album';
+import Artist from './Artist';
 import {DATA_DIR} from '../constants';
 import {remote} from 'electron';
 import fs from 'fs';
-import Library from './Library';
 import mm from 'musicmetadata';
 import path from 'path';
-import Playlist, {PlaylistParameters} from './Playlist';
+import Playlist from './Playlist';
 import plist from 'plist';
 import shortid from 'shortid';
-import Track, {TrackParameters} from './Track';
+import Track from './Track';
 
 interface TempArtistData {
   albums: Set<string>;
@@ -223,25 +223,14 @@ function createTracksFromItunesData(tracks: Map<string, ItunesTrackData>): Map<n
 /**
  * Loads a library from a given file.
  */
-export function loadLibrary(libraryFile: string): Promise<Library> {
+export function loadLibrary(libraryFile: string): Promise<LibraryState> {
   return new Promise((resolve, reject) => {
     fs.readFile(libraryFile, (err: Error | null, data: Buffer) => {
       if (err) {
         return reject(err);
       }
       const libraryData = JSON.parse(data.toString());
-      const tracks = libraryData.tracks.map(
-        (trackData: TrackParameters, index: number) => new Track(index, trackData));
-      const albums = libraryData.albums.map(
-        (albumData: AlbumParameters, index: number) => new Album(index, albumData));
-      const artists = libraryData.artists.map(
-        (artistData: ArtistParameters, index: number) => new Artist(index, artistData));
-      const genres = libraryData.genres;
-      const playlists = libraryData.playlists.map(
-        (playlistData: PlaylistParameters) => new Playlist(playlistData),
-      );
-
-      return resolve(new Library(tracks, albums, artists, genres, playlists));
+      return resolve(libraryData);
     });
   });
 }
@@ -273,7 +262,7 @@ export function deleteLibrary(): Promise<void> {
 }
 
 /** Reads a library from an itunes manifest file and turns it into a library. */
-export function createLibraryFromItunes(): Promise<Library> {
+export function createLibraryFromItunes(): Promise<LibraryState> {
   // TODO: prompt user for itunes file if not one saved
   // create data dir if not exist ?
 
@@ -286,7 +275,13 @@ export function createLibraryFromItunes(): Promise<Library> {
     const itunesFile = response && response[0];
     if (!itunesFile) {
       alert('No file selected');
-      resolve(new Library());
+      resolve({
+        tracks: [],
+        albums: [],
+        playlists: [],
+        artists: [],
+        genres: [],
+      });
       return;
     }
     const itunesData = fs.readFileSync(itunesFile);
@@ -451,8 +446,9 @@ export function createLibraryFromItunes(): Promise<Library> {
         }));
       }
     });
+    const genres = genreArray;
     Promise.all(promises).then(() => {
-      resolve(new Library(tracks, albums, artists, genreArray, playlists));
+      resolve({tracks, albums, artists, genres, playlists});
     });
   });
 }
