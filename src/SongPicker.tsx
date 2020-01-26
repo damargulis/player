@@ -210,7 +210,6 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
 
   private getSongData(index: number): object {
     const song = this.state.songs[index];
-    // TODO: make album (maybe artist?) rotate
     return {
       albums: this.props.getAlbumsByIds(song.albumIds)
         .map((album) => album.name).join(', '),
