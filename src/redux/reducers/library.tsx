@@ -224,9 +224,15 @@ export default function reducer(state: LibraryState = initialState, action: Libr
     playlists: playlists(state.playlists, action),
     tracks: tracks(state.tracks, action),
   };
-  // only save if there is something to save, otherwise you overwrite when defaulting to the empty library
-  if (library.albums.length) {
-    save(library);
+  switch (action.type) {
+    case UPDATE_LIBRARY:
+    case UPDATE_ALBUM:
+    case UPDATE_TRACK:
+    case UPDATE_ARTIST:
+      save(library);
+      break;
+    default:
+      break;
   }
   return library;
 }
