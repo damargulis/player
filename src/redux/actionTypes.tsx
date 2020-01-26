@@ -1,5 +1,4 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
-import Library from '../library/Library';
 
 export const UPDATE_TIME = 'UPDATE_TIME';
 export const ADD_TO_PLAYLIST = 'ADD_TO_PLAYLIST';
@@ -94,7 +93,7 @@ interface VolumeChangeAction {
 
 interface UpdateLibraryAction {
   type: typeof UPDATE_LIBRARY;
-  payload: {library: Library};
+  payload: {library: LibraryState};
 }
 
 interface NextTrackAction {

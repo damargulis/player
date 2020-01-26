@@ -59,7 +59,7 @@ function save(library: LibraryState): Promise<void> {
 function tracks(state: Track[], action: LibraryActionTypes): Track[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return action.payload.library.getTracks();
+      return [...action.payload.library.tracks];
     }
     case UPDATE_TRACK: {
       return state.map((track) => {
@@ -105,7 +105,7 @@ function tracks(state: Track[], action: LibraryActionTypes): Track[] {
 function playlists(state: PlaylistParams[], action: LibraryActionTypes): PlaylistParams[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return action.payload.library.getPlaylists();
+      return [...action.payload.library.playlists];
     }
     default: {
       return state;
@@ -116,7 +116,7 @@ function playlists(state: PlaylistParams[], action: LibraryActionTypes): Playlis
 function genres(state: string[], action: LibraryActionTypes): string[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return action.payload.library.getGenres();
+      return [...action.payload.library.genres];
     }
     default: {
       return state;
@@ -127,7 +127,7 @@ function genres(state: string[], action: LibraryActionTypes): string[] {
 function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return action.payload.library.getArtists();
+      return [...action.payload.library.artists];
     }
     case UPDATE_ARTIST: {
       return state.map((artist) => {
@@ -173,7 +173,7 @@ function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
 function albums(state: AlbumParams[], action: LibraryActionTypes): AlbumParams[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return action.payload.library.getAlbums();
+      return [...action.payload.library.albums];
     }
     case UPDATE_ARTIST: {
       const albumIds = action.payload.info.albumIds;
