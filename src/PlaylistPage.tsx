@@ -1,15 +1,14 @@
+import {PlaylistParams, TrackParams} from './redux/actionTypes';
 import NavigationBar from './NavigationBar';
-import Playlist from './library/Playlist';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getTracksByIds} from './redux/selectors';
 import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
-import Track from './library/Track';
 import {toTime} from './utils';
 
 interface OwnProps {
-  playlist: Playlist;
+  playlist: PlaylistParams;
   canGoForward: boolean;
   genres: number[];
   goBack(): void;
@@ -17,7 +16,7 @@ interface OwnProps {
 }
 
 interface StateProps {
-  tracks: Track[];
+  tracks: TrackParams[];
 }
 
 type PlaylistPageProps = StateProps & OwnProps;

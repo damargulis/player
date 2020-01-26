@@ -1,5 +1,5 @@
 import {updateTrack} from './redux/actions';
-import {AlbumParams, Artist, Track, TrackInfo} from './redux/actionTypes';
+import {AlbumParams, ArtistParams, TrackInfo, TrackParams} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditer from './AttributeEditer';
@@ -16,12 +16,12 @@ interface DispatchProps {
 }
 
 interface StateProps {
-  getArtistById(id: number): Artist;
+  getArtistById(id: number): ArtistParams;
   getAlbumById(id: number): AlbumParams;
 }
 
 interface OwnProps {
-  tracks: Track[];
+  tracks: TrackParams[];
   exit(): void;
 }
 
@@ -143,7 +143,7 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
     this.setState({editAlbums: editing});
   }
 
-  private saveTrack(track: Track): void {
+  private saveTrack(track: TrackParams): void {
     this.props.updateTrack(track.id, {
       genreIds: this.state.genreIds,
       artistIds: this.state.editArtists ? this.state.artistIds : undefined,

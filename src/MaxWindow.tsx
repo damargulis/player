@@ -1,4 +1,4 @@
-import {AlbumParams, Artist, PlaylistParams, Track} from './redux/actionTypes';
+import {AlbumParams, ArtistParams, PlaylistParams, TrackParams} from './redux/actionTypes';
 import AlbumPage from './AlbumPage';
 import AlbumPicker from './AlbumPicker';
 import ArtistPage from './ArtistPage';
@@ -19,10 +19,10 @@ import {RootState} from './redux/store';
 
 interface StateProps {
   getAlbumById(id: number): AlbumParams;
-  getArtistById(id: number): Artist;
-  getTracksByGenres(genres: number[]): Track[];
+  getArtistById(id: number): ArtistParams;
+  getTracksByGenres(genres: number[]): TrackParams[];
   getAlbumsByGenres(genres: number[]): AlbumParams[];
-  getArtistsByGenres(genres: number[]): Artist[];
+  getArtistsByGenres(genres: number[]): ArtistParams[];
 }
 
 type MaxWindowProps = StateProps;

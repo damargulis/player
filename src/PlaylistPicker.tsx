@@ -1,4 +1,4 @@
-import Playlist from './library/Playlist';
+import {PlaylistParams} from './redux/actionTypes';
 import './PlaylistPicker.css';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -7,12 +7,12 @@ import {RootState} from './redux/store';
 import WrappedGrid from './WrappedGrid';
 
 interface OwnProps {
-  goToPlaylist(playlist: Playlist): void;
+  goToPlaylist(playlist: PlaylistParams): void;
 }
 
 interface StateProps {
-  playlists: Playlist[];
-  autoPlaylists: Playlist[];
+  playlists: PlaylistParams[];
+  autoPlaylists: PlaylistParams[];
 }
 
 type PlaylistPickerProps = OwnProps & StateProps;
@@ -36,7 +36,7 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps> {
     );
   }
 
-  private renderPlaylist(index: number, key: string, style: React.CSSProperties, playlist: Playlist): JSX.Element {
+  private renderPlaylist(index: number, key: string, style: React.CSSProperties, playlist: PlaylistParams): JSX.Element {
     if (!playlist) {
       return (
         <div key={key} style={style} />

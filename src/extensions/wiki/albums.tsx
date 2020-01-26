@@ -1,4 +1,4 @@
-import {AlbumInfo, AlbumParams, Artist} from '../../redux/actionTypes';
+import {AlbumInfo, AlbumParams, ArtistParams} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {
@@ -57,7 +57,7 @@ function getAllWikiOptions(store: RootState, album: AlbumParams): string[] {
   ];
 }
 
-function isRightLink(link: string, album: AlbumParams, artist: Artist): Promise<boolean> {
+function isRightLink(link: string, album: AlbumParams, artist: ArtistParams): Promise<boolean> {
   return rp(link).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');

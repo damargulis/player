@@ -1,5 +1,5 @@
 import {updateTrack} from './redux/actions';
-import {AlbumParams, Artist, Track, TrackInfo} from './redux/actionTypes';
+import {AlbumParams, ArtistParams, TrackInfo, TrackParams} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditer from './AttributeEditer';
@@ -12,11 +12,11 @@ import {RootState} from './redux/store';
 
 interface StateProps {
   getAlbumById(albumId: number): AlbumParams;
-  getArtistById(artistId: number): Artist;
+  getArtistById(artistId: number): ArtistParams;
 }
 
 interface OwnProps {
-  track: Track;
+  track: TrackParams;
   exit(): void;
 }
 

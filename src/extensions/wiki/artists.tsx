@@ -1,4 +1,4 @@
-import {Artist, ArtistInfo} from '../../redux/actionTypes';
+import {ArtistInfo, ArtistParams} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {GENRE_ERROR, NO_PAGE_ERROR, PARSER_ERROR, PIC_ERROR} from './errors';
@@ -9,7 +9,7 @@ import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {addError, findAsync, getDoc, getGenresByRow, removeError} from './utils';
 
-function getWikiPageOptions(artist: Artist): string[] {
+function getWikiPageOptions(artist: ArtistParams): string[] {
   const artistName = artist.name.replace(/ /g, '_');
   return [
     `${BASE_URL}${artistName}`,
@@ -41,14 +41,14 @@ function isRightLink(link: string): Promise<boolean> {
   });
 }
 
-function searchForWikiPage(artist: Artist): Promise<string>  {
+function searchForWikiPage(artist: ArtistParams): Promise<string>  {
   const options = getWikiPageOptions(artist);
   return findAsync(options, (option: string) => {
     return isRightLink(option);
   });
 }
 
-function modifyArtist(store: RootState, artist: Artist): Promise<void> {
+function modifyArtist(store: RootState, artist: ArtistParams): Promise<void> {
   if (!artist.wikiPage) {
     return Promise.resolve();
   }
@@ -96,7 +96,7 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
   });
 }
 
-export default function runArtistModifier(store: RootState, artist: Artist): Promise<ArtistInfo> {
+export default function runArtistModifier(store: RootState, artist: ArtistParams): Promise<ArtistInfo> {
   if (!artist.wikiPage) {
     return searchForWikiPage(artist).then((wikiPage) => {
       if (wikiPage) {

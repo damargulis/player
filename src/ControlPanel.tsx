@@ -1,5 +1,5 @@
 import {changeVolume, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, updateTrack} from './redux/actions';
-import {Track, TrackInfo} from './redux/actionTypes';
+import {TrackInfo, TrackParams} from './redux/actionTypes';
 import './ControlPanel.css';
 import LikeButton from './LikeButton';
 import nextAlbumImg from './resources/next_album.png';
@@ -44,7 +44,7 @@ interface StateProps {
   volume: number;
   hasPrevAlbum: boolean;
   hasPrevTrack: boolean;
-  currentTrack?: Track;
+  currentTrack?: TrackParams;
   hasNextTrack: boolean;
   hasNextAlbum: boolean;
   playing: boolean;

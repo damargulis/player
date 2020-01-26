@@ -21,7 +21,7 @@ export interface PlaylistParams {
   trackIds: number[];
 }
 
-export interface Track {
+export interface TrackParams {
   id: number;
   duration: number;
   playCount: number;
@@ -37,7 +37,7 @@ export interface Track {
   favorites: number[];
 }
 
-export interface Artist {
+export interface ArtistParams {
   id: number;
   name: string;
   albumIds: number[];
@@ -65,9 +65,9 @@ export interface AlbumParams {
 }
 
 export interface LibraryState {
-  tracks: Track[];
+  tracks: TrackParams[];
   albums: AlbumParams[];
-  artists: Artist[];
+  artists: ArtistParams[];
   playlists: PlaylistParams[];
   genres: string[];
 }

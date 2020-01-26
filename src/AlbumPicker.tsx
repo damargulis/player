@@ -1,4 +1,4 @@
-import {AlbumParams, Artist} from './redux/actionTypes';
+import {AlbumParams, ArtistParams} from './redux/actionTypes';
 import AlbumInfo from './AlbumInfo';
 import * as React from 'react';
 import {connect} from 'react-redux';
@@ -15,7 +15,7 @@ interface OwnProps {
 }
 
 interface StateProps {
-  getArtistsByIds(ids: number[]): Artist[];
+  getArtistsByIds(ids: number[]): ArtistParams[];
 }
 
 type AlbumPickerProps = OwnProps & StateProps;
@@ -116,9 +116,9 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
 
   private sortByArtist(album1: AlbumParams, album2: AlbumParams): number {
     const artist1 = this.props.getArtistsByIds(album1.artistIds)
-      .map((artist: Artist) => artist.name).join(',');
+      .map((artist: ArtistParams) => artist.name).join(',');
     const artist2 = this.props.getArtistsByIds(album2.artistIds)
-      .map((artist: Artist) => artist.name).join(',');
+      .map((artist: ArtistParams) => artist.name).join(',');
     return artist1.localeCompare(artist2);
   }
 

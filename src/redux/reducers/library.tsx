@@ -1,10 +1,10 @@
 import {
   AlbumParams,
-  Artist,
+  ArtistParams,
   LibraryActionTypes,
   LibraryState,
   PlaylistParams,
-  Track,
+  TrackParams,
   UPDATE_ALBUM,
   UPDATE_ARTIST,
   UPDATE_LIBRARY,
@@ -56,7 +56,7 @@ function save(library: LibraryState): Promise<void> {
   });
 }
 
-function tracks(state: Track[], action: LibraryActionTypes): Track[] {
+function tracks(state: TrackParams[], action: LibraryActionTypes): TrackParams[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
       return [...action.payload.library.tracks];
@@ -124,7 +124,7 @@ function genres(state: string[], action: LibraryActionTypes): string[] {
   }
 }
 
-function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
+function artists(state: ArtistParams[], action: LibraryActionTypes): ArtistParams[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
       return [...action.payload.library.artists];

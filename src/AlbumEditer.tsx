@@ -1,6 +1,6 @@
 // TODO: rename all editer to editor lol
 import {updateAlbum} from './redux/actions';
-import {AlbumParams, Artist, Track} from './redux/actionTypes';
+import {AlbumParams, ArtistParams, TrackParams} from './redux/actionTypes';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditer from './AttributeEditer';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
@@ -17,8 +17,8 @@ interface OwnProps {
 }
 
 interface StateProps {
-  getArtistById(id: number): Artist;
-  getTrackById(id: number): Track;
+  getArtistById(id: number): ArtistParams;
+  getTrackById(id: number): TrackParams;
 }
 
 interface DispatchProps {

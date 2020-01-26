@@ -1,15 +1,11 @@
-import {LibraryState} from '../redux/actionTypes';
-import Album from './Album';
-import Artist from './Artist';
+import {AlbumParams, ArtistParams, LibraryState, TrackParams} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
 import {remote} from 'electron';
 import fs from 'fs';
 import mm from 'musicmetadata';
 import path from 'path';
-import Playlist from './Playlist';
 import plist from 'plist';
 import shortid from 'shortid';
-import Track from './Track';
 
 interface TempArtistData {
   albums: Set<string>;
@@ -324,33 +320,54 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
     genreArray.forEach((genre, index) => {
       genreMap.set(genre, index);
     });
-    const artists = [] as Artist[];
+    const artists = [] as ArtistParams[];
     artistMap.forEach((artistData) => {
-      artists.push(new Artist(artists.length, {name: artistData.name}));
+      artists.push({
+        id: artists.length,
+        name: artistData.name,
+        albumIds: [],
+        errors: [],
+        genreIds: [],
+        trackIds: [],
+      });
       artistData.id = artists.length - 1;
     });
-    const albums = [] as Album[];
+    const albums = [] as AlbumParams[];
     albumMap.forEach((albumData) => {
-      albums.push(new Album(albums.length, {
+      albums.push({
+        id: albums.length,
         albumArtFile: albumData.albumArtFile,
         name: albumData.name,
         year: albumData.year,
-      }));
+        warnings: {},
+        errors: [],
+        artistIds: [],
+        trackIds: [],
+        genreIds: [],
+        playCount: 0,
+        skipCount: 0,
+        favorites: [],
+      });
       albumData.id = albums.length - 1;
     });
-    const tracks = [] as Track[];
+    const tracks = [] as TrackParams[];
     trackMap.forEach((data) => {
       data.id = tracks.length;
-      tracks.push(new Track(tracks.length, {
-        dateAdded: data.dateAdded,
+      tracks.push({
+        id: tracks.length,
+        dateAdded: new Date(data.dateAdded),
         duration: data.duration,
         filePath: data.filePath,
         name: data.name,
         playCount: data.playCount,
-        playDate: data.playDate,
+        playDate: new Date(data.playDate),
         skipCount: data.skipCount,
         year: data.year,
-      }));
+        artistIds: [],
+        albumIds: [],
+        genreIds: [],
+        favorites: [],
+      });
     });
     // set genre ids
     albumMap.forEach((albumData) => {
@@ -430,7 +447,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
           const data = trackMap.get(track['Track ID']);
           return (data && data.id) || 0;
         });
-      return new Playlist({name: playlist.Name, trackIds});
+      return {name: playlist.Name, trackIds};
     });
 
     const promises = [] as Array<Promise<void>>;

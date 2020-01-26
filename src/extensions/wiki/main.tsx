@@ -1,4 +1,4 @@
-import {AlbumInfo, AlbumParams, Artist, ArtistInfo, LibraryState} from '../../redux/actionTypes';
+import {AlbumInfo, AlbumParams, ArtistInfo, ArtistParams, LibraryState} from '../../redux/actionTypes';
 import modifyAlbum from './albums';
 import modifyArtist from './artists';
 import {ipcRenderer} from 'electron';
@@ -52,7 +52,7 @@ function getAlbumsPool(store: RootState, albums: AlbumParams[]): PromisePool<Alb
     /* prefix= */ 'album-',
     (album) => {
       const artist = getArtistsByIds(store, album.artistIds)
-        .map((artistData: Artist) => artistData.name)
+        .map((artistData: ArtistParams) => artistData.name)
         .join(', ');
       return `${album.name} by: ${artist}`;
     },
@@ -60,7 +60,7 @@ function getAlbumsPool(store: RootState, albums: AlbumParams[]): PromisePool<Alb
   );
 }
 
-function getArtistPool(store: RootState, artists: Artist[]): PromisePool<ArtistInfo | void> {
+function getArtistPool(store: RootState, artists: ArtistParams[]): PromisePool<ArtistInfo | void> {
   return getPool(
     store,
     artists,

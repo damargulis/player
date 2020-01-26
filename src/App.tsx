@@ -1,5 +1,5 @@
 import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
-import {LibraryState, TrackInfo} from './redux/actionTypes';
+import {LibraryState, TrackInfo, TrackParams} from './redux/actionTypes';
 import {DATA_DIR} from './constants';
 import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
 import {ipcRenderer} from 'electron';
@@ -12,13 +12,12 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
 import {RootState} from './redux/store';
-import Track from './library/Track';
 
 import './App.css';
 
 interface StateProps {
   volume: number;
-  track?: Track;
+  track?: TrackParams;
   playing: boolean;
   setTime?: number;
   runWikiExtension(): PromiseLike<LibraryState>;

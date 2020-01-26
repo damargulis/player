@@ -1,4 +1,4 @@
-import {Artist} from './redux/actionTypes';
+import {ArtistParams} from './redux/actionTypes';
 import defaultArtist from './resources/missing_artist.png';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -11,7 +11,7 @@ interface StateProps {
 }
 
 interface OwnProps {
-  artist?: Artist;
+  artist?: ArtistParams;
   style: React.CSSProperties;
   goToArtist(artistId: number): void;
 }
