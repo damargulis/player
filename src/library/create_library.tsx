@@ -17,7 +17,7 @@ interface TempArtistData {
 
 interface TempTrackData {
   id: number;
-  dateAdded: string;
+  dateAdded: Date;
   duration: number;
   filePath: string;
   genres: Set<string>;
@@ -25,7 +25,7 @@ interface TempTrackData {
   mainArtist: string;
   name: string;
   playCount: number;
-  playDate: string;
+  playDate: Date;
   skipCount: number;
   trackNumber: number;
   year: number;
@@ -226,7 +226,50 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
         return reject(err);
       }
       const libraryData = JSON.parse(data.toString());
-      return resolve(libraryData);
+      return resolve({
+        albums: libraryData.albums.map((albumData: Album) => ({
+          id: albumData.id,
+          warnings: albumData.warnings,
+          errors: albumData.errors,
+          albumArtFile: albumData.albumArtFile,
+          artistIds: albumData.artistIds,
+          name: albumData.name,
+          trackIds: albumData.trackIds,
+          year: albumData.year,
+          wikiPage: albumData.wikiPage,
+          genreIds: albumData.genreIds,
+          playCount: albumData.playCount,
+          skipCount: albumData.skipCount,
+          favorites: albumData.favorites,
+        })),
+        artists: libraryData.artists.map((artistData: Artist) => ({
+          id: artistData.id,
+          name: artistData.name,
+          albumIds: artistData.albumIds,
+          artFile: artistData.artFile,
+          errors: artistData.errors,
+          wikiPage: artistData.wikiPage,
+          genreIds: artistData.genreIds,
+          trackIds: artistData.trackIds,
+        })),
+        tracks: libraryData.tracks.map((trackData: Track) => ({
+          id: trackData.id,
+          duration: trackData.duration,
+          playCount: trackData.playCount,
+          playDate: new Date(trackData.playDate),
+          filePath: trackData.filePath,
+          artistIds: trackData.artistIds,
+          albumIds: trackData.albumIds,
+          name: trackData.name,
+          year: trackData.year,
+          genreIds: trackData.genreIds,
+          skipCount: trackData.skipCount,
+          dateAdded: new Date(trackData.dateAdded),
+          favorites: trackData.favorites,
+        })),
+        genres: libraryData.genres,
+        playlists: libraryData.playlists,
+      });
     });
   });
 }

@@ -1,4 +1,5 @@
 import {
+  ADD_TO_PLAYLIST,
   Album,
   Artist,
   LibraryActionTypes,
@@ -106,6 +107,20 @@ function playlists(state: Playlist[], action: LibraryActionTypes): Playlist[] {
   switch (action.type) {
     case UPDATE_LIBRARY: {
       return [...action.payload.library.playlists];
+    }
+    case ADD_TO_PLAYLIST: {
+      return state.map((playlist, index) => {
+        if (index !== action.payload.index) {
+          return playlist;
+        }
+        const newIds = action.payload.trackIds.filter((trackId) => {
+          return playlist.trackIds.indexOf(trackId) < 0;
+        });
+        return {
+          ...playlist,
+          trackIds: [...playlist.trackIds, ...newIds],
+        };
+      });
     }
     default: {
       return state;
@@ -229,6 +244,7 @@ export default function reducer(state: LibraryState = initialState, action: Libr
     case UPDATE_ALBUM:
     case UPDATE_TRACK:
     case UPDATE_ARTIST:
+    case ADD_TO_PLAYLIST:
       save(library);
       break;
     default:

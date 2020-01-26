@@ -192,6 +192,14 @@ interface UpdateTrack {
   };
 }
 
+interface AddToPlaylist {
+  type: typeof ADD_TO_PLAYLIST;
+  payload: {
+    index: number;
+    trackIds: number[];
+  };
+}
+
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
-export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack;
+export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist;

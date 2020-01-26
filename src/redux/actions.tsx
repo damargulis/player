@@ -82,5 +82,5 @@ export const updateTrack = (id: number, info: TrackInfo) => ({
 
 export const addToPlaylist = (index: number, trackIds: number[]) => ({
   payload: {index, trackIds},
-  track: ADD_TO_PLAYLIST,
+  type: ADD_TO_PLAYLIST,
 });
