@@ -60,7 +60,7 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('toArtist', () => {
       this.onMaximize();
     });
-    ipcRenderer.on('toSong', () => {
+    ipcRenderer.on('toTrack', () => {
       this.onMaximize();
     });
     ipcRenderer.on('nextTrack', () => {

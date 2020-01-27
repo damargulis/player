@@ -1,7 +1,7 @@
 import {Track} from '../redux/actionTypes';
 import EmptyPlaylist from './EmptyPlaylist';
 
-export default class RandomSongPlaylist extends EmptyPlaylist {
+export default class RandomTrackPlaylist extends EmptyPlaylist {
   private tracks: Track[];
   private playlist: Track[];
   private currentTrack: number;
@@ -47,8 +47,8 @@ export default class RandomSongPlaylist extends EmptyPlaylist {
     return this.currentTrack > 0;
   }
 
-  public addSong(song: Track): void {
+  public addTrack(track: Track): void {
     this.playlist = this.playlist.slice(0, this.currentTrack + 1);
-    this.playlist.push(song);
+    this.playlist.push(track);
   }
 }

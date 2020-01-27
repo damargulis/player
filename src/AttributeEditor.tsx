@@ -7,7 +7,7 @@ interface OwnProps {
 
 type AttributeEditorProps = OwnProps;
 
-export default class AttributeEditer extends React.Component<OwnProps> {
+export default class AttributeEditor extends React.Component<OwnProps> {
   private innerRef = React.createRef<HTMLInputElement>();
   get value(): string {
     return this.innerRef.current!.value;

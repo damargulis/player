@@ -9,8 +9,8 @@ import NavigationBar from './NavigationBar';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumsByIds, getArtistById, getTracksByIds} from './redux/selectors';
-import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
+import TrackPicker from './TrackPicker';
 import {getImgSrc} from './utils';
 import WikiLabel from './WikiLabel';
 
@@ -66,7 +66,7 @@ class ArtistPage extends React.Component<ArtistPageProps> {
               <AlbumPicker albums={this.props.albums} goToAlbum={this.props.goToAlbum} />
             </div>
             <div className="artistPageContainer" >
-              <SongPicker songs={this.props.tracks} />
+              <TrackPicker tracks={this.props.tracks} />
             </div>
           </div>
         </div>

@@ -14,7 +14,7 @@ interface OwnProps {
   small?: boolean;
   goToAlbum(albumId: number): void;
   goToArtist(artistId: number): void;
-  goToSong(trackId: number): void;
+  goToTrack(trackId: number): void;
 }
 
 interface StateProps {
@@ -35,7 +35,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
     // TODO: make rotate instead -- conditionally on playlist type??
     // meaning like if its playing a specific album, only show that album
     // (and artwork)
-    // if on song shuffle, then rotate between all.
+    // if on track shuffle, then rotate between all.
     const imgStyle = this.props.small ? {height: 50, width: 50, padding: 5}
       : {height: 70, width: 70, padding: 15};
     return (
@@ -43,7 +43,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
         <img alt="album-art" onClick={() => this.onImageClick()} src={src} style={imgStyle} />
         <div style={{display: 'grid'}}>
           <div className="track-label" id="name">
-            <Links items={tracks} goToItem={this.props.goToSong} name="Track Name" />
+            <Links items={tracks} goToItem={this.props.goToTrack} name="Track Name" />
           </div>
           <div className="track-label" id="author">
             <Links items={this.props.artists} goToItem={this.props.goToArtist} name="Artists" />
@@ -57,9 +57,9 @@ class InfoPanel extends React.Component<InfoPanelProps> {
     );
   }
 
-  private goToSong(track?: Track): void {
+  private goToTrack(track?: Track): void {
     if (track) {
-      this.props.goToSong(track.id);
+      this.props.goToTrack(track.id);
     }
   }
 

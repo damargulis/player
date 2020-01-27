@@ -13,7 +13,7 @@ class MiniWindow extends React.Component {
         <InfoPanel
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
-          goToSong={this.goToSong.bind(this)}
+          goToTrack={this.goToTrack.bind(this)}
           small={true}
         />
         <div style={{height: '25px', display: 'flex'}}>
@@ -24,8 +24,8 @@ class MiniWindow extends React.Component {
     );
   }
 
-  private goToSong(trackId: number): void {
-    ipcRenderer.send('goToSong', {trackId});
+  private goToTrack(trackId: number): void {
+    ipcRenderer.send('goToTrack', {trackId});
   }
 
   private goToArtist(artistId: number): void {

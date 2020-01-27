@@ -2,7 +2,7 @@ import {updateTrack} from './redux/actions';
 import {Album, Artist, Track, TrackInfo} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
-import AttributeEditer from './AttributeEditer';
+import AttributeEditor from './AttributeEditor';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
 import React from 'react';
@@ -25,9 +25,9 @@ interface OwnProps {
   exit(): void;
 }
 
-type MultipleSongEditerProps = StateProps & OwnProps & DispatchProps;
+type MultipleTrackEditorProps = StateProps & OwnProps & DispatchProps;
 
-interface MultipleSongEditerState {
+interface MultipleTrackEditorState {
   editGenre: boolean;
   genreIds: number[];
   artistIds: number[];
@@ -40,11 +40,11 @@ interface MultipleSongEditerState {
   editPlayCount: boolean;
 }
 
-class MultipleSongEditer extends React.Component<MultipleSongEditerProps, MultipleSongEditerState> {
-  private year = React.createRef<AttributeEditer>();
-  private playCount = React.createRef<AttributeEditer>();
+class MultipleTrackEditor extends React.Component<MultipleTrackEditorProps, MultipleTrackEditorState> {
+  private year = React.createRef<AttributeEditor>();
+  private playCount = React.createRef<AttributeEditor>();
 
-  constructor(props: MultipleSongEditerProps) {
+  constructor(props: MultipleTrackEditorProps) {
     super(props);
 
     // TODO: smarter defaults?
@@ -88,7 +88,7 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
           label="Year"
           toggleEdit={this.editYear.bind(this)}
         >
-          <AttributeEditer name="Year" ref={this.year} />
+          <AttributeEditor name="Year" ref={this.year} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editGenre}
@@ -109,7 +109,7 @@ class MultipleSongEditer extends React.Component<MultipleSongEditerProps, Multip
           label="Play Count"
           toggleEdit={this.editPlayCount.bind(this)}
         >
-          <AttributeEditer name="Play Count" ref={this.playCount} />
+          <AttributeEditor name="Play Count" ref={this.playCount} />
         </ToggableEditableAttribute>
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>
@@ -170,4 +170,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {updateTrack})(MultipleSongEditer);
+export default connect(mapStateToProps, {updateTrack})(MultipleTrackEditor);

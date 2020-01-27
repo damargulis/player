@@ -14,8 +14,8 @@ import {connect} from 'react-redux';
 import {
   getAlbumById, getAlbumsByGenres, getArtistById, getArtistsByGenres, getTracksByGenres,
 } from './redux/selectors';
-import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
+import TrackPicker from './TrackPicker';
 
 interface StateProps {
   getAlbumById(id: number): Album;
@@ -48,7 +48,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.onAlbumMessage = this.onAlbumMessage.bind(this);
     ipcRenderer.on('toArtist', this.onArtistMessage);
     ipcRenderer.on('toAlbum', this.onAlbumMessage);
-    ipcRenderer.on('toSong', this.onSongMessage.bind(this));
+    ipcRenderer.on('toTrack', this.onTrackMessage.bind(this));
   }
 
   public componentWillUnmount(): void {
@@ -61,7 +61,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         <Header
           goToAlbum={this.goToAlbum.bind(this)}
           goToArtist={this.goToArtist.bind(this)}
-          goToSong={this.goToSong.bind(this)}
+          goToTrack={this.goToTrack.bind(this)}
         />
         <div className="section">
           <div id="sidebar">
@@ -74,8 +74,8 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     );
   }
 
-  private onSongMessage(evt: Event, data: {trackId: number}): void {
-    this.goToSong(data.trackId);
+  private onTrackMessage(evt: Event, data: {trackId: number}): void {
+    this.goToTrack(data.trackId);
   }
 
   private onAlbumMessage(evt: Event, data: {albumId: number}): void {
@@ -110,12 +110,12 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     return this.state.curScene < this.state.scenes.length - 1;
   }
 
-  private goToSong(trackId: number): void {
+  private goToTrack(trackId: number): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
-      () => <SongPicker
-        scrollToSongId={trackId}
-        songs={this.props.getTracksByGenres(this.state.genres)}
+      () => <TrackPicker
+        scrollToTrackId={trackId}
+        tracks={this.props.getTracksByGenres(this.state.genres)}
       />,
     );
     const curScene = this.state.curScene + 1;
@@ -185,8 +185,8 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
           goToArtist={this.goToArtist.bind(this)}
         />
       );
-    case 'song':
-      return <SongPicker songs={this.props.getTracksByGenres(this.state.genres)} />;
+    case 'track':
+      return <TrackPicker tracks={this.props.getTracksByGenres(this.state.genres)} />;
     case 'playlist':
       return <PlaylistPicker goToPlaylist={this.goToPlaylist.bind(this)} />;
     default:

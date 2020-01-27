@@ -100,7 +100,7 @@ export function getPlaylists(store: RootState): Playlist[] {
 }
 
 /**
- * Gets the 100 most played songs in the library.
+ * Gets the 100 most played tracks in the library.
  */
 function getMostPlayed(store: RootState): Playlist {
   const tracks = store.library.tracks.slice().sort((track1, track2) => {
@@ -112,7 +112,7 @@ function getMostPlayed(store: RootState): Playlist {
 }
 
 /**
- * Gets the unlistened songs in the library.
+ * Gets the unlistened tracks in the library.
  */
 function getUnlistened(store: RootState): Playlist {
   const tracks = store.library.tracks.filter((track) => {
@@ -126,7 +126,7 @@ function getUnlistened(store: RootState): Playlist {
 const THREE_MONTHS = 1000 * 60 * 60 * 24;
 
 /**
- * Gets the songs added to the library in the last 3 months.
+ * Gets the tracks added to the library in the last 3 months.
  */
 function getRecentlyAdded(store: RootState): Playlist {
   const now = new Date().getTime();
@@ -139,7 +139,7 @@ function getRecentlyAdded(store: RootState): Playlist {
 }
 
 /**
- * Gets the songs listened to in the last 3 months.
+ * Gets the tracks listened to in the last 3 months.
  */
 function getRecentlyPlayed(store: RootState): Playlist {
   const now = new Date().getTime();
@@ -164,7 +164,7 @@ function getLikesForYear(store: RootState, year: number): Playlist {
 }
 
 /**
- * Gets a playlist of songs liked in each year.
+ * Gets a playlist of tracks liked in each year.
  */
 function getLikesByYear(store: RootState): Playlist[] {
   const years = new Set<number>();

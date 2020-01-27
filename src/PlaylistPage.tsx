@@ -3,8 +3,8 @@ import NavigationBar from './NavigationBar';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getTracksByIds} from './redux/selectors';
-import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
+import TrackPicker from './TrackPicker';
 import {toTime} from './utils';
 
 interface OwnProps {
@@ -25,10 +25,10 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
 
   public render(): JSX.Element {
     const src = '';
-    const allPlaylistSongs = this.props.tracks;
-    const songs = allPlaylistSongs.filter((song) => {
+    const allPlaylistTracks = this.props.tracks;
+    const tracks = allPlaylistTracks.filter((track) => {
       if (this.props.genres.length) {
-        return song.genreIds.some((genreId) => {
+        return track.genreIds.some((genreId) => {
           return this.props.genres.includes(genreId);
         });
       }
@@ -49,14 +49,14 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
           </div>
         </div>
         <div className="playlistPageBody" style={{height: '100%'}}>
-          <SongPicker songs={songs} />
+          <TrackPicker tracks={tracks} />
         </div>
       </div>
     );
   }
 
   private getTotalTime(): string {
-    const duration = this.props.tracks.reduce((total, song) => total + song.duration, 0);
+    const duration = this.props.tracks.reduce((total, track) => total + track.duration, 0);
     return toTime(duration);
   }
 }

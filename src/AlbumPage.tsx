@@ -1,6 +1,6 @@
 import {setPlaylist, updateAlbum, updateTrack} from './redux/actions';
 import {Album, AlbumInfo, Artist, Track, TrackInfo} from './redux/actionTypes';
-import AlbumEditer from './AlbumEditer';
+import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
 import runAlbumModifier from './extensions/wiki/albums';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
@@ -13,8 +13,8 @@ import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import {getAlbumById, getArtistsByIds, getTrackById, getTracksByIds} from './redux/selectors';
-import SongPicker from './SongPicker';
 import {RootState} from './redux/store';
+import TrackPicker from './TrackPicker';
 import {getImgSrc, toTime} from './utils';
 import WikiLabel from './WikiLabel';
 
@@ -62,11 +62,11 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     // ya know actually separate conscers and shit
     const file = this.props.album.albumArtFile;
     const src = file ? getImgSrc(file).toString() : defaultAlbum;
-    // TODO: set playSong to play an album playlist of by artist ?
+    // TODO: set playTrack to play an album playlist of by artist ?
     return (
       <div className="main">
         <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
-          <AlbumEditer exit={this.closeEdit.bind(this)} album={this.props.album} />
+          <AlbumEditor exit={this.closeEdit.bind(this)} album={this.props.album} />
         </Modal>
         <div className="albumPageHeader" >
           <div className="info">
@@ -95,7 +95,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
           {this.getErrors()}
           {this.getWarnings()}
         </div>
-        <SongPicker songs={this.props.getTracksByIds(this.props.album.trackIds)} sortBy="index" />
+        <TrackPicker tracks={this.props.getTracksByIds(this.props.album.trackIds)} sortBy="index" />
       </div>
     );
   }
@@ -159,7 +159,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   private getTotalTime(): string {
-    const duration = this.props.tracks.reduce((total: number, song: Track) => total + song.duration, 0);
+    const duration = this.props.tracks.reduce((total: number, track: Track) => total + track.duration, 0);
     return toTime(duration);
   }
 

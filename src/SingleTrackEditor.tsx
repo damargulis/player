@@ -2,7 +2,7 @@ import {updateTrack} from './redux/actions';
 import {Album, Artist, Track, TrackInfo} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
-import AttributeEditer from './AttributeEditer';
+import AttributeEditor from './AttributeEditor';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
 import React from 'react';
@@ -24,21 +24,21 @@ interface DispatchProps {
   updateTrack(id: number, info: TrackInfo): void;
 }
 
-type SingleSongEditerProps = StateProps & OwnProps & DispatchProps;
+type SingleTrackEditorProps = StateProps & OwnProps & DispatchProps;
 
-interface SingleSongEditerState {
+interface SingleTrackEditorState {
   genreIds: number[];
   albumIds: number[];
   artistIds: number[];
   yearsFavorited: number[];
 }
 
-class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSongEditerState> {
-  private name = React.createRef<AttributeEditer>();
-  private year = React.createRef<AttributeEditer>();
-  private playCount = React.createRef<AttributeEditer>();
+class SingleTrackEditor extends React.Component<SingleTrackEditorProps, SingleTrackEditorState> {
+  private name = React.createRef<AttributeEditor>();
+  private year = React.createRef<AttributeEditor>();
+  private playCount = React.createRef<AttributeEditor>();
 
-  constructor(props: SingleSongEditerProps) {
+  constructor(props: SingleTrackEditorProps) {
     super(props);
     const track = this.props.track;
 
@@ -68,13 +68,13 @@ class SingleSongEditer extends React.Component<SingleSongEditerProps, SingleSong
     return (
       <div>
         <h3 className="title">Edit Track</h3>
-        <AttributeEditer name="Name" val={track.name} ref={this.name} />
+        <AttributeEditor name="Name" val={track.name} ref={this.name} />
         <ArtistAttributeEditor artistIds={this.state.artistIds} />
         <AlbumAttributeEditor albumIds={this.state.albumIds} />
-        <AttributeEditer name="Year" val={track.year} ref={this.year} />
+        <AttributeEditor name="Year" val={track.year} ref={this.year} />
         <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
-        <AttributeEditer name="Play Count" val={track.playCount} ref={this.playCount} />
+        <AttributeEditor name="Play Count" val={track.playCount} ref={this.playCount} />
         <div className="bottom-bar">
           <button onClick={this.save.bind(this)}>Save</button>
           <button onClick={this.props.exit}>Cancel</button>
@@ -91,4 +91,4 @@ function mapStateToProps(state: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {updateTrack})(SingleSongEditer);
+export default connect(mapStateToProps, {updateTrack})(SingleTrackEditor);

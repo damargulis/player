@@ -6,7 +6,7 @@ import React from 'react';
 interface HeaderProps {
   goToAlbum(albumId: number): void;
   goToArtist(artistId: number): void;
-  goToSong(trackId: number): void;
+  goToTrack(trackId: number): void;
 }
 
 export default class Header extends React.Component<HeaderProps> {
@@ -18,7 +18,7 @@ export default class Header extends React.Component<HeaderProps> {
         <InfoPanel
           goToAlbum={this.props.goToAlbum}
           goToArtist={this.props.goToArtist}
-          goToSong={this.props.goToSong}
+          goToTrack={this.props.goToTrack}
         />
       </div>
     );

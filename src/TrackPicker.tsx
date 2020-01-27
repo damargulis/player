@@ -2,7 +2,7 @@ import {addToPlaylist, setPlaylist, updateTrack} from './redux/actions';
 import {Album, Artist, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
-import RandomSongPlaylist from './playlist/RandomSongPlaylist';
+import RandomTrackPlaylist from './playlist/RandomTrackPlaylist';
 import React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
@@ -10,9 +10,9 @@ import {AutoSizer, Column, Table} from 'react-virtualized';
 import SearchBar from './SearchBar';
 import {getPlaylists} from './redux/selectors';
 import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from './redux/selectors';
-import SongEditer from './SongEditer';
 import {RootState} from './redux/store';
 import '../node_modules/react-virtualized/styles.css';
+import TrackEditor from './TrackEditor';
 import {toTime} from './utils';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -20,10 +20,10 @@ Modal.setAppElement('#root');
 
 type Sort = 'ASC' | 'DESC';
 
-interface SongPickerState {
+interface TrackPickerState {
   sortBy: string;
   sortDirection: Sort;
-  songs: Track[];
+  tracks: Track[];
   selected: number[];
   scrollTo: number;
   lastSelected?: number;
@@ -39,8 +39,8 @@ interface StateProps {
 }
 
 interface OwnProps {
-  songs: Track[];
-  scrollToSongId?: number;
+  tracks: Track[];
+  scrollToTrackId?: number;
   sortBy?: string;
 }
 
@@ -50,22 +50,22 @@ interface DispatchProps {
   addToPlaylist(index: number, trackIds: number[]): void;
 }
 
-type SongPickerProps = StateProps & OwnProps & DispatchProps;
+type TrackPickerProps = StateProps & OwnProps & DispatchProps;
 
-class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
-  constructor(props: SongPickerProps) {
+class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
+  constructor(props: TrackPickerProps) {
     super(props);
 
     const sortDirection = 'ASC';
     const sortBy = this.props.sortBy || 'name';
-    const songs = this.sortSongs(sortBy, sortDirection);
+    const tracks = this.sortTracks(sortBy, sortDirection);
 
     this.state = {
       editing: false,
       search: '',
       // TODO: change to a set
       selected: [],
-      songs,
+      tracks,
       sortBy,
       sortDirection,
       scrollTo: -1,
@@ -77,24 +77,24 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     this.setScroll();
   }
 
-  public componentDidUpdate(prevProps: SongPickerProps): void {
-    if (prevProps.songs !== this.props.songs) {
+  public componentDidUpdate(prevProps: TrackPickerProps): void {
+    if (prevProps.tracks !== this.props.tracks) {
       this.sort(this.state);
     }
-    // TODO: scroll doesnt happen again if you click same song title, maybe change this to an action?
-    if (prevProps.scrollToSongId !== this.props.scrollToSongId) {
+    // TODO: scroll doesnt happen again if you click same track title, maybe change this to an action?
+    if (prevProps.scrollToTrackId !== this.props.scrollToTrackId) {
       this.setScroll();
     }
   }
 
   public render(): JSX.Element {
-    const selectedSongs = this.state.selected.map((songId) => {
-      return this.state.songs[songId];
+    const selectedTracks = this.state.selected.map((trackId) => {
+      return this.state.tracks[trackId];
     });
     return (
       <div className="main">
         <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)} >
-          <SongEditer exit={this.closeEdit.bind(this)} tracks={selectedSongs} />
+          <TrackEditor exit={this.closeEdit.bind(this)} tracks={selectedTracks} />
         </Modal>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <AutoSizer>
@@ -106,9 +106,9 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
                 onRowClick={this.onRowClick.bind(this)}
                 onRowDoubleClick={this.onRowDoubleClick.bind(this)}
                 onRowRightClick={this.doRowRightClick.bind(this)}
-                rowClassName="songRow"
-                rowCount={this.state.songs.length}
-                rowGetter={({index}) => this.getSongData(index)}
+                rowClassName="trackRow"
+                rowCount={this.state.tracks.length}
+                rowGetter={({index}) => this.getTrackData(index)}
                 rowHeight={15}
                 rowStyle={this.getRowStyle.bind(this)}
                 scrollToIndex={this.state.scrollTo}
@@ -134,18 +134,18 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   }
 
   private setScroll(): void {
-    const scrollTo = this.state.songs.findIndex((song) => {
-      return song.id === this.props.scrollToSongId;
+    const scrollTo = this.state.tracks.findIndex((track) => {
+      return track.id === this.props.scrollToTrackId;
     });
     if (scrollTo) {
       this.setState({scrollTo, selected: [scrollTo]});
     }
   }
 
-  private sortSongs(sortBy: string, sortDirection: string): Track[] {
-    let songs = this.props.songs.slice().filter((song) => {
+  private sortTracks(sortBy: string, sortDirection: string): Track[] {
+    let tracks = this.props.tracks.slice().filter((track) => {
       if (this.state && this.state.search) {
-        return song.name.toLowerCase().includes(this.state.search.toLowerCase());
+        return track.name.toLowerCase().includes(this.state.search.toLowerCase());
       }
       return true;
     });
@@ -153,48 +153,48 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     case 'index':
       break;
     case 'name':
-      songs = songs.sort((song1, song2) => {
-        return song1.name.localeCompare(song2.name);
+      tracks = tracks.sort((track1, track2) => {
+        return track1.name.localeCompare(track2.name);
       });
       break;
     case 'duration':
-      songs = songs.sort((song1, song2) => {
-        return song1.duration - song2.duration;
+      tracks = tracks.sort((track1, track2) => {
+        return track1.duration - track2.duration;
       });
       break;
     case 'year':
-      songs = songs.sort((song1, song2) => {
-        return song1.year - song2.year;
+      tracks = tracks.sort((track1, track2) => {
+        return track1.year - track2.year;
       });
       break;
     case 'playCount':
-      songs = songs.sort((song1, song2) => {
-        return song1.playCount - song2.playCount;
+      tracks = tracks.sort((track1, track2) => {
+        return track1.playCount - track2.playCount;
       });
       break;
     case 'artists':
-      songs = songs.sort((song1, song2) => {
-        const artists1 = this.props.getArtistsByIds(song1.artistIds)
+      tracks = tracks.sort((track1, track2) => {
+        const artists1 = this.props.getArtistsByIds(track1.artistIds)
           .map((artist) => artist.name).join(', ');
-        const artists2 = this.props.getArtistsByIds(song2.artistIds)
+        const artists2 = this.props.getArtistsByIds(track2.artistIds)
           .map((artist) => artist.name).join(', ');
         return artists1.localeCompare(artists2);
       });
       break;
     case 'albums':
-      songs = songs.sort((song1, song2) => {
-        const albums1 = this.props.getAlbumsByIds(song1.albumIds)
+      tracks = tracks.sort((track1, track2) => {
+        const albums1 = this.props.getAlbumsByIds(track1.albumIds)
           .map((album) => album.name).join(', ');
-        const albums2 = this.props.getAlbumsByIds(song2.albumIds)
+        const albums2 = this.props.getAlbumsByIds(track2.albumIds)
           .map((album) => album.name).join(', ');
         return albums1.localeCompare(albums2);
       });
       break;
     case 'genres':
-      songs = songs.sort((song1, song2) => {
-        const genres1 = this.props.getGenresByIds(song1.genreIds)
+      tracks = tracks.sort((track1, track2) => {
+        const genres1 = this.props.getGenresByIds(track1.genreIds)
           .join(', ');
-        const genres2 = this.props.getGenresByIds(song2.genreIds)
+        const genres2 = this.props.getGenresByIds(track2.genreIds)
           .join(', ');
         return genres1.localeCompare(genres2);
       });
@@ -203,24 +203,24 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
       break;
     }
     if (sortDirection === 'DESC') {
-      songs = songs.reverse();
+      tracks = tracks.reverse();
     }
-    return songs;
+    return tracks;
   }
 
-  private getSongData(index: number): object {
-    const song = this.state.songs[index];
+  private getTrackData(index: number): object {
+    const track = this.state.tracks[index];
     return {
-      albums: this.props.getAlbumsByIds(song.albumIds)
+      albums: this.props.getAlbumsByIds(track.albumIds)
         .map((album) => album.name).join(', '),
-      artists: this.props.getArtistsByIds(song.artistIds)
+      artists: this.props.getArtistsByIds(track.artistIds)
         .map((artist) => artist.name).join(', '),
-      duration: toTime(song.duration),
-      genres: this.props.getGenresByIds(song.genreIds).join(', '),
-      index: this.props.songs.indexOf(song) + 1,
-      name: song.name,
-      playCount: song.playCount,
-      year: song.year,
+      duration: toTime(track.duration),
+      genres: this.props.getGenresByIds(track.genreIds).join(', '),
+      index: this.props.tracks.indexOf(track) + 1,
+      name: track.name,
+      playCount: track.playCount,
+      year: track.year,
     };
   }
 
@@ -242,7 +242,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
 
   private doShiftClick(index: number): void {
     if (!this.state.lastSelected) {
-      this.doClickSong(index);
+      this.doClickTrack(index);
       return;
     }
     const selected = this.state.selected;
@@ -267,10 +267,10 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
   private favorite(): void {
     const year = new Date().getFullYear();
     this.state.selected.forEach((id) => {
-      const song = this.state.songs[id];
-      if (song.favorites.indexOf(year) < 0) {
-        const favorites = [...song.favorites, year];
-        this.props.updateTrack(song.id, {favorites});
+      const track = this.state.tracks[id];
+      if (track.favorites.indexOf(year) < 0) {
+        const favorites = [...track.favorites, year];
+        this.props.updateTrack(track.id, {favorites});
       }
     });
   }
@@ -287,7 +287,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     const menu = new remote.Menu();
     menu.append(new remote.MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
     if (this.state.selected.length === 1) {
-      menu.append(new remote.MenuItem({label: 'Play', click: () => this.doDoubleClickSong(index)}));
+      menu.append(new remote.MenuItem({label: 'Play', click: () => this.doDoubleClickTrack(index)}));
     }
     menu.append(new remote.MenuItem({label: 'Play Next', click: this.playNext.bind(this)}));
     menu.append(new remote.MenuItem({label: 'Favorite', click: this.favorite.bind(this)}));
@@ -295,7 +295,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
       return {
         label: playlist.name,
         click: () => {
-          const ids = this.state.selected.map((songIndex) => this.state.songs[songIndex].id);
+          const ids = this.state.selected.map((trackIndex) => this.state.tracks[trackIndex].id);
           this.props.addToPlaylist(playlistIndex, ids);
         },
       };
@@ -324,7 +324,7 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     } else if (event.metaKey || event.ctrlKey) {
       this.doCmdClick(index);
     } else {
-      this.doClickSong(index);
+      this.doClickTrack(index);
     }
   }
 
@@ -332,30 +332,30 @@ class SongPicker extends React.Component<SongPickerProps, SongPickerState> {
     {event: {shiftKey: boolean; metaKey: boolean; ctrlKey: boolean}; index: number},
   ): void {
     if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
-      this.doDoubleClickSong(index);
+      this.doDoubleClickTrack(index);
     }
   }
 
-  private doClickSong(index: number): void {
+  private doClickTrack(index: number): void {
     this.setState({lastSelected: index, selected: [index]});
   }
 
-  private doDoubleClickSong(index: number): void {
-    const song = this.state.songs[index];
-    const playlist = new RandomSongPlaylist(this.state.songs);
-    playlist.addSong(song);
+  private doDoubleClickTrack(index: number): void {
+    const track = this.state.tracks[index];
+    const playlist = new RandomTrackPlaylist(this.state.tracks);
+    playlist.addTrack(track);
     this.props.setPlaylist(playlist, /* play= */ true);
   }
 
   private sort({sortBy, sortDirection}: {sortBy: string; sortDirection: Sort}): void {
-    const songs = this.sortSongs(sortBy, sortDirection);
+    const tracks = this.sortTracks(sortBy, sortDirection);
     const selectedNow = this.state.selected.map((index) => {
-      return this.state.songs[index];
+      return this.state.tracks[index];
     });
-    const selected = selectedNow.map((song) => {
-      return songs.indexOf(song);
+    const selected = selectedNow.map((track) => {
+      return tracks.indexOf(track);
     }).filter((num) => num >= 0);
-    this.setState({sortBy, sortDirection, songs, selected});
+    this.setState({sortBy, sortDirection, tracks, selected});
   }
 
   private onSearch(search: string): void {
@@ -376,4 +376,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, updateTrack, addToPlaylist})(SongPicker);
+export default connect(mapStateToProps, {setPlaylist, updateTrack, addToPlaylist})(TrackPicker);

@@ -1,8 +1,7 @@
-// TODO: rename all editer to editor lol
 import {updateAlbum} from './redux/actions';
 import {Album, Artist, Track} from './redux/actionTypes';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
-import AttributeEditer from './AttributeEditer';
+import AttributeEditor from './AttributeEditor';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
 import React from 'react';
@@ -27,9 +26,9 @@ interface DispatchProps {
 
 const GRID = 4;
 
-type AlbumEditerProps = OwnProps & StateProps & DispatchProps;
+type AlbumEditorProps = OwnProps & StateProps & DispatchProps;
 
-interface AlbumEditerState {
+interface AlbumEditorState {
   artistIds: number[];
   genreIds: number[];
   yearsFavorited: number[];
@@ -61,13 +60,13 @@ function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
   return result;
 }
 
-class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
-  private name = React.createRef<AttributeEditer>();
-  private year = React.createRef<AttributeEditer>();
-  private playCount = React.createRef<AttributeEditer>();
-  private wikiPage = React.createRef<AttributeEditer>();
+class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
+  private name = React.createRef<AttributeEditor>();
+  private year = React.createRef<AttributeEditor>();
+  private playCount = React.createRef<AttributeEditor>();
+  private wikiPage = React.createRef<AttributeEditor>();
 
-  constructor(props: AlbumEditerProps) {
+  constructor(props: AlbumEditorProps) {
     super(props);
     const album = this.props.album;
 
@@ -120,13 +119,13 @@ class AlbumEditer extends React.Component<AlbumEditerProps, AlbumEditerState> {
     return (
       <div>
         <h3 className="title">Edit Album</h3>
-        <AttributeEditer name="Name" val={album.name} ref={this.name} />
+        <AttributeEditor name="Name" val={album.name} ref={this.name} />
         <ArtistAttributeEditor artistIds={this.state.artistIds} />
-        <AttributeEditer name="Year" val={album.year} ref={this.year} />
+        <AttributeEditor name="Year" val={album.year} ref={this.year} />
         <GenreAttributeEditor genreIds={this.state.genreIds} />
         <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
-        <AttributeEditer name="Play Count" val={album.playCount} ref={this.playCount} />
-        <AttributeEditer name="Wiki Page" val={album.wikiPage} ref={this.wikiPage} />
+        <AttributeEditor name="Play Count" val={album.playCount} ref={this.playCount} />
+        <AttributeEditor name="Wiki Page" val={album.wikiPage} ref={this.wikiPage} />
         <h5 className="sectionLabel">Tracks: <span onClick={this.addTrack.bind(this)} className="add">+</span></h5>
         <DragDropContext onDragEnd={this.onDragEnd.bind(this)} >
           <Droppable droppableId="droppable">
@@ -199,4 +198,4 @@ function mapStateToProps(state: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {updateAlbum})(AlbumEditer);
+export default connect(mapStateToProps, {updateAlbum})(AlbumEditor);

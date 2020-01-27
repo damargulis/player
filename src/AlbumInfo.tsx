@@ -1,6 +1,6 @@
 import {setPlaylist, updateAlbum} from './redux/actions';
 import {Album, Artist} from './redux/actionTypes';
-import AlbumEditer from './AlbumEditer';
+import AlbumEditor from './AlbumEditor';
 import './AlbumInfo.css';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
@@ -85,7 +85,7 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
     return (
       <div style={newStyle} >
         <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
-          <AlbumEditer exit={this.closeEdit.bind(this)} album={this.props.album} />
+          <AlbumEditor exit={this.closeEdit.bind(this)} album={this.props.album} />
         </Modal>
         <div style={{position: 'absolute', left: '50%'}}>
           <img
