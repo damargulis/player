@@ -106,6 +106,7 @@ export default function runArtistModifier(store: RootState, artist: Artist): Pro
           return {...artist};
         });
       }
+      addError(artist, NO_PAGE_ERROR);
       return Promise.resolve({errors: [NO_PAGE_ERROR]});
     });
   }

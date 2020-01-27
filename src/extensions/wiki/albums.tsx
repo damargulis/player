@@ -215,6 +215,7 @@ export default function runAlbumModifier(store: RootState, album: Album): Promis
           return {...album};
         });
       }
+      addError(album, NO_PAGE_ERROR);
       return Promise.resolve({errors: [NO_PAGE_ERROR]});
     });
   }
