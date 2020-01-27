@@ -79,6 +79,8 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   public render(): JSX.Element {
     const items = this.state.sortedAlbums;
     // TODO: change wiki status to be generic extension with like list of dots instead of background
+    // These should persist (along with scroll height) when you click back.
+    // Should reset if you reclick album on the left.
     return (
       <div className="main" >
         <div id="sortPicker" style={{textAlign: 'center'}}>

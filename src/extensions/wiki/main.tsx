@@ -86,6 +86,7 @@ export default function runWikiExtension(store: RootState): PromiseLike<LibraryS
     return album.errors.length === 0 &&
       Object.keys(album.warnings).length === 0;
   }).length;
+  // TODO: at the end, you should be given a clickthrough with all wanrings to accept / reject?
   return albumPool.start()
     .then(() => artistPool.start())
     .then(() => {
