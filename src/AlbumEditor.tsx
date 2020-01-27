@@ -5,10 +5,10 @@ import AttributeEditor from './AttributeEditor';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
 import React from 'react';
-import {DragDropContext, Draggable, Droppable, DropResult} from 'react-beautiful-dnd';
 import {connect} from 'react-redux';
 import {getArtistById, getTrackById} from './redux/selectors';
 import {RootState} from './redux/store';
+import TrackAttributeEditor from './TrackAttributeEditor';
 
 interface OwnProps {
   album: Album;
@@ -24,8 +24,6 @@ interface DispatchProps {
   updateAlbum(id: number, info: object): void;
 }
 
-const GRID = 4;
-
 type AlbumEditorProps = OwnProps & StateProps & DispatchProps;
 
 interface AlbumEditorState {
@@ -33,31 +31,6 @@ interface AlbumEditorState {
   genreIds: number[];
   yearsFavorited: number[];
   trackIds: number[];
-}
-
-const getListStyle = (isDraggingOver: boolean) => ({
-  height: '400px',
-  overflow: 'scroll',
-  background: isDraggingOver ? 'lightblue' : 'lightgrey',
-  padding: GRID,
-  width: '100%',
-});
-
-function getItemStyle(isDragging: boolean, draggableStyle?: React.CSSProperties): React.CSSProperties {
-  return {
-    userSelect: 'none',
-    padding: GRID * 2,
-    margin: `0 0 ${GRID}px 0`,
-    background: isDragging ? 'lightgreen' : 'grey',
-    ...draggableStyle,
-  };
-}
-
-function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-  return result;
 }
 
 class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
@@ -79,28 +52,28 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
 
   }
 
-  public save(): void {
-    // TODO: turn into action
-    // const album = this.props.album;
-    // if (this.name.current) {
-    //   album.name = this.name.current.value;
-    // }
-    // if (this.year.current) {
-    //   album.year = parseInt(this.year.current.value, 10);
-    // }
-    // if (this.playCount.current) {
-    //   album.playCount = parseInt(this.playCount.current.value, 10);
-    // }
-    // album.favorites = this.state.yearsFavorited;
-    // album.genreIds = this.state.genreIds;
-    // setMemberIds(album.id, this.state.artistIds, album.artistIds, (id) => this.props.getArtistById(id).albumIds);
-    // album.artistIds = this.state.artistIds;
-    // if (this.wikiPage.current) {
-    //   album.wikiPage = this.wikiPage.current.value;
-    // }
-    // setMemberIds(album.id, this.state.trackIds, album.trackIds, (id) => this.props.getTrackById(id).albumIds);
-    // album.trackIds = this.state.trackIds;
+  render(): JSX.Element {
+    const album = this.props.album;
+    return (
+      <div>
+        <h3 className="title">Edit Album</h3>
+        <AttributeEditor name="Name" val={album.name} ref={this.name} />
+        <ArtistAttributeEditor artistIds={this.state.artistIds} />
+        <AttributeEditor name="Year" val={album.year} ref={this.year} />
+        <GenreAttributeEditor genreIds={this.state.genreIds} />
+        <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
+        <AttributeEditor name="Play Count" val={album.playCount} ref={this.playCount} />
+        <AttributeEditor name="Wiki Page" val={album.wikiPage} ref={this.wikiPage} />
+        <TrackAttributeEditor trackIds={this.state.trackIds} setIds={(trackIds) => this.setState({trackIds})}/>
+        <div className="bottom-bar">
+          <button onClick={this.save.bind(this)}>Save</button>
+          <button onClick={this.props.exit}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
 
+  private save(): void {
     this.props.updateAlbum(this.props.album.id, {
       name: this.name.current && this.name.current.value,
       year: this.year.current && parseInt(this.year.current.value, 10),
@@ -114,81 +87,6 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
     this.props.exit();
   }
 
-  render(): JSX.Element {
-    const album = this.props.album;
-    return (
-      <div>
-        <h3 className="title">Edit Album</h3>
-        <AttributeEditor name="Name" val={album.name} ref={this.name} />
-        <ArtistAttributeEditor artistIds={this.state.artistIds} />
-        <AttributeEditor name="Year" val={album.year} ref={this.year} />
-        <GenreAttributeEditor genreIds={this.state.genreIds} />
-        <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
-        <AttributeEditor name="Play Count" val={album.playCount} ref={this.playCount} />
-        <AttributeEditor name="Wiki Page" val={album.wikiPage} ref={this.wikiPage} />
-        <h5 className="sectionLabel">Tracks: <span onClick={this.addTrack.bind(this)} className="add">+</span></h5>
-        <DragDropContext onDragEnd={this.onDragEnd.bind(this)} >
-          <Droppable droppableId="droppable">
-            {(provided, snapshot) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                style={getListStyle(snapshot.isDraggingOver)}
-              >
-                {this.state.trackIds.map((track, index) => (
-                  <Draggable key={track} draggableId={track.toString()} index={index}>
-                    {(innerProvided, innerSnapshot) => (
-                      <div
-                        ref={innerProvided.innerRef}
-                        {...innerProvided.draggableProps}
-                        {...innerProvided.dragHandleProps}
-                        style={getItemStyle(
-                          innerSnapshot.isDragging,
-                          innerProvided.draggableProps.style
-                        )}
-                      >
-                        {`${index + 1}. ${this.props.getTrackById(track).name}`}
-                        <span className="remove" onClick={() => this.removeTrack(index)}>X</span>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-              {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-        <div className="bottom-bar">
-          <button onClick={this.save.bind(this)}>Save</button>
-          <button onClick={this.props.exit}>Cancel</button>
-        </div>
-      </div>
-    );
-  }
-
-  private onDragEnd(result: DropResult): void {
-    if (!result.destination) {
-      return;
-    }
-
-    const trackIds = reorder(
-      this.state.trackIds,
-      result.source.index,
-      result.destination.index
-    );
-    this.setState({trackIds});
-  }
-
-  private removeTrack(index: number): void {
-    const trackIds = this.state.trackIds;
-    trackIds.splice(index, 1);
-    this.setState({trackIds});
-  }
-
-  private addTrack(): void {
-    // TODO:
-    alert('Not implemented yet! Complain if you actually want to use this');
-  }
 }
 
 function mapStateToProps(state: RootState): StateProps {

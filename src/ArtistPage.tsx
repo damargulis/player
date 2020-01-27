@@ -1,12 +1,13 @@
 import {updateArtist} from './redux/actions';
 import {Album, Artist, ArtistInfo, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
+import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
 import runArtistModifier from './extensions/wiki/artists';
-import EditableAttribute from './EditableAttribute';
 import defaultArtist from './resources/missing_artist.png';
 import NavigationBar from './NavigationBar';
 import React from 'react';
+import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import {getAlbumsByIds, getArtistById, getTracksByIds} from './redux/selectors';
 import {RootState} from './redux/store';
@@ -35,12 +36,26 @@ interface DispatchProps {
 
 type ArtistPageProps = OwnProps & StateProps & DispatchProps;
 
-class ArtistPage extends React.Component<ArtistPageProps> {
+interface ArtistPageState {
+  editing: boolean;
+}
+
+class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
+  constructor(props: ArtistPageProps) {
+    super(props);
+
+    this.state = {
+      editing: false,
+    };
+  }
 
   public render(): JSX.Element {
     const src = this.props.artist.artFile ? getImgSrc(this.props.artist.artFile) : defaultArtist;
     return (
       <div className="main">
+        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
+          <ArtistEditor exit={this.closeEdit.bind(this)} artist={this.props.artist} />
+        </Modal>
         <div className="artistPageHolder" >
           <div className="artistPageHeader" >
             <NavigationBar
@@ -50,15 +65,11 @@ class ArtistPage extends React.Component<ArtistPageProps> {
             />
             <div className="info">
               <img alt="artist art" height="100" src={src} width="100" />
-              <EditableAttribute
-                attr={this.props.artist && this.props.artist.name}
-                onSave={(value: string) => {
-                  this.props.artist.name = value;
-                }}
-              />
+              <div>{this.props.artist.name}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} />
               <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
             </div>
+            <button onClick={this.editArtist.bind(this)} className="editArtist" >Edit Artist</button>
             {this.getErrors()}
           </div>
           <div className="artistPageBody" >
@@ -72,6 +83,14 @@ class ArtistPage extends React.Component<ArtistPageProps> {
         </div>
       </div>
     );
+  }
+
+  private editArtist(): void {
+    this.setState({editing: true});
+  }
+
+  private closeEdit(): void {
+    this.setState({editing: false});
   }
 
   private runWiki(): void {
