@@ -13,6 +13,7 @@ import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from './redux/selectors
 import {RootState} from './redux/store';
 import '../node_modules/react-virtualized/styles.css';
 import TrackEditor from './TrackEditor';
+import './TrackPicker.css';
 import {toTime} from './utils';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -101,8 +102,8 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
           {({height, width}) => {
             return (
               <Table
-                headerHeight={30}
-                height={height}
+                headerHeight={20}
+                height={height - 40}
                 onRowClick={this.onRowClick.bind(this)}
                 onRowDoubleClick={this.onRowDoubleClick.bind(this)}
                 onRowRightClick={this.doRowRightClick.bind(this)}
@@ -129,8 +130,17 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
             );
           }}
         </AutoSizer>
+        <div className="status-bar" >
+          <span style={{float: 'left', paddingLeft: '3px'}}>{this.state.tracks.length} Tracks</span>
+          <span style={{float: 'right', paddingRight: '3px'}}>{this.getDuration()}</span>
+        </div>
       </div>
     );
+  }
+
+  private getDuration(): string {
+    const duration = this.props.tracks.reduce((total: number, track: Track) => total + track.duration, 0);
+    return toTime(duration);
   }
 
   private setScroll(): void {

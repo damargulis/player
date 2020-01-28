@@ -1,6 +1,7 @@
 
 .albumPageHeader {
   display: flex;
+  height: 50%;
 }
 
 .albumPageControls {

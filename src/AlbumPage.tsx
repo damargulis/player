@@ -95,7 +95,9 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
           {this.getErrors()}
           {this.getWarnings()}
         </div>
-        <TrackPicker tracks={this.props.getTracksByIds(this.props.album.trackIds)} sortBy="index" />
+        <div style={{height: '50%'}}>
+          <TrackPicker tracks={this.props.getTracksByIds(this.props.album.trackIds)} sortBy="index" />
+        </div>
       </div>
     );
   }

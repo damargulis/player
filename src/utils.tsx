@@ -6,13 +6,14 @@ import path from 'path';
  */
 export function toTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / (60 * 60));
+  const minutes = (Math.floor(totalSeconds / 60)) % 60;
   const seconds = totalSeconds % 60;
   let secondsString = `${seconds}`;
   if (seconds < 10) {
     secondsString = '0' + seconds;
   }
-  return `${minutes}:${secondsString}`;
+  return `${hours ? hours + ':' : ''}${minutes ? minutes : '00'}:${secondsString}`;
 }
 
 export function getImgSrc(fileName: string): string {
