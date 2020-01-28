@@ -1,5 +1,6 @@
 import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
 import {LibraryState, Track, TrackInfo} from './redux/actionTypes';
+import './App.css';
 import {DATA_DIR} from './constants';
 import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
 import {ipcRenderer} from 'electron';
@@ -12,8 +13,6 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
 import {RootState} from './redux/store';
-
-import './App.css';
 
 interface StateProps {
   volume: number;
