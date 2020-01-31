@@ -7,12 +7,12 @@ import {RootState} from './redux/store';
 
 interface StateProps {
   albums: Album[];
-  allIds: number[];
-  getAlbumById(albumId: number): Album;
+  allIds: string[];
+  getAlbumById(albumId: string): Album;
 }
 
 interface OwnProps {
-  albumIds: number[];
+  albumIds: string[];
 }
 
 type AlbumAttributeEditorProps = OwnProps & StateProps;
@@ -22,11 +22,11 @@ class AlbumAttributeEditor extends React.Component<AlbumAttributeEditorProps> {
     return (
       <AttributeList
         attributes={this.props.albumIds}
-        getDisplayName={(albumId: number) => {
+        getDisplayName={(albumId: string) => {
           return this.props.getAlbumById(albumId).name;
         }}
         label="Albums"
-        searchFilter={(input: string, suggest: number) => {
+        searchFilter={(input: string, suggest: string) => {
           const album = this.props.getAlbumById(suggest);
           // TODO: include artist, genre etc in search
           const name = album.name.toLowerCase();
@@ -42,7 +42,7 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
     albums: getAlbumsByIds(state, ownProps.albumIds),
     allIds: getAllAlbumIds(state),
-    getAlbumById: (albumId: number) => getAlbumById(state, albumId),
+    getAlbumById: (albumId: string) => getAlbumById(state, albumId),
   };
 }
 

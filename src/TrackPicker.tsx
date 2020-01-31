@@ -34,21 +34,21 @@ interface TrackPickerState {
 
 interface StateProps {
   playlists: Playlist[];
-  getArtistsByIds(ids: number[]): Artist[];
-  getAlbumsByIds(ids: number[]): Album[];
-  getGenresByIds(ids: number[]): string[];
+  getArtistsByIds(ids: string[]): Artist[];
+  getAlbumsByIds(ids: string[]): Album[];
+  getGenresByIds(ids: string[]): string[];
 }
 
 interface OwnProps {
   tracks: Track[];
-  scrollToTrackId?: number;
+  scrollToTrackId?: string;
   sortBy?: string;
 }
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  updateTrack(id: number, info: TrackInfo): void;
-  addToPlaylist(index: number, trackIds: number[]): void;
+  updateTrack(id: string, info: TrackInfo): void;
+  addToPlaylist(index: number, trackIds: string[]): void;
 }
 
 type TrackPickerProps = StateProps & OwnProps & DispatchProps;
@@ -379,9 +379,9 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
 function mapStateToProps(store: RootState): StateProps {
   return {
-    getAlbumsByIds: (ids: number[]) => getAlbumsByIds(store, ids),
-    getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
-    getGenresByIds: (ids: number[]) => getGenresByIds(store, ids),
+    getAlbumsByIds: (ids: string[]) => getAlbumsByIds(store, ids),
+    getArtistsByIds: (ids: string[]) => getArtistsByIds(store, ids),
+    getGenresByIds: (ids: string[]) => getGenresByIds(store, ids),
     playlists: getPlaylists(store),
   };
 }

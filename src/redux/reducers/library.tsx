@@ -15,18 +15,18 @@ import {DATA_DIR} from '../../constants';
 import fs from 'fs';
 
 const initialState: LibraryState = {
-  albums: [],
-  artists: [],
-  genres: [],
-  playlists: [],
-  tracks: [],
+  albums: {},
+  artists: {},
+  genres: {},
+  playlists: {},
+  tracks: {},
 };
 
 interface Item {
   id: number;
 }
 
-function getUpdatedMemberIds(memberIds: number[], updatedId: number, updatedMemberIds: number[], id: number): number[] {
+function getUpdatedMemberIds(memberIds: string[], updatedId: string, updatedMemberIds: string[], id: string): string[] {
   if (memberIds.includes(updatedId)) {
     if (updatedMemberIds.includes(id)) {
       // Both included, do nothing
@@ -57,45 +57,42 @@ function save(library: LibraryState): Promise<void> {
   });
 }
 
-function tracks(state: Track[], action: LibraryActionTypes): Track[] {
+function tracks(state: Record<number, Track>, action: LibraryActionTypes): Record<number, Track> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return [...action.payload.library.tracks];
+      return {...action.payload.library.tracks};
     }
     case UPDATE_TRACK: {
-      return state.map((track) => {
-        if (track.id !== action.payload.id) {
-          return track;
-        }
-        return {
+      const track = state[action.payload.id];
+      return Object.assign({}, state, {
+        [action.payload.id]: {
           ...track,
           ...action.payload.info,
-        };
-      });
+        }});
     }
     case UPDATE_ARTIST: {
       const trackIds = action.payload.info.trackIds;
       if (!trackIds) {
         return state;
       }
-      return state.map((track) => {
-        return {
+      return Object.fromEntries(Object.entries(state).map(([id, track]) => {
+        return [id, {
           ...track,
-          albumIds: getUpdatedMemberIds(track.artistIds, action.payload.id, trackIds, track.id),
-        };
-      });
+          artistIds: getUpdatedMemberIds(track.artistIds, action.payload.id.toString(), trackIds, track.id),
+        }];
+      }));
     }
     case UPDATE_ALBUM: {
       const trackIds = action.payload.info.trackIds;
       if (!trackIds) {
         return state;
       }
-      return state.map((track) => {
-        return {
+      return Object.fromEntries(Object.entries(state).map(([id, track]) => {
+        return [id, {
           ...track,
-          albumIds: getUpdatedMemberIds(track.albumIds, action.payload.id, trackIds, track.id),
-        };
-      });
+          albumIds: getUpdatedMemberIds(track.albumIds, action.payload.id.toString(), trackIds, track.id),
+        }];
+      }));
     }
     default: {
       return state;
@@ -103,23 +100,23 @@ function tracks(state: Track[], action: LibraryActionTypes): Track[] {
   }
 }
 
-function playlists(state: Playlist[], action: LibraryActionTypes): Playlist[] {
+function playlists(state: Record<number,Playlist>, action: LibraryActionTypes): Record<number,Playlist> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return [...action.payload.library.playlists];
+      return {...action.payload.library.playlists};
     }
     case ADD_TO_PLAYLIST: {
-      return state.map((playlist, index) => {
-        if (index !== action.payload.index) {
-          return playlist;
-        }
-        const newIds = action.payload.trackIds.filter((trackId) => {
-          return playlist.trackIds.indexOf(trackId) < 0;
-        });
-        return {
+      // TODO: change index to id
+      const playlist = state[action.payload.index];
+      const newIds = action.payload.trackIds.filter((trackId) => {
+        return playlist.trackIds.indexOf(trackId.toString()) < 0;
+      });
+      const trackIds = [...playlist.trackIds, ...newIds];
+      return Object.assign({}, state, {
+        [action.payload.index]: {
           ...playlist,
-          trackIds: [...playlist.trackIds, ...newIds],
-        };
+          trackIds
+        }
       });
     }
     default: {
@@ -128,10 +125,10 @@ function playlists(state: Playlist[], action: LibraryActionTypes): Playlist[] {
   }
 }
 
-function genres(state: string[], action: LibraryActionTypes): string[] {
+function genres(state: Record<number, string>, action: LibraryActionTypes): Record<number, string> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return [...action.payload.library.genres];
+      return {...action.payload.library.genres};
     }
     default: {
       return state;
@@ -139,20 +136,16 @@ function genres(state: string[], action: LibraryActionTypes): string[] {
   }
 }
 
-function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
+function artists(state: Record<number, Artist>, action: LibraryActionTypes): Record<number, Artist> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return [...action.payload.library.artists];
+      return {...action.payload.library.artists};
     }
     case UPDATE_ARTIST: {
-      return state.map((artist) => {
-        if (artist.id !== action.payload.id) {
-          return artist;
-        }
-        return {
-          ...artist,
-          ...action.payload.info,
-        };
+      const artist = state[action.payload.id];
+      return Object.assign({}, state, {
+        ...artist,
+        ...action.payload.info,
       });
     }
     case UPDATE_ALBUM: {
@@ -160,24 +153,25 @@ function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
       if (!artistIds) {
         return state;
       }
-      return state.map((artist) => {
-        return {
+      return Object.fromEntries(Object.entries(state).map(([id, artist]) => {
+        // TODO: figure out why you need these toStrings()
+        return [id, {
           ...artist,
-          albumIds: getUpdatedMemberIds(artist.albumIds, action.payload.id, artistIds, artist.id),
-        };
-      });
+          albumIds: getUpdatedMemberIds(artist.albumIds, action.payload.id.toString(), artistIds, artist.id),
+        }]
+      }));
     }
     case UPDATE_TRACK: {
       const artistIds = action.payload.info.artistIds;
       if (!artistIds) {
         return state;
       }
-      return state.map((artist) => {
-        return {
+      return Object.fromEntries(Object.entries(state).map(([id, artist]) => {
+        return [id, {
           ...artist,
-          trackIds: getUpdatedMemberIds(artist.trackIds, action.payload.id, artistIds, artist.id),
-        };
-      });
+          trackIds: getUpdatedMemberIds(artist.trackIds, action.payload.id.toString(), artistIds, artist.id),
+        }];
+      }));
     }
     default: {
       return state;
@@ -185,44 +179,42 @@ function artists(state: Artist[], action: LibraryActionTypes): Artist[] {
   }
 }
 
-function albums(state: Album[], action: LibraryActionTypes): Album[] {
+function albums(state: Record<number, Album>, action: LibraryActionTypes): Record<number, Album> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return [...action.payload.library.albums];
+      return {...action.payload.library.albums};
     }
     case UPDATE_ARTIST: {
       const albumIds = action.payload.info.albumIds;
       if (!albumIds) {
         return state;
       }
-      return state.map((album) => {
-        return {
+      return Object.fromEntries(Object.entries(state).map(([id, album]) => {
+        return [id, {
           ...album,
-          artistIds: getUpdatedMemberIds(album.artistIds, action.payload.id, albumIds, album.id),
-        };
-      });
+          artistIds: getUpdatedMemberIds(album.artistIds, action.payload.id.toString(), albumIds, album.id),
+        }];
+      }));
     }
     case UPDATE_TRACK: {
       const albumIds = action.payload.info.albumIds;
       if (!albumIds) {
         return state;
       }
-      return state.map((album) => {
-        return {
+      return Object.fromEntries(Object.entries(state).map(([id, album]) => {
+        return [id, {
           ...album,
-          trackIds: getUpdatedMemberIds(album.trackIds, action.payload.id, albumIds, album.id),
-        };
-      });
+          trackIds: getUpdatedMemberIds(album.trackIds, action.payload.id.toString(), albumIds, album.id),
+        }];
+      }));
     }
     case UPDATE_ALBUM: {
-      return state.map((album) => {
-        if (album.id !== action.payload.id) {
-          return album;
-        }
-        return {
+      const album = state[action.payload.id];
+      return Object.assign({}, state, {
+        [action.payload.id]: {
           ...album,
           ...action.payload.info,
-        };
+        }
       });
     }
     default: {

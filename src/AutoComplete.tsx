@@ -2,14 +2,14 @@ import './AutoComplete.css';
 import React, {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 
 interface AutoCompleteProps {
-  suggestions: number[];
-  getDisplayName(id: number): string;
-  onSubmit(id: number): void;
-  searchFilter(search: string, id: number): boolean;
+  suggestions: string[];
+  getDisplayName(id: string): string;
+  onSubmit(id: string): void;
+  searchFilter(search: string, id: string): boolean;
 }
 
 interface AutoCompleteState {
-  filteredSuggestions: number[];
+  filteredSuggestions: string[];
   activeSuggestion: number;
   showSuggestion: boolean;
   userInput: string;
@@ -43,7 +43,7 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
     );
   }
 
-  private onClick(evt: MouseEvent, suggestion: number): void {
+  private onClick(evt: MouseEvent, suggestion: string): void {
     this.setState({
       activeSuggestion: 0,
       filteredSuggestions: [suggestion],

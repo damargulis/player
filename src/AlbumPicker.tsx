@@ -11,11 +11,11 @@ import './App.css';
 
 interface OwnProps {
   albums: Album[];
-  goToAlbum(albumId: number): void;
+  goToAlbum(albumId: string): void;
 }
 
 interface StateProps {
-  getArtistsByIds(ids: number[]): Artist[];
+  getArtistsByIds(ids: string[]): Artist[];
 }
 
 type AlbumPickerProps = OwnProps & StateProps;
@@ -147,7 +147,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
 
 function mapStateToProps(store: RootState): StateProps {
   return {
-    getArtistsByIds: (ids: number[]) => getArtistsByIds(store, ids),
+    getArtistsByIds: (ids: string[]) => getArtistsByIds(store, ids),
   };
 }
 

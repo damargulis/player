@@ -2,15 +2,15 @@ import AutoComplete from './AutoComplete';
 import React from 'react';
 
 interface AttributeListProps {
-  attributes: number[];
+  attributes: string[];
   label: string;
-  suggestions: number[];
-  getDisplayName(id: number): string;
-  searchFilter(input: string, id: number): boolean;
+  suggestions: string[];
+  getDisplayName(id: string): string;
+  searchFilter(input: string, id: string): boolean;
 }
 
 interface AttributeListState {
-  current: number[];
+  current: string[];
 }
 
 export default class AttributeList extends React.Component<AttributeListProps, AttributeListState> {
@@ -23,8 +23,8 @@ export default class AttributeList extends React.Component<AttributeListProps, A
   }
 
   public render(): JSX.Element {
-    const suggestions = this.props.suggestions.filter((attr, index) => {
-      return !this.state.current.includes(index);
+    const suggestions = this.props.suggestions.filter((attr) => {
+      return !this.state.current.includes(attr);
     });
     return (
       <div className="edit-constructor">
@@ -40,7 +40,7 @@ export default class AttributeList extends React.Component<AttributeListProps, A
     );
   }
 
-  private add(attr: number): void {
+  private add(attr: string): void {
     this.state.current.push(attr);
     this.setState({current: this.state.current});
   }

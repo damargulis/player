@@ -11,8 +11,8 @@ import {getAlbumById, getArtistById} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface StateProps {
-  getAlbumById(albumId: number): Album;
-  getArtistById(artistId: number): Artist;
+  getAlbumById(albumId: string): Album;
+  getArtistById(artistId: string): Artist;
 }
 
 interface OwnProps {
@@ -21,15 +21,15 @@ interface OwnProps {
 }
 
 interface DispatchProps {
-  updateTrack(id: number, info: TrackInfo): void;
+  updateTrack(id: string, info: TrackInfo): void;
 }
 
 type SingleTrackEditorProps = StateProps & OwnProps & DispatchProps;
 
 interface SingleTrackEditorState {
-  genreIds: number[];
-  albumIds: number[];
-  artistIds: number[];
+  genreIds: string[];
+  albumIds: string[];
+  artistIds: string[];
   yearsFavorited: number[];
 }
 
@@ -86,8 +86,8 @@ class SingleTrackEditor extends React.Component<SingleTrackEditorProps, SingleTr
 
 function mapStateToProps(state: RootState): StateProps {
   return {
-    getAlbumById: (id: number) => getAlbumById(state, id),
-    getArtistById: (id: number) => getArtistById(state, id),
+    getAlbumById: (id: string) => getAlbumById(state, id),
+    getArtistById: (id: string) => getArtistById(state, id),
   };
 }
 

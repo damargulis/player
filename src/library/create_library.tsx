@@ -1,4 +1,4 @@
-import {Album, Artist, LibraryState, Track} from '../redux/actionTypes';
+import {Album, Artist, Playlist, LibraryState, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
 import {remote} from 'electron';
 import fs from 'fs';
@@ -216,6 +216,20 @@ function createTracksFromItunesData(tracks: Map<string, ItunesTrackData>): Map<n
   return trackMap;
 }
 
+// TODO: remove after next release
+function updateFromOldStyles(data: any) {
+  if (data.tracks instanceof Array) {
+    return Object.assign({}, data, {
+      ...data,
+      tracks: data.tracks.reduce((map: Record<number, Track>, track: any) => {
+        map[track.id] = track;
+        return map;
+      }, {}),
+    });
+  }
+  return data;
+}
+
 /**
  * Loads a library from a given file.
  */
@@ -225,51 +239,60 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
       if (err) {
         return reject(err);
       }
-      const libraryData = JSON.parse(data.toString());
-      return resolve({
-        albums: libraryData.albums.map((albumData: Album) => ({
-          id: albumData.id,
-          warnings: albumData.warnings,
-          errors: albumData.errors,
-          albumArtFile: albumData.albumArtFile,
-          artistIds: albumData.artistIds,
-          name: albumData.name,
-          trackIds: albumData.trackIds,
-          year: albumData.year,
-          wikiPage: albumData.wikiPage,
-          genreIds: albumData.genreIds,
-          playCount: albumData.playCount,
-          skipCount: albumData.skipCount,
-          favorites: albumData.favorites,
-        })),
-        artists: libraryData.artists.map((artistData: Artist) => ({
-          id: artistData.id,
-          name: artistData.name,
-          albumIds: artistData.albumIds,
-          artFile: artistData.artFile,
-          errors: artistData.errors,
-          wikiPage: artistData.wikiPage,
-          genreIds: artistData.genreIds,
-          trackIds: artistData.trackIds,
-        })),
-        tracks: libraryData.tracks.map((trackData: Track) => ({
-          id: trackData.id,
-          duration: trackData.duration,
-          playCount: trackData.playCount,
-          playDate: new Date(trackData.playDate),
-          filePath: trackData.filePath,
-          artistIds: trackData.artistIds,
-          albumIds: trackData.albumIds,
-          name: trackData.name,
-          year: trackData.year,
-          genreIds: trackData.genreIds,
-          skipCount: trackData.skipCount,
-          dateAdded: new Date(trackData.dateAdded),
-          favorites: trackData.favorites,
-        })),
-        genres: libraryData.genres,
-        playlists: libraryData.playlists,
-      });
+      try {
+        let libraryData = JSON.parse(data.toString());
+        libraryData = updateFromOldStyles(libraryData);
+        return resolve({
+          albums: libraryData.albums.map((albumData: Album) => ({
+            id: albumData.id,
+            warnings: albumData.warnings,
+            errors: albumData.errors,
+            albumArtFile: albumData.albumArtFile,
+            artistIds: albumData.artistIds,
+            name: albumData.name,
+            trackIds: albumData.trackIds,
+            year: albumData.year,
+            wikiPage: albumData.wikiPage,
+            genreIds: albumData.genreIds,
+            playCount: albumData.playCount,
+            skipCount: albumData.skipCount,
+            favorites: albumData.favorites,
+          })),
+          artists: libraryData.artists.map((artistData: Artist) => ({
+            id: artistData.id,
+            name: artistData.name,
+            albumIds: artistData.albumIds,
+            artFile: artistData.artFile,
+            errors: artistData.errors,
+            wikiPage: artistData.wikiPage,
+            genreIds: artistData.genreIds,
+            trackIds: artistData.trackIds,
+          })),
+          tracks: Object.values(libraryData.tracks).reduce((map: Record<number, Track>, trackData: any) => {
+        map[trackData.id] = {
+            id: trackData.id,
+            duration: trackData.duration,
+            playCount: trackData.playCount,
+            playDate: new Date(trackData.playDate),
+            filePath: trackData.filePath,
+            artistIds: trackData.artistIds,
+            albumIds: trackData.albumIds,
+            name: trackData.name,
+            year: trackData.year,
+            genreIds: trackData.genreIds,
+            skipCount: trackData.skipCount,
+            dateAdded: new Date(trackData.dateAdded),
+            favorites: trackData.favorites,
+        }
+        return map;
+      }, {}),
+          genres: libraryData.genres,
+          playlists: libraryData.playlists,
+        });
+      } catch (err) {
+        console.log(err);
+        reject(err);
+      }
     });
   });
 }
@@ -315,11 +338,11 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
     if (!itunesFile) {
       alert('No file selected');
       resolve({
-        tracks: [],
-        albums: [],
-        playlists: [],
-        artists: [],
-        genres: [],
+        tracks: {},
+        albums: {},
+        playlists: {},
+        artists: {},
+        genres: {},
       });
       return;
     }
@@ -363,22 +386,26 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
     genreArray.forEach((genre, index) => {
       genreMap.set(genre, index);
     });
-    const artists = [] as Artist[];
+    const artists = {} as Record<string, Artist>;
+    let artistId = 0;
     artistMap.forEach((artistData) => {
-      artists.push({
-        id: artists.length,
+      artistId++;
+      artists[artistId] = {
+        id: artistId.toString(),
         name: artistData.name,
         albumIds: [],
         errors: [],
         genreIds: [],
         trackIds: [],
-      });
-      artistData.id = artists.length - 1;
+      };
+      artistData.id = artistId;
     });
-    const albums = [] as Album[];
+    const albums = {} as Record<string, Album>;
+    let albumId = 0;
     albumMap.forEach((albumData) => {
-      albums.push({
-        id: albums.length,
+      albumId++;
+      albums[albumId] = {
+        id: albumId.toString(),
         albumArtFile: albumData.albumArtFile,
         name: albumData.name,
         year: albumData.year,
@@ -390,14 +417,16 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
         playCount: 0,
         skipCount: 0,
         favorites: [],
-      });
-      albumData.id = albums.length - 1;
+      };
+      albumData.id = albumId;
     });
-    const tracks = [] as Track[];
+    const tracks = {} as Record<string, Track>;
+    let trackId = 0;
     trackMap.forEach((data) => {
-      data.id = tracks.length;
-      tracks.push({
-        id: tracks.length,
+      trackId++;
+      data.id = trackId;
+      tracks[trackId] = {
+        id: trackId.toString(),
         dateAdded: new Date(data.dateAdded),
         duration: data.duration,
         filePath: data.filePath,
@@ -410,7 +439,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
         albumIds: [],
         genreIds: [],
         favorites: [],
-      });
+      };
     });
     // set genre ids
     albumMap.forEach((albumData) => {
@@ -440,7 +469,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
       const album = albums[albumData.id];
       const artistData = artistMap.get(albumData.artistPath);
       if (artistData) {
-        album.artistIds.push(artistData.id);
+        album.artistIds.push(artistData.id.toString());
       }
     });
     trackMap.forEach((data) => {
@@ -448,7 +477,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
       const artistLocation = upLevels(data.filePath, 2);
       const artistData = artistMap.get(artistLocation);
       if (artistData) {
-        track.artistIds.push(artistData.id);
+        track.artistIds.push(artistData.id.toString());
       }
     });
 
@@ -458,14 +487,14 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
       const albumLocation = upLevels(data.filePath);
       const albumData = albumMap.get(albumLocation);
       if (albumData) {
-        track.albumIds.push(albumData.id);
+        track.albumIds.push(albumData.id.toString());
       }
     });
     albumMap.forEach((albumData) => {
       const artistData = artistMap.get(albumData.artistPath);
       if (artistData) {
         const artist = artists[artistData.id];
-        artist.albumIds.push(albumData.id);
+        artist.albumIds.push(albumData.id.toString());
       }
     });
     // set track ids
@@ -474,24 +503,26 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
       const artistData = artistMap.get(artistLocation);
       if (artistData) {
         const artist = artists[artistData.id];
-        artist.trackIds.push(data.id);
+        artist.trackIds.push(data.id.toString());
       }
     });
     albumMap.forEach((albumData) => {
       const album = albums[albumData.id];
       album.trackIds = albumData.tracks.map((trackPid: number) => {
         const data = trackMap.get(trackPid);
-        return (data && data.id) || 0;
+        return (data && data.id.toString()) || '0';
       });
     });
-    const playlists = realPlaylists.map((playlist: ItunesPlaylistData) => {
+    const playlistsArray = realPlaylists.map((playlist: ItunesPlaylistData) => {
       const trackIds = playlist['Playlist Items'].filter((track: { 'Track ID': number}) => !!track)
         .map((track: {'Track ID': number}) => {
           const data = trackMap.get(track['Track ID']);
-          return (data && data.id) || 0;
+          return (data && data.id.toString()) || '0';
         });
       return {name: playlist.Name, trackIds};
     });
+    const playlists = {} as Record<string, Playlist>;
+    playlistsArray.forEach((playlist, index) => playlists[index.toString()] = playlist);
 
     const promises = [] as Array<Promise<void>>;
     albumMap.forEach((albumData) => {
@@ -506,7 +537,8 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
         }));
       }
     });
-    const genres = genreArray;
+    const genres = {} as Record<number, string>;
+    genreArray.forEach((genre, index) => genres[index] = genre);
     Promise.all(promises).then(() => {
       resolve({tracks, albums, artists, genres, playlists});
     });

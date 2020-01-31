@@ -16,21 +16,21 @@ interface OwnProps {
 }
 
 interface StateProps {
-  getArtistById(id: number): Artist;
-  getTrackById(id: number): Track;
+  getArtistById(id: string): Artist;
+  getTrackById(id: string): Track;
 }
 
 interface DispatchProps {
-  updateAlbum(id: number, info: object): void;
+  updateAlbum(id: string, info: object): void;
 }
 
 type AlbumEditorProps = OwnProps & StateProps & DispatchProps;
 
 interface AlbumEditorState {
-  artistIds: number[];
-  genreIds: number[];
+  artistIds: string[];
+  genreIds: string[];
   yearsFavorited: number[];
-  trackIds: number[];
+  trackIds: string[];
 }
 
 class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
@@ -91,8 +91,8 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
 
 function mapStateToProps(state: RootState): StateProps {
   return {
-    getArtistById: (id: number) => getArtistById(state, id),
-    getTrackById: (id: number) => getTrackById(state, id),
+    getArtistById: (id: string) => getArtistById(state, id),
+    getTrackById: (id: string) => getTrackById(state, id),
   };
 }
 

@@ -29,7 +29,7 @@ interface DispatchProps {
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   playPause(): void;
-  updateTrack(id: number, info: TrackInfo): void;
+  updateTrack(id: string, info: TrackInfo): void;
 }
 
 type AppProps = DispatchProps & StateProps;
@@ -86,7 +86,7 @@ class App extends React.Component<AppProps, AppState> {
       deleteLibrary().then(() => {
         createLibraryFromItunes().then((library: LibraryState) => {
           this.props.updateLibrary(library);
-          const playlist = new RandomAlbumPlaylist(library.albums);
+          const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
           this.props.setPlaylist(playlist, /* play= */ false);
           alert('Library uploaded');
         });
@@ -95,12 +95,12 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.send('extension-ready');
 
     loadLibrary(`${DATA_DIR}/library.json`).then((library: LibraryState) => {
-      const playlist = new RandomAlbumPlaylist(library.albums);
+      const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
       this.props.updateLibrary(library);
       this.props.setPlaylist(playlist, /* play= */ false);
     }).catch(() => {
       createLibraryFromItunes().then((library) => {
-        const playlist = new RandomAlbumPlaylist(library.albums);
+        const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
         this.props.updateLibrary(library);
         this.props.setPlaylist(playlist, /* play= */ false);
       });

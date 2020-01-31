@@ -5,12 +5,12 @@ import {getGenreById, getGenres} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface OwnProps {
-  genreIds: number[];
+  genreIds: string[];
 }
 
 interface StateProps {
-  allGenres: number[];
-  getGenreById(id: number): string;
+  allGenres: string[];
+  getGenreById(id: string): string;
 }
 
 type GenreAttributeEditorProps = OwnProps & StateProps;
@@ -34,8 +34,8 @@ class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
 
 function mapStateToProps(store: RootState): StateProps {
   return {
-    allGenres: [...Array(getGenres(store).length).keys()],
-    getGenreById: (id: number) => getGenreById(store, id),
+    allGenres: getGenres(store),
+    getGenreById: (id: string) => getGenreById(store, id),
   };
 }
 

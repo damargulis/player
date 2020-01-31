@@ -1,18 +1,18 @@
 
 export default class EmptyPlaylist {
-  public getCurrentTrack(): number | undefined {
+  public getCurrentTrack(): string | undefined {
     return undefined;
   }
-  public nextAlbum(): number | undefined {
+  public nextAlbum(): string | undefined {
     return undefined;
   }
-  public prevTrack(): number | undefined {
+  public prevTrack(): string | undefined {
     return undefined;
   }
-  public prevAlbum(): number | undefined {
+  public prevAlbum(): string | undefined {
     return undefined;
   }
-  public nextTrack(): number | undefined {
+  public nextTrack(): string | undefined {
     return undefined;
   }
   public hasPrevTrack(): boolean {

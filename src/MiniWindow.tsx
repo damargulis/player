@@ -24,15 +24,15 @@ class MiniWindow extends React.Component {
     );
   }
 
-  private goToTrack(trackId: number): void {
+  private goToTrack(trackId: string): void {
     ipcRenderer.send('goToTrack', {trackId});
   }
 
-  private goToArtist(artistId: number): void {
+  private goToArtist(artistId: string): void {
     ipcRenderer.send('goToArtist', {artistId});
   }
 
-  private goToAlbum(albumId: number): void {
+  private goToAlbum(albumId: string): void {
     ipcRenderer.send('goToAlbum', {albumId});
   }
 }

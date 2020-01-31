@@ -23,15 +23,15 @@ interface StateProps {
 }
 
 interface OwnProps {
-  artistId: number;
+  artistId: string;
   canGoForward: boolean;
   goBack(): void;
   goForward(): void;
-  goToAlbum(albumId: number): void;
+  goToAlbum(albumId: string): void;
 }
 
 interface DispatchProps {
-  updateArtist(id: number, info: ArtistInfo): void;
+  updateArtist(id: string, info: ArtistInfo): void;
 }
 
 type ArtistPageProps = OwnProps & StateProps & DispatchProps;

@@ -25,23 +25,23 @@ interface StateProps {
   artists: Artist[];
   tracks: Track[];
   album: Album;
-  getTracksByIds(ids: number[]): Track[];
-  getTrackById(id: number): Track;
+  getTracksByIds(ids: string[]): Track[];
+  getTrackById(id: string): Track;
   runAlbumModifier(album: AlbumInfo): Promise<AlbumInfo>;
 }
 
 interface OwnProps {
-  albumId: number;
+  albumId: string;
   canGoForward: boolean;
-  goToArtist(artistId: number): void;
+  goToArtist(artistId: string): void;
   goBack(): void;
   goForward(): void;
 }
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  updateAlbum(id: number, info: AlbumInfo): void;
-  updateTrack(id: number, info: TrackInfo): void;
+  updateAlbum(id: string, info: AlbumInfo): void;
+  updateTrack(id: string, info: TrackInfo): void;
 }
 
 interface AlbumPageState {
@@ -183,8 +183,8 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   const album = getAlbumById(state, ownProps.albumId);
   return {
     artists: getArtistsByIds(state, album.artistIds),
-    getTrackById: (id: number) => getTrackById(state, id),
-    getTracksByIds: (ids: number[]) => getTracksByIds(state, ids),
+    getTrackById: (id: string) => getTrackById(state, id),
+    getTracksByIds: (ids: string[]) => getTracksByIds(state, ids),
     runAlbumModifier: (a: Album) => runAlbumModifier(state, a),
     tracks: getTracksByIds(state, album.trackIds),
     album: album,

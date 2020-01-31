@@ -6,12 +6,12 @@ import {getAllArtistIds, getArtistById} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface OwnProps {
-  artistIds: number[];
+  artistIds: string[];
 }
 
 interface StateProps {
-  allIds: number[];
-  getArtistById(id: number): Artist;
+  allIds: string[];
+  getArtistById(id: string): Artist;
 }
 
 type ArtistAttributeEditorProps = OwnProps & StateProps;
@@ -21,11 +21,11 @@ class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps> 
     return (
       <AttributeList
         attributes={this.props.artistIds}
-        getDisplayName={(artistId: number) => {
+        getDisplayName={(artistId: string) => {
           return this.props.getArtistById(artistId).name;
         }}
         label="Artists"
-        searchFilter={(input: string, suggest: number) => {
+        searchFilter={(input: string, suggest: string) => {
           const artist = this.props.getArtistById(suggest);
           const name = artist.name.toLowerCase();
           return name.indexOf(input.toLowerCase()) > -1;
@@ -39,7 +39,7 @@ class ArtistAttributeEditor extends React.Component<ArtistAttributeEditorProps> 
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   return {
     allIds: getAllArtistIds(state),
-    getArtistById: (id: number) => getArtistById(state, id),
+    getArtistById: (id: string) => getArtistById(state, id),
   };
 }
 

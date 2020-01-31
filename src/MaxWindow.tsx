@@ -18,20 +18,20 @@ import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 
 interface StateProps {
-  getAlbumById(id: number): Album;
-  getArtistById(id: number): Artist;
-  getTracksByGenres(genres: number[]): Track[];
-  getAlbumsByGenres(genres: number[]): Album[];
-  getArtistsByGenres(genres: number[]): Artist[];
+  getAlbumById(id: string): Album;
+  getArtistById(id: string): Artist;
+  getTracksByGenres(genres: string[]): Track[];
+  getAlbumsByGenres(genres: string[]): Album[];
+  getArtistsByGenres(genres: string[]): Artist[];
 }
 
 type MaxWindowProps = StateProps;
 
 interface MaxWindowState {
   curScene: number;
-  genres: number[];
+  genres: string[];
   playlistType: string;
-  scenes: Array<(genres: number[]) => JSX.Element>;
+  scenes: Array<(genres: string[]) => JSX.Element>;
 }
 
 class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
@@ -74,19 +74,19 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     );
   }
 
-  private onTrackMessage(evt: Event, data: {trackId: number}): void {
+  private onTrackMessage(evt: Event, data: {trackId: string}): void {
     this.goToTrack(data.trackId);
   }
 
-  private onAlbumMessage(evt: Event, data: {albumId: number}): void {
+  private onAlbumMessage(evt: Event, data: {albumId: string}): void {
     this.goToAlbum(data.albumId);
   }
 
-  private onArtistMessage(evt: Event, data: {artistId: number}): void {
+  private onArtistMessage(evt: Event, data: {artistId: string}): void {
     this.goToArtist(data.artistId);
   }
 
-  private setGenres(genres: number[]): void {
+  private setGenres(genres: string[]): void {
     this.setState({genres});
   }
 
@@ -110,7 +110,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     return this.state.curScene < this.state.scenes.length - 1;
   }
 
-  private goToTrack(trackId: number): void {
+  private goToTrack(trackId: string): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <TrackPicker
@@ -122,7 +122,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
-  private goToAlbum(albumId: number): void {
+  private goToAlbum(albumId: string): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <AlbumPage
@@ -137,7 +137,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
-  private goToArtist(artistId: number): void {
+  private goToArtist(artistId: string): void {
     const scenes = this.state.scenes.slice(0, this.state.curScene + 1);
     scenes.push(
       () => <ArtistPage
@@ -197,11 +197,11 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
 
 function mapStateToProps(store: RootState): StateProps {
   return {
-    getAlbumById: (id: number) => getAlbumById(store, id),
-    getAlbumsByGenres: (genres: number[]) => getAlbumsByGenres(store, genres),
-    getArtistById: (id: number) => getArtistById(store, id),
-    getArtistsByGenres: (genres: number[]) => getArtistsByGenres(store, genres),
-    getTracksByGenres: (genres: number[]) => getTracksByGenres(store, genres),
+    getAlbumById: (id: string) => getAlbumById(store, id),
+    getAlbumsByGenres: (genres: string[]) => getAlbumsByGenres(store, genres),
+    getArtistById: (id: string) => getArtistById(store, id),
+    getArtistsByGenres: (genres: string[]) => getArtistsByGenres(store, genres),
+    getTracksByGenres: (genres: string[]) => getTracksByGenres(store, genres),
   };
 }
 

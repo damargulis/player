@@ -86,6 +86,8 @@ export default function runWikiExtension(store: RootState): PromiseLike<LibraryS
     return album.errors.length === 0 &&
       Object.keys(album.warnings).length === 0;
   }).length;
+  const albumMap = albums.reduce((map, curr) => {map[curr.id] = curr; return map}, {} as Record<string, Album>);
+  const artistMap = artists.reduce((map, curr) => {map[curr.id] = curr; return map}, {} as Record<string, Artist>);
   // TODO: at the end, you should be given a clickthrough with all wanrings to accept / reject?
   return albumPool.start()
     .then(() => artistPool.start())
@@ -98,11 +100,11 @@ export default function runWikiExtension(store: RootState): PromiseLike<LibraryS
       });
     }).then(() => {
       return {
-        tracks: [...store.library.tracks],
-        albums: [...albums],
-        artists: [...artists],
-        genres: [...store.library.genres],
-        playlists: [...store.library.playlists],
+        tracks: {...store.library.tracks},
+        albums: {...albumMap},
+        artists: {...artistMap},
+        genres: {...store.library.genres},
+        playlists: {...store.library.playlists},
       };
     });
 }

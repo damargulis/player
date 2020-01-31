@@ -34,7 +34,7 @@ interface AlbumInfoState {
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  updateAlbum(id: number, info: object): void;
+  updateAlbum(id: string, info: object): void;
 }
 
 type AlbumInfoProps = OwnProps & StateProps & DispatchProps;

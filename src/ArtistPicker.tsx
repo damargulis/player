@@ -12,7 +12,7 @@ interface ArtistPickerState {
 
 interface ArtistPickerProps {
   artists: Artist[];
-  goToArtist(artistId: number): void;
+  goToArtist(artistId: string): void;
 }
 
 export default class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState> {
@@ -68,7 +68,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     });
   }
 
-  private goToArtist(artistId: number): void {
+  private goToArtist(artistId: string): void {
     this.props.goToArtist(artistId);
   }
 

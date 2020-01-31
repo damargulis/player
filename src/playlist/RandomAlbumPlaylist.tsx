@@ -19,7 +19,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.playlist[this.currentAlbum];
   }
 
-  public getCurrentTrack(): number | undefined {
+  public getCurrentTrack(): string | undefined {
     const album = this.getCurrentAlbum();
     if (!album || !album.trackIds[this.currentTrack]) {
       return undefined;
@@ -27,7 +27,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return album.trackIds[this.currentTrack];
   }
 
-  public nextAlbum(): number | undefined {
+  public nextAlbum(): string | undefined {
     this.currentAlbum++;
     this.currentTrack = 0;
     if (this.playlist.length <= this.currentAlbum) {
@@ -36,7 +36,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public nextTrack(): number | undefined {
+  public nextTrack(): string | undefined {
     this.currentTrack++;
     if (!this.getCurrentTrack()) {
       return this.nextAlbum();
@@ -44,7 +44,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public prevTrack(): number | undefined {
+  public prevTrack(): string | undefined {
     this.currentTrack -= 1;
     if (!this.getCurrentTrack()) {
       this.currentAlbum--;
@@ -53,7 +53,7 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.getCurrentTrack();
   }
 
-  public prevAlbum(): number | undefined {
+  public prevAlbum(): string | undefined {
     this.currentAlbum -= 1;
     this.currentTrack = 0;
     return this.getCurrentTrack();

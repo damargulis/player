@@ -4,9 +4,9 @@ import ProgressBar from './ProgressBar';
 import React from 'react';
 
 interface HeaderProps {
-  goToAlbum(albumId: number): void;
-  goToArtist(artistId: number): void;
-  goToTrack(trackId: number): void;
+  goToAlbum(albumId: string): void;
+  goToArtist(artistId: string): void;
+  goToTrack(trackId: string): void;
 }
 
 export default class Header extends React.Component<HeaderProps> {

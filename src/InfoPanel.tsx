@@ -12,9 +12,9 @@ import './InfoPanel.css';
 
 interface OwnProps {
   small?: boolean;
-  goToAlbum(albumId: number): void;
-  goToArtist(artistId: number): void;
-  goToTrack(trackId: number): void;
+  goToAlbum(albumId: string): void;
+  goToArtist(artistId: string): void;
+  goToTrack(trackId: string): void;
 }
 
 interface StateProps {

@@ -13,7 +13,7 @@ interface StateProps {
 interface OwnProps {
   artist?: Artist;
   style: React.CSSProperties;
-  goToArtist(artistId: number): void;
+  goToArtist(artistId: string): void;
 }
 
 type ArtistInfoProps = OwnProps & StateProps;

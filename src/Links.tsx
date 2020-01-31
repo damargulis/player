@@ -2,14 +2,14 @@ import Marquee from './Marquee';
 import React from 'react';
 
 interface Linkable {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface OwnProps<T> {
   items: T[];
   name: string;
-  goToItem(itemId: number): void;
+  goToItem(itemId: string): void;
 }
 
 type LinksProps<T> = OwnProps<T>;

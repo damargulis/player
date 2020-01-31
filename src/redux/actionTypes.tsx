@@ -17,65 +17,65 @@ export const SET_TIME = 'SET_TIME';
 
 export interface Playlist {
   name: string;
-  trackIds: number[];
+  trackIds: string[];
 }
 
 export interface Track {
-  id: number;
+  id: string;
   duration: number;
   playCount: number;
   playDate: Date;
   filePath: string;
-  artistIds: number[];
-  albumIds: number[];
+  artistIds: string[];
+  albumIds: string[];
   name: string;
   year: number;
-  genreIds: number[];
+  genreIds: string[];
   skipCount: number;
   dateAdded: Date;
   favorites: number[];
 }
 
 export interface Artist {
-  id: number;
+  id: string;
   name: string;
-  albumIds: number[];
+  albumIds: string[];
   artFile?: string;
   errors: string[];
   wikiPage?: string;
-  genreIds: number[];
-  trackIds: number[];
+  genreIds: string[];
+  trackIds: string[];
 }
 
 export interface Album {
-  id: number;
+  id: string;
   warnings: Record<string, string>;
   errors: string[];
   albumArtFile?: string;
-  artistIds: number[];
+  artistIds: string[];
   name: string;
-  trackIds: number[];
+  trackIds: string[];
   year: number;
   wikiPage?: string;
-  genreIds: number[];
+  genreIds: string[];
   playCount: number;
   skipCount: number;
   favorites: number[];
 }
 
 export interface LibraryState {
-  tracks: Track[];
-  albums: Album[];
-  artists: Artist[];
-  playlists: Playlist[];
-  genres: string[];
+  tracks: Record<string, Track>;
+  albums: Record<string, Album>;
+  artists: Record<string, Artist>;
+  playlists: Record<string, Playlist>;
+  genres: Record<string, string>;
 }
 
 export interface CurrentlyPlayingState {
   time: number;
   volume: number;
   playlist: EmptyPlaylist;
-  currentlyPlayingId?: number;
+  currentlyPlayingId?: string;
   isPlaying: boolean;
   setTime?: number;
 }
@@ -132,12 +132,12 @@ export interface AlbumInfo {
   warnings?: Record<string, string>;
   errors?: string[];
   albumArtFile?: string;
-  artistIds?: number[];
+  artistIds?: string[];
   name?: string;
-  trackIds?: number[];
+  trackIds?: string[];
   year?: number;
   wikiPage?: string;
-  genreIds?: number[];
+  genreIds?: string[];
   playCount?: number;
   skipCount?: number;
   favorites?: number[];
@@ -145,12 +145,12 @@ export interface AlbumInfo {
 
 export interface ArtistInfo {
   name?: string;
-  albumIds?: number[];
+  albumIds?: string[];
   artFile?: string;
   errors?: string[];
   wikiPage?: string;
-  genreIds?: number[];
-  trackIds?: number[];
+  genreIds?: string[];
+  trackIds?: string[];
 }
 
 export interface TrackInfo {
@@ -158,11 +158,11 @@ export interface TrackInfo {
   playCount?: number;
   playDate?: Date;
   filePath?: string;
-  artistIds?: number[];
-  albumIds?: number[];
+  artistIds?: string[];
+  albumIds?: string[];
   name?: string;
   year?: number;
-  genreIds?: number[];
+  genreIds?: string[];
   skipCount?: number;
   dateAdded?: Date;
   favorites?: number[];

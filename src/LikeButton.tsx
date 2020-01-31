@@ -3,7 +3,7 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 interface Likeable {
-  id: number;
+  id: string;
   favorites: number[];
 }
 
@@ -16,7 +16,7 @@ interface DispatchProps {
 
 interface OwnProps<T> {
   item?: T;
-  update(id: number, item: LikeableInternal): void;
+  update(id: string, item: LikeableInternal): void;
 }
 
 type LikeButtonProps<T> = DispatchProps & OwnProps<T>;

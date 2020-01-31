@@ -12,12 +12,12 @@ import {RootState} from './redux/store';
 import ToggableEditableAttribute from './ToggableEditableAttribute';
 
 interface DispatchProps {
-  updateTrack(id: number, info: TrackInfo): void;
+  updateTrack(id: string, info: TrackInfo): void;
 }
 
 interface StateProps {
-  getArtistById(id: number): Artist;
-  getAlbumById(id: number): Album;
+  getArtistById(id: string): Artist;
+  getAlbumById(id: string): Album;
 }
 
 interface OwnProps {
@@ -29,11 +29,11 @@ type MultipleTrackEditorProps = StateProps & OwnProps & DispatchProps;
 
 interface MultipleTrackEditorState {
   editGenre: boolean;
-  genreIds: number[];
-  artistIds: number[];
+  genreIds: string[];
+  artistIds: string[];
   editArtists: boolean;
   editAlbums: boolean;
-  albumIds: number[];
+  albumIds: string[];
   editFavorites: boolean;
   yearsFavorited: number[];
   editYear: boolean;
@@ -165,8 +165,8 @@ class MultipleTrackEditor extends React.Component<MultipleTrackEditorProps, Mult
 
 function mapStateToProps(store: RootState): StateProps {
   return {
-    getAlbumById: (id: number) => getAlbumById(store, id),
-    getArtistById: (id: number) => getArtistById(store, id),
+    getAlbumById: (id: string) => getAlbumById(store, id),
+    getArtistById: (id: string) => getArtistById(store, id),
   };
 }
 

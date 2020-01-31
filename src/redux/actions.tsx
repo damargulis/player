@@ -65,22 +65,22 @@ export const setTime = (time: number) => ({
   type: SET_TIME,
 });
 
-export const updateAlbum = (id: number, info: AlbumInfo) => ({
+export const updateAlbum = (id: string, info: AlbumInfo) => ({
   payload: {id, info},
   type: UPDATE_ALBUM,
 });
 
-export const updateArtist = (id: number, info: ArtistInfo) => ({
+export const updateArtist = (id: string, info: ArtistInfo) => ({
   payload: {id, info},
   type: UPDATE_ARTIST,
 });
 
-export const updateTrack = (id: number, info: TrackInfo) => ({
+export const updateTrack = (id: string, info: TrackInfo) => ({
   payload: {id, info},
   type: UPDATE_TRACK,
 });
 
-export const addToPlaylist = (index: number, trackIds: number[]) => ({
+export const addToPlaylist = (index: number, trackIds: string[]) => ({
   payload: {index, trackIds},
   type: ADD_TO_PLAYLIST,
 });

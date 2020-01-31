@@ -17,15 +17,15 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  updateArtist(id: number, info: object): void;
+  updateArtist(id: string, info: object): void;
 }
 
 type ArtistEditorProps = OwnProps & StateProps & DispatchProps;
 
 interface ArtistEditorState {
-  albumIds: number[];
-  genreIds: number[];
-  trackIds: number[];
+  albumIds: string[];
+  genreIds: string[];
+  trackIds: string[];
 }
 
 class ArtistEditor extends React.Component<ArtistEditorProps, ArtistEditorState> {

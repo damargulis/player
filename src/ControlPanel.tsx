@@ -33,7 +33,7 @@ interface DispatchProps {
   prevAlbum(): void;
   prevTrack(): void;
   playPause(): void;
-  updateTrack(id: number, track: TrackInfo): void;
+  updateTrack(id: string, track: TrackInfo): void;
 }
 
 interface OwnProps {

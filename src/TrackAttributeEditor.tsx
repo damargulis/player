@@ -33,12 +33,12 @@ const getListStyle = (isDraggingOver: boolean) => ({
 });
 
 interface OwnProps {
-  trackIds: number[];
-  setIds(ids: number[]): void;
+  trackIds: string[];
+  setIds(ids: string[]): void;
 }
 
 interface StateProps {
-  getTrackById(id: number): Track;
+  getTrackById(id: string): Track;
 }
 
 type TrackAttributeEditorProps = OwnProps & StateProps;
@@ -111,7 +111,7 @@ class TrackAttributeEditor extends React.Component<TrackAttributeEditorProps> {
 
 function mapStateToProps(state: RootState): StateProps {
   return {
-    getTrackById: (id: number) => getTrackById(state, id),
+    getTrackById: (id: string) => getTrackById(state, id),
   };
 }
 

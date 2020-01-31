@@ -10,7 +10,7 @@ import {toTime} from './utils';
 interface OwnProps {
   playlist: Playlist;
   canGoForward: boolean;
-  genres: number[];
+  genres: string[];
   goBack(): void;
   goForward(): void;
 }
