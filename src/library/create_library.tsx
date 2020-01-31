@@ -243,7 +243,8 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
         let libraryData = JSON.parse(data.toString());
         libraryData = updateFromOldStyles(libraryData);
         return resolve({
-          albums: libraryData.albums.map((albumData: Album) => ({
+          albums: Object.values(libraryData.albums).reduce((map: Record<number, Album>, albumData: any) => {
+            map[albumData.id] = {
             id: albumData.id,
             warnings: albumData.warnings,
             errors: albumData.errors,
@@ -257,8 +258,12 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             playCount: albumData.playCount,
             skipCount: albumData.skipCount,
             favorites: albumData.favorites,
-          })),
-          artists: libraryData.artists.map((artistData: Artist) => ({
+            };
+            return map;
+          }, {}),
+            
+          artists: Object.values(libraryData.artists).reduce((map: Record<number, Artist>, artistData: any) => {
+          map[artistData.id] = {
             id: artistData.id,
             name: artistData.name,
             albumIds: artistData.albumIds,
@@ -267,7 +272,9 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             wikiPage: artistData.wikiPage,
             genreIds: artistData.genreIds,
             trackIds: artistData.trackIds,
-          })),
+          };
+          return map;
+          }, {}),
           tracks: Object.values(libraryData.tracks).reduce((map: Record<number, Track>, trackData: any) => {
         map[trackData.id] = {
             id: trackData.id,
