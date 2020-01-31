@@ -1,4 +1,6 @@
-import {Album, Artist, Playlist, LibraryState, Track} from '../redux/actionTypes';
+/* tslint:disable:no-any */
+/* tslint:disable:no-inferred-empty-object-type */
+import {Album, Artist, LibraryState, Playlist, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
 import {remote} from 'electron';
 import fs from 'fs';
@@ -217,7 +219,7 @@ function createTracksFromItunesData(tracks: Map<string, ItunesTrackData>): Map<n
 }
 
 // TODO: remove after next release
-function updateFromOldStyles(data: any) {
+function updateFromOldStyles(data: any): any {
   if (data.tracks instanceof Array) {
     return Object.assign({}, data, {
       ...data,
@@ -239,67 +241,62 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
       if (err) {
         return reject(err);
       }
-      try {
-        let libraryData = JSON.parse(data.toString());
-        libraryData = updateFromOldStyles(libraryData);
-        return resolve({
-          albums: Object.values(libraryData.albums).reduce((map: Record<number, Album>, albumData: any) => {
-            map[albumData.id] = {
-            id: albumData.id,
-            warnings: albumData.warnings,
-            errors: albumData.errors,
-            albumArtFile: albumData.albumArtFile,
-            artistIds: albumData.artistIds,
-            name: albumData.name,
-            trackIds: albumData.trackIds,
-            year: albumData.year,
-            wikiPage: albumData.wikiPage,
-            genreIds: albumData.genreIds,
-            playCount: albumData.playCount,
-            skipCount: albumData.skipCount,
-            favorites: albumData.favorites,
-            };
-            return map;
-          }, {}),
-            
-          artists: Object.values(libraryData.artists).reduce((map: Record<number, Artist>, artistData: any) => {
-          map[artistData.id] = {
-            id: artistData.id,
-            name: artistData.name,
-            albumIds: artistData.albumIds,
-            artFile: artistData.artFile,
-            errors: artistData.errors,
-            wikiPage: artistData.wikiPage,
-            genreIds: artistData.genreIds,
-            trackIds: artistData.trackIds,
+      let libraryData = JSON.parse(data.toString());
+      libraryData = updateFromOldStyles(libraryData);
+      return resolve({
+        albums: Object.values(libraryData.albums).reduce((map: Record<number, Album>, albumData: any) => {
+          map[albumData.id] = {
+          id: albumData.id,
+          warnings: albumData.warnings,
+          errors: albumData.errors,
+          albumArtFile: albumData.albumArtFile,
+          artistIds: albumData.artistIds,
+          name: albumData.name,
+          trackIds: albumData.trackIds,
+          year: albumData.year,
+          wikiPage: albumData.wikiPage,
+          genreIds: albumData.genreIds,
+          playCount: albumData.playCount,
+          skipCount: albumData.skipCount,
+          favorites: albumData.favorites,
           };
           return map;
-          }, {}),
-          tracks: Object.values(libraryData.tracks).reduce((map: Record<number, Track>, trackData: any) => {
-        map[trackData.id] = {
-            id: trackData.id,
-            duration: trackData.duration,
-            playCount: trackData.playCount,
-            playDate: new Date(trackData.playDate),
-            filePath: trackData.filePath,
-            artistIds: trackData.artistIds,
-            albumIds: trackData.albumIds,
-            name: trackData.name,
-            year: trackData.year,
-            genreIds: trackData.genreIds,
-            skipCount: trackData.skipCount,
-            dateAdded: new Date(trackData.dateAdded),
-            favorites: trackData.favorites,
-        }
+        }, {}),
+
+        artists: Object.values(libraryData.artists).reduce((map: Record<number, Artist>, artistData: any) => {
+        map[artistData.id] = {
+          id: artistData.id,
+          name: artistData.name,
+          albumIds: artistData.albumIds,
+          artFile: artistData.artFile,
+          errors: artistData.errors,
+          wikiPage: artistData.wikiPage,
+          genreIds: artistData.genreIds,
+          trackIds: artistData.trackIds,
+        };
         return map;
-      }, {}),
-          genres: libraryData.genres,
-          playlists: libraryData.playlists,
-        });
-      } catch (err) {
-        console.log(err);
-        reject(err);
-      }
+        }, {}),
+        tracks: Object.values(libraryData.tracks).reduce((map: Record<number, Track>, trackData: any) => {
+      map[trackData.id] = {
+          id: trackData.id,
+          duration: trackData.duration,
+          playCount: trackData.playCount,
+          playDate: new Date(trackData.playDate),
+          filePath: trackData.filePath,
+          artistIds: trackData.artistIds,
+          albumIds: trackData.albumIds,
+          name: trackData.name,
+          year: trackData.year,
+          genreIds: trackData.genreIds,
+          skipCount: trackData.skipCount,
+          dateAdded: new Date(trackData.dateAdded),
+          favorites: trackData.favorites,
+      };
+      return map;
+    }, {}),
+        genres: libraryData.genres,
+        playlists: libraryData.playlists,
+      });
     });
   });
 }
@@ -358,8 +355,8 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
     xmlData = xmlData.replace(/[\n\t\r]/g, '');
     const plistParsed = plist.parse(xmlData) as unknown as ItunesData;
     const trackData = new Map();
-    Object.keys(plistParsed.Tracks).forEach((trackId) => {
-      const track = plistParsed.Tracks[trackId];
+    Object.keys(plistParsed.Tracks).forEach((tId) => {
+      const track = plistParsed.Tracks[tId];
       trackData.set(track['Track ID'], track);
     });
     const realPlaylists = plistParsed.Playlists.filter((playlist: ItunesPlaylistData) => {

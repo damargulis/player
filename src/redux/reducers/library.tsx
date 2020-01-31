@@ -100,7 +100,7 @@ function tracks(state: Record<number, Track>, action: LibraryActionTypes): Recor
   }
 }
 
-function playlists(state: Record<number,Playlist>, action: LibraryActionTypes): Record<number,Playlist> {
+function playlists(state: Record<number, Playlist>, action: LibraryActionTypes): Record<number, Playlist> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
       return {...action.payload.library.playlists};
@@ -115,8 +115,8 @@ function playlists(state: Record<number,Playlist>, action: LibraryActionTypes): 
       return Object.assign({}, state, {
         [action.payload.index]: {
           ...playlist,
-          trackIds
-        }
+          trackIds,
+        },
       });
     }
     default: {
@@ -158,7 +158,7 @@ function artists(state: Record<number, Artist>, action: LibraryActionTypes): Rec
         return [id, {
           ...artist,
           albumIds: getUpdatedMemberIds(artist.albumIds, action.payload.id.toString(), artistIds, artist.id),
-        }]
+        }];
       }));
     }
     case UPDATE_TRACK: {
@@ -214,7 +214,7 @@ function albums(state: Record<number, Album>, action: LibraryActionTypes): Recor
         [action.payload.id]: {
           ...album,
           ...action.payload.info,
-        }
+        },
       });
     }
     default: {

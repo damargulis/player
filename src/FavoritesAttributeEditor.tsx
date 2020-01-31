@@ -6,11 +6,11 @@ interface FavoritesAttributeEditorProps {
 }
 
 export default class FavoritesAttributeEditor extends React.Component<FavoritesAttributeEditorProps> {
-  public render(): null{
+  public render(): null {
     return null;
   }
   // TOOD: re-enable (maybe just re-write completely as a calendar w/ dates)
-  //public render(): JSX.Element {
+  // public render(): JSX.Element {
   //  const years = [];
   //  const maxYear = (new Date()).getFullYear();
   //  for (let year = 2015; year <= maxYear; year++) {
@@ -28,5 +28,5 @@ export default class FavoritesAttributeEditor extends React.Component<FavoritesA
   //      suggestions={years}
   //    />
   //  );
-  //}
+  // }
 }

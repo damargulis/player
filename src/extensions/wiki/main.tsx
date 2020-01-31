@@ -86,8 +86,8 @@ export default function runWikiExtension(store: RootState): PromiseLike<LibraryS
     return album.errors.length === 0 &&
       Object.keys(album.warnings).length === 0;
   }).length;
-  const albumMap = albums.reduce((map, curr) => {map[curr.id] = curr; return map}, {} as Record<string, Album>);
-  const artistMap = artists.reduce((map, curr) => {map[curr.id] = curr; return map}, {} as Record<string, Artist>);
+  const albumMap = albums.reduce((map, curr) => { map[curr.id] = curr; return map; }, {} as Record<string, Album>);
+  const artistMap = artists.reduce((map, curr) => { map[curr.id] = curr; return map; }, {} as Record<string, Artist>);
   // TODO: at the end, you should be given a clickthrough with all wanrings to accept / reject?
   return albumPool.start()
     .then(() => artistPool.start())

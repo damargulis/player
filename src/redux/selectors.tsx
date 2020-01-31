@@ -63,7 +63,7 @@ export function getGenreIds(store: RootState, genres: string[]): string[] {
     if (genreId) {
       return genreId;
     }
-    let newId = Object.keys(store).reduce((max, curr) => Math.max(max, parseInt(curr, 10)), -1);
+    const newId = Object.keys(store).reduce((max, curr) => Math.max(max, parseInt(curr, 10)), -1);
     // TODO: needs to be its own action...
     store.library.genres[newId.toString()] = genre;
     return newId.toString();
