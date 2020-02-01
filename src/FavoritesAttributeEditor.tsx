@@ -1,4 +1,4 @@
-//import AttributeList from './AttributeList';
+// import AttributeList from './AttributeList';
 import React from 'react';
 
 interface FavoritesAttributeEditorProps {
