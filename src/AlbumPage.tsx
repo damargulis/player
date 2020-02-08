@@ -50,6 +50,7 @@ interface AlbumPageState {
 
 type AlbumPageProps = OwnProps & StateProps & DispatchProps;
 
+// TODO: show genres somewhere on this page
 class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   constructor(props: AlbumPageProps) {
     super(props);
