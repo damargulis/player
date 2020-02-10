@@ -11,7 +11,7 @@ export default class WikiLabel extends React.Component<WikiLabelProps> {
   render(): JSX.Element {
     return (
       <div>
-        <label>WIki Page: </label>
+        <label>Wiki Page: </label>
         <span className="link" onClick={this.openWiki.bind(this)}>{this.props.wikiPage}</span>
       </div>
     );
