@@ -2,6 +2,7 @@ import {addToPlaylist, setPlaylist, updateTrack} from './redux/actions';
 import {Album, Artist, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import playingImg from './resources/playing.svg';
 import RandomTrackPlaylist from './playlist/RandomTrackPlaylist';
 import React from 'react';
 import Modal from 'react-modal';
@@ -9,7 +10,7 @@ import {connect} from 'react-redux';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import SearchBar from './SearchBar';
 import {getPlaylists} from './redux/selectors';
-import {getAlbumsByIds, getArtistsByIds, getGenresByIds} from './redux/selectors';
+import {getAlbumsByIds, getArtistsByIds, getCurrentTrackId, getGenresByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import '../node_modules/react-virtualized/styles.css';
 import TrackEditor from './TrackEditor';
@@ -34,6 +35,7 @@ interface TrackPickerState {
 
 interface StateProps {
   playlists: Playlist[];
+  currentlyPlayingId?: string;
   getArtistsByIds(ids: string[]): Artist[];
   getAlbumsByIds(ids: string[]): Album[];
   getGenresByIds(ids: string[]): string[];
@@ -120,6 +122,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
               >
                 <Column dataKey="index" label="Index" width={50} />
                 <Column dataKey="name" label="Name" width={300} />
+                <Column dataKey="playing" width={10} cellRenderer={this.playingRenderer}/>
                 <Column dataKey="duration" label="Time" width={50} />
                 <Column dataKey="artists" label="Artists" width={150} />
                 <Column dataKey="albums" label="Albums" width={150} />
@@ -135,6 +138,12 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
           <span style={{float: 'right', paddingRight: '3px'}}>{this.getDuration()}</span>
         </div>
       </div>
+    );
+  }
+
+  private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
+    return (
+      cellData ? <img src={playingImg} alt="isPlaying"/> : <span></span>
     );
   }
 
@@ -231,6 +240,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
       name: track.name,
       playCount: track.playCount,
       year: track.year,
+      playing: track.id === this.props.currentlyPlayingId,
     };
   }
 
@@ -383,6 +393,7 @@ function mapStateToProps(store: RootState): StateProps {
     getArtistsByIds: (ids: string[]) => getArtistsByIds(store, ids),
     getGenresByIds: (ids: string[]) => getGenresByIds(store, ids),
     playlists: getPlaylists(store),
+    currentlyPlayingId: getCurrentTrackId(store),
   };
 }
 
