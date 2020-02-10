@@ -144,15 +144,26 @@ class MultipleTrackEditor extends React.Component<MultipleTrackEditorProps, Mult
   }
 
   private saveTrack(track: Track): void {
-    this.props.updateTrack(track.id, {
-      genreIds: this.state.genreIds,
-      artistIds: this.state.editArtists ? this.state.artistIds : undefined,
-      albumIds: this.state.editAlbums ? this.state.albumIds : undefined,
-      favorites: this.state.editFavorites ? this.state.yearsFavorited : undefined,
-      year: this.year.current && this.state.editYear ? parseInt(this.year.current.value, 10) : undefined,
-      playCount: this.playCount.current && this.state.editPlayCount ?
-        parseInt(this.playCount.current.value, 10) : undefined,
-    });
+    const trackInfo = {} as TrackInfo;
+    if (this.state.editGenre) {
+      trackInfo.genreIds = this.state.genreIds;
+    }
+    if (this.state.editArtists) {
+      trackInfo.artistIds = this.state.artistIds;
+    }
+    if (this.state.editAlbums) {
+      trackInfo.albumIds = this.state.albumIds;
+    }
+    if (this.state.editFavorites) {
+      trackInfo.favorites = this.state.yearsFavorited;
+    }
+    if (this.year.current && this.state.editYear) {
+      trackInfo.year = parseInt(this.year.current.value, 10);
+    }
+    if (this.playCount.current && this.state.editPlayCount) {
+      trackInfo.playCount = parseInt(this.playCount.current.value, 10);
+    }
+    this.props.updateTrack(track.id, trackInfo);
   }
 
   private save(): void {

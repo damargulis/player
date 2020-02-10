@@ -50,19 +50,6 @@ class SingleTrackEditor extends React.Component<SingleTrackEditorProps, SingleTr
     };
   }
 
-  public save(): void {
-    this.props.updateTrack(this.props.track.id, {
-      name: this.name.current ? this.name.current.value : undefined,
-      year: this.year.current ? parseInt(this.year.current.value, 10) : undefined,
-      playCount: this.playCount.current ? parseInt(this.playCount.current.value, 10) : undefined,
-      favorites: this.state.yearsFavorited,
-      genreIds: this.state.genreIds,
-      albumIds: this.state.albumIds,
-      artistIds: this.state.artistIds,
-    });
-    this.props.exit();
-  }
-
   public render(): JSX.Element {
     const track = this.props.track;
     return (
@@ -81,6 +68,19 @@ class SingleTrackEditor extends React.Component<SingleTrackEditorProps, SingleTr
         </div>
       </div>
     );
+  }
+
+  private save(): void {
+    this.props.updateTrack(this.props.track.id, {
+      name: this.name.current ? this.name.current.value : undefined,
+      year: this.year.current ? parseInt(this.year.current.value, 10) : undefined,
+      playCount: this.playCount.current ? parseInt(this.playCount.current.value, 10) : undefined,
+      favorites: this.state.yearsFavorited,
+      genreIds: this.state.genreIds,
+      albumIds: this.state.albumIds,
+      artistIds: this.state.artistIds,
+    });
+    this.props.exit();
   }
 }
 
