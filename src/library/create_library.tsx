@@ -439,7 +439,7 @@ export function createLibraryFromItunes(): Promise<LibraryState> {
         duration: data.duration,
         filePath: data.filePath,
         name: data.name,
-        playCount: data.playCount,
+        playCount: data.playCount || 0,
         playDate: new Date(data.playDate),
         skipCount: data.skipCount,
         year: data.year,
