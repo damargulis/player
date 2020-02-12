@@ -2,7 +2,8 @@ import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrac
 import {LibraryState, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
-import {createLibraryFromItunes, deleteLibrary, loadLibrary} from './library/create_library';
+import {createLibraryFromItunes} from './library/itunes';
+import {deleteLibrary, loadLibrary} from './library/main';
 import {ipcRenderer} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import runWikiExtension from './extensions/wiki/main';

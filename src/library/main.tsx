@@ -1,0 +1,103 @@
+import {Album, Artist, LibraryState, Track} from '../redux/actionTypes';
+import fs from 'fs';
+import path from 'path';
+import {DATA_DIR} from '../constants';
+
+/**
+ * Loads a library from a given file.
+ */
+export function loadLibrary(libraryFile: string): Promise<LibraryState> {
+  return new Promise((resolve, reject) => {
+    fs.readFile(libraryFile, (err: Error | null, data: Buffer) => {
+      if (err) {
+        return reject(err);
+      }
+      try {
+        const libraryData = JSON.parse(data.toString());
+        return resolve({
+          albums: Object.values(libraryData.albums).reduce((map: Record<number, Album>, albumData: any) => {
+            map[albumData.id] = {
+            id: albumData.id,
+            warnings: albumData.warnings,
+            errors: albumData.errors,
+            albumArtFile: albumData.albumArtFile,
+            artistIds: albumData.artistIds,
+            name: albumData.name,
+            trackIds: albumData.trackIds,
+            year: albumData.year,
+            wikiPage: albumData.wikiPage,
+            genreIds: albumData.genreIds,
+            playCount: albumData.playCount,
+            skipCount: albumData.skipCount,
+            favorites: albumData.favorites,
+            };
+            return map;
+          }, {}),
+
+          artists: Object.values(libraryData.artists).reduce((map: Record<number, Artist>, artistData: any) => {
+          map[artistData.id] = {
+            id: artistData.id,
+            name: artistData.name,
+            albumIds: artistData.albumIds,
+            artFile: artistData.artFile,
+            errors: artistData.errors,
+            wikiPage: artistData.wikiPage,
+            genreIds: artistData.genreIds,
+            trackIds: artistData.trackIds,
+          };
+          return map;
+          }, {}),
+          tracks: Object.values(libraryData.tracks).reduce((map: Record<number, Track>, trackData: any) => {
+        map[trackData.id] = {
+            id: trackData.id,
+            duration: trackData.duration,
+            playCount: trackData.playCount,
+            playDate: new Date(trackData.playDate),
+            filePath: trackData.filePath,
+            artistIds: trackData.artistIds,
+            albumIds: trackData.albumIds,
+            name: trackData.name,
+            year: trackData.year,
+            genreIds: trackData.genreIds,
+            skipCount: trackData.skipCount,
+            dateAdded: new Date(trackData.dateAdded),
+            favorites: trackData.favorites,
+        };
+        return map;
+      }, {}),
+          genres: libraryData.genres,
+          playlists: libraryData.playlists,
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
+}
+
+/**
+ * Deletes a directory and all its contents.
+ */
+function deleteRecursive(filepath: string): void {
+  if (!fs.existsSync(filepath)) {
+    return;
+  }
+  fs.readdirSync(filepath).forEach((file: string) => {
+    const curPath = path.join(filepath, file);
+    if (fs.lstatSync(curPath).isDirectory()) {
+      deleteRecursive(curPath);
+    } else {
+      fs.unlinkSync(curPath);
+    }
+  });
+  fs.rmdirSync(filepath);
+}
+
+
+/** Deletes the data directory. */
+export function deleteLibrary(): Promise<void> {
+  return new Promise((resolve) => {
+    deleteRecursive(DATA_DIR);
+    resolve();
+  });
+}
