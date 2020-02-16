@@ -1,5 +1,5 @@
 import {addToPlaylist, setPlaylist, updateTrack} from './redux/actions';
-import {Album, Artist, Playlist, Track, TrackInfo} from './redux/actionTypes';
+import {Album, Artist, Genre, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import playingImg from './resources/playing.svg';
@@ -38,7 +38,7 @@ interface StateProps {
   currentlyPlayingId?: string;
   getArtistsByIds(ids: string[]): Artist[];
   getAlbumsByIds(ids: string[]): Album[];
-  getGenresByIds(ids: string[]): string[];
+  getGenresByIds(ids: string[]): Genre[];
 }
 
 interface OwnProps {

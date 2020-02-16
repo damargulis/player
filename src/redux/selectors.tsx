@@ -1,4 +1,4 @@
-import {Album, Artist, Playlist, Track} from './actionTypes';
+import {Album, Artist, Genre, Playlist, Track} from './actionTypes';
 import {RootState} from './store';
 
 function getAllTracks(store: RootState): Track[] {
@@ -33,15 +33,15 @@ export function getArtistsByIds(store: RootState, artistIds: string[]): Artist[]
   return artistIds.map((id) => getArtistById(store, id));
 }
 
-export function getGenres(store: RootState): string[] {
+export function getGenres(store: RootState): Genre[] {
   return Object.values(store.library.genres);
 }
 
-export function getGenreById(store: RootState, id: string): string {
+export function getGenreById(store: RootState, id: string): Genre {
   return store.library.genres[id];
 }
 
-export function getGenresByIds(store: RootState, ids: string[]): string[] {
+export function getGenresByIds(store: RootState, ids: string[]): Genre[] {
   return ids.map((id) => getGenreById(store, id));
 }
 
@@ -59,13 +59,13 @@ export function getAllTrackIds(store: RootState): number[] {
 
 export function getGenreIds(store: RootState, genres: string[]): string[] {
   return genres.map((genre) => {
-    const genreId = Object.keys(store.library.genres).find(key => store.library.genres[key] === genre);
+    const genreId = Object.keys(store.library.genres).find(key => store.library.genres[key].name === genre);
     if (genreId) {
       return genreId;
     }
     const newId = Object.keys(store).reduce((max, curr) => Math.max(max, parseInt(curr, 10)), -1);
     // TODO: needs to be its own action...
-    store.library.genres[newId.toString()] = genre;
+    store.library.genres[newId.toString()] = {name: genre};
     return newId.toString();
   });
 }

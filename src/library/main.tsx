@@ -1,7 +1,7 @@
 import {Album, Artist, LibraryState, Track} from '../redux/actionTypes';
+import {DATA_DIR} from '../constants';
 import fs from 'fs';
 import path from 'path';
-import {DATA_DIR} from '../constants';
 
 /**
  * Loads a library from a given file.
@@ -13,9 +13,9 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
         return reject(err);
       }
       try {
-        const libraryData = JSON.parse(data.toString());
+        const libraryData = JSON.parse(data.toString()) as LibraryState;
         return resolve({
-          albums: Object.values(libraryData.albums).reduce((map: Record<number, Album>, albumData: any) => {
+          albums: Object.values(libraryData.albums).reduce((map: Record<string, Album>, albumData: Album) => {
             map[albumData.id] = {
             id: albumData.id,
             warnings: albumData.warnings,
@@ -32,9 +32,9 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             favorites: albumData.favorites,
             };
             return map;
-          }, {}),
+          }, {} as Record<string, Album>),
 
-          artists: Object.values(libraryData.artists).reduce((map: Record<number, Artist>, artistData: any) => {
+          artists: Object.values(libraryData.artists).reduce((map: Record<string, Artist>, artistData: Artist) => {
           map[artistData.id] = {
             id: artistData.id,
             name: artistData.name,
@@ -46,8 +46,8 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             trackIds: artistData.trackIds,
           };
           return map;
-          }, {}),
-          tracks: Object.values(libraryData.tracks).reduce((map: Record<number, Track>, trackData: any) => {
+          }, {} as Record<string, Artist>),
+          tracks: Object.values(libraryData.tracks).reduce((map: Record<string, Track>, trackData: Track) => {
         map[trackData.id] = {
             id: trackData.id,
             duration: trackData.duration,
@@ -64,7 +64,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             favorites: trackData.favorites,
         };
         return map;
-      }, {}),
+      }, {} as Record<string, Track>),
           genres: libraryData.genres,
           playlists: libraryData.playlists,
         });
@@ -92,7 +92,6 @@ function deleteRecursive(filepath: string): void {
   });
   fs.rmdirSync(filepath);
 }
-
 
 /** Deletes the data directory. */
 export function deleteLibrary(): Promise<void> {

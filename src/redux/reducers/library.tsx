@@ -2,6 +2,7 @@ import {
   ADD_TO_PLAYLIST,
   Album,
   Artist,
+  Genre,
   LibraryActionTypes,
   LibraryState,
   Playlist,
@@ -125,7 +126,7 @@ function playlists(state: Record<number, Playlist>, action: LibraryActionTypes):
   }
 }
 
-function genres(state: Record<number, string>, action: LibraryActionTypes): Record<number, string> {
+function genres(state: Record<string, Genre>, action: LibraryActionTypes): Record<string, Genre> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
       return {...action.payload.library.genres};

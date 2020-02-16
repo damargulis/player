@@ -2,10 +2,10 @@ import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrac
 import {LibraryState, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
-import {createLibraryFromItunes} from './library/itunes';
-import {deleteLibrary, loadLibrary} from './library/main';
 import {ipcRenderer} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import {createLibrary} from './library/itunes';
+import {deleteLibrary, loadLibrary} from './library/main';
 import runWikiExtension from './extensions/wiki/main';
 import MaxWindow from './MaxWindow';
 import MiniWindow from './MiniWindow';
@@ -85,7 +85,7 @@ class App extends React.Component<AppProps, AppState> {
     });
     ipcRenderer.on('reset-library', () => {
       deleteLibrary().then(() => {
-        createLibraryFromItunes().then((library: LibraryState) => {
+        createLibrary().then((library: LibraryState) => {
           this.props.updateLibrary(library);
           const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
           this.props.setPlaylist(playlist, /* play= */ false);
@@ -100,7 +100,7 @@ class App extends React.Component<AppProps, AppState> {
       this.props.updateLibrary(library);
       this.props.setPlaylist(playlist, /* play= */ false);
     }).catch(() => {
-      createLibraryFromItunes().then((library) => {
+      createLibrary().then((library) => {
         const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
         this.props.updateLibrary(library);
         this.props.setPlaylist(playlist, /* play= */ false);

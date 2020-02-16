@@ -33,10 +33,7 @@ class GenrePicker extends React.Component<GenrePickerProps> {
   }
 
   private getOptions(): JSX.Element[] {
-    const genres = Object.values(this.props.genres).sort((genre1, genre2) => {
-      return genre1.localeCompare(genre2);
-    });
-    return genres.map((genre: string, index: number) => {
+    return this.props.genres.map((genre: string, index: number) => {
       return {
         html: <option key={genre} value={index}>{genre}</option>,
         value: genre,
@@ -59,7 +56,7 @@ class GenrePicker extends React.Component<GenrePickerProps> {
 
 function mapStateToProps(state: RootState): StateProps {
   return {
-    genres: getGenres(state),
+    genres: getGenres(state).map((genre) => genre.name),
   };
 }
 

@@ -63,12 +63,16 @@ export interface Album {
   favorites: number[];
 }
 
+export interface Genre {
+  name: string;
+}
+
 export interface LibraryState {
   tracks: Record<string, Track>;
   albums: Record<string, Album>;
   artists: Record<string, Artist>;
   playlists: Record<string, Playlist>;
-  genres: Record<string, string>;
+  genres: Record<string, Genre>;
 }
 
 export interface CurrentlyPlayingState {
