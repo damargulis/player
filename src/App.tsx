@@ -120,6 +120,7 @@ class App extends React.Component<AppProps, AppState> {
           playDate: new Date(),
         });
       }
+      this.audio.src = '';
       this.props.nextTrack();
     });
   }
@@ -136,8 +137,8 @@ class App extends React.Component<AppProps, AppState> {
     if (this.props.setTime !== undefined) {
       this.audio.currentTime = this.props.setTime;
     }
-    if (this.props.playing) {
-      this.audio.play();
+    if (this.props.playing && this.audio.paused) {
+      this.audio.play().catch(() => {});
     } else {
       this.audio.pause();
     }

@@ -16,6 +16,7 @@
       "type-def": [true, "call-signature"],
       "curly": true,
       "no-inferred-empty-object-type": true,
+      "no-empty": [true, "allow-empty-functions"],
       "use-default-type-parameter": true,
       "no-redundant-jsdoc": true,
       "no-import-side-effect": [true, {"ignore-modules": "(\\.html|\\.css)$"}],
