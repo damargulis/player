@@ -139,7 +139,7 @@ class App extends React.Component<AppProps, AppState> {
     }
     if (this.props.playing && this.audio.paused) {
       this.audio.play().catch(() => {});
-    } else {
+    } else if (!this.props.playing) {
       this.audio.pause();
     }
   }
