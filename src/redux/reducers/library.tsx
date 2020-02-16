@@ -145,8 +145,10 @@ function artists(state: Record<number, Artist>, action: LibraryActionTypes): Rec
     case UPDATE_ARTIST: {
       const artist = state[action.payload.id];
       return Object.assign({}, state, {
-        ...artist,
-        ...action.payload.info,
+        [action.payload.id]: {
+          ...artist,
+          ...action.payload.info,
+        },
       });
     }
     case UPDATE_ALBUM: {

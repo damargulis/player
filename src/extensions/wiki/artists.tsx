@@ -97,10 +97,10 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
 }
 
 export default function runArtistModifier(store: RootState, artist: Artist): Promise<ArtistInfo> {
+  removeError(artist, NO_PAGE_ERROR);
   if (!artist.wikiPage) {
     return searchForWikiPage(artist).then((wikiPage) => {
       if (wikiPage) {
-        removeError(artist, NO_PAGE_ERROR);
         artist.wikiPage = wikiPage;
         return modifyArtist(store, artist).then(() => {
           return {...artist};
