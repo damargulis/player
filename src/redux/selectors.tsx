@@ -37,6 +37,10 @@ export function getGenres(store: RootState): Genre[] {
   return Object.values(store.library.genres);
 }
 
+export function getAllGenreIds(store: RootState): string[] {
+  return Object.keys(store.library.genres);
+}
+
 export function getGenreById(store: RootState, id: string): Genre {
   return store.library.genres[id];
 }

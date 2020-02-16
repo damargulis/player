@@ -2,7 +2,7 @@ import {Genre} from './redux/actionTypes';
 import AttributeList from './AttributeList';
 import React from 'react';
 import {connect} from 'react-redux';
-import {getGenreById, getGenres} from './redux/selectors';
+import {getAllGenreIds, getGenreById} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface OwnProps {
@@ -10,7 +10,7 @@ interface OwnProps {
 }
 
 interface StateProps {
-  allGenres: string[];
+  allGenreIds: string[];
   getGenreById(id: string): Genre;
 }
 
@@ -23,11 +23,11 @@ class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
         attributes={this.props.genreIds}
         getDisplayName={(genreId) => this.props.getGenreById(genreId).name}
         label="Genres"
-        searchFilter={(input, suggest) => {
-          const genre = this.props.getGenreById(suggest).name;
-          return genre.toLowerCase().indexOf(input.toLowerCase()) > -1;
+        searchFilter={(input: string, suggest: string) => {
+          const genre = this.props.getGenreById(suggest);
+          return genre.name.toLowerCase().indexOf(input.toLowerCase()) > -1;
         }}
-        suggestions={this.props.allGenres}
+        suggestions={this.props.allGenreIds}
       />
     );
   }
@@ -35,7 +35,7 @@ class GenreAttributeEditor extends React.Component<GenreAttributeEditorProps> {
 
 function mapStateToProps(store: RootState): StateProps {
   return {
-    allGenres: getGenres(store).map((genre) => genre.name),
+    allGenreIds: getAllGenreIds(store),
     getGenreById: (id: string) => getGenreById(store, id),
   };
 }

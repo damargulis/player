@@ -1,4 +1,4 @@
-import {Album, Artist, LibraryState, Track} from '../redux/actionTypes';
+import {Album, Artist, Genre, LibraryState, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
 import fs from 'fs';
 import path from 'path';
@@ -65,7 +65,12 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
         };
         return map;
       }, {} as Record<string, Track>),
-          genres: libraryData.genres,
+          genres: Object.keys(libraryData.genres).reduce((map: Record<string, Genre>, genreId: string) => {
+            map[genreId] = {
+              name: libraryData.genres[genreId].name,
+            };
+            return map;
+          }, {} as Record<string, Genre>),
           playlists: libraryData.playlists,
         });
       } catch (err) {
