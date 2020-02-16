@@ -206,10 +206,10 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
 
 export default function runAlbumModifier(store: RootState, album: Album): Promise<AlbumInfo> {
   // TODO: fix this so you don't modify album ...pass in new data object and pass aronud?
+  removeError(album, NO_PAGE_ERROR);
   if (!album.wikiPage) {
     return searchForWikiPage(store, album).then((wikiPage) => {
       if (wikiPage) {
-        removeError(album, NO_PAGE_ERROR);
         album.wikiPage = wikiPage;
         return modifyAlbum(store, album).then(() => {
           return {...album};
