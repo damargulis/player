@@ -1,5 +1,5 @@
 import {updateArtist} from './redux/actions';
-import {Album, Artist, ArtistInfo, Track} from './redux/actionTypes';
+import {Album, Artist, ArtistInfo, Genre, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
@@ -9,7 +9,7 @@ import NavigationBar from './NavigationBar';
 import React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import {getAlbumsByIds, getArtistById, getTracksByIds} from './redux/selectors';
+import {getAlbumsByIds, getArtistById, getGenreById, getTracksByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 import {getImgSrc} from './utils';
@@ -20,6 +20,7 @@ interface StateProps {
   tracks: Track[];
   artist: Artist;
   runArtistModifier(artist: Artist): Promise<ArtistInfo>;
+  getGenreById(genreId: string): Genre;
 }
 
 interface OwnProps {
@@ -66,6 +67,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
             <div className="info">
               <img alt="artist art" height="100" src={src} width="100" />
               <div>{this.props.artist.name}</div>
+              <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} />
               <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
             </div>
@@ -126,6 +128,7 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
     runArtistModifier: (a: Artist) => runArtistModifier(store, a),
     tracks: getTracksByIds(store, artist.trackIds),
     artist: artist,
+    getGenreById: (genreId: string) => getGenreById(store, genreId),
   };
 }
 

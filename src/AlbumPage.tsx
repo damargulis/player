@@ -1,5 +1,5 @@
 import {setPlaylist, updateAlbum, updateTrack} from './redux/actions';
-import {Album, AlbumInfo, Artist, Track, TrackInfo} from './redux/actionTypes';
+import {Album, AlbumInfo, Artist, Genre, Track, TrackInfo} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
 import runAlbumModifier from './extensions/wiki/albums';
@@ -12,7 +12,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import {getAlbumById, getArtistsByIds, getTrackById, getTracksByIds} from './redux/selectors';
+import {getAlbumById, getArtistsByIds, getGenreById, getTrackById, getTracksByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 import {getImgSrc, toTime} from './utils';
@@ -25,6 +25,7 @@ interface StateProps {
   artists: Artist[];
   tracks: Track[];
   album: Album;
+  getGenreById(id: string): Genre;
   getTracksByIds(ids: string[]): Track[];
   getTrackById(id: string): Track;
   runAlbumModifier(album: AlbumInfo): Promise<AlbumInfo>;
@@ -50,7 +51,6 @@ interface AlbumPageState {
 
 type AlbumPageProps = OwnProps & StateProps & DispatchProps;
 
-// TODO: show genres somewhere on this page
 class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   constructor(props: AlbumPageProps) {
     super(props);
@@ -81,6 +81,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             <Links items={this.props.artists} goToItem={this.props.goToArtist} name="Artists" />
             <div>Total Time: {this.getTotalTime()}</div>
             <div>{this.props.album.year}</div>
+            <div>{this.props.album.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ' )}</div>
             <WikiLabel wikiPage={this.props.album.wikiPage} />
             <button onClick={this.runWiki.bind(this)}>
               Run Wiki Extension
@@ -189,6 +190,7 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
     runAlbumModifier: (a: Album) => runAlbumModifier(state, a),
     tracks: getTracksByIds(state, album.trackIds),
     album: album,
+    getGenreById: (id: string) => getGenreById(state, id),
   };
 }
 
