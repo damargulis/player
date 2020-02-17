@@ -80,6 +80,7 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
         goToArtist={(artist) => this.goToArtist(artist)}
         key={key}
         style={style}
+        showStatus={this.state.withErrors}
       />
     );
   }

@@ -13,6 +13,7 @@ interface StateProps {
 interface OwnProps {
   artist?: Artist;
   style: React.CSSProperties;
+  showStatus: boolean;
   goToArtist(artistId: string): void;
 }
 
@@ -73,8 +74,11 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
       paddingRight: (width - 150) / 2,
       width: 150,
     };
-    if (artist.errors.length > 0) {
-      newStyle.backgroundColor = 'red';
+    if (this.props.showStatus) {
+      newStyle.backgroundColor = 'green';
+      if (artist.errors.length > 0 || !artist.wikiPage) {
+        newStyle.backgroundColor = 'red';
+      }
     }
     const artFiles = this.props.artFiles;
     const file = artFiles[this.state.currentImg % artFiles.length];
