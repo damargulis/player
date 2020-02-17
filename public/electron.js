@@ -128,7 +128,10 @@ function createWindow() {
   }));
   menu.push(new MenuItem({
     label: "Extensions",
-    submenu: [{label: "Wikipedia", click: () => runExtension("wikipedia")}],
+    submenu: [
+    {label: "Wikipedia", click: () => runExtension("wikipedia")},
+    {label: "Genius", click: () => runExtension("genius")},
+  ],
   }));
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 }

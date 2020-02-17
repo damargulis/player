@@ -1,5 +1,5 @@
 import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
-import {LibraryState, Track, TrackInfo} from './redux/actionTypes';
+import {LibraryInfo, LibraryState, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
 import {ipcRenderer} from 'electron';
@@ -7,6 +7,7 @@ import EmptyPlaylist from './playlist/EmptyPlaylist';
 import {createLibrary} from './library/itunes';
 import {deleteLibrary, loadLibrary} from './library/main';
 import runWikiExtension from './extensions/wiki/main';
+import runGeniusExtension from './extensions/genius/main';
 import MaxWindow from './MaxWindow';
 import MiniWindow from './MiniWindow';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
@@ -21,11 +22,12 @@ interface StateProps {
   playing: boolean;
   setTime?: number;
   runWikiExtension(): PromiseLike<LibraryState>;
+  runGeniusExtension(): PromiseLike<LibraryInfo>;
 }
 
 interface DispatchProps {
   updateTime(time: number): void;
-  updateLibrary(library: LibraryState): void;
+  updateLibrary(library: LibraryInfo): void;
   nextTrack(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
@@ -76,6 +78,11 @@ class App extends React.Component<AppProps, AppState> {
       switch (arg) {
       case 'wikipedia':
         this.props.runWikiExtension().then((library: LibraryState) => {
+          this.props.updateLibrary(library);
+        });
+        break;
+      case 'genius':
+        this.props.runGeniusExtension().then((library: LibraryInfo) => {
           this.props.updateLibrary(library);
         });
         break;
@@ -180,6 +187,7 @@ function mapStateToProps(store: RootState): StateProps {
   return {
     playing: getIsPlaying(store),
     runWikiExtension: () => runWikiExtension(store),
+    runGeniusExtension: () => runGeniusExtension(store),
     setTime: getSetTime(store),
     track,
     volume: getVolume(store),

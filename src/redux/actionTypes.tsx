@@ -20,6 +20,11 @@ export interface Playlist {
   trackIds: string[];
 }
 
+export interface PlaylistInfo {
+  name?: string;
+  trackIds?: string[];
+}
+
 export interface Track {
   id: string;
   duration: number;
@@ -34,6 +39,11 @@ export interface Track {
   skipCount: number;
   dateAdded: Date;
   favorites: number[];
+  genius?: {
+    id: string;
+    page: string;
+    errors: string[];
+  };
 }
 
 export interface Artist {
@@ -67,12 +77,24 @@ export interface Genre {
   name: string;
 }
 
+export interface GenreInfo {
+  name?: string;
+}
+
 export interface LibraryState {
   tracks: Record<string, Track>;
   albums: Record<string, Album>;
   artists: Record<string, Artist>;
   playlists: Record<string, Playlist>;
   genres: Record<string, Genre>;
+}
+
+export interface LibraryInfo {
+  tracks?: Record<string, TrackInfo>;
+  albums?: Record<string, AlbumInfo>;
+  artists?: Record<string, ArtistInfo>;
+  playlists?: Record<string, PlaylistInfo>;
+  genres?: Record<string, GenreInfo>;
 }
 
 export interface CurrentlyPlayingState {
@@ -96,7 +118,7 @@ interface VolumeChangeAction {
 
 interface UpdateLibraryAction {
   type: typeof UPDATE_LIBRARY;
-  payload: {library: LibraryState};
+  payload: {library: LibraryInfo};
 }
 
 interface NextTrackAction {
@@ -170,6 +192,11 @@ export interface TrackInfo {
   skipCount?: number;
   dateAdded?: Date;
   favorites?: number[];
+  genius?: {
+    id?: string;
+    page?: string;
+    errors?: string[];
+  };
 }
 
 interface UpdateAlbum {

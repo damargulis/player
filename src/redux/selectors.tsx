@@ -1,7 +1,7 @@
 import {Album, Artist, Genre, Playlist, Track} from './actionTypes';
 import {RootState} from './store';
 
-function getAllTracks(store: RootState): Track[] {
+export function getAllTracks(store: RootState): Track[] {
   return Object.values(store.library.tracks);
 }
 

@@ -58,10 +58,19 @@ function save(library: LibraryState): Promise<void> {
   });
 }
 
-function tracks(state: Record<number, Track>, action: LibraryActionTypes): Record<number, Track> {
+function tracks(state: Record<string, Track>, action: LibraryActionTypes): Record<string, Track> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return {...action.payload.library.tracks};
+      const update = action.payload.library.tracks;
+      if (!update) {
+        return state;
+      }
+      return Object.assign({}, state, Object.fromEntries(Object.entries(update).map(([id, track]) => {
+        return [id, {
+          ...state[id],
+          ...track,
+        }];
+      })));
     }
     case UPDATE_TRACK: {
       const track = state[action.payload.id];
@@ -101,10 +110,19 @@ function tracks(state: Record<number, Track>, action: LibraryActionTypes): Recor
   }
 }
 
-function playlists(state: Record<number, Playlist>, action: LibraryActionTypes): Record<number, Playlist> {
+function playlists(state: Record<string, Playlist>, action: LibraryActionTypes): Record<string, Playlist> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return {...action.payload.library.playlists};
+      const update = action.payload.library.playlists;
+      if (!update) {
+        return state;
+      }
+      return Object.assign({}, state, Object.fromEntries(Object.entries(update).map(([id, playlist]) => {
+        return [id, {
+          ...state[id],
+          ...playlist,
+        }];
+      })));
     }
     case ADD_TO_PLAYLIST: {
       // TODO: change index to id
@@ -129,7 +147,16 @@ function playlists(state: Record<number, Playlist>, action: LibraryActionTypes):
 function genres(state: Record<string, Genre>, action: LibraryActionTypes): Record<string, Genre> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return {...action.payload.library.genres};
+      const update = action.payload.library.genres;
+      if (!update) {
+        return state;
+      }
+      return Object.assign({}, state, Object.fromEntries(Object.entries(update).map(([id, genre]) => {
+        return [id, {
+          ...state[id],
+          ...genre,
+        }];
+      })));
     }
     default: {
       return state;
@@ -137,10 +164,19 @@ function genres(state: Record<string, Genre>, action: LibraryActionTypes): Recor
   }
 }
 
-function artists(state: Record<number, Artist>, action: LibraryActionTypes): Record<number, Artist> {
+function artists(state: Record<string, Artist>, action: LibraryActionTypes): Record<string, Artist> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return {...action.payload.library.artists};
+      const udpate = action.payload.library.artists;
+      if (!udpate) {
+        return state;
+      }
+      return Object.assign({}, state, Object.fromEntries(Object.entries(udpate).map(([id, artist]) => {
+        return [id, {
+          ...state[id],
+          ...artist,
+        }];
+      })));
     }
     case UPDATE_ARTIST: {
       const artist = state[action.payload.id];
@@ -182,10 +218,19 @@ function artists(state: Record<number, Artist>, action: LibraryActionTypes): Rec
   }
 }
 
-function albums(state: Record<number, Album>, action: LibraryActionTypes): Record<number, Album> {
+function albums(state: Record<string, Album>, action: LibraryActionTypes): Record<string, Album> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      return {...action.payload.library.albums};
+      const update = action.payload.library.update;
+      if (!update) {
+        return state;
+      }
+      return Object.assign({}, state, Object.fromEntries(Object.entries(update).map(([id, album]) => {
+        return [id, {
+          ...state[id],
+          ...album,
+        }];
+      })));
     }
     case UPDATE_ARTIST: {
       const albumIds = action.payload.info.albumIds;

@@ -2,6 +2,7 @@ import {addToPlaylist, setPlaylist, updateTrack} from './redux/actions';
 import {Album, Artist, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import ExternalLink from './ExternalLink';
 import playingImg from './resources/playing.svg';
 import RandomTrackPlaylist from './playlist/RandomTrackPlaylist';
 import React from 'react';
@@ -123,6 +124,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
                 <Column dataKey="index" label="Index" width={50} />
                 <Column dataKey="name" label="Name" width={300} />
                 <Column dataKey="playing" width={10} cellRenderer={this.playingRenderer}/>
+                <Column dataKey="genius" width={10} cellRenderer={this.geniusRenderer}/>
                 <Column dataKey="duration" label="Time" width={50} />
                 <Column dataKey="artists" label="Artists" width={150} />
                 <Column dataKey="albums" label="Albums" width={150} />
@@ -139,6 +141,10 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
         </div>
       </div>
     );
+  }
+
+  private geniusRenderer({cellData}: {cellData?: string}): JSX.Element {
+    return (<ExternalLink text="G" link={cellData}/>);
   }
 
   private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
@@ -241,6 +247,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
       playCount: track.playCount,
       year: track.year,
       playing: track.id === this.props.currentlyPlayingId,
+      genius: track.genius && track.genius.page,
     };
   }
 

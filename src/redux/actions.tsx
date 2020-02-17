@@ -3,6 +3,7 @@ import {
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
+  LibraryInfo,
   LibraryState,
   NEXT_ALBUM,
   NEXT_TRACK,
@@ -25,7 +26,7 @@ export const updateTime = (time: number) => ({
   type: UPDATE_TIME,
 });
 
-export const updateLibrary = (library: LibraryState) => ({
+export const updateLibrary = (library: LibraryInfo) => ({
   payload: {library},
   type: UPDATE_LIBRARY,
 });
