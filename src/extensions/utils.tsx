@@ -3,7 +3,7 @@ import PromisePool from 'es6-promise-pool';
 import {RootState} from '../redux/store';
 
 // TODO: set num by isDev
-const CONCURRENT = 1;
+const CONCURRENT = 7;
 
 /** Returns a pool of modifiers to run. */
 export function getPool<T, S>(

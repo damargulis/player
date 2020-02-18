@@ -221,7 +221,7 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
 function albums(state: Record<string, Album>, action: LibraryActionTypes): Record<string, Album> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
-      const update = action.payload.library.update;
+      const update = action.payload.library.albums;
       if (!update) {
         return state;
       }

@@ -47,7 +47,7 @@ function geniusRequest(url: string): Promise<string> {
 
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
   const primaryArtist = getArtistById(store, track.artistIds[0]);
-  return geniusRequest(SEARCH_URL + track.name).then((jsonString: string) => {
+  return geniusRequest(SEARCH_URL + encodeURIComponent(track.name)).then((jsonString: string) => {
     const results = JSON.parse(jsonString);
     const result = results.response.hits.find((hit: {result: {title: string; primary_artist: {name: string}}}) => {
       const title = hit.result.title;
@@ -55,7 +55,7 @@ function searchForTrackId(store: RootState, track: Track): Promise<string | unde
       return title === track.name && artist === primaryArtist.name;
     });
     return result && result.result.id;
-  });
+  }).catch(() => {});
 }
 
 function modifyTrack(store: RootState, track: Track, geniusId: string): Promise<Result> {
@@ -72,7 +72,7 @@ function modifyTrack(store: RootState, track: Track, geniusId: string): Promise<
         },
       },
     });
-  });
+  }).catch(() => ({id: track.id, info: {}}));
 }
 
 function modifyTrackRunner(store: RootState, track: Track): Promise<Result> {
@@ -88,7 +88,7 @@ function modifyTrackRunner(store: RootState, track: Track): Promise<Result> {
 }
 
 function getTrackPool(store: RootState): PromisePool<Result | void> {
-  const tracks = getAllTracks(store).slice(0, 20);
+  const tracks = getAllTracks(store);
   return getPool(
     store,
     tracks,
