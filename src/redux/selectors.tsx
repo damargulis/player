@@ -57,8 +57,8 @@ export function getTracksByIds(store: RootState, ids: string[]): Track[] {
   return ids.map((id) => getTrackById(store, id));
 }
 
-export function getAllTrackIds(store: RootState): number[] {
-  return Object.keys(store.library.tracks).map(Number);
+export function getAllTrackIds(store: RootState): string[] {
+  return Object.keys(store.library.tracks);
 }
 
 export function getGenreIds(store: RootState, genres: string[]): string[] {

@@ -1,8 +1,9 @@
-import {addToPlaylist, setPlaylist, updateTrack} from './redux/actions';
-import {Album, Artist, Playlist, Track, TrackInfo} from './redux/actionTypes';
+import {addToPlaylist, setPlaylist, updateLibrary, updateTrack} from './redux/actions';
+import {Album, Artist, LibraryInfo, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import ExternalLink from './ExternalLink';
+import runGeniusExtension from './extensions/genius/main';
 import playingImg from './resources/playing.svg';
 import RandomTrackPlaylist from './playlist/RandomTrackPlaylist';
 import React from 'react';
@@ -40,6 +41,7 @@ interface StateProps {
   getArtistsByIds(ids: string[]): Artist[];
   getAlbumsByIds(ids: string[]): Album[];
   getGenresByIds(ids: string[]): string[];
+  runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
 }
 
 interface OwnProps {
@@ -52,6 +54,7 @@ interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   updateTrack(id: string, info: TrackInfo): void;
   addToPlaylist(index: number, trackIds: string[]): void;
+  updateLibrary(update: LibraryInfo): void;
 }
 
 type TrackPickerProps = StateProps & OwnProps & DispatchProps;
@@ -310,6 +313,13 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     }
   }
 
+  private runGenius(): void {
+    const trackIds = this.state.selected.map((index) => this.state.tracks[index].id);
+    this.props.runGeniusExtension(trackIds).then((updates) => {
+      this.props.updateLibrary(updates);
+    });
+  }
+
   private doRowRightClickNext(index: number): void {
     const menu = new remote.Menu();
     menu.append(new remote.MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
@@ -318,6 +328,9 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     }
     menu.append(new remote.MenuItem({label: 'Play Next', click: this.playNext.bind(this)}));
     menu.append(new remote.MenuItem({label: 'Favorite', click: this.favorite.bind(this)}));
+    menu.append(new remote.MenuItem({label: 'Extensions', submenu: [{
+      label: 'Genius', click: this.runGenius.bind(this),
+    }]}));
     const playlists = this.props.playlists.map((playlist, playlistIndex) => {
       return {
         label: playlist.name,
@@ -401,7 +414,8 @@ function mapStateToProps(store: RootState): StateProps {
     getGenresByIds: (ids: string[]) => getGenresByIds(store, ids).map((genre) => genre.name),
     playlists: getPlaylists(store),
     currentlyPlayingId: getCurrentTrackId(store),
+    runGeniusExtension: (ids: string[]) => runGeniusExtension(store, ids),
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, updateTrack, addToPlaylist})(TrackPicker);
+export default connect(mapStateToProps, {setPlaylist, updateLibrary, updateTrack, addToPlaylist})(TrackPicker);

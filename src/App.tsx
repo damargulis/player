@@ -13,7 +13,7 @@ import MiniWindow from './MiniWindow';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
+import {getAllTrackIds, getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface StateProps {
@@ -22,7 +22,8 @@ interface StateProps {
   playing: boolean;
   setTime?: number;
   runWikiExtension(): PromiseLike<LibraryState>;
-  runGeniusExtension(): PromiseLike<LibraryInfo>;
+  runGeniusExtension(ids: string[]): PromiseLike<LibraryInfo>;
+  getAllTrackIds(): string[];
 }
 
 interface DispatchProps {
@@ -82,7 +83,7 @@ class App extends React.Component<AppProps, AppState> {
         });
         break;
       case 'genius':
-        this.props.runGeniusExtension().then((library: LibraryInfo) => {
+        this.props.runGeniusExtension(this.props.getAllTrackIds()).then((library: LibraryInfo) => {
           this.props.updateLibrary(library);
         });
         break;
@@ -187,10 +188,11 @@ function mapStateToProps(store: RootState): StateProps {
   return {
     playing: getIsPlaying(store),
     runWikiExtension: () => runWikiExtension(store),
-    runGeniusExtension: () => runGeniusExtension(store),
+    runGeniusExtension: (trackIds: string[]) => runGeniusExtension(store, trackIds),
     setTime: getSetTime(store),
     track,
     volume: getVolume(store),
+    getAllTrackIds: () => getAllTrackIds(store),
   };
 }
 

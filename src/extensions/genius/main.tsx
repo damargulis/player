@@ -1,25 +1,16 @@
 import {
-  Album,
-  AlbumInfo,
   Artist,
-  ArtistInfo,
   LibraryInfo,
-  LibraryState,
   Track,
   TrackInfo
 } from '../../redux/actionTypes';
 import {ipcRenderer} from 'electron';
-import {NOT_FOUND_ERROR} from './errors';
 import PromisePool from 'es6-promise-pool';
 import rp from 'request-promise-native';
 import {
-  getAlbumsByIds,
-  getAllAlbumIds,
-  getAllArtistIds,
-  getAllTracks,
   getArtistById,
   getArtistsByIds,
-  getTracksByIds
+  getTracksByIds,
 } from '../../redux/selectors';
 import {RootState} from '../../redux/store';
 import {getPool} from '../utils';
@@ -87,8 +78,8 @@ function modifyTrackRunner(store: RootState, track: Track): Promise<Result> {
   return modifyTrack(store, track, track.genius.id);
 }
 
-function getTrackPool(store: RootState): PromisePool<Result | void> {
-  const tracks = getAllTracks(store);
+function getTrackPool(store: RootState, trackIds: string[]): PromisePool<Result | void> {
+  const tracks = getTracksByIds(store, trackIds);
   return getPool(
     store,
     tracks,
@@ -102,9 +93,9 @@ function getTrackPool(store: RootState): PromisePool<Result | void> {
   );
 }
 
-export default function runGeniusExtension(store: RootState): PromiseLike<LibraryInfo> {
+export default function runGeniusExtension(store: RootState, trackIds: string[]): PromiseLike<LibraryInfo> {
   const tracks = {} as Record<string, TrackInfo>;
-  const trackPool = getTrackPool(store);
+  const trackPool = getTrackPool(store, trackIds);
   trackPool.addEventListener('fulfilled', (evt) => {
     const e = evt as unknown as {data: {result: Result}};
     tracks[e.data.result.id] = e.data.result.info;

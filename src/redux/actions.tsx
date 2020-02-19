@@ -4,7 +4,6 @@ import {
   ArtistInfo,
   CHANGE_VOLUME,
   LibraryInfo,
-  LibraryState,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
