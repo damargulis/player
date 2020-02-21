@@ -52,13 +52,23 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
   const artists = {} as Record<string, Artist>;
   const artistsByLocation = new Map();
   let id = 0;
-  Object.values(albums).forEach((album) => {
+  const [compilations, otherAlbums] = Object.values(albums).reduce(([comps, others], album) => {
+    const trackData = data.Tracks[album.trackIds[0]];
+    const location = upLevels(trackData.Location, 2);
+    if (location.slice(-12) === "Compilations") {
+      comps.push(album);
+    } else {
+      others.push(album);
+    }
+    return [comps, others];
+  }, [[],[]] as Album[][]);
+  Object.values(otherAlbums).forEach((album) => {
     const trackData = data.Tracks[album.trackIds[0]];
     const location = upLevels(trackData.Location, 2);
     let artist = {} as Artist;
     if (artistsByLocation.has(location)) {
       artist = artistsByLocation.get(location);
-      artist.trackIds.push(...album.trackIds);
+      artist.trackIds = combineArray(artist.trackIds, album.trackIds);
       artist.genreIds = combineArray(artist.genreIds, album.genreIds);
       artist.albumIds.push(album.id);
     } else {
@@ -76,6 +86,32 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
     album.artistIds = combineArray(album.artistIds, [artist.id]);
     album.trackIds.forEach((trackId) => {
       const track = tracks[trackId];
+      track.artistIds = combineArray(track.artistIds, [artist.id]);
+    });
+  });
+  Object.values(compilations).forEach((album) => {
+    album.trackIds.forEach((trackId) => {
+      const track = tracks[trackId];
+      const trackData = data.Tracks[trackId];
+      const artistData = [...artistsByLocation].find((artist) => {
+        return trackData.Artist === artist[1].name;
+      });
+      let artist = {} as Artist;
+      if (!artistData) {
+        const artistId = (id++).toString();
+        artist = {
+          id: artistId,
+          name: trackData.Artist,
+          albumIds: [],
+          errors: [],
+          genreIds: [],
+          trackIds: [],
+        };
+      } else {
+        artist = artistData[1];
+      }
+      artist.trackIds = combineArray(artist.trackIds, [track.id]);
+      artist.genreIds = combineArray(artist.genreIds, [...track.genreIds]);
       track.artistIds = combineArray(track.artistIds, [artist.id]);
     });
   });
