@@ -89,6 +89,9 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
       track.artistIds = combineArray(track.artistIds, [artist.id]);
     });
   });
+  artistsByLocation.forEach((artist) => {
+    artists[artist.id] = artist;
+  });
   Object.values(compilations).forEach((album) => {
     album.trackIds.forEach((trackId) => {
       const track = tracks[trackId];
@@ -107,6 +110,7 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
           genreIds: [],
           trackIds: [],
         };
+        artists[artist.id] = artist;
       } else {
         artist = artistData[1];
       }
@@ -114,9 +118,6 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
       artist.genreIds = combineArray(artist.genreIds, [...track.genreIds]);
       track.artistIds = combineArray(track.artistIds, [artist.id]);
     });
-  });
-  artistsByLocation.forEach((artist) => {
-    artists[artist.id] = artist;
   });
   return artists;
 }
