@@ -152,7 +152,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
-      cellData ? <img src={playingImg} alt="isPlaying"/> : <span></span>
+      cellData ? <img style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span></span>
     );
   }
 
