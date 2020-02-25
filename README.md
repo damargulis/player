@@ -10,3 +10,7 @@ Features:
   - Mini-player window
 
 run `yarn electron-dev` to run development server.
+
+images from:
+https://thenounproject.com/coquet_adrien/collection/
+music-media-player-control-play-multimedia-record/
