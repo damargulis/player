@@ -16,6 +16,7 @@ const defaultMenu = require("electron-default-menu");
 
 class ExtensionMonitor {
   constructor(extensionId) {
+    this.extensionId = extensionId;
     this.extensionWindow_ = new BrowserWindow({
       height: 250,
       webPreferences: {
@@ -28,6 +29,7 @@ class ExtensionMonitor {
       `file://${path.join(__dirname,
           `./extension_monitor.html?extensionId=${extensionId}`)}`);
 
+    this.extensionWindow_.on("closed", () => this.extensionWindow_ = null);
     this.messageQueue_ = [];
 
     this.event_ = null;
@@ -48,11 +50,14 @@ class ExtensionMonitor {
   }
 
   forwardMessages_() {
-    if (this.event_) {
-      while (this.messageQueue_.length) {
-        const msg = this.messageQueue_.shift();
-        this.event_.reply(msg.type, msg);
+    while (this.messageQueue_.length && this.event_) {
+      if (!this.extensionWindow_) {
+        extEvt.reply("cancel", {extensionId: this.extensionId});
+        this.event_ = null;
+        break;
       }
+      const msg = this.messageQueue_.shift();
+      this.event_.reply(msg.type, msg);
     }
   }
 }

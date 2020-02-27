@@ -51,7 +51,7 @@ electron.ipcRenderer.on('start-section', (evt, arg) => {
 
 electron.ipcRenderer.on('start-item', (evt, arg) => {
   const msg = document.createElement('div');
-  msg.textContent = "Modifying: " + arg.name;
+  msg.textContent = arg.msg;
   msg.id = arg.id;
   logDiv.appendChild(msg);
 });
