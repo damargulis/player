@@ -1,13 +1,14 @@
 import {Album, AlbumInfo, Artist, ArtistInfo, LibraryState} from '../../redux/actionTypes';
+import shortid from 'shortid';
 import modifyAlbum from './albums';
 import modifyArtist from './artists';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
-import {getAlbumsByIds, getAllAlbumIds, getAllArtistIds, getArtistsByIds} from '../../redux/selectors';
+import {getAlbumsByIds, getArtistsByIds} from '../../redux/selectors';
 import {RootState} from '../../redux/store';
 import {getPool} from '../utils';
 
-function getAlbumsPool(store: RootState, albums: Album[]): PromisePool<AlbumInfo | void> {
+function getAlbumsPool(store: RootState, albums: Album[], extId: string): PromisePool<AlbumInfo | void> {
   return getPool(
     store,
     albums,
@@ -19,10 +20,11 @@ function getAlbumsPool(store: RootState, albums: Album[]): PromisePool<AlbumInfo
       return `${album.name} by: ${artist}`;
     },
     modifyAlbum,
+    extId,
   );
 }
 
-function getArtistPool(store: RootState, artists: Artist[]): PromisePool<ArtistInfo | void> {
+function getArtistPool(store: RootState, artists: Artist[], extId: string): PromisePool<ArtistInfo | void> {
   return getPool(
     store,
     artists,
@@ -31,16 +33,18 @@ function getArtistPool(store: RootState, artists: Artist[]): PromisePool<ArtistI
       return artist.name;
     },
     modifyArtist,
+    extId,
   );
 }
 
-export default function runWikiExtension(store: RootState): PromiseLike<LibraryState> {
+export default function runWikiExtension(albumIds: string[], artistIds: string[], store: RootState): PromiseLike<LibraryState> {
   // put these into a single pool so that you can go straight into the other
   // without having to wait for an acutal finish?
-  const albums = getAlbumsByIds(store, getAllAlbumIds(store));
-  const artists = getArtistsByIds(store, getAllArtistIds(store));
-  const albumPool = getAlbumsPool(store, albums);
-  const artistPool = getArtistPool(store, artists);
+  const extId = shortid.generate();
+  const albums = getAlbumsByIds(store, albumIds);
+  const artists = getArtistsByIds(store, artistIds);
+  const albumPool = getAlbumsPool(store, albums, extId);
+  const artistPool = getArtistPool(store, artists, extId);
   const albumErrors = albums.reduce((total: number, album: Album) => total + album.errors.length, 0);
   const albumWarnings = albums.reduce(
     (total: number, album: Album) => total + Object.keys(album.warnings).length, 0);
@@ -59,6 +63,7 @@ export default function runWikiExtension(store: RootState): PromiseLike<LibraryS
         albumGood,
         albumWarnings,
         type: 'done',
+        extensionId: extId,
       });
     }).then(() => {
       return {

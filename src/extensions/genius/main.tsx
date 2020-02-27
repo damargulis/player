@@ -1,3 +1,4 @@
+import shortid from 'shortid';
 import {
   Artist,
   LibraryInfo,
@@ -78,7 +79,7 @@ function modifyTrackRunner(store: RootState, track: Track): Promise<Result> {
   return modifyTrack(store, track, track.genius.id);
 }
 
-function getTrackPool(store: RootState, trackIds: string[]): PromisePool<Result | void> {
+function getTrackPool(store: RootState, trackIds: string[], extensionId: string): PromisePool<Result | void> {
   const tracks = getTracksByIds(store, trackIds);
   return getPool(
     store,
@@ -90,12 +91,14 @@ function getTrackPool(store: RootState, trackIds: string[]): PromisePool<Result 
       return `${track.name} by: ${artist}`;
     },
     modifyTrackRunner,
+    extensionId,
   );
 }
 
 export default function runGeniusExtension(store: RootState, trackIds: string[]): PromiseLike<LibraryInfo> {
+  const extensionId = shortid.generate();
   const tracks = {} as Record<string, TrackInfo>;
-  const trackPool = getTrackPool(store, trackIds);
+  const trackPool = getTrackPool(store, trackIds, extensionId);
   trackPool.addEventListener('fulfilled', (evt) => {
     const e = evt as unknown as {data: {result: Result}};
     tracks[e.data.result.id] = e.data.result.info;
@@ -103,6 +106,7 @@ export default function runGeniusExtension(store: RootState, trackIds: string[])
   return trackPool.start().then(() => {
     ipcRenderer.send('extension-update', {
       type: 'done',
+      extensionId,
     });
   }).then(() => {
     return {tracks};

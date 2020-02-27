@@ -1,10 +1,10 @@
-import {updateArtist} from './redux/actions';
-import {Album, Artist, ArtistInfo, Genre, Track} from './redux/actionTypes';
+import {updateArtist, updateLibrary} from './redux/actions';
+import {Album, LibraryInfo, Artist, ArtistInfo, Genre, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
-import runArtistModifier from './extensions/wiki/artists';
 import defaultArtist from './resources/missing_artist.png';
+import runWikiExtension from "./extensions/wiki/main";
 import NavigationBar from './NavigationBar';
 import React from 'react';
 import Modal from 'react-modal';
@@ -19,7 +19,7 @@ interface StateProps {
   albums: Album[];
   tracks: Track[];
   artist: Artist;
-  runArtistModifier(artist: Artist): Promise<ArtistInfo>;
+  runWikiExtension(artistIds: string[]): PromiseLike<LibraryInfo>;
   getGenreById(genreId: string): Genre;
 }
 
@@ -33,6 +33,7 @@ interface OwnProps {
 
 interface DispatchProps {
   updateArtist(id: string, info: ArtistInfo): void;
+  updateLibrary(updates: LibraryInfo): void;
 }
 
 type ArtistPageProps = OwnProps & StateProps & DispatchProps;
@@ -96,8 +97,8 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
   }
 
   private runWiki(): void {
-    this.props.runArtistModifier(this.props.artist).then((info: ArtistInfo) => {
-      this.props.updateArtist(this.props.artist.id, info);
+    this.props.runWikiExtension([this.props.artist.id]).then((updates) => {
+      this.props.updateLibrary(updates);
     });
   }
 
@@ -125,11 +126,11 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   const artist = getArtistById(store, ownProps.artistId);
   return {
     albums: getAlbumsByIds(store, artist.albumIds),
-    runArtistModifier: (a: Artist) => runArtistModifier(store, a),
+    runWikiExtension: (artistIds: string[]) => runWikiExtension(/* albumIds= */ [], artistIds, store),
     tracks: getTracksByIds(store, artist.trackIds),
     artist: artist,
     getGenreById: (genreId: string) => getGenreById(store, genreId),
   };
 }
 
-export default connect(mapStateToProps, {updateArtist})(ArtistPage);
+export default connect(mapStateToProps, {updateArtist, updateLibrary})(ArtistPage);

@@ -14,14 +14,53 @@ const isDev = require("electron-is-dev");
 const path = require("path");
 const defaultMenu = require("electron-default-menu");
 
+class ExtensionMonitor {
+  constructor(extensionId) {
+    this.extensionWindow_ = new BrowserWindow({
+      height: 250,
+      webPreferences: {
+        nodeIntegration: true,
+        webSecutiry: false,
+      },
+      width: 500,
+    });
+    this.extensionWindow_.loadURL(
+      `file://${path.join(__dirname,
+          `./extension_monitor.html?extensionId=${extensionId}`)}`);
+
+    this.messageQueue_ = [];
+
+    this.event_ = null;
+  }
+
+  send(msg) {
+    this.messageQueue_.push(msg);
+    this.forwardMessages_();
+  }
+
+  setEvent(evt) {
+    this.event_ = evt;
+    this.forwardMessages_();
+  }
+
+  close() {
+    this.extensionWindow_.close();
+  }
+
+  forwardMessages_() {
+    if (this.event_) {
+      while (this.messageQueue_.length) {
+        const msg = this.messageQueue_.shift();
+        this.event_.reply(msg.type, msg);
+      }
+    }
+  }
+}
+
 let mainWindow = null;
-let extensionWindow = null;
 // TODO: change name to be playerEvt or something since its used for more than
 // just extensions
-// TODO: refactor all of this into a channel class w/ names and queues and shit
-// goddamit i hate channels
 let extEvt = null;
-let extensionEvt = null;
 
 ipcMain.on("goToArtist", (evt, data) => {
   maximize();
@@ -56,26 +95,27 @@ ipcMain.on("extension-ready", (evt) => {
   extEvt = evt;
 });
 
-ipcMain.on("extension-monitor-ready", (evt) => {
-  extensionEvt = evt;
+ipcMain.on("extension-monitor-ready", (evt, arg) => {
+  let extension = extensionsRunning[arg.extensionId];
+  extension.setEvent(evt);
 });
 
 const messageQueue = [];
+const extensionsRunning = {};
 
 ipcMain.on("extension-update", (evt, arg) => {
-  messageQueue.push(arg);
-  if (extensionEvt) {
-    while (messageQueue.length) {
-      const msg = messageQueue.shift();
-      extensionEvt.reply(msg.type, msg);
-    }
+  let extension = extensionsRunning[arg.extensionId];
+  if (!extension) {
+    extension = new ExtensionMonitor(arg.extensionId);
+    extensionsRunning[arg.extensionId] = extension;
   }
+  extension.send(arg);
 });
 
-ipcMain.on("extension-close", () => {
-  if (extensionWindow) {
-    extensionWindow.close();
-  }
+ipcMain.on("extension-close", (evt, arg) => {
+  let extension = extensionsRunning[arg.extensionId];
+  extension.close();
+  extensionsRunning[arg.extensionId] = null;
 });
 
 /** Forward event to reset the library from main to the App. */
@@ -89,17 +129,6 @@ function resetLibrary() {
  */
 function runExtension(type) {
   extEvt.reply("run-extension", type);
-  extensionEvt = null;
-  extensionWindow = new BrowserWindow({
-    height: 250,
-    webPreferences: {
-      nodeIntegration: true,
-      webSecutiry: false,
-    },
-    width: 500,
-  });
-  extensionWindow.loadURL(
-    `file://${path.join(__dirname, "./extension_monitor.html")}`);
 }
 
 /** Creates the main window. */

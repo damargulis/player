@@ -40,21 +40,32 @@ function getYearByRow(rows: HTMLCollectionOf<HTMLTableRowElement>): number | und
 }
 
 function getAllWikiOptions(store: RootState, album: Album): string[] {
-  const artist = getArtistById(store, album.artistIds[0]);
   const albumName = album.name.replace('#', 'Number ').replace(/ /g, '_');
-  const artistName = artist.name.replace(/ /g, '_');
-  return [
-    `${BASE_URL}${albumName}`,
-    `${BASE_URL}${albumName}_(album)`,
-    `${BASE_URL}${albumName}_(${artistName}_album)`,
-    `${BASE_URL}${albumName}_(EP)`,
-    `${BASE_URL}${albumName}_(mixtape)`,
-    `${BASE_URL}${albumName}_(song)`,
-    `${BASE_URL}${albumName}_(${artistName}_song)`,
-    `${BASE_URL}${albumName}_(${artistName}_mixtape)`,
-    `${BASE_URL}${albumName}_(${artistName}_EP)`,
-    `${BASE_URL}${albumName}_(${album.year}_album)`,
-  ];
+  const artist = getArtistById(store, album.artistIds[0]);
+  if (artist) {
+    const artistName = artist.name.replace(/ /g, '_');
+    return [
+      `${BASE_URL}${albumName}`,
+      `${BASE_URL}${albumName}_(album)`,
+      `${BASE_URL}${albumName}_(${artistName}_album)`,
+      `${BASE_URL}${albumName}_(EP)`,
+      `${BASE_URL}${albumName}_(mixtape)`,
+      `${BASE_URL}${albumName}_(song)`,
+      `${BASE_URL}${albumName}_(${artistName}_song)`,
+      `${BASE_URL}${albumName}_(${artistName}_mixtape)`,
+      `${BASE_URL}${albumName}_(${artistName}_EP)`,
+      `${BASE_URL}${albumName}_(${album.year}_album)`,
+    ];
+  } else {
+    return [
+      `${BASE_URL}${albumName}`,
+      `${BASE_URL}${albumName}_(EP)`,
+      `${BASE_URL}${albumName}_(mixtape)`,
+      `${BASE_URL}${albumName}_(song)`,
+      `${BASE_URL}${albumName}_(album)`,
+      `${BASE_URL}${albumName}_(${album.year}_album)`,
+    ];
+  }
 }
 
 function isRightLink(link: string, album: Album, artist: Artist): Promise<boolean> {

@@ -1,8 +1,8 @@
-import {setPlaylist, updateAlbum, updateTrack} from './redux/actions';
-import {Album, AlbumInfo, Artist, Genre, Track, TrackInfo} from './redux/actionTypes';
+import {setPlaylist, updateLibrary, updateAlbum, updateTrack} from './redux/actions';
+import {Album, LibraryInfo, AlbumInfo, Artist, Genre, Track, TrackInfo} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
-import runAlbumModifier from './extensions/wiki/albums';
+import runWikiExtension from "./extensions/wiki/main";
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
@@ -28,7 +28,7 @@ interface StateProps {
   getGenreById(id: string): Genre;
   getTracksByIds(ids: string[]): Track[];
   getTrackById(id: string): Track;
-  runAlbumModifier(album: AlbumInfo): Promise<AlbumInfo>;
+  runWikiExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
 }
 
 interface OwnProps {
@@ -41,8 +41,9 @@ interface OwnProps {
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  updateAlbum(id: string, info: AlbumInfo): void;
+  updateLibrary(update: LibraryInfo): void;
   updateTrack(id: string, info: TrackInfo): void;
+  updateAlbum(id: string, info: AlbumInfo): void;
 }
 
 interface AlbumPageState {
@@ -105,8 +106,8 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   private runWiki(): void {
-    this.props.runAlbumModifier(this.props.album).then((info: AlbumInfo) => {
-      this.props.updateAlbum(this.props.album.id, info);
+    this.props.runWikiExtension([this.props.album.id]).then((updates) => {
+      this.props.updateLibrary(updates);
     });
   }
 
@@ -187,11 +188,11 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
     artists: getArtistsByIds(state, album.artistIds),
     getTrackById: (id: string) => getTrackById(state, id),
     getTracksByIds: (ids: string[]) => getTracksByIds(state, ids),
-    runAlbumModifier: (a: Album) => runAlbumModifier(state, a),
+    runWikiExtension: (albumIds: string[]) => runWikiExtension(albumIds, /* artistIds= */ [], state),
     tracks: getTracksByIds(state, album.trackIds),
     album: album,
     getGenreById: (id: string) => getGenreById(state, id),
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, updateAlbum, updateTrack})(AlbumPage);
+export default connect(mapStateToProps, {setPlaylist, updateAlbum, updateLibrary, updateTrack})(AlbumPage);

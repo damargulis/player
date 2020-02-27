@@ -16,11 +16,14 @@ const percentSpan = document.getElementById('percent');
 const inner = document.getElementById('inner');
 const outer = document.getElementById('outer');
 
+const url = new URL(window.location.href);
+const extensionId = url.searchParams.get('extensionId');
+
 let totalItems = 0;
 let itemsFinished = 0;
 
 function close() {
-  electron.ipcRenderer.send('extension-close');
+  electron.ipcRenderer.send('extension-close', {extensionId});
 }
 
 electron.ipcRenderer.on('done', (evt, arg) => {
@@ -62,7 +65,7 @@ electron.ipcRenderer.on('end-item', (evt, arg) => {
   inner.style.width = percent + "%";
 });
 
-electron.ipcRenderer.send('extension-monitor-ready');
+electron.ipcRenderer.send('extension-monitor-ready', {extensionId});
   </script>
   </body>
 </html>

@@ -13,7 +13,7 @@ import MiniWindow from './MiniWindow';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {getAllTrackIds, getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
+import {getAllTrackIds, getAllArtistIds, getAllAlbumIds, getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface StateProps {
@@ -21,9 +21,11 @@ interface StateProps {
   track?: Track;
   playing: boolean;
   setTime?: number;
-  runWikiExtension(): PromiseLike<LibraryState>;
-  runGeniusExtension(ids: string[]): PromiseLike<LibraryInfo>;
+  runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryState>;
+  runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
+  getAllAlbumIds(): string[];
+  getAllArtistIds(): string[];
 }
 
 interface DispatchProps {
@@ -78,7 +80,7 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
       case 'wikipedia':
-        this.props.runWikiExtension().then((library: LibraryState) => {
+        this.props.runWikiExtension(this.props.getAllAlbumIds(), this.props.getAllArtistIds()).then((library: LibraryState) => {
           this.props.updateLibrary(library);
         });
         break;
@@ -187,11 +189,13 @@ function mapStateToProps(store: RootState): StateProps {
   const track = getCurrentTrack(store);
   return {
     playing: getIsPlaying(store),
-    runWikiExtension: () => runWikiExtension(store),
+    runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),
     runGeniusExtension: (trackIds: string[]) => runGeniusExtension(store, trackIds),
     setTime: getSetTime(store),
     track,
     volume: getVolume(store),
+    getAllArtistIds: () => getAllArtistIds(store),
+    getAllAlbumIds: () => getAllAlbumIds(store),
     getAllTrackIds: () => getAllTrackIds(store),
   };
 }
