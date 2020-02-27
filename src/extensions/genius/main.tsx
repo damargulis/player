@@ -1,4 +1,3 @@
-import shortid from 'shortid';
 import {
   Artist,
   LibraryInfo,
@@ -13,6 +12,7 @@ import {
   getArtistsByIds,
   getTracksByIds,
 } from '../../redux/selectors';
+import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {getPool} from '../utils';
 

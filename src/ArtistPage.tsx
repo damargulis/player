@@ -1,10 +1,10 @@
 import {updateArtist, updateLibrary} from './redux/actions';
-import {Album, LibraryInfo, Artist, ArtistInfo, Genre, Track} from './redux/actionTypes';
+import {Album, Artist, ArtistInfo, Genre, LibraryInfo, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
+import runWikiExtension from './extensions/wiki/main';
 import defaultArtist from './resources/missing_artist.png';
-import runWikiExtension from "./extensions/wiki/main";
 import NavigationBar from './NavigationBar';
 import React from 'react';
 import Modal from 'react-modal';

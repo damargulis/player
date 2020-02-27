@@ -13,7 +13,15 @@ import MiniWindow from './MiniWindow';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {getAllTrackIds, getAllArtistIds, getAllAlbumIds, getCurrentTrack, getIsPlaying, getSetTime, getVolume} from './redux/selectors';
+import {
+  getAllAlbumIds,
+  getAllArtistIds,
+  getAllTrackIds,
+  getCurrentTrack,
+  getIsPlaying,
+  getSetTime,
+  getVolume
+} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface StateProps {
@@ -80,9 +88,10 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
       case 'wikipedia':
-        this.props.runWikiExtension(this.props.getAllAlbumIds(), this.props.getAllArtistIds()).then((library: LibraryState) => {
-          this.props.updateLibrary(library);
-        });
+        this.props.runWikiExtension(this.props.getAllAlbumIds(), this.props.getAllArtistIds())
+          .then((library: LibraryState) => {
+            this.props.updateLibrary(library);
+          });
         break;
       case 'genius':
         this.props.runGeniusExtension(this.props.getAllTrackIds()).then((library: LibraryInfo) => {

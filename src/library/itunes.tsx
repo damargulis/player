@@ -55,13 +55,13 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
   const [compilations, otherAlbums] = Object.values(albums).reduce(([comps, others], album) => {
     const trackData = data.Tracks[album.trackIds[0]];
     const location = upLevels(trackData.Location, 2);
-    if (location.slice(-12) === "Compilations") {
+    if (location.slice(-12) === 'Compilations') {
       comps.push(album);
     } else {
       others.push(album);
     }
     return [comps, others];
-  }, [[],[]] as Album[][]);
+  }, [[], []] as Album[][]);
   Object.values(otherAlbums).forEach((album) => {
     const trackData = data.Tracks[album.trackIds[0]];
     const location = upLevels(trackData.Location, 2);
@@ -96,8 +96,8 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
     album.trackIds.forEach((trackId) => {
       const track = tracks[trackId];
       const trackData = data.Tracks[trackId];
-      const artistData = [...artistsByLocation].find((artist) => {
-        return trackData.Artist === artist[1].name;
+      const artistData = [...artistsByLocation].find((art) => {
+        return trackData.Artist === art[1].name;
       });
       let artist = {} as Artist;
       if (!artistData) {

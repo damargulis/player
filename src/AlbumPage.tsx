@@ -1,11 +1,11 @@
-import {setPlaylist, updateLibrary, updateAlbum, updateTrack} from './redux/actions';
-import {Album, LibraryInfo, AlbumInfo, Artist, Genre, Track, TrackInfo} from './redux/actionTypes';
+import {setPlaylist, updateAlbum, updateLibrary, updateTrack} from './redux/actions';
+import {Album, AlbumInfo, Artist, Genre, LibraryInfo, Track, TrackInfo} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
-import runWikiExtension from "./extensions/wiki/main";
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
+import runWikiExtension from './extensions/wiki/main';
 import defaultAlbum from './resources/missing_album.png';
 import NavigationBar from './NavigationBar';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
