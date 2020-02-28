@@ -62,6 +62,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             skipCount: trackData.skipCount,
             dateAdded: new Date(trackData.dateAdded),
             favorites: trackData.favorites,
+            genius: trackData.genius,
         };
         return map;
       }, {} as Record<string, Track>),
