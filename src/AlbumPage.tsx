@@ -60,8 +60,6 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   public render(): JSX.Element {
-    // TODO: use albumInfo or combine logic
-    // ya know actually separate conscers and shit
     const file = this.props.album.albumArtFile;
     const src = file ? getImgSrc(file).toString() : defaultAlbum;
     // TODO: set playTrack to play an album playlist of by artist ?
