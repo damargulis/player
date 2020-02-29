@@ -4,11 +4,13 @@ import {
   ArtistInfo,
   CHANGE_VOLUME,
   LibraryInfo,
+  LibraryState,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
   PREV_ALBUM,
   PREV_TRACK,
+  RESET_LIBRARY,
   SET_PLAYLIST,
   SET_TIME,
   TrackInfo,
@@ -28,6 +30,11 @@ export const updateTime = (time: number) => ({
 export const updateLibrary = (library: LibraryInfo) => ({
   payload: {library},
   type: UPDATE_LIBRARY,
+});
+
+export const resetLibrary = (library: LibraryState) => ({
+  payload: {library},
+  type: RESET_LIBRARY,
 });
 
 export const changeVolume = (volume: number) => ({

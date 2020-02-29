@@ -1,6 +1,7 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
 export const UPDATE_TIME = 'UPDATE_TIME';
+export const RESET_LIBRARY = 'RESET_LIBRARY';
 export const ADD_TO_PLAYLIST = 'ADD_TO_PLAYLIST';
 export const UPDATE_LIBRARY = 'UPDATE_LIBRARY';
 export const CHANGE_VOLUME = 'CHANGE_VOLUME';
@@ -121,6 +122,11 @@ interface UpdateLibraryAction {
   payload: {library: LibraryInfo};
 }
 
+interface ResetLibraryAction {
+  type: typeof RESET_LIBRARY;
+  payload: {library: LibraryState};
+}
+
 interface NextTrackAction {
   type: typeof NEXT_TRACK;
 }
@@ -233,4 +239,5 @@ interface AddToPlaylist {
 
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
-export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist;
+export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
+  | ResetLibraryAction;

@@ -6,6 +6,7 @@ import {
   LibraryActionTypes,
   LibraryState,
   Playlist,
+  RESET_LIBRARY,
   Track,
   UPDATE_ALBUM,
   UPDATE_ARTIST,
@@ -272,19 +273,25 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
 }
 
 export default function reducer(state: LibraryState = initialState, action: LibraryActionTypes): LibraryState {
-  const library = {
-    albums: albums(state.albums, action),
-    artists: artists(state.artists, action),
-    genres: genres(state.genres, action),
-    playlists: playlists(state.playlists, action),
-    tracks: tracks(state.tracks, action),
-  };
+  let library;
+  if (action.type === RESET_LIBRARY) {
+    library = action.payload.library;
+  } else {
+    library = {
+      albums: albums(state.albums, action),
+      artists: artists(state.artists, action),
+      genres: genres(state.genres, action),
+      playlists: playlists(state.playlists, action),
+      tracks: tracks(state.tracks, action),
+    };
+  }
   switch (action.type) {
     case UPDATE_LIBRARY:
     case UPDATE_ALBUM:
     case UPDATE_TRACK:
     case UPDATE_ARTIST:
     case ADD_TO_PLAYLIST:
+    case RESET_LIBRARY:
       save(library);
       break;
     default:

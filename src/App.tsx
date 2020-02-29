@@ -1,4 +1,4 @@
-import {nextTrack, prevTrack, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
+import {nextTrack, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
 import {LibraryInfo, LibraryState, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
@@ -39,6 +39,7 @@ interface StateProps {
 interface DispatchProps {
   updateTime(time: number): void;
   updateLibrary(library: LibraryInfo): void;
+  resetLibrary(library: LibraryInfo): void;
   nextTrack(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
@@ -105,7 +106,7 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('reset-library', () => {
       deleteLibrary().then(() => {
         createLibrary().then((library: LibraryState) => {
-          this.props.updateLibrary(library);
+          this.props.resetLibrary(library);
           const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
           this.props.setPlaylist(playlist, /* play= */ false);
           alert('Library uploaded');
@@ -210,4 +211,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps,
-  {updateTime, updateLibrary, nextTrack, prevTrack, setPlaylist, updateTrack})(App);
+  {updateTime, updateLibrary, resetLibrary, nextTrack, prevTrack, setPlaylist, updateTrack})(App);
