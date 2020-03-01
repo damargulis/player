@@ -23,6 +23,7 @@ function formatGenre(genre: string): string {
 }
 
 export function sanitize(str: string): string {
+  // removes text in parenthesis or brackets, turns any whitespace into a single space.
   return str.replace(/\s*[[(].*?[\])]\s*/g, '').replace(/\s+/g, ' ');
 }
 

@@ -40,11 +40,12 @@ function geniusRequest(url: string): Promise<string> {
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
   const primaryArtist = getArtistById(store, track.artistIds[0]);
   return geniusRequest(SEARCH_URL + encodeURIComponent(track.name)).then((jsonString: string) => {
+    debugger;
     const results = JSON.parse(jsonString);
     const result = results.response.hits.find((hit: {result: {title: string; primary_artist: {name: string}}}) => {
-      const title = hit.result.title;
-      const artist = hit.result.primary_artist.name;
-      return title === track.name && artist === primaryArtist.name;
+      const title = hit.result.title.toLowerCase().replace("’", "'");
+      const artist = hit.result.primary_artist.name.toLowerCase().replace("’", "'");
+      return title === track.name.toLowerCase() && artist === primaryArtist.name.toLowerCase();
     });
     return result && result.result.id;
   }).catch(() => {});
