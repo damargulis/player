@@ -40,11 +40,10 @@ function geniusRequest(url: string): Promise<string> {
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
   const primaryArtist = getArtistById(store, track.artistIds[0]);
   return geniusRequest(SEARCH_URL + encodeURIComponent(track.name)).then((jsonString: string) => {
-    debugger;
     const results = JSON.parse(jsonString);
     const result = results.response.hits.find((hit: {result: {title: string; primary_artist: {name: string}}}) => {
-      const title = hit.result.title.toLowerCase().replace("’", "'");
-      const artist = hit.result.primary_artist.name.toLowerCase().replace("’", "'");
+      const title = hit.result.title.toLowerCase().replace('’', '\'');
+      const artist = hit.result.primary_artist.name.toLowerCase().replace('’', '\'');
       return title === track.name.toLowerCase() && artist === primaryArtist.name.toLowerCase();
     });
     return result && result.result.id;
@@ -105,11 +104,18 @@ export default function runGeniusExtension(store: RootState, trackIds: string[])
     tracks[e.data.result.id] = e.data.result.info;
   });
   return trackPool.start().then(() => {
+    const tracksWithExt = Object.values(tracks).filter((track) => {
+      return !!track.genius;
+    }).length;
+    const msg = `Genius Modifier Finished.<br>
+      ${trackIds.length} Tracks modified.<br>
+      ${tracksWithExt} with genius link.\n
+    `;
     ipcRenderer.send('extension-update', {
+      msg,
       type: 'done',
       extensionId,
     });
-  }).then(() => {
     return {tracks};
   });
 }

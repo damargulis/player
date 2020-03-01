@@ -28,14 +28,9 @@ function close() {
 
 electron.ipcRenderer.on('done', (evt, arg) => {
   document.body.innerHTML = '';
-  const albumText = document.createElement('div');
-  albumText.textContent = 'Album Errors: ' + arg.albumErrors;
-  document.body.appendChild(albumText);
-  const warnings = document.createElement('div');
-  warnings.textContent = 'Album Warnings: ' + arg.albumWarnings;
-  document.body.appendChild(warnings);
-  const good = document.createElement('div');
-  good.textContent = 'Albums Good: ' + arg.albumGood;
+  const msgText = document.createElement('div');
+  msgText.innerHTML = arg.msg;
+  document.body.appendChild(msgText);
 
   const button = document.createElement('button');
   button.textContent = 'Done';

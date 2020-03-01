@@ -8,6 +8,13 @@ import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {getPool} from '../utils';
 
+function plural<T>(array: T[]): string {
+  if (array.length === 1) {
+    return 's';
+  }
+  return '';
+}
+
 function getAlbumsPool(store: RootState, albums: Album[], extId: string): PromisePool<AlbumInfo | void> {
   return getPool(
     store,
@@ -46,23 +53,25 @@ export default function runWikiExtension(
   const artists = getArtistsByIds(store, artistIds);
   const albumPool = getAlbumsPool(store, albums, extId);
   const artistPool = getArtistPool(store, artists, extId);
-  const albumErrors = albums.reduce((total: number, album: Album) => total + album.errors.length, 0);
-  const albumWarnings = albums.reduce(
-    (total: number, album: Album) => total + Object.keys(album.warnings).length, 0);
-  const albumGood = albums.filter((album: Album) => {
-    return album.errors.length === 0 &&
-      Object.keys(album.warnings).length === 0;
-  }).length;
   const albumMap = albums.reduce((map, curr) => { map[curr.id] = curr; return map; }, {} as Record<string, Album>);
   const artistMap = artists.reduce((map, curr) => { map[curr.id] = curr; return map; }, {} as Record<string, Artist>);
   // TODO: at the end, you should be given a clickthrough with all wanrings to accept / reject?
   return albumPool.start()
     .then(() => artistPool.start())
     .then(() => {
+      const albumsWithWarnings = albums.filter((album) => Object.values(album.warnings).length !== 0).length;
+      const albumsWithErrors = albums.filter((album) => album.errors.length !== 0).length;
+      const artistsWithErrors = artists.filter((artist) => artist.errors.length !== 0).length;
+      const msg = `Wikipedia Modifier Completed.<br>
+        ${albums.length} album${plural(albums)} modified.<br>
+        ${albumsWithWarnings} with warnings.<br>
+        ${albumsWithErrors} with errors.<br>
+        <br>
+        ${artists.length} artist${plural(artists)} modified.<br>
+        ${artistsWithErrors} with  errors.<br>
+      `;
       ipcRenderer.send('extension-update', {
-        albumErrors,
-        albumGood,
-        albumWarnings,
+        msg,
         type: 'done',
         extensionId: extId,
       });
