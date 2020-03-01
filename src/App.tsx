@@ -157,7 +157,7 @@ class App extends React.Component<AppProps, AppState> {
     if (this.props.setTime !== undefined) {
       this.audio.currentTime = this.props.setTime;
     }
-    if (this.props.playing && this.audio.paused) {
+    if (this.props.playing && this.audio.paused && !this.audio.ended) {
       this.audio.play().catch(() => {});
     } else if (!this.props.playing) {
       this.audio.pause();
