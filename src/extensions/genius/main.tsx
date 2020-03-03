@@ -39,7 +39,8 @@ function geniusRequest(url: string): Promise<string> {
 
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
   const primaryArtist = getArtistById(store, track.artistIds[0]);
-  return geniusRequest(SEARCH_URL + encodeURIComponent(track.name + " " + primaryArtist.name)).then((jsonString: string) => {
+  return geniusRequest(SEARCH_URL + encodeURIComponent(`${track.name} ${primaryArtist.name}`)).then(
+      (jsonString: string) => {
     const results = JSON.parse(jsonString);
     const result = results.response.hits.find((hit: {result: {title: string; primary_artist: {name: string}}}) => {
       const title = hit.result.title.toLowerCase().replace('’', '\'');
