@@ -2,9 +2,11 @@ import {
   ADD_TO_PLAYLIST,
   Album,
   Artist,
+  CREATE_TRACK_FROM_FILE,
   Genre,
   LibraryActionTypes,
   LibraryState,
+  Metadata,
   Playlist,
   RESET_LIBRARY,
   Track,
@@ -15,6 +17,7 @@ import {
 } from '../actionTypes';
 import {DATA_DIR} from '../../constants';
 import fs from 'fs';
+import {inverse} from '../../utils';
 
 const initialState: LibraryState = {
   albums: {},
@@ -22,6 +25,7 @@ const initialState: LibraryState = {
   genres: {},
   playlists: {},
   tracks: {},
+  newTracks: [],
 };
 
 interface Item {
@@ -272,24 +276,71 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
   }
 }
 
-export default function reducer(state: LibraryState = initialState, action: LibraryActionTypes): LibraryState {
-  let library;
-  if (action.type === RESET_LIBRARY) {
-    library = action.payload.library;
-  } else {
-    library = {
-      albums: albums(state.albums, action),
-      artists: artists(state.artists, action),
-      genres: genres(state.genres, action),
-      playlists: playlists(state.playlists, action),
-      tracks: tracks(state.tracks, action),
-    };
+function createTrack(file: File, metadata: Metadata, state: LibraryState): Track {
+  console.log(metadata);
+  let nextId = 0;
+  while (state.tracks[nextId.toString()]) {
+    nextId++;
   }
+  const genreMap = inverse(state.genres);
+  const genreIds = metadata.genre.map((genre) => genreMap[genre]).filter(Boolean);
+  const artistMap = inverse(state.artists);
+  const artistIds = metadata.artist.map((artist) => artistMap[artist]).filter(Boolean);
+  const albumMap = inverse(state.albums);
+  // TODO: albums (and artist) might have the same name....inverse wont work...
+  const albumIds = [metadata.album].map((album) => albumMap[album]).filter(Boolean);
+  return {
+    id: nextId.toString(),
+    // TODO: can this be more accurate?
+    duration: metadata.duration * 1000,
+    playCount: 0,
+    filePath: file.path,
+    name: metadata.title,
+    year: parseInt(metadata.year, 10),
+    skipCount: 0,
+    dateAdded: new Date(),
+    favorites: [],
+    genreIds: genreIds,
+    artistIds: artistIds,
+    albumIds: albumIds,
+    // TODO: this should be null? -- what does it come in from itunes as if never played?
+    playDate: new Date(''),
+  };
+}
+
+function runReducer(state: LibraryState, action: LibraryActionTypes): LibraryState {
   switch (action.type) {
     case UPDATE_LIBRARY:
     case UPDATE_ALBUM:
     case UPDATE_TRACK:
     case UPDATE_ARTIST:
+    case ADD_TO_PLAYLIST:
+      return Object.assign({}, state, {
+        albums: albums(state.albums, action),
+        artists: artists(state.artists, action),
+        genres: genres(state.genres, action),
+        playlists: playlists(state.playlists, action),
+        tracks: tracks(state.tracks, action),
+      });
+    case RESET_LIBRARY:
+        return action.payload.library;
+    case CREATE_TRACK_FROM_FILE:
+        return Object.assign({}, state, {
+          newTracks: [...state.newTracks, createTrack(action.payload.file, action.payload.metadata, state)],
+        });
+    default:
+        return state;
+  }
+}
+
+export default function reducer(state: LibraryState = initialState, action: LibraryActionTypes): LibraryState {
+  const library = runReducer(state, action);
+  switch (action.type) {
+    case UPDATE_ALBUM:
+    case UPDATE_ARTIST:
+    case UPDATE_LIBRARY:
+    case UPDATE_TRACK:
+    case CREATE_TRACK_FROM_FILE:
     case ADD_TO_PLAYLIST:
     case RESET_LIBRARY:
       save(library);

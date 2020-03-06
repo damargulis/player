@@ -1,5 +1,6 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
+export const UPLOAD_FILES = 'UPLOAD_FILES';
 export const UPDATE_TIME = 'UPDATE_TIME';
 export const RESET_LIBRARY = 'RESET_LIBRARY';
 export const ADD_TO_PLAYLIST = 'ADD_TO_PLAYLIST';
@@ -8,6 +9,7 @@ export const CHANGE_VOLUME = 'CHANGE_VOLUME';
 export const NEXT_TRACK = 'NEXT_TRACK';
 export const SET_PLAYLIST = 'SET_PLAYLIST';
 export const NEXT_ALBUM = 'NEXT_ALBUM';
+export const CREATE_TRACK_FROM_FILE = 'CREATE_TRACK_FROM_FILE';
 export const UPDATE_ALBUM = 'UPDATE_ALBUM';
 export const UPDATE_TRACK = 'UPDATE_TRACK';
 export const UPDATE_ARTIST = 'UPDATE_ARTIST';
@@ -24,6 +26,29 @@ export interface Playlist {
 export interface PlaylistInfo {
   name?: string;
   trackIds?: string[];
+}
+
+// TODO: should be able to use from metadata import, not here
+export interface Metadata {
+    artist: string[];
+    album: string;
+    albumartist: string[];
+    title: string;
+    year: string;
+    track: NoOf;
+    disk: NoOf;
+    genre: string[];
+    picture: Picture[];
+    duration: number;
+}
+export interface Picture {
+    format: string;
+    data: Buffer;
+}
+
+export interface NoOf {
+  no: number;
+  of: number;
 }
 
 export interface Track {
@@ -88,6 +113,7 @@ export interface LibraryState {
   artists: Record<string, Artist>;
   playlists: Record<string, Playlist>;
   genres: Record<string, Genre>;
+  newTracks: Track[];
 }
 
 export interface LibraryInfo {
@@ -96,6 +122,11 @@ export interface LibraryInfo {
   artists?: Record<string, ArtistInfo>;
   playlists?: Record<string, PlaylistInfo>;
   genres?: Record<string, GenreInfo>;
+}
+
+export interface NewTracksState {
+  files: File[];
+  tracks: Track[];
 }
 
 export interface CurrentlyPlayingState {
@@ -229,6 +260,11 @@ interface UpdateTrack {
   };
 }
 
+interface UploadFiles {
+  type: typeof UPLOAD_FILES;
+  payload: {files: File[]};
+}
+
 interface AddToPlaylist {
   type: typeof ADD_TO_PLAYLIST;
   payload: {
@@ -237,7 +273,16 @@ interface AddToPlaylist {
   };
 }
 
+interface CreateTrackFromFile {
+  type: typeof CREATE_TRACK_FROM_FILE;
+  payload: {
+    metadata: Metadata;
+    file: File;
+  };
+}
+
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction;
+  | ResetLibraryAction | CreateTrackFromFile;
+export type NewTracksActionTypes = UploadFiles;

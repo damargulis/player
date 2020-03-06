@@ -19,3 +19,16 @@ export function toTime(ms: number): string {
 export function getImgSrc(fileName: string): string {
   return fileName ? new URL('file://' + path.resolve(fileName)).toString() : '';
 }
+
+interface Nameable {
+  name: string;
+}
+
+export function inverse<T extends Nameable>(record: Record<string, T>): Record<string, string> {
+  const ret = {} as Record<string, string>;
+  Object.keys(record).forEach((key) => {
+    const newKey = record[key];
+    ret[newKey.name] = key;
+  });
+  return ret;
+}

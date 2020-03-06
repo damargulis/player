@@ -3,8 +3,10 @@ import {
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
+  CREATE_TRACK_FROM_FILE,
   LibraryInfo,
   LibraryState,
+  Metadata,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
@@ -19,8 +21,11 @@ import {
   UPDATE_LIBRARY,
   UPDATE_TIME,
   UPDATE_TRACK,
+  UPLOAD_FILES,
 } from './actionTypes';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
+import fs from 'fs';
+import mm from 'musicmetadata';
 
 export const updateTime = (time: number) => ({
   payload: {time},
@@ -91,3 +96,31 @@ export const addToPlaylist = (index: number, trackIds: string[]) => ({
   payload: {index, trackIds},
   type: ADD_TO_PLAYLIST,
 });
+
+const createTrackFromFile = (metadata: Metadata, file: File) => ({
+  payload: {metadata, file},
+  type: CREATE_TRACK_FROM_FILE,
+});
+
+export function uploadFiles(files: File[]) {
+  return (dispatch: (data: object) => void) => {
+    dispatch({type: UPLOAD_FILES, payload: {files}});
+    const filePromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        const stream = fs.createReadStream(file.path);
+        if (file.type.split('/')[0] !== 'audio') {
+          return resolve();
+        }
+        mm(stream, {duration: true}, (err, metadata) => {
+          if (err) {
+            reject();
+          }
+          dispatch(createTrackFromFile(metadata, file));
+          stream.close();
+          resolve(metadata);
+        });
+      });
+    });
+    return Promise.all(filePromises);
+  };
+}
