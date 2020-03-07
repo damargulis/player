@@ -17,7 +17,7 @@ class NewTracksPage extends React.Component<StateProps> {
     console.log(this.props.newFiles);
     return (
       <div className="main">
-        <h2>New Songs:</h2>
+        <h2 style={{display: 'inline'}}>New Songs:</h2><button>Save</button>
         <TrackPicker tracks={this.props.newTracks} />
       </div>
     );

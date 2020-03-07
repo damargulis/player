@@ -1,3 +1,4 @@
+import shortid from 'shortid';
 import {
   ADD_TO_PLAYLIST,
   Album,
@@ -277,11 +278,6 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
 }
 
 function createTrack(file: File, metadata: Metadata, state: LibraryState): Track {
-  console.log(metadata);
-  let nextId = 0;
-  while (state.tracks[nextId.toString()]) {
-    nextId++;
-  }
   const genreMap = inverse(state.genres);
   const genreIds = metadata.genre.map((genre) => genreMap[genre]).filter(Boolean);
   const artistMap = inverse(state.artists);
@@ -290,7 +286,7 @@ function createTrack(file: File, metadata: Metadata, state: LibraryState): Track
   // TODO: albums (and artist) might have the same name....inverse wont work...
   const albumIds = [metadata.album].map((album) => albumMap[album]).filter(Boolean);
   return {
-    id: nextId.toString(),
+    id: shortid.generate(),
     // TODO: can this be more accurate?
     duration: metadata.duration * 1000,
     playCount: 0,
@@ -308,11 +304,28 @@ function createTrack(file: File, metadata: Metadata, state: LibraryState): Track
   };
 }
 
+function newTracks(newTracks: Track[], action: LibraryActionTypes): Track[] {
+  switch (action.type) {
+    case UPDATE_TRACK:
+      return newTracks.map((track) => {
+        if (track.id === action.payload.id.toString()) {
+          return Object.assign({}, track, {
+            ...track,
+            ...action.payload.info,
+          });
+        }
+        return track;
+      });
+    default:
+      return newTracks;
+  }
+}
+
 function runReducer(state: LibraryState, action: LibraryActionTypes): LibraryState {
   switch (action.type) {
+    case UPDATE_TRACK:
     case UPDATE_LIBRARY:
     case UPDATE_ALBUM:
-    case UPDATE_TRACK:
     case UPDATE_ARTIST:
     case ADD_TO_PLAYLIST:
       return Object.assign({}, state, {
@@ -321,6 +334,7 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
         genres: genres(state.genres, action),
         playlists: playlists(state.playlists, action),
         tracks: tracks(state.tracks, action),
+        newTracks: newTracks(state.newTracks, action),
       });
     case RESET_LIBRARY:
         return action.payload.library;
