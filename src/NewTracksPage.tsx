@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {getNewFiles, getNewTracks} from './redux/selectors';
 import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
+import "./NewTracksPage.css";
 
 interface StateProps {
   newFiles: File[];
@@ -17,7 +18,7 @@ class NewTracksPage extends React.Component<StateProps> {
     console.log(this.props.newFiles);
     return (
       <div className="main">
-        <h2 style={{display: 'inline'}}>New Songs:</h2><button>Save</button>
+        <h2 className="pageTitle">New Songs:</h2><button className="saveButton">Save All</button>
         <TrackPicker tracks={this.props.newTracks} />
       </div>
     );
