@@ -124,7 +124,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
                 sortDirection={this.state.sortDirection}
                 width={width}
               >
-                <Column dataKey="index" label="Index" width={50} />
+                <Column dataKey="index" label="#" width={50} />
                 <Column dataKey="name" label="Name" width={300} />
                 <Column dataKey="playing" width={10} cellRenderer={this.playingRenderer}/>
                 <Column dataKey="genius" width={10} cellRenderer={this.geniusRenderer}/>
