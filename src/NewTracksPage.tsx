@@ -14,11 +14,18 @@ interface StateProps {
 type NewTracksPageProps = StateProps;
 
 class NewTracksPage extends React.Component<StateProps> {
+  private saveAll(): void {
+    console.log("save all");
+    console.log(this.props);
+    console.log(this.state);
+  }
+
   public render(): JSX.Element {
     console.log(this.props.newFiles);
     return (
       <div className="main">
-        <h2 className="pageTitle">New Songs:</h2><button className="saveButton">Save All</button>
+        <h2 className="pageTitle">New Songs:</h2>
+        <button onClick={this.saveAll.bind(this)} className="saveButton">Save All</button>
         <TrackPicker tracks={this.props.newTracks} />
       </div>
     );
