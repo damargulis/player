@@ -109,6 +109,7 @@ export function uploadFiles(files: File[]) {
       return new Promise((resolve, reject) => {
         const stream = fs.createReadStream(file.path);
         if (file.type.split('/')[0] !== 'audio') {
+          // TODO: if img, upload
           return resolve();
         }
         mm(stream, {duration: true}, (err, metadata) => {
