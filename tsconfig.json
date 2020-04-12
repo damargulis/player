@@ -4,7 +4,7 @@
     "sourceMap": true,
     "strictNullChecks": true,
     "module": "esnext",
-    "jsx": "react",
+    "jsx": "preserve",
     "target": "es5",
     "allowJs": true,
     "lib": [

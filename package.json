@@ -80,7 +80,7 @@
     "music-metadata": "^4.8.0",
     "musicmetadata": "^2.0.5",
     "react-redux-typescript-scripts": "^1.6.2",
-    "react-scripts": "^3.4.0",
+    "react-scripts": "^2.1.8",
     "react-tiny-virtual-list": "^2.2.0",
     "react-virtualized": "^9.21.1",
     "request-promise": "^4.2.4",
