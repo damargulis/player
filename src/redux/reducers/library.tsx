@@ -1,24 +1,24 @@
-import shortid from 'shortid';
 import {
-  SAVE_NEW_TRACKS,
   ADD_TO_PLAYLIST,
   Album,
   Artist,
-  UPLOAD_FILES,
   Genre,
   LibraryActionTypes,
   LibraryState,
   Metadata,
   Playlist,
   RESET_LIBRARY,
+  SAVE_NEW_TRACKS,
   Track,
   UPDATE_ALBUM,
   UPDATE_ARTIST,
   UPDATE_LIBRARY,
-  UPDATE_TRACK
+  UPDATE_TRACK,
+  UPLOAD_FILES
 } from '../actionTypes';
 import {DATA_DIR} from '../../constants';
 import fs from 'fs';
+import shortid from 'shortid';
 import {inverse} from '../../utils';
 
 const initialState: LibraryState = {
@@ -225,15 +225,16 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
   }
 }
 
-function newTracks(state: string[], action: LibraryActionTypes) {
+function newTracks(state: string[], action: LibraryActionTypes): string[] {
   switch (action.type) {
-    case UPDATE_LIBRARY: {
+    case UPDATE_LIBRARY:
       const update = action.payload.library.newTracks;
       if (!update) {
         return state;
       }
       return [...update];
-    }
+    default:
+      return state;
   }
 }
 
@@ -294,13 +295,14 @@ function getOrCreateGenres(metadata: Metadata, state: LibraryState): Genre[] {
   return [];
 }
 
-function getOrCreateAlbums(metadata: Metadata, albums: Record<string,Album>, artist?: Artist): Album | undefined {
+function getOrCreateAlbums(
+    metadata: Metadata, existingAlbums: Record<string, Album>, artist?: Artist): Album | undefined {
   if (!metadata.album) {
     return;
   }
-  const album = Object.values(albums).find((album) => {
+  const album = Object.values(existingAlbums).find((a) => {
     // use has artistIds instead of name incase artists have the same name (super edge casey)
-    return album.name == metadata.album && artist && artist.name == metadata.artist[0];
+    return a.name === metadata.album && artist && artist.name === metadata.artist[0];
   });
   if (album) {
     return album;
@@ -317,17 +319,17 @@ function getOrCreateAlbums(metadata: Metadata, albums: Record<string,Album>, art
     playCount: 0,
     skipCount: 0,
     favorites: [],
-  }
+  };
 }
 
-function getOrCreateArtist(metadata: Metadata, artists: Record<string,Artist>): Artist | undefined {
+function getOrCreateArtist(metadata: Metadata, existingArtists: Record<string, Artist>): Artist | undefined {
   if (!metadata.artist) {
     return;
   }
-  const artistMap = inverse(artists);
+  const artistMap = inverse(existingArtists);
   const artistIds = metadata.artist.map((artist) => artistMap[artist]).filter(Boolean);
   if (artistIds.length > 0) {
-    return artists[artistIds[0]];
+    return existingArtists[artistIds[0]];
   }
   return {
     id: shortid.generate(),
@@ -336,7 +338,7 @@ function getOrCreateArtist(metadata: Metadata, artists: Record<string,Artist>): 
     errors: [],
     genreIds: [],
     trackIds: [],
-  }
+  };
 }
 
 function createTrack(file: File, metadata: Metadata): Track {
@@ -345,7 +347,7 @@ function createTrack(file: File, metadata: Metadata): Track {
     // TODO: can this be more accurate?
     duration: metadata.duration * 1000,
     playCount: 0,
-    filePath: "file://" + file.path,
+    filePath: 'file://' + file.path,
     name: metadata.title,
     year: parseInt(metadata.year, 10),
     skipCount: 0,
@@ -359,7 +361,7 @@ function createTrack(file: File, metadata: Metadata): Track {
   };
 }
 
-function addIdIfNotThere(currentIds: string[], newId: string) {
+function addIdIfNotThere(currentIds: string[], newId: string): string[] {
   if (currentIds.indexOf(newId) < 0) {
     return [...currentIds, newId];
   }
@@ -407,22 +409,24 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
             ...album,
             artistIds: artist ? addIdIfNotThere(album.artistIds, artist.id) : album.artistIds,
             trackIds: addIdIfNotThere(album.trackIds, track.id),
-          }
+          };
         }
         if (artist) {
           updatedArtists[artist.id] = {
             ...artist,
             trackIds: addIdIfNotThere(artist.trackIds, track.id),
             albumIds: album ? addIdIfNotThere(artist.albumIds, album.id) : artist.albumIds,
-          }
+          };
         }
         updatedTracks[track.id] = {
           ...track,
           albumIds: album ? addIdIfNotThere(track.albumIds, album.id) : track.albumIds,
           artistIds: artist ? addIdIfNotThere(track.artistIds, artist.id) : track.artistIds,
-        }
+        };
         uploadedTracks.push(track.id);
-        album && updatedAlbumIds.add(album.id);
+        if (album) {
+          updatedAlbumIds.add(album.id);
+        }
       });
 
       updatedAlbumIds.forEach((albumId) => {
@@ -431,12 +435,6 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
           return idToTrackNo[trackId1] - idToTrackNo[trackId2];
         });
       });
-
-      //let albumTrackIds = album ? album.trackIds : [];
-      //if (album) {
-      //  const trackIndex = action.payload.metadata.track.no;
-      //  albumTrackIds.splice(trackIndex - 1, 0, track.id);
-      //}
 
       return Object.assign({}, state, {
         albums: updatedAlbums,

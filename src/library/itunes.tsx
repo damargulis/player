@@ -73,9 +73,6 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
       artist.genreIds = combineArray(artist.genreIds, album.genreIds);
       artist.albumIds.push(album.id);
     } else {
-      if (trackData.Artist == 'Pinegrove') {
-        return;
-      }
       const artistId = (id++).toString();
       artist = {
         id: artistId,
@@ -211,9 +208,6 @@ function getTracks(data: ItunesData, genres: Record<string, string>): Record<str
   const tracks = {} as Record<string, Track>;
   Object.keys(data.Tracks).forEach((trackId) => {
     const track = data.Tracks[trackId];
-    if (track['Artist'] == 'Pinegrove') {
-      return;
-    }
     const genreIds = getGenresFromTrack(track).map((genre) => genres[genre]);
     tracks[trackId.toString()] = {
       id: trackId,

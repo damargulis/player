@@ -1,6 +1,5 @@
 import {
   ADD_TO_PLAYLIST,
-  SAVE_NEW_TRACKS,
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
@@ -14,6 +13,7 @@ import {
   PREV_ALBUM,
   PREV_TRACK,
   RESET_LIBRARY,
+  SAVE_NEW_TRACKS,
   SET_PLAYLIST,
   SET_TIME,
   TrackInfo,
@@ -102,8 +102,8 @@ export const saveNewTracks = () => ({
   type: SAVE_NEW_TRACKS,
 });
 
-function getMetadata(file: File) {
-  return new Promise((resolve, reject) => {
+function getMetadata(file: File): Promise<Metadata> {
+  return new Promise<Metadata>((resolve, reject) => {
     const stream = fs.createReadStream(file.path);
     mm(stream, {duration: true}, (err, metadata) => {
       if (err) {
@@ -115,10 +115,10 @@ function getMetadata(file: File) {
   });
 }
 
-export function uploadFiles(files: File[]) {
+export function uploadFiles(files: File[]): (dispatch: (data: object) => void) => void {
   return (dispatch: (data: object) => void) => {
     const mp3Files = files.filter((file) => {
-      return file.type.split('/')[0] == 'audio';
+      return file.type.split('/')[0] === 'audio';
     });
     const metas = mp3Files.map((file) => {
       return getMetadata(file);

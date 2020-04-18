@@ -268,7 +268,7 @@ interface SaveNewTracks {
 
 interface UploadFile {
   type: typeof UPLOAD_FILES;
-  payload: {files: File[], metadatas: Metadata[]};
+  payload: {files: File[]; metadatas: Metadata[]};
 }
 
 interface AddToPlaylist {
