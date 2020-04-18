@@ -5,16 +5,21 @@ import {
   Genre,
   LibraryActionTypes,
   LibraryState,
+  Metadata,
   Playlist,
   RESET_LIBRARY,
+  SAVE_NEW_TRACKS,
   Track,
   UPDATE_ALBUM,
   UPDATE_ARTIST,
   UPDATE_LIBRARY,
-  UPDATE_TRACK
+  UPDATE_TRACK,
+  UPLOAD_FILES
 } from '../actionTypes';
 import {DATA_DIR} from '../../constants';
 import fs from 'fs';
+import shortid from 'shortid';
+import {formatGenre, inverse} from '../../utils';
 
 const initialState: LibraryState = {
   albums: {},
@@ -22,6 +27,7 @@ const initialState: LibraryState = {
   genres: {},
   playlists: {},
   tracks: {},
+  newTracks: [],
 };
 
 interface Item {
@@ -219,6 +225,19 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
   }
 }
 
+function newTracks(state: string[], action: LibraryActionTypes): string[] {
+  switch (action.type) {
+    case UPDATE_LIBRARY:
+      const update = action.payload.library.newTracks;
+      if (!update) {
+        return state;
+      }
+      return [...update];
+    default:
+      return state;
+  }
+}
+
 function albums(state: Record<string, Album>, action: LibraryActionTypes): Record<string, Album> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
@@ -272,26 +291,182 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
   }
 }
 
-export default function reducer(state: LibraryState = initialState, action: LibraryActionTypes): LibraryState {
-  let library;
-  if (action.type === RESET_LIBRARY) {
-    library = action.payload.library;
-  } else {
-    library = {
-      albums: albums(state.albums, action),
-      artists: artists(state.artists, action),
-      genres: genres(state.genres, action),
-      playlists: playlists(state.playlists, action),
-      tracks: tracks(state.tracks, action),
-    };
+function getOrCreateGenres(metadata: Metadata, state: LibraryState): string[] {
+  // TODO: only gets...also create or no?
+  const genreNames = metadata.genre.map((genre) => formatGenre(genre));
+  const inverseGenres = inverse(state.genres);
+  const genreIds = genreNames.map((name) => inverseGenres[name]).filter(Boolean);
+  return genreIds;
+}
+
+function getOrCreateAlbums(
+    metadata: Metadata, existingAlbums: Record<string, Album>, artist?: Artist): Album | undefined {
+  if (!metadata.album) {
+    return;
   }
+  const album = Object.values(existingAlbums).find((a) => {
+    // use has artistIds instead of name incase artists have the same name (super edge casey)
+    return a.name === metadata.album && artist && artist.name === metadata.artist[0];
+  });
+  if (album) {
+    return album;
+  }
+  return {
+    id: shortid.generate(),
+    warnings: {},
+    errors: [],
+    artistIds: [],
+    name: metadata.album,
+    trackIds: [],
+    year: parseInt(metadata.year, 10),
+    genreIds: [],
+    playCount: 0,
+    skipCount: 0,
+    favorites: [],
+  };
+}
+
+function getOrCreateArtist(metadata: Metadata, existingArtists: Record<string, Artist>): Artist | undefined {
+  if (!metadata.artist) {
+    return;
+  }
+  const artistMap = inverse(existingArtists);
+  const artistIds = metadata.artist.map((artist) => artistMap[artist]).filter(Boolean);
+  if (artistIds.length > 0) {
+    return existingArtists[artistIds[0]];
+  }
+  return {
+    id: shortid.generate(),
+    name: metadata.artist[0],
+    albumIds: [],
+    errors: [],
+    genreIds: [],
+    trackIds: [],
+  };
+}
+
+function createTrack(file: File, metadata: Metadata): Track {
+  return {
+    id: shortid.generate(),
+    // TODO: can this be more accurate?
+    duration: metadata.duration * 1000,
+    playCount: 0,
+    filePath: 'file://' + file.path,
+    name: metadata.title,
+    year: parseInt(metadata.year, 10),
+    skipCount: 0,
+    dateAdded: new Date(),
+    favorites: [],
+    genreIds: [],
+    artistIds: [],
+    albumIds: [],
+    // TODO: this should be null? -- what does it come in from itunes as if never played?
+    playDate: new Date(''),
+  };
+}
+
+function addIdsIfNotThere(currentIds: string[], newIds: string[]): string[] {
+  newIds.forEach((newId) => {
+    if (currentIds.indexOf(newId) < 0) {
+      currentIds = [...currentIds, newId];
+    }
+  });
+  return currentIds;
+}
+
+function runReducer(state: LibraryState, action: LibraryActionTypes): LibraryState {
   switch (action.type) {
+    case UPDATE_TRACK:
     case UPDATE_LIBRARY:
     case UPDATE_ALBUM:
-    case UPDATE_TRACK:
     case UPDATE_ARTIST:
     case ADD_TO_PLAYLIST:
+      return Object.assign({}, state, {
+        albums: albums(state.albums, action),
+        artists: artists(state.artists, action),
+        genres: genres(state.genres, action),
+        playlists: playlists(state.playlists, action),
+        tracks: tracks(state.tracks, action),
+        newTracks: newTracks(state.newTracks, action),
+      });
     case RESET_LIBRARY:
+      return action.payload.library;
+    case SAVE_NEW_TRACKS:
+      return {
+        ...state,
+        newTracks: [],
+      };
+    case UPLOAD_FILES:
+      const idToTrackNo = {} as Record<string, number>;
+      const updatedAlbums = {...state.albums};
+      const updatedArtists = {...state.artists};
+      const updatedTracks = {...state.tracks};
+      const uploadedTracks = [] as string[];
+      const updatedAlbumIds = new Set() as Set<string>;
+      action.payload.metadatas.forEach((metadata, index) => {
+        const file = action.payload.files[index];
+        const artist = getOrCreateArtist(metadata, updatedArtists);
+        const album = getOrCreateAlbums(metadata, updatedAlbums, artist);
+        const genreIds = getOrCreateGenres(metadata, state);
+        const track = createTrack(file, metadata);
+        idToTrackNo[track.id] = metadata.track.no;
+        if (album) {
+          updatedAlbums[album.id] = {
+            ...album,
+            artistIds: artist ? addIdsIfNotThere(album.artistIds, [artist.id]) : album.artistIds,
+            trackIds: addIdsIfNotThere(album.trackIds, [track.id]),
+            genreIds: addIdsIfNotThere(album.genreIds, genreIds),
+          };
+        }
+        if (artist) {
+          updatedArtists[artist.id] = {
+            ...artist,
+            trackIds: addIdsIfNotThere(artist.trackIds, [track.id]),
+            albumIds: album ? addIdsIfNotThere(artist.albumIds, [album.id]) : artist.albumIds,
+            genreIds: addIdsIfNotThere(artist.genreIds, genreIds),
+          };
+        }
+        updatedTracks[track.id] = {
+          ...track,
+          albumIds: album ? addIdsIfNotThere(track.albumIds, [album.id]) : track.albumIds,
+          artistIds: artist ? addIdsIfNotThere(track.artistIds, [artist.id]) : track.artistIds,
+          genreIds: addIdsIfNotThere(track.genreIds, genreIds),
+        };
+        uploadedTracks.push(track.id);
+        if (album) {
+          updatedAlbumIds.add(album.id);
+        }
+      });
+
+      updatedAlbumIds.forEach((albumId) => {
+        const album = updatedAlbums[albumId];
+        album.trackIds.sort((trackId1, trackId2) => {
+          return idToTrackNo[trackId1] - idToTrackNo[trackId2];
+        });
+      });
+
+      return Object.assign({}, state, {
+        albums: updatedAlbums,
+        artists: updatedArtists,
+        tracks: updatedTracks,
+        newTracks: [...state.newTracks, ...uploadedTracks],
+      });
+    default:
+        return state;
+  }
+}
+
+export default function reducer(state: LibraryState = initialState, action: LibraryActionTypes): LibraryState {
+  const library = runReducer(state, action);
+  switch (action.type) {
+    case UPDATE_ALBUM:
+    case UPDATE_ARTIST:
+    case UPDATE_LIBRARY:
+    case UPDATE_TRACK:
+    case UPLOAD_FILES:
+    case ADD_TO_PLAYLIST:
+    case RESET_LIBRARY:
+    case SAVE_NEW_TRACKS:
       save(library);
       break;
     default:

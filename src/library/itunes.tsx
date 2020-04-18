@@ -5,6 +5,7 @@ import fs from 'fs';
 import mm from 'musicmetadata';
 import plist from 'plist';
 import shortid from 'shortid';
+import {inverse} from '../utils';
 import {combineArray, upLevels} from './utils';
 
 interface ItunesPlaylistData {
@@ -261,22 +262,13 @@ function getAlbumArt(filePath: string): Promise<string | undefined> {
   });
 }
 
-function inverse(record: Record<string, Genre>): Record<string, string> {
-  const ret = {} as Record<string, string>;
-  Object.keys(record).forEach((key) => {
-    const newKey = record[key];
-    ret[newKey.name] = key;
-  });
-  return ret;
-}
-
 export function createLibrary(): Promise<LibraryState> {
   return new Promise((resolve) => {
     createDir();
     const itunesFile = selectItunesFile();
     if (!itunesFile) {
       alert('No file selected');
-      return resolve({tracks: {}, albums: {}, playlists: {}, artists: {}, genres: {}});
+      return resolve({tracks: {}, albums: {}, playlists: {}, artists: {}, genres: {}, newTracks: []});
     }
     const parsedItunesData = parseItunesFile(itunesFile);
     const genres = getGenres(parsedItunesData);
@@ -292,6 +284,6 @@ export function createLibrary(): Promise<LibraryState> {
         album.albumArtFile = artPath;
       });
     });
-    return Promise.all(promises).then(() => resolve({tracks, albums, artists, genres, playlists}));
+    return Promise.all(promises).then(() => resolve({tracks, albums, artists, genres, playlists, newTracks: []}));
   });
 }

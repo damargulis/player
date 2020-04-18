@@ -1,5 +1,7 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
+export const SAVE_NEW_TRACKS = 'SAVE_NEW_TRACKS';
+export const UPLOAD_FILES = 'UPLOAD_FILES';
 export const UPDATE_TIME = 'UPDATE_TIME';
 export const RESET_LIBRARY = 'RESET_LIBRARY';
 export const ADD_TO_PLAYLIST = 'ADD_TO_PLAYLIST';
@@ -24,6 +26,29 @@ export interface Playlist {
 export interface PlaylistInfo {
   name?: string;
   trackIds?: string[];
+}
+
+// TODO: should be able to use from metadata import, not here
+export interface Metadata {
+    artist: string[];
+    album: string;
+    albumartist: string[];
+    title: string;
+    year: string;
+    track: NoOf;
+    disk: NoOf;
+    genre: string[];
+    picture: Picture[];
+    duration: number;
+}
+export interface Picture {
+    format: string;
+    data: Buffer;
+}
+
+export interface NoOf {
+  no: number;
+  of: number;
 }
 
 export interface Track {
@@ -88,6 +113,7 @@ export interface LibraryState {
   artists: Record<string, Artist>;
   playlists: Record<string, Playlist>;
   genres: Record<string, Genre>;
+  newTracks: string[];
 }
 
 export interface LibraryInfo {
@@ -96,6 +122,7 @@ export interface LibraryInfo {
   artists?: Record<string, ArtistInfo>;
   playlists?: Record<string, PlaylistInfo>;
   genres?: Record<string, GenreInfo>;
+  newTracks?: string[];
 }
 
 export interface CurrentlyPlayingState {
@@ -229,6 +256,15 @@ interface UpdateTrack {
   };
 }
 
+interface SaveNewTracks {
+  type: typeof SAVE_NEW_TRACKS;
+}
+
+interface UploadFile {
+  type: typeof UPLOAD_FILES;
+  payload: {files: File[]; metadatas: Metadata[]};
+}
+
 interface AddToPlaylist {
   type: typeof ADD_TO_PLAYLIST;
   payload: {
@@ -240,4 +276,4 @@ interface AddToPlaylist {
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction;
+  | ResetLibraryAction | UploadFile | SaveNewTracks;

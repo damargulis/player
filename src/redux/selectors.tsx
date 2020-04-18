@@ -259,3 +259,9 @@ export function getIsPlaying(store: RootState): boolean {
 export function getSetTime(store: RootState): number | undefined {
   return store.currentlyPlaying.setTime;
 }
+
+export function getNewTracks(store: RootState): Track[] {
+  return store.library.newTracks.map((trackId) => {
+    return store.library.tracks[trackId];
+  });
+}
