@@ -125,11 +125,6 @@ export interface LibraryInfo {
   newTracks?: string[];
 }
 
-export interface NewTracksState {
-  files: File[];
-  tracks: Track[];
-}
-
 export interface CurrentlyPlayingState {
   time: number;
   volume: number;
