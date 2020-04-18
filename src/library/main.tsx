@@ -73,6 +73,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             return map;
           }, {} as Record<string, Genre>),
           playlists: libraryData.playlists,
+          newTracks: libraryData.newTracks,
         });
       } catch (err) {
         reject(err);

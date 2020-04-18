@@ -5,12 +5,14 @@ import {
   CHANGE_VOLUME,
   LibraryInfo,
   LibraryState,
+  Metadata,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
   PREV_ALBUM,
   PREV_TRACK,
   RESET_LIBRARY,
+  SAVE_NEW_TRACKS,
   SET_PLAYLIST,
   SET_TIME,
   TrackInfo,
@@ -19,8 +21,11 @@ import {
   UPDATE_LIBRARY,
   UPDATE_TIME,
   UPDATE_TRACK,
+  UPLOAD_FILES,
 } from './actionTypes';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
+import fs from 'fs';
+import mm from 'musicmetadata';
 
 export const updateTime = (time: number) => ({
   payload: {time},
@@ -91,3 +96,34 @@ export const addToPlaylist = (index: number, trackIds: string[]) => ({
   payload: {index, trackIds},
   type: ADD_TO_PLAYLIST,
 });
+
+export const saveNewTracks = () => ({
+  type: SAVE_NEW_TRACKS,
+});
+
+function getMetadata(file: File): Promise<Metadata> {
+  return new Promise<Metadata>((resolve, reject) => {
+    const stream = fs.createReadStream(file.path);
+    mm(stream, {duration: true}, (err, metadata) => {
+      if (err) {
+        reject();
+      }
+      stream.close();
+      resolve(metadata);
+    });
+  });
+}
+
+export function uploadFiles(files: File[]): (dispatch: (data: object) => void) => void {
+  return (dispatch: (data: object) => void) => {
+    const mp3Files = files.filter((file) => {
+      return file.type.split('/')[0] === 'audio';
+    });
+    const metas = mp3Files.map((file) => {
+      return getMetadata(file);
+    });
+    Promise.all(metas).then((metadatas) => {
+      dispatch({type: UPLOAD_FILES, payload: {files: mp3Files, metadatas}});
+    });
+  };
+}
