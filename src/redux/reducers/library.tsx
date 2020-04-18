@@ -1,9 +1,10 @@
 import shortid from 'shortid';
 import {
+  SAVE_NEW_TRACKS,
   ADD_TO_PLAYLIST,
   Album,
   Artist,
-  CREATE_TRACK_FROM_FILE,
+  UPLOAD_FILES,
   Genre,
   LibraryActionTypes,
   LibraryState,
@@ -224,6 +225,18 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
   }
 }
 
+function newTracks(state: string[], action: LibraryActionTypes) {
+  switch (action.type) {
+    case UPDATE_LIBRARY: {
+      const update = action.payload.library.newTracks;
+      if (!update) {
+        return state;
+      }
+      return [...update];
+    }
+  }
+}
+
 function albums(state: Record<string, Album>, action: LibraryActionTypes): Record<string, Album> {
   switch (action.type) {
     case UPDATE_LIBRARY: {
@@ -277,48 +290,80 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
   }
 }
 
-function createTrack(file: File, metadata: Metadata, state: LibraryState): Track {
-  const genreMap = inverse(state.genres);
-  const genreIds = metadata.genre.map((genre) => genreMap[genre]).filter(Boolean);
-  const artistMap = inverse(state.artists);
+function getOrCreateGenres(metadata: Metadata, state: LibraryState): Genre[] {
+  return [];
+}
+
+function getOrCreateAlbums(metadata: Metadata, albums: Record<string,Album>, artist?: Artist): Album | undefined {
+  if (!metadata.album) {
+    return;
+  }
+  const album = Object.values(albums).find((album) => {
+    // use has artistIds instead of name incase artists have the same name (super edge casey)
+    return album.name == metadata.album && artist && artist.name == metadata.artist[0];
+  });
+  if (album) {
+    return album;
+  }
+  return {
+    id: shortid.generate(),
+    warnings: {},
+    errors: [],
+    artistIds: [],
+    name: metadata.album,
+    trackIds: [],
+    year: parseInt(metadata.year, 10),
+    genreIds: [],
+    playCount: 0,
+    skipCount: 0,
+    favorites: [],
+  }
+}
+
+function getOrCreateArtist(metadata: Metadata, artists: Record<string,Artist>): Artist | undefined {
+  if (!metadata.artist) {
+    return;
+  }
+  const artistMap = inverse(artists);
   const artistIds = metadata.artist.map((artist) => artistMap[artist]).filter(Boolean);
-  const albumMap = inverse(state.albums);
-  // TODO: albums (and artist) might have the same name....inverse wont work...
-  const albumIds = [metadata.album].map((album) => albumMap[album]).filter(Boolean);
+  if (artistIds.length > 0) {
+    return artists[artistIds[0]];
+  }
+  return {
+    id: shortid.generate(),
+    name: metadata.artist[0],
+    albumIds: [],
+    errors: [],
+    genreIds: [],
+    trackIds: [],
+  }
+}
+
+function createTrack(file: File, metadata: Metadata): Track {
   return {
     id: shortid.generate(),
     // TODO: can this be more accurate?
     duration: metadata.duration * 1000,
     playCount: 0,
-    filePath: file.path,
+    filePath: "file://" + file.path,
     name: metadata.title,
     year: parseInt(metadata.year, 10),
     skipCount: 0,
     dateAdded: new Date(),
     favorites: [],
-    genreIds: genreIds,
-    artistIds: artistIds,
-    albumIds: albumIds,
+    genreIds: [],
+    artistIds: [],
+    albumIds: [],
     // TODO: this should be null? -- what does it come in from itunes as if never played?
     playDate: new Date(''),
   };
 }
 
-function newTracks(newTracks: Track[], action: LibraryActionTypes): Track[] {
-  switch (action.type) {
-    case UPDATE_TRACK:
-      return newTracks.map((track) => {
-        if (track.id === action.payload.id.toString()) {
-          return Object.assign({}, track, {
-            ...track,
-            ...action.payload.info,
-          });
-        }
-        return track;
-      });
-    default:
-      return newTracks;
+function addIdIfNotThere(currentIds: string[], newId: string) {
+  if (currentIds.indexOf(newId) < 0) {
+    return [...currentIds, newId];
   }
+  return currentIds;
 }
 
 function runReducer(state: LibraryState, action: LibraryActionTypes): LibraryState {
@@ -337,11 +382,68 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
         newTracks: newTracks(state.newTracks, action),
       });
     case RESET_LIBRARY:
-        return action.payload.library;
-    case CREATE_TRACK_FROM_FILE:
-        return Object.assign({}, state, {
-          newTracks: [...state.newTracks, createTrack(action.payload.file, action.payload.metadata, state)],
+      return action.payload.library;
+    case SAVE_NEW_TRACKS:
+      return {
+        ...state,
+        newTracks: [],
+      };
+    case UPLOAD_FILES:
+      const idToTrackNo = {} as Record<string, number>;
+      const updatedAlbums = {...state.albums};
+      const updatedArtists = {...state.artists};
+      const updatedTracks = {...state.tracks};
+      const uploadedTracks = [] as string[];
+      const updatedAlbumIds = new Set() as Set<string>;
+      action.payload.metadatas.forEach((metadata, index) => {
+        const file = action.payload.files[index];
+        const artist = getOrCreateArtist(metadata, updatedArtists);
+        const album = getOrCreateAlbums(metadata, updatedAlbums, artist);
+        const genre = getOrCreateGenres(metadata, state);
+        const track = createTrack(file, metadata);
+        idToTrackNo[track.id] = metadata.track.no;
+        if (album) {
+          updatedAlbums[album.id] = {
+            ...album,
+            artistIds: artist ? addIdIfNotThere(album.artistIds, artist.id) : album.artistIds,
+            trackIds: addIdIfNotThere(album.trackIds, track.id),
+          }
+        }
+        if (artist) {
+          updatedArtists[artist.id] = {
+            ...artist,
+            trackIds: addIdIfNotThere(artist.trackIds, track.id),
+            albumIds: album ? addIdIfNotThere(artist.albumIds, album.id) : artist.albumIds,
+          }
+        }
+        updatedTracks[track.id] = {
+          ...track,
+          albumIds: album ? addIdIfNotThere(track.albumIds, album.id) : track.albumIds,
+          artistIds: artist ? addIdIfNotThere(track.artistIds, artist.id) : track.artistIds,
+        }
+        uploadedTracks.push(track.id);
+        album && updatedAlbumIds.add(album.id);
+      });
+
+      updatedAlbumIds.forEach((albumId) => {
+        const album = updatedAlbums[albumId];
+        album.trackIds.sort((trackId1, trackId2) => {
+          return idToTrackNo[trackId1] - idToTrackNo[trackId2];
         });
+      });
+
+      //let albumTrackIds = album ? album.trackIds : [];
+      //if (album) {
+      //  const trackIndex = action.payload.metadata.track.no;
+      //  albumTrackIds.splice(trackIndex - 1, 0, track.id);
+      //}
+
+      return Object.assign({}, state, {
+        albums: updatedAlbums,
+        artists: updatedArtists,
+        tracks: updatedTracks,
+        newTracks: [...state.newTracks, ...uploadedTracks],
+      });
     default:
         return state;
   }
@@ -354,9 +456,10 @@ export default function reducer(state: LibraryState = initialState, action: Libr
     case UPDATE_ARTIST:
     case UPDATE_LIBRARY:
     case UPDATE_TRACK:
-    case CREATE_TRACK_FROM_FILE:
+    case UPLOAD_FILES:
     case ADD_TO_PLAYLIST:
     case RESET_LIBRARY:
+    case SAVE_NEW_TRACKS:
       save(library);
       break;
     default:

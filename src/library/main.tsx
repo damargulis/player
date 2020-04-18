@@ -73,25 +73,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             return map;
           }, {} as Record<string, Genre>),
           playlists: libraryData.playlists,
-          // TODO: combine this with track parsing above
-          newTracks: libraryData.newTracks.map((trackData: Track) => {
-            return {
-                id: trackData.id,
-                duration: trackData.duration,
-                playCount: trackData.playCount,
-                playDate: new Date(trackData.playDate),
-                filePath: trackData.filePath,
-                artistIds: trackData.artistIds,
-                albumIds: trackData.albumIds,
-                name: trackData.name,
-                year: trackData.year,
-                genreIds: trackData.genreIds,
-                skipCount: trackData.skipCount,
-                dateAdded: new Date(trackData.dateAdded),
-                favorites: trackData.favorites,
-                genius: trackData.genius,
-            };
-          }),
+          newTracks: libraryData.newTracks,
         });
       } catch (err) {
         reject(err);

@@ -1,5 +1,6 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
+export const SAVE_NEW_TRACKS = 'SAVE_NEW_TRACKS';
 export const UPLOAD_FILES = 'UPLOAD_FILES';
 export const UPDATE_TIME = 'UPDATE_TIME';
 export const RESET_LIBRARY = 'RESET_LIBRARY';
@@ -113,7 +114,7 @@ export interface LibraryState {
   artists: Record<string, Artist>;
   playlists: Record<string, Playlist>;
   genres: Record<string, Genre>;
-  newTracks: Track[];
+  newTracks: string[];
 }
 
 export interface LibraryInfo {
@@ -122,6 +123,7 @@ export interface LibraryInfo {
   artists?: Record<string, ArtistInfo>;
   playlists?: Record<string, PlaylistInfo>;
   genres?: Record<string, GenreInfo>;
+  newTracks?: string[];
 }
 
 export interface NewTracksState {
@@ -260,9 +262,13 @@ interface UpdateTrack {
   };
 }
 
-interface UploadFiles {
+interface SaveNewTracks {
+  type: typeof SAVE_NEW_TRACKS;
+}
+
+interface UploadFile {
   type: typeof UPLOAD_FILES;
-  payload: {files: File[]};
+  payload: {files: File[], metadatas: Metadata[]};
 }
 
 interface AddToPlaylist {
@@ -284,5 +290,4 @@ interface CreateTrackFromFile {
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction | CreateTrackFromFile;
-export type NewTracksActionTypes = UploadFiles;
+  | ResetLibraryAction | CreateTrackFromFile | UploadFile | SaveNewTracks;

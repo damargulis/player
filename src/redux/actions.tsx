@@ -1,5 +1,6 @@
 import {
   ADD_TO_PLAYLIST,
+  SAVE_NEW_TRACKS,
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
@@ -97,31 +98,33 @@ export const addToPlaylist = (index: number, trackIds: string[]) => ({
   type: ADD_TO_PLAYLIST,
 });
 
-const createTrackFromFile = (metadata: Metadata, file: File) => ({
-  payload: {metadata, file},
-  type: CREATE_TRACK_FROM_FILE,
+export const saveNewTracks = () => ({
+  type: SAVE_NEW_TRACKS,
 });
+
+function getMetadata(file: File) {
+  return new Promise((resolve, reject) => {
+    const stream = fs.createReadStream(file.path);
+    mm(stream, {duration: true}, (err, metadata) => {
+      if (err) {
+        reject();
+      }
+      stream.close();
+      resolve(metadata);
+    });
+  });
+}
 
 export function uploadFiles(files: File[]) {
   return (dispatch: (data: object) => void) => {
-    dispatch({type: UPLOAD_FILES, payload: {files}});
-    const filePromises = files.map((file) => {
-      return new Promise((resolve, reject) => {
-        const stream = fs.createReadStream(file.path);
-        if (file.type.split('/')[0] !== 'audio') {
-          // TODO: if img, upload as cover art
-          return resolve();
-        }
-        mm(stream, {duration: true}, (err, metadata) => {
-          if (err) {
-            reject();
-          }
-          dispatch(createTrackFromFile(metadata, file));
-          stream.close();
-          resolve(metadata);
-        });
-      });
+    const mp3Files = files.filter((file) => {
+      return file.type.split('/')[0] == 'audio';
     });
-    return Promise.all(filePromises);
+    const metas = mp3Files.map((file) => {
+      return getMetadata(file);
+    });
+    Promise.all(metas).then((metadatas) => {
+      dispatch({type: UPLOAD_FILES, payload: {files: mp3Files, metadatas}});
+    });
   };
 }

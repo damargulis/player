@@ -1,27 +1,31 @@
+import {saveNewTracks} from './redux/actions';
 import {Track} from './redux/actionTypes';
 import React from 'react';
 import {connect} from 'react-redux';
-import {getNewFiles, getNewTracks} from './redux/selectors';
+import {getNewTracks} from './redux/selectors';
 import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 import "./NewTracksPage.css";
 
 interface StateProps {
-  newFiles: File[];
   newTracks: Track[];
 }
 
-type NewTracksPageProps = StateProps;
+interface DispatchProps {
+  saveNewTracks(): void;
+}
 
-class NewTracksPage extends React.Component<StateProps> {
+type NewTracksPageProps = StateProps & DispatchProps;
+
+class NewTracksPage extends React.Component<NewTracksPageProps> {
   private saveAll(): void {
     console.log("save all");
     console.log(this.props);
     console.log(this.state);
+    this.props.saveNewTracks();
   }
 
   public render(): JSX.Element {
-    console.log(this.props.newFiles);
     return (
       <div className="main">
         <h2 className="pageTitle">New Songs:</h2>
@@ -34,9 +38,8 @@ class NewTracksPage extends React.Component<StateProps> {
 
 function mapStateToProps(state: RootState): StateProps {
   return {
-    newFiles: getNewFiles(state),
     newTracks: getNewTracks(state),
   };
 }
 
-export default connect(mapStateToProps)(NewTracksPage);
+export default connect(mapStateToProps, {saveNewTracks})(NewTracksPage);
