@@ -1,5 +1,18 @@
 import path from 'path';
 
+function capitalize(word: string): string {
+  if (word === 'and') {
+    return word;
+  }
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+export function formatGenre(genre: string): string {
+  const genreString = genre.trim().split(' ').map(
+    (word) => capitalize(word)).join(' ');
+  return genreString.split('-').map((word) => capitalize(word)).join('-');
+}
+
 /**
  * Formats a duration to a time "minutes:seconds".
  * Takes in time in milliseconds.

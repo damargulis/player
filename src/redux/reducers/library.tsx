@@ -19,7 +19,7 @@ import {
 import {DATA_DIR} from '../../constants';
 import fs from 'fs';
 import shortid from 'shortid';
-import {inverse} from '../../utils';
+import {formatGenre, inverse} from '../../utils';
 
 const initialState: LibraryState = {
   albums: {},
@@ -291,8 +291,12 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
   }
 }
 
-function getOrCreateGenres(metadata: Metadata, state: LibraryState): Genre[] {
-  return [];
+function getOrCreateGenres(metadata: Metadata, state: LibraryState): string[] {
+  // TODO: only gets...also create or no?
+  const genreNames = metadata.genre.map((genre) => formatGenre(genre));
+  const inverseGenres = inverse(state.genres);
+  const genreIds = genreNames.map((name) => inverseGenres[name]).filter(Boolean);
+  return genreIds;
 }
 
 function getOrCreateAlbums(
@@ -361,10 +365,12 @@ function createTrack(file: File, metadata: Metadata): Track {
   };
 }
 
-function addIdIfNotThere(currentIds: string[], newId: string): string[] {
-  if (currentIds.indexOf(newId) < 0) {
-    return [...currentIds, newId];
-  }
+function addIdsIfNotThere(currentIds: string[], newIds: string[]): string[] {
+  newIds.forEach((newId) => {
+    if (currentIds.indexOf(newId) < 0) {
+      currentIds = [...currentIds, newId];
+    }
+  });
   return currentIds;
 }
 
@@ -401,27 +407,30 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
         const file = action.payload.files[index];
         const artist = getOrCreateArtist(metadata, updatedArtists);
         const album = getOrCreateAlbums(metadata, updatedAlbums, artist);
-        const genre = getOrCreateGenres(metadata, state);
+        const genreIds = getOrCreateGenres(metadata, state);
         const track = createTrack(file, metadata);
         idToTrackNo[track.id] = metadata.track.no;
         if (album) {
           updatedAlbums[album.id] = {
             ...album,
-            artistIds: artist ? addIdIfNotThere(album.artistIds, artist.id) : album.artistIds,
-            trackIds: addIdIfNotThere(album.trackIds, track.id),
+            artistIds: artist ? addIdsIfNotThere(album.artistIds, [artist.id]) : album.artistIds,
+            trackIds: addIdsIfNotThere(album.trackIds, [track.id]),
+            genreIds: addIdsIfNotThere(album.genreIds, genreIds),
           };
         }
         if (artist) {
           updatedArtists[artist.id] = {
             ...artist,
-            trackIds: addIdIfNotThere(artist.trackIds, track.id),
-            albumIds: album ? addIdIfNotThere(artist.albumIds, album.id) : artist.albumIds,
+            trackIds: addIdsIfNotThere(artist.trackIds, [track.id]),
+            albumIds: album ? addIdsIfNotThere(artist.albumIds, [album.id]) : artist.albumIds,
+            genreIds: addIdsIfNotThere(artist.genreIds, genreIds),
           };
         }
         updatedTracks[track.id] = {
           ...track,
-          albumIds: album ? addIdIfNotThere(track.albumIds, album.id) : track.albumIds,
-          artistIds: artist ? addIdIfNotThere(track.artistIds, artist.id) : track.artistIds,
+          albumIds: album ? addIdsIfNotThere(track.albumIds, [album.id]) : track.albumIds,
+          artistIds: artist ? addIdsIfNotThere(track.artistIds, [artist.id]) : track.artistIds,
+          genreIds: addIdsIfNotThere(track.genreIds, genreIds),
         };
         uploadedTracks.push(track.id);
         if (album) {

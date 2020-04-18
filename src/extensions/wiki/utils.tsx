@@ -1,9 +1,4 @@
-function capitalize(word: string): string {
-  if (word === 'and') {
-    return word;
-  }
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
+import {formatGenre} from '../../utils';
 
 function getLeafNodes(rootNode: ChildNode): ChildNode[] {
   if (rootNode.childNodes.length > 0) {
@@ -14,12 +9,6 @@ function getLeafNodes(rootNode: ChildNode): ChildNode[] {
     return children;
   }
   return [rootNode];
-}
-
-function formatGenre(genre: string): string {
-  const genreString = genre.trim().split(' ').map(
-    (word) => capitalize(word)).join(' ');
-  return genreString.split('-').map((word) => capitalize(word)).join('-');
 }
 
 export function sanitize(str: string): string {
