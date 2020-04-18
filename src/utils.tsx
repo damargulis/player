@@ -26,7 +26,8 @@ export function toTime(ms: number): string {
   if (seconds < 10) {
     secondsString = '0' + seconds;
   }
-  return `${hours ? hours + ':' : ''}${minutes ? minutes : '00'}:${secondsString}`;
+  const minutesString = (hours && minutes < 10) ? `0${minutes}` : minutes;
+  return `${hours ? hours + ':' : ''}${minutesString}:${secondsString}`;
 }
 
 export function getImgSrc(fileName: string): string {
