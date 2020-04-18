@@ -10,7 +10,6 @@ export const CHANGE_VOLUME = 'CHANGE_VOLUME';
 export const NEXT_TRACK = 'NEXT_TRACK';
 export const SET_PLAYLIST = 'SET_PLAYLIST';
 export const NEXT_ALBUM = 'NEXT_ALBUM';
-export const CREATE_TRACK_FROM_FILE = 'CREATE_TRACK_FROM_FILE';
 export const UPDATE_ALBUM = 'UPDATE_ALBUM';
 export const UPDATE_TRACK = 'UPDATE_TRACK';
 export const UPDATE_ARTIST = 'UPDATE_ARTIST';
@@ -279,15 +278,7 @@ interface AddToPlaylist {
   };
 }
 
-interface CreateTrackFromFile {
-  type: typeof CREATE_TRACK_FROM_FILE;
-  payload: {
-    metadata: Metadata;
-    file: File;
-  };
-}
-
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction | CreateTrackFromFile | UploadFile | SaveNewTracks;
+  | ResetLibraryAction | UploadFile | SaveNewTracks;

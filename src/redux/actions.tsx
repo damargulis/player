@@ -3,7 +3,6 @@ import {
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
-  CREATE_TRACK_FROM_FILE,
   LibraryInfo,
   LibraryState,
   Metadata,
