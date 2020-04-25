@@ -53,7 +53,7 @@ function getUpdatedMemberIds(memberIds: string[], updatedId: string, updatedMemb
 
 function save(library: LibraryState): Promise<void> {
   const fileName = `${DATA_DIR}/library.json`;
-  // maybe use sync if you want to do this on exit so it doesn't half write?
+  // TODO: maybe use sync if you want to do this on exit so it doesn't half write?
   // will have to see how exiting works on electron...
   return new Promise((resolve, reject) => {
     fs.writeFile(fileName, JSON.stringify(library), (err: Error | null) => {
