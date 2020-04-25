@@ -24,11 +24,11 @@ export default class Links<T extends Linkable> extends React.Component<LinksProp
         {
           this.props.items.map((item, index) => {
             return (
-              <span>
-                <span key={item.id} className="link" onClick={() => this.props.goToItem(item.id)}>
+              <span key={item.id}>
+                <span className="link" onClick={() => this.props.goToItem(item.id)}>
                   {item.name}
                 </span>
-                {index != this.props.items.length - 1 ? ', ' : ''}
+                {index !== this.props.items.length - 1 ? ', ' : ''}
               </span>
             );
           })

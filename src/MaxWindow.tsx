@@ -165,6 +165,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}
         goToAlbum={this.goToAlbum.bind(this)}
+        goToArtistPicker={() => this.setType('artist')}
       />,
 
     );

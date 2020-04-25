@@ -1,5 +1,6 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
+export const DELETE_ARTIST = 'DELETE_ARTIST';
 export const SAVE_NEW_TRACKS = 'SAVE_NEW_TRACKS';
 export const UPLOAD_FILES = 'UPLOAD_FILES';
 export const UPDATE_TIME = 'UPDATE_TIME';
@@ -236,7 +237,7 @@ interface UpdateAlbum {
   type: typeof UPDATE_ALBUM;
   payload: {
     info: AlbumInfo;
-    id: number;
+    id: string;
   };
 }
 
@@ -244,15 +245,20 @@ interface UpdateArtist {
   type: typeof UPDATE_ARTIST;
   payload: {
     info: ArtistInfo;
-    id: number;
+    id: string;
   };
+}
+
+interface DeleteArtist {
+  type: typeof DELETE_ARTIST;
+  payload: {id: string};
 }
 
 interface UpdateTrack {
   type: typeof UPDATE_TRACK;
   payload: {
     info: TrackInfo;
-    id: number;
+    id: string;
   };
 }
 
@@ -269,11 +275,11 @@ interface AddToPlaylist {
   type: typeof ADD_TO_PLAYLIST;
   payload: {
     index: number;
-    trackIds: number[];
+    trackIds: string[];
   };
 }
 
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction | UploadFile | SaveNewTracks;
+  | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist;

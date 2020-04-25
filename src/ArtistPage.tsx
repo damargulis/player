@@ -1,4 +1,4 @@
-import {updateArtist, updateLibrary} from './redux/actions';
+import {deleteArtist, updateArtist, updateLibrary} from './redux/actions';
 import {Album, Artist, ArtistInfo, Genre, LibraryInfo, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
 import ArtistEditor from './ArtistEditor';
@@ -29,9 +29,11 @@ interface OwnProps {
   goBack(): void;
   goForward(): void;
   goToAlbum(albumId: string): void;
+  goToArtistPicker(): void;
 }
 
 interface DispatchProps {
+  deleteArtist(id: string): void;
   updateArtist(id: string, info: ArtistInfo): void;
   updateLibrary(updates: LibraryInfo): void;
 }
@@ -40,6 +42,7 @@ type ArtistPageProps = OwnProps & StateProps & DispatchProps;
 
 interface ArtistPageState {
   editing: boolean;
+  deleting: boolean;
 }
 
 class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
@@ -48,6 +51,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
 
     this.state = {
       editing: false,
+      deleting: false,
     };
   }
 
@@ -57,6 +61,15 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
       <div className="main">
         <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
           <ArtistEditor exit={this.closeEdit.bind(this)} artist={this.props.artist} />
+        </Modal>
+        <Modal
+          style={{content: {margin: '20%'}}}
+          isOpen={this.state.deleting}
+          onRequestClose={this.closeDelete.bind(this)}
+        >
+          <div>Confirm Delete Artist?</div>
+          <button onClick={this.confirmDelete.bind(this)}>Delete</button>
+          <button onClick={this.closeDelete.bind(this)}>Cancel</button>
         </Modal>
         <div className="artistPageHolder" >
           <div className="artistPageHeader" >
@@ -73,6 +86,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
             </div>
             <button onClick={this.editArtist.bind(this)} className="editArtist" >Edit Artist</button>
+            <button onClick={this.deleteArtist.bind(this)} className="deleteArtist">Delete Artist</button>
             {this.getErrors()}
           </div>
           <div className="artistPageBody" >
@@ -90,6 +104,19 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
 
   private editArtist(): void {
     this.setState({editing: true});
+  }
+
+  private confirmDelete(): void {
+    this.props.deleteArtist(this.props.artistId);
+    this.props.goToArtistPicker();
+  }
+
+  private deleteArtist(): void {
+    this.setState({deleting: true});
+  }
+
+  private closeDelete(): void {
+    this.setState({deleting: false});
   }
 
   private closeEdit(): void {
@@ -133,4 +160,4 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {updateArtist, updateLibrary})(ArtistPage);
+export default connect(mapStateToProps, {deleteArtist, updateArtist, updateLibrary})(ArtistPage);

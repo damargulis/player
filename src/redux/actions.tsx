@@ -3,6 +3,7 @@ import {
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
+  DELETE_ARTIST,
   LibraryInfo,
   LibraryState,
   Metadata,
@@ -90,6 +91,11 @@ export const updateArtist = (id: string, info: ArtistInfo) => ({
 export const updateTrack = (id: string, info: TrackInfo) => ({
   payload: {id, info},
   type: UPDATE_TRACK,
+});
+
+export const deleteArtist = (id: string) => ({
+  payload: {id},
+  type: DELETE_ARTIST,
 });
 
 export const addToPlaylist = (index: number, trackIds: string[]) => ({
