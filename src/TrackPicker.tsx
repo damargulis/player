@@ -271,7 +271,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   }
 
   private doShiftClick(index: number): void {
-    if (!this.state.lastSelected) {
+    if (!this.state.lastSelected && this.state.lastSelected !== 0) {
       this.doClickTrack(index);
       return;
     }
