@@ -2,6 +2,7 @@ import {
   ADD_TO_PLAYLIST,
   Album,
   Artist,
+  DELETE_ALBUM,
   DELETE_ARTIST,
   Genre,
   LibraryActionTypes,
@@ -87,6 +88,19 @@ function tracks(state: Record<string, Track>, action: LibraryActionTypes): Recor
           ...track,
           ...action.payload.info,
         }});
+    }
+    case DELETE_ALBUM: {
+      return Object.fromEntries(Object.entries(state).map(([id, track]) => {
+        const index = track.albumIds.indexOf(action.payload.id);
+        if (index >= 0) {
+          track.albumIds.splice(index, 1);
+          return [id, {
+            ...track,
+            albumIds: [...track.albumIds],
+          }];
+        }
+        return [id, track];
+      }));
     }
     case DELETE_ARTIST: {
       return Object.fromEntries(Object.entries(state).map(([id, track]) => {
@@ -199,6 +213,19 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
         }];
       })));
     }
+    case DELETE_ALBUM: {
+      return Object.fromEntries(Object.entries(state).map(([id, artist]) => {
+        const index = artist.albumIds.indexOf(action.payload.id);
+        if (index >= 0) {
+          artist.albumIds.splice(index, 1);
+          return [id, {
+            ...artist,
+            albumIds: [...artist.albumIds],
+          }];
+        }
+        return [id, artist];
+      }));
+    }
     case DELETE_ARTIST: {
       delete state[action.payload.id];
       return {...state};
@@ -269,6 +296,10 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
           ...album,
         }];
       })));
+    }
+    case DELETE_ALBUM: {
+      delete state[action.payload.id];
+      return {...state};
     }
     case DELETE_ARTIST: {
       return Object.fromEntries(Object.entries(state).map(([id, album]) => {
@@ -413,6 +444,7 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
     case UPDATE_ARTIST:
     case ADD_TO_PLAYLIST:
     case DELETE_ARTIST:
+    case DELETE_ALBUM:
       return Object.assign({}, state, {
         albums: albums(state.albums, action),
         artists: artists(state.artists, action),
@@ -494,6 +526,7 @@ export default function reducer(state: LibraryState = initialState, action: Libr
     case UPDATE_ALBUM:
     case UPDATE_ARTIST:
     case DELETE_ARTIST:
+    case DELETE_ALBUM:
     case UPDATE_LIBRARY:
     case UPDATE_TRACK:
     case UPLOAD_FILES:

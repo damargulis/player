@@ -10,18 +10,24 @@
 
 .playAlbum {
   position: absolute;
-  top: 25%;
-  translate: translateY(-75%);
+  top: 20%;
+  translate: translateY(-80%);
 }
 
 .likeButtonContainer {
   position: absolute;
-  top: 50%;
-  translate: translateY(-50%);
+  top: 40%;
+  translate: translateY(-60%);
 }
 
 .editAlbum {
   position: absolute;
-  top: 75%;
-  translate: translateY(-75%);
+  top: 60%;
+  translate: translateY(-40%);
+}
+
+.deleteAlbum {
+  position: absolute;
+  top: 80%;
+  translate: translateY(-20%);
 }
