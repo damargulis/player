@@ -1,4 +1,4 @@
-import {nextTrack, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
+import {nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime, updateTrack, nextAlbum} from './redux/actions';
 import {LibraryInfo, LibraryState, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
@@ -41,9 +41,11 @@ interface DispatchProps {
   updateLibrary(library: LibraryInfo): void;
   resetLibrary(library: LibraryInfo): void;
   nextTrack(): void;
+  prevAlbum(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   playPause(): void;
+  nextAlbum(): void;
   updateTrack(id: string, info: TrackInfo): void;
 }
 
@@ -80,11 +82,18 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('nextTrack', () => {
       this.props.nextTrack();
     });
+    ipcRenderer.on('prevAlbum', () => {
+      this.props.prevAlbum();
+    });
     ipcRenderer.on('prevTrack', () => {
       this.props.prevTrack();
     });
     ipcRenderer.on('playTrack', () => {
       this.props.playPause();
+    });
+    ipcRenderer.on('nextAlbum', () => {
+      console.log('got next album');
+      this.props.nextAlbum();
     });
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
@@ -131,6 +140,11 @@ class App extends React.Component<AppProps, AppState> {
     this.audio.volume = this.props.volume;
     this.audio.addEventListener('timeupdate', () => {
       this.props.updateTime(this.audio.currentTime);
+      console.log('sending state 1: ' + this.audio.currentTime);
+      ipcRenderer.send('controller-state', {
+        track: this.props.track,
+        currentTime: this.audio.currentTime,
+      });
     });
     this.audio.addEventListener('ended', () => {
       const track = this.props.track;
@@ -211,4 +225,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps,
-  {updateTime, updateLibrary, resetLibrary, nextTrack, prevTrack, setPlaylist, updateTrack})(App);
+  {updateTime, playPause, updateLibrary, resetLibrary, nextTrack, prevAlbum, prevTrack, setPlaylist, updateTrack, nextAlbum})(App);

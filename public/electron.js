@@ -194,3 +194,32 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+const expressPort = 4444;
+const express = require('express');
+const expressApp = express();
+const http = require('http').createServer(expressApp);
+const io = require('socket.io')(http);
+
+let lastState = null;
+
+io.on('connection', (socket) => {
+  if (lastState) {
+    socket.emit('state', lastState);
+  }
+
+  socket.on('action', (action) => {
+    console.log('got action: ' + action);
+    extEvt.reply(action);
+  });
+
+});
+
+ipcMain.on('controller-state', (evt, state) => {
+  io.emit('state', state);
+  lastState = state;
+});
+
+http.listen(expressPort, () => {
+  console.log("LISTENING ON *:" + expressPort);
+});

@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View } from 'react-native';
 import Controls from './components/Controls';
+import io from "socket.io-client";
 
 const styles = StyleSheet.create({
   container: {
@@ -23,13 +24,41 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <View style={styles.info}><Text>Info</Text></View>
-      <View style={styles.albumCover}><Text>Picture</Text></View>
-      <View style={styles.progress}><Text>Progress</Text></View>
-      <Controls />
-    </View>
-  );
+export default class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.messages = [];
+
+    this.state = {
+      track: null,
+      currentTime: 0,
+    };
+  }
+
+  sendMessage(message, data) {
+    console.log('sending: ' + message + ' ' + data);
+    this.socket.emit(message, data);
+  }
+
+  componentDidMount() {
+    this.socket = io.connect("http://192.168.1.61:4444");
+    this.socket.on('state', (state) => {
+      this.setState({
+        track: state.track,
+        currentTime: state.currentTime,
+      });
+    });
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <View style={styles.albumCover}><Text>Picture</Text></View>
+        <View style={styles.info}><Text>Title: {this.state.track ? this.state.track.name : ''}</Text></View>
+        <View style={styles.progress}><Text>Progress: {this.state.currentTime}</Text></View>
+        <Controls sendMessage={this.sendMessage.bind(this)}/>
+      </View>
+    );
+  }
 }

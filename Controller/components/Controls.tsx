@@ -21,23 +21,23 @@ const styles = StyleSheet.create({
 
 export default class Controls extends Component {
   prevAlbum() {
-    alert('Prev Album');
+    this.props.sendMessage('action', 'prevAlbum');
   }
 
-  prevSong() {
-    alert('Prev Song');
+  prevTrack() {
+    this.props.sendMessage('action', 'prevTrack');
   }
 
   playPause() {
-    alert('Play Pause');
+    this.props.sendMessage('action', 'playTrack');
   }
 
-  nextSong() {
-    alert('Next Song');
+  nextTrack() {
+    this.props.sendMessage('action', 'nextTrack');
   }
 
   nextAlbum() {
-    alert('Next Album');
+    this.props.sendMessage('action', 'nextAlbum');
   }
 
   render() {
@@ -45,27 +45,27 @@ export default class Controls extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.prevAlbum}>
+          <TouchableHighlight underlayColor="white" onPress={this.prevAlbum.bind(this)}>
             <Image style={styles.buttonImage} source={require('../assets/previous_album.png')} />
           </TouchableHighlight>
         </View>
         <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.prevSong}>
+          <TouchableHighlight underlayColor="white" onPress={this.prevTrack.bind(this)}>
             <Image style={styles.buttonImage} source={require('../assets/previous_track.png')} />
           </TouchableHighlight>
         </View>
         <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.playPause}>
+          <TouchableHighlight underlayColor="white" onPress={this.playPause.bind(this)}>
             <Image style={styles.buttonImage} source={require('../assets/play.png')} />
           </TouchableHighlight>
         </View>
         <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.nextSong}>
+          <TouchableHighlight underlayColor="white" onPress={this.nextTrack.bind(this)}>
             <Image style={styles.buttonImage} source={require('../assets/next_track.png')} />
           </TouchableHighlight>
         </View>
         <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.nextAlbum}>
+          <TouchableHighlight underlayColor="white" onPress={this.nextAlbum.bind(this)}>
             <Image style={styles.buttonImage} source={require('../assets/next_album.png')} />
           </TouchableHighlight>
         </View>
