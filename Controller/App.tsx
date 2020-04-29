@@ -47,6 +47,7 @@ export default class App extends React.Component {
       this.setState({
         track: state.track,
         currentTime: state.currentTime,
+        mediaState: state.mediaState,
       });
     });
   }
@@ -57,7 +58,7 @@ export default class App extends React.Component {
         <View style={styles.albumCover}><Text>Picture</Text></View>
         <View style={styles.info}><Text>Title: {this.state.track ? this.state.track.name : ''}</Text></View>
         <View style={styles.progress}><Text>Progress: {this.state.currentTime}</Text></View>
-        <Controls sendMessage={this.sendMessage.bind(this)}/>
+        <Controls paused={this.state.mediaState && this.state.mediaState.paused} sendMessage={this.sendMessage.bind(this)}/>
       </View>
     );
   }

@@ -1,4 +1,5 @@
-import {nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime, updateTrack, nextAlbum} from './redux/actions';
+import {nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime,
+  updateTrack} from './redux/actions';
 import {LibraryInfo, LibraryState, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
@@ -92,7 +93,6 @@ class App extends React.Component<AppProps, AppState> {
       this.props.playPause();
     });
     ipcRenderer.on('nextAlbum', () => {
-      console.log('got next album');
       this.props.nextAlbum();
     });
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
@@ -140,10 +140,13 @@ class App extends React.Component<AppProps, AppState> {
     this.audio.volume = this.props.volume;
     this.audio.addEventListener('timeupdate', () => {
       this.props.updateTime(this.audio.currentTime);
-      console.log('sending state 1: ' + this.audio.currentTime);
       ipcRenderer.send('controller-state', {
         track: this.props.track,
         currentTime: this.audio.currentTime,
+        mediaState: {
+          paused: this.audio.paused,
+          volume: this.audio.volume,
+        }
       });
     });
     this.audio.addEventListener('ended', () => {
@@ -224,5 +227,5 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps,
-  {updateTime, playPause, updateLibrary, resetLibrary, nextTrack, prevAlbum, prevTrack, setPlaylist, updateTrack, nextAlbum})(App);
+export default connect(mapStateToProps, {updateTime, playPause, updateLibrary, resetLibrary, nextTrack, prevAlbum,
+  prevTrack, setPlaylist, updateTrack, nextAlbum})(App);
