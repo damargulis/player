@@ -209,7 +209,7 @@ io.on("connection", (socket) => {
   }
 
   socket.on("action", (action) => {
-    extEvt.reply(action);
+    extEvt.reply(action.type, action.data);
   });
 
 });
@@ -219,5 +219,4 @@ ipcMain.on("controller-state", (evt, state) => {
   lastState = state;
 });
 
-http.listen(expressPort, () => {
-});
+http.listen(expressPort);

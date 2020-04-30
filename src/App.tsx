@@ -95,6 +95,9 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('nextAlbum', () => {
       this.props.nextAlbum();
     });
+    ipcRenderer.on('setTime', (evt, data) => {
+      this.audio.currentTime = data;
+    });
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
       case 'wikipedia':
@@ -146,7 +149,7 @@ class App extends React.Component<AppProps, AppState> {
         mediaState: {
           paused: this.audio.paused,
           volume: this.audio.volume,
-        }
+        },
       });
     });
     this.audio.addEventListener('ended', () => {

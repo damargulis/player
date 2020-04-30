@@ -1,7 +1,9 @@
+import Controls from './components/Controls';
+import Info from './components/Info';
+import Progress from './components/Progress';
 import React from 'react';
 import {StyleSheet, Text, View } from 'react-native';
-import Controls from './components/Controls';
-import io from "socket.io-client";
+import io from 'socket.io-client';
 
 const styles = StyleSheet.create({
   container: {
@@ -10,22 +12,14 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     justifyContent: 'center',
   },
-  info: {
-    flex: 1,
-    backgroundColor: 'blue',
-  },
   albumCover: {
     flex: 5,
     backgroundColor: 'green',
   },
-  progress: {
-    flex: 1,
-    backgroundColor: 'red',
-  },
 });
 
 export default class App extends React.Component {
-  constructor(props) {
+  constructor(props: object) {
     super(props);
 
     this.messages = [];
@@ -33,16 +27,19 @@ export default class App extends React.Component {
     this.state = {
       track: null,
       currentTime: 0,
+      mediaState: null,
     };
   }
 
-  sendMessage(message, data) {
-    console.log('sending: ' + message + ' ' + data);
-    this.socket.emit(message, data);
+  sendMessage(type: string, data: object): void {
+    this.socket.emit('action', {
+      type: type,
+      data: data,
+    });
   }
 
-  componentDidMount() {
-    this.socket = io.connect("http://192.168.1.61:4444");
+  componentDidMount(): void {
+    this.socket = io.connect('http://192.168.1.61:4444');
     this.socket.on('state', (state) => {
       this.setState({
         track: state.track,
@@ -52,13 +49,20 @@ export default class App extends React.Component {
     });
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <View style={styles.container}>
         <View style={styles.albumCover}><Text>Picture</Text></View>
-        <View style={styles.info}><Text>Title: {this.state.track ? this.state.track.name : ''}</Text></View>
-        <View style={styles.progress}><Text>Progress: {this.state.currentTime}</Text></View>
-        <Controls paused={this.state.mediaState && this.state.mediaState.paused} sendMessage={this.sendMessage.bind(this)}/>
+        <Info track={this.state.track || {}} />
+        <Progress
+          sendMessage={this.sendMessage.bind(this)}
+          currentTime={this.state.currentTime}
+          duration={this.state.track ? this.state.track.duration : 0}
+        />
+        <Controls
+          paused={this.state.mediaState && this.state.mediaState.paused}
+          sendMessage={this.sendMessage.bind(this)}
+        />
       </View>
     );
   }

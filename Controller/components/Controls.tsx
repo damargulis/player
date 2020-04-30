@@ -1,11 +1,11 @@
-import React, {Component} from 'react';
-import {TouchableHighlight, Image, StyleSheet, Text, View} from 'react-native';
 import nextAlbumImg from '../assets/next_album.png';
 import nextTrackImg from '../assets/next_track.png';
 import pauseButton from '../assets/pause.png';
 import playButton from '../assets/play.png';
 import prevAlbumImg from '../assets/previous_album.png';
 import prevTrackImg from '../assets/previous_track.png';
+import React, {Component} from 'react';
+import {Image, StyleSheet, Text, TouchableHighlight, View} from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
@@ -22,32 +22,32 @@ const styles = StyleSheet.create({
   buttonImage: {
     width: 50,
     height: 50,
-  }
+  },
 });
 
 export default class Controls extends Component {
-  prevAlbum() {
-    this.props.sendMessage('action', 'prevAlbum');
+  prevAlbum(): void {
+    this.props.sendMessage('prevAlbum');
   }
 
-  prevTrack() {
-    this.props.sendMessage('action', 'prevTrack');
+  prevTrack(): void {
+    this.props.sendMessage('prevTrack');
   }
 
-  playPause() {
-    this.props.sendMessage('action', 'playTrack');
+  playPause(): void {
+    this.props.sendMessage('playTrack');
   }
 
-  nextTrack() {
-    this.props.sendMessage('action', 'nextTrack');
+  nextTrack(): void {
+    this.props.sendMessage('nextTrack');
   }
 
-  nextAlbum() {
-    this.props.sendMessage('action', 'nextAlbum');
+  nextAlbum(): void {
+    this.props.sendMessage('nextAlbum');
   }
 
-  render() {
-    // share images with other??
+  render(): JSX.Element {
+    // TODO: share images with other
     return (
       <View style={styles.container}>
         <View style={styles.button}>
