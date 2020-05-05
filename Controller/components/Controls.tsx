@@ -1,10 +1,10 @@
+import favoriteImg from '../assets/favorite.png';
 import nextAlbumImg from '../assets/next_album.png';
 import nextTrackImg from '../assets/next_track.png';
 import pauseButton from '../assets/pause.png';
 import playButton from '../assets/play.png';
 import prevAlbumImg from '../assets/previous_album.png';
 import prevTrackImg from '../assets/previous_track.png';
-import favoriteImg from '../assets/favorite.png';
 import React, {Component} from 'react';
 import {Image, StyleSheet, Text, TouchableHighlight, View} from 'react-native';
 
