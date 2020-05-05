@@ -15,13 +15,15 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {
+  getAlbumsByIds,
   getAllAlbumIds,
   getAllArtistIds,
   getAllTrackIds,
+  getArtistsByIds,
   getCurrentTrack,
   getIsPlaying,
   getSetTime,
-  getVolume
+  getVolume,
 } from './redux/selectors';
 import {RootState} from './redux/store';
 
@@ -30,6 +32,8 @@ interface StateProps {
   track?: Track;
   playing: boolean;
   setTime?: number;
+  albums: string;
+  artists: string;
   runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryState>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
@@ -159,6 +163,8 @@ class App extends React.Component<AppProps, AppState> {
       this.props.updateTime(this.audio.currentTime);
       ipcRenderer.send('controller-state', {
         track: this.props.track,
+        artists: this.props.artists,
+        albums: this.props.albums,
         currentTime: this.audio.currentTime,
         mediaState: {
           paused: this.audio.paused,
@@ -231,6 +237,8 @@ class App extends React.Component<AppProps, AppState> {
 
 function mapStateToProps(store: RootState): StateProps {
   const track = getCurrentTrack(store);
+  const albums = track ? getAlbumsByIds(store, track.albumIds).map((a) => a.name).join(', ') : '';
+  const artists = track ? getArtistsByIds(store, track.artistIds).map((a) => a.name).join(', ') : '';
   return {
     playing: getIsPlaying(store),
     runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),
@@ -241,6 +249,8 @@ function mapStateToProps(store: RootState): StateProps {
     getAllArtistIds: () => getAllArtistIds(store),
     getAllAlbumIds: () => getAllAlbumIds(store),
     getAllTrackIds: () => getAllTrackIds(store),
+    albums,
+    artists,
   };
 }
 

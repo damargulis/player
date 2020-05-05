@@ -45,6 +45,8 @@ export default class App extends React.Component {
         track: state.track,
         currentTime: state.currentTime,
         mediaState: state.mediaState,
+        albums: state.albums,
+        artists: state.artists,
       });
     });
   }
@@ -53,7 +55,7 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <View style={styles.albumCover}><Text>Picture</Text></View>
-        <Info track={this.state.track || {}} />
+        <Info track={this.state.track || {}} artists={this.state.artists || ''} albums={this.state.albums || ''} />
         <Progress
           sendMessage={this.sendMessage.bind(this)}
           currentTime={this.state.currentTime}
