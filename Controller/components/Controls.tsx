@@ -4,6 +4,7 @@ import pauseButton from '../assets/pause.png';
 import playButton from '../assets/play.png';
 import prevAlbumImg from '../assets/previous_album.png';
 import prevTrackImg from '../assets/previous_track.png';
+import favoriteImg from '../assets/favorite.png';
 import React, {Component} from 'react';
 import {Image, StyleSheet, Text, TouchableHighlight, View} from 'react-native';
 
@@ -46,6 +47,10 @@ export default class Controls extends Component {
     this.props.sendMessage('nextAlbum');
   }
 
+  favoriteTrack(): void {
+    this.props.sendMessage('favoriteTrack');
+  }
+
   render(): JSX.Element {
     // TODO: share images with other
     return (
@@ -73,6 +78,11 @@ export default class Controls extends Component {
         <View style={styles.button}>
           <TouchableHighlight underlayColor="white" onPress={this.nextAlbum.bind(this)}>
             <Image style={styles.buttonImage} source={nextAlbumImg} />
+          </TouchableHighlight>
+        </View>
+        <View style={styles.button}>
+          <TouchableHighlight underlayColor="white" onPress={this.favoriteTrack.bind(this)}>
+            <Image style={styles.buttonImage} source={favoriteImg} />
           </TouchableHighlight>
         </View>
       </View>

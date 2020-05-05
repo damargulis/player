@@ -95,6 +95,20 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('nextAlbum', () => {
       this.props.nextAlbum();
     });
+    ipcRenderer.on('favoriteTrack', () => {
+      if (!this.props.track) {
+        return;
+      }
+      const favorites = this.props.track.favorites.slice();
+      const year = new Date().getFullYear();
+      const index = favorites.indexOf(year);
+      if (index === -1) {
+        favorites.push(year);
+      } else {
+        favorites.splice(index, 1);
+      }
+      this.props.updateTrack(this.props.track.id, {favorites});
+    });
     ipcRenderer.on('setTime', (evt, data) => {
       this.audio.currentTime = data;
     });
