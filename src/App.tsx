@@ -1,6 +1,6 @@
 import {nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime,
   updateTrack} from './redux/actions';
-import {LibraryInfo, LibraryState, Track, TrackInfo} from './redux/actionTypes';
+import {LibraryInfo, LibraryState, Track, TrackInfo, Album, Artist} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
 import {ipcRenderer} from 'electron';
@@ -32,8 +32,8 @@ interface StateProps {
   track?: Track;
   playing: boolean;
   setTime?: number;
-  albums: string;
-  artists: string;
+  albums: Album[];
+  artists: Artist[];
   runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryState>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
@@ -237,8 +237,8 @@ class App extends React.Component<AppProps, AppState> {
 
 function mapStateToProps(store: RootState): StateProps {
   const track = getCurrentTrack(store);
-  const albums = track ? getAlbumsByIds(store, track.albumIds).map((a) => a.name).join(', ') : '';
-  const artists = track ? getArtistsByIds(store, track.artistIds).map((a) => a.name).join(', ') : '';
+  const albums = track ? getAlbumsByIds(store, track.albumIds) : [];
+  const artists = track ? getArtistsByIds(store, track.artistIds) : [];
   return {
     playing: getIsPlaying(store),
     runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),

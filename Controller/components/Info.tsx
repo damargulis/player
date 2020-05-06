@@ -14,8 +14,8 @@ export default class Info extends Component {
       <View style={styles.info}>
         <Text>{this.props.track.name}</Text>
         <Text>{this.props.track.year}</Text>
-        <Text>{this.props.artists}</Text>
-        <Text>{this.props.albums}</Text>
+        <Text>{this.props.artists.map((a) => a.name).join(', ')}</Text>
+        <Text>{this.props.albums.map((a) => a.name).join(', ')}</Text>
       </View>
     );
   }

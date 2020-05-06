@@ -1,3 +1,4 @@
+import AlbumArt from './components/AlbumArt';
 import Controls from './components/Controls';
 import Info from './components/Info';
 import Progress from './components/Progress';
@@ -11,10 +12,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'stretch',
     justifyContent: 'center',
-  },
-  albumCover: {
-    flex: 5,
-    backgroundColor: 'green',
   },
 });
 
@@ -39,6 +36,7 @@ export default class App extends React.Component {
   }
 
   componentDidMount(): void {
+    const port = __DEV__ ? 4444 : 4443;
     this.socket = io.connect('http://192.168.1.61:4444');
     this.socket.on('state', (state) => {
       this.setState({
@@ -54,8 +52,8 @@ export default class App extends React.Component {
   render(): JSX.Element {
     return (
       <View style={styles.container}>
-        <View style={styles.albumCover}><Text>Picture</Text></View>
-        <Info track={this.state.track || {}} artists={this.state.artists || ''} albums={this.state.albums || ''} />
+        <AlbumArt artFile={this.state.albums && this.state.albums[0] && this.state.albums[0].albumArtFile} />
+        <Info track={this.state.track || {}} artists={this.state.artists || []} albums={this.state.albums || []} />
         <Progress
           sendMessage={this.sendMessage.bind(this)}
           currentTime={this.state.currentTime}
