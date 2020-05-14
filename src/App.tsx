@@ -1,6 +1,6 @@
 import {nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime,
   updateTrack} from './redux/actions';
-import {LibraryInfo, LibraryState, Track, TrackInfo, Album, Artist} from './redux/actionTypes';
+import {Album, Artist, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
 import {ipcRenderer} from 'electron';
@@ -23,6 +23,8 @@ import {
   getCurrentTrack,
   getIsPlaying,
   getSetTime,
+  getSyncedPlaylists,
+  getTrackById,
   getVolume,
 } from './redux/selectors';
 import {RootState} from './redux/store';
@@ -39,6 +41,8 @@ interface StateProps {
   getAllTrackIds(): string[];
   getAllAlbumIds(): string[];
   getAllArtistIds(): string[];
+  getSyncedPlaylists(): Playlist[];
+  getTrackById(trackId: string): Track;
 }
 
 interface DispatchProps {
@@ -115,6 +119,13 @@ class App extends React.Component<AppProps, AppState> {
     });
     ipcRenderer.on('setTime', (evt, data) => {
       this.audio.currentTime = data;
+    });
+    ipcRenderer.on('get-synced-playlists', (evt) => {
+      ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
+    });
+    ipcRenderer.on('get-track', (evt, trackId) => {
+      const data = this.props.getTrackById(trackId);
+      ipcRenderer.send('get-track-' + trackId, data);
     });
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
@@ -246,11 +257,13 @@ function mapStateToProps(store: RootState): StateProps {
     setTime: getSetTime(store),
     track,
     volume: getVolume(store),
+    getSyncedPlaylists: () => getSyncedPlaylists(store),
     getAllArtistIds: () => getAllArtistIds(store),
     getAllAlbumIds: () => getAllAlbumIds(store),
     getAllTrackIds: () => getAllTrackIds(store),
     albums,
     artists,
+    getTrackById: (trackId) => getTrackById(store, trackId),
   };
 }
 

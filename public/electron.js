@@ -10,9 +10,9 @@ const {
 
 // shouldn't need package for this ... figure out better way
 const isDev = require("electron-is-dev");
-
 const path = require("path");
 const defaultMenu = require("electron-default-menu");
+const fs = require("fs");
 
 class ExtensionMonitor {
   constructor(extensionId) {
@@ -195,7 +195,7 @@ app.on("activate", () => {
   }
 });
 
-const expressPort = 4444;
+const expressPort = isDev ? 4444 : 4443;
 const express = require("express");
 const expressApp = express();
 const http = require("http").createServer(expressApp);
@@ -217,6 +217,29 @@ io.on("connection", (socket) => {
 ipcMain.on("controller-state", (evt, state) => {
   io.emit("state", state);
   lastState = state;
+});
+
+expressApp.get("/start-sync", (req, res) => {
+  ipcMain.once("synced-playlists", (evt, data) => {
+    res.send(JSON.stringify(data));
+  });
+  extEvt.reply("get-synced-playlists");
+});
+
+expressApp.get("/get-track-data/:trackId", (req, res) => {
+  ipcMain.once("get-track-" + req.params.trackId, (evt, data) => {
+    res.send(JSON.stringify(data));
+  });
+  extEvt.reply("get-track", req.params.trackId);
+});
+
+expressApp.get("/get-track/:trackId", (req, res) => {
+  ipcMain.once("get-track-" + req.params.trackId, (evt, data) => {
+    const fileName = data.filePath;
+    const pathName = decodeURI(fileName.slice(7));
+    res.sendFile(pathName);
+  });
+  extEvt.reply("get-track", req.params.trackId);
 });
 
 http.listen(expressPort);

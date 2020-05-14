@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 32,
-  }
+  },
 });
 
 export default class AlbumArt extends React.Component {
