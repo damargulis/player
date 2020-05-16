@@ -7,6 +7,7 @@ import * as FileSystem from 'expo-file-system';
 import PlaylistPicker from './PlaylistPicker';
 import React from 'react';
 import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import TrackPicker from "./TrackPicker";
 
 const styles = StyleSheet.create({
   container: {
@@ -128,6 +129,11 @@ export default class DownloadPage extends React.Component {
           <Stack.Screen name="Playlists">
             {
               props => <PlaylistPicker {...props} playlists={this.state.playlists} />
+            }
+          </Stack.Screen>
+          <Stack.Screen name="tracks" >
+            {
+              props => <TrackPicker {...props} tracks={this.state.tracks} />
             }
           </Stack.Screen>
         </Stack.Navigator>

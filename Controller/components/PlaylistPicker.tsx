@@ -8,7 +8,9 @@ export default class PlaylistPicker extends React.Component {
         <FlatList
           data={this.props.playlists}
           renderItem={({item}) => (
-            <TouchableHighlight underlayColor="white" onPress={() => {}}>
+            <TouchableHighlight underlayColor="white" onPress={() => this.props.navigation.navigate('tracks', {
+              playlist: item
+            })}>
               <Text>{item.name}</Text>
             </TouchableHighlight>
           )}

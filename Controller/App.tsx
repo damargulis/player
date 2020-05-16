@@ -5,6 +5,9 @@ import React from 'react';
 import {StyleSheet, Text, View } from 'react-native';
 import {Pages} from 'react-native-pages';
 import io from 'socket.io-client';
+import TrackPlayer from 'react-native-track-player';
+
+TrackPlayer.registerPlaybackService(() => require('./service.js'));
 
 export default class App extends React.Component {
   constructor(props) {
