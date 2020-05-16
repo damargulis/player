@@ -3,7 +3,6 @@
     "name": "Music (Controller)",
     "slug": "Controller",
     "privacy": "public",
-    "sdkVersion": "36.0.0",
     "platforms": [
       "ios",
       "android",
