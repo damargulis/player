@@ -3,6 +3,7 @@ import {Album, Artist, LibraryInfo, Playlist, Track, TrackInfo} from './redux/ac
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import ExternalLink from './ExternalLink';
+import favoriteImg from './resources/favorite.png';
 import runGeniusExtension from './extensions/genius/main';
 import playingImg from './resources/playing.svg';
 import RandomTrackPlaylist from './playlist/RandomTrackPlaylist';
@@ -127,6 +128,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
                 <Column dataKey="index" label="#" width={50} />
                 <Column dataKey="name" label="Name" width={300} />
                 <Column dataKey="playing" width={10} cellRenderer={this.playingRenderer}/>
+                <Column dataKey="favorite" width={15} cellRenderer={this.favoriteRenderer}/>
                 <Column dataKey="genius" width={10} cellRenderer={this.geniusRenderer}/>
                 <Column dataKey="duration" label="Time" width={50} />
                 <Column dataKey="artists" label="Artists" width={150} />
@@ -153,6 +155,12 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
       cellData ? <img style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span></span>
+    );
+  }
+
+  private favoriteRenderer({cellData}: {cellData?: boolean}): JSX.Element {
+    return (
+      cellData ? <img height="10px" width="10px" src={favoriteImg} alt="favotie"/> : <span></span>
     );
   }
 
@@ -238,6 +246,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private getTrackData(index: number): object {
     const track = this.state.tracks[index];
+    const year = new Date().getFullYear();
     return {
       albums: this.props.getAlbumsByIds(track.albumIds)
         .map((album) => album.name).join(', '),
@@ -251,6 +260,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
       year: track.year,
       playing: track.id === this.props.currentlyPlayingId,
       genius: track.genius && track.genius.page,
+      favorite: track.favorites.indexOf(year) !== -1,
     };
   }
 
@@ -271,7 +281,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   }
 
   private doShiftClick(index: number): void {
-    if (!this.state.lastSelected) {
+    if (!this.state.lastSelected && this.state.lastSelected !== 0) {
       this.doClickTrack(index);
       return;
     }

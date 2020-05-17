@@ -36,7 +36,7 @@ interface StateProps {
   setTime?: number;
   albums: Album[];
   artists: Artist[];
-  runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryState>;
+  runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
   getAllAlbumIds(): string[];
@@ -131,7 +131,7 @@ class App extends React.Component<AppProps, AppState> {
       switch (arg) {
       case 'wikipedia':
         this.props.runWikiExtension(this.props.getAllAlbumIds(), this.props.getAllArtistIds())
-          .then((library: LibraryState) => {
+          .then((library) => {
             this.props.updateLibrary(library);
           });
         break;
@@ -163,7 +163,7 @@ class App extends React.Component<AppProps, AppState> {
     }).catch(() => {
       createLibrary().then((library) => {
         const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
-        this.props.updateLibrary(library);
+        this.props.resetLibrary(library);
         this.props.setPlaylist(playlist, /* play= */ false);
       });
     });

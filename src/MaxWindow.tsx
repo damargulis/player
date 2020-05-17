@@ -1,3 +1,4 @@
+import {uploadFiles} from './redux/actions';
 import {Album, Artist, Playlist, Track} from './redux/actionTypes';
 import AlbumPage from './AlbumPage';
 import AlbumPicker from './AlbumPicker';
@@ -6,10 +7,12 @@ import ArtistPicker from './ArtistPicker';
 import {ipcRenderer} from 'electron';
 import GenrePicker from './GenrePicker';
 import Header from './Header';
+import NewTracksPage from './NewTracksPage';
 import PlaylistPage from './PlaylistPage';
 import PlaylistPicker from './PlaylistPicker';
 import PlaylistTypePicker from './PlaylistTypePicker';
 import React from 'react';
+import Dropzone from 'react-dropzone';
 import {connect} from 'react-redux';
 import {
   getAlbumById, getAlbumsByGenres, getArtistById, getArtistsByGenres, getTracksByGenres,
@@ -25,7 +28,11 @@ interface StateProps {
   getArtistsByGenres(genres: string[]): Artist[];
 }
 
-type MaxWindowProps = StateProps;
+interface DispatchProps {
+  uploadFiles(files: File[]): void;
+}
+
+type MaxWindowProps = StateProps & DispatchProps;
 
 interface MaxWindowState {
   curScene: number;
@@ -68,10 +75,22 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
             <PlaylistTypePicker setType={this.setType.bind(this)} />
             <GenrePicker setGenres={this.setGenres.bind(this)} />
           </div>
-          {this.getPicker()}
+          <Dropzone onDrop={this.onDrop.bind(this)}>
+            {({getRootProps, getInputProps}) => (
+              <div {...getRootProps({onClick: (evt) => evt.stopPropagation()})} style={{width: '100%'}}>
+                <input {...getInputProps()} />
+                {this.getPicker()}
+              </div>
+            )}
+          </Dropzone>
         </div>
       </div>
     );
+  }
+
+  private onDrop(files: File[]): void {
+    this.props.uploadFiles(files);
+    this.setType('new');
   }
 
   private onTrackMessage(evt: Event, data: {trackId: string}): void {
@@ -131,6 +150,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}
         goToArtist={this.goToArtist.bind(this)}
+        goToAlbumPicker={() => this.setType('album')}
       />,
     );
     const curScene = this.state.curScene + 1;
@@ -146,6 +166,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
         goBack={this.goBack.bind(this)}
         goForward={this.goForward.bind(this)}
         goToAlbum={this.goToAlbum.bind(this)}
+        goToArtistPicker={() => this.setType('artist')}
       />,
 
     );
@@ -189,6 +210,8 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       return <TrackPicker tracks={this.props.getTracksByGenres(this.state.genres)} />;
     case 'playlist':
       return <PlaylistPicker goToPlaylist={this.goToPlaylist.bind(this)} />;
+    case 'new':
+      return <NewTracksPage />;
     default:
       return;
     }
@@ -205,4 +228,4 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps)(MaxWindow);
+export default connect(mapStateToProps, {uploadFiles})(MaxWindow);

@@ -1,4 +1,4 @@
-import {Album, AlbumInfo, Artist, ArtistInfo, LibraryState} from '../../redux/actionTypes';
+import {Album, AlbumInfo, Artist, ArtistInfo, LibraryInfo} from '../../redux/actionTypes';
 import modifyAlbum from './albums';
 import modifyArtist from './artists';
 import {ipcRenderer} from 'electron';
@@ -45,7 +45,7 @@ function getArtistPool(store: RootState, artists: Artist[], extId: string): Prom
 }
 
 export default function runWikiExtension(
-  albumIds: string[], artistIds: string[], store: RootState): PromiseLike<LibraryState> {
+  albumIds: string[], artistIds: string[], store: RootState): PromiseLike<LibraryInfo> {
   // put these into a single pool so that you can go straight into the other
   // without having to wait for an acutal finish?
   const extId = shortid.generate();

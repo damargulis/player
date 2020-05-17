@@ -1,4 +1,4 @@
-import {setPlaylist, updateAlbum, updateLibrary, updateTrack} from './redux/actions';
+import {deleteAlbum, setPlaylist, updateAlbum, updateLibrary, updateTrack} from './redux/actions';
 import {Album, AlbumInfo, Artist, Genre, LibraryInfo, Track, TrackInfo} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
@@ -37,6 +37,7 @@ interface OwnProps {
   goToArtist(artistId: string): void;
   goBack(): void;
   goForward(): void;
+  goToAlbumPicker(): void;
 }
 
 interface DispatchProps {
@@ -44,10 +45,12 @@ interface DispatchProps {
   updateLibrary(update: LibraryInfo): void;
   updateTrack(id: string, info: TrackInfo): void;
   updateAlbum(id: string, info: AlbumInfo): void;
+  deleteAlbum(id: string): void;
 }
 
 interface AlbumPageState {
   editing: boolean;
+  deleting: boolean;
 }
 
 type AlbumPageProps = OwnProps & StateProps & DispatchProps;
@@ -56,7 +59,10 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   constructor(props: AlbumPageProps) {
     super(props);
 
-    this.state = {editing: false};
+    this.state = {
+      editing: false,
+      deleting: false,
+    };
   }
 
   public render(): JSX.Element {
@@ -67,6 +73,15 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
       <div className="main">
         <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
           <AlbumEditor exit={this.closeEdit.bind(this)} album={this.props.album} />
+        </Modal>
+        <Modal
+          style={{content: {margin: '20%'}}}
+          isOpen={this.state.deleting}
+          onRequestClose={this.closeDelete.bind(this)}
+        >
+          <div>Confirm Delete Album?</div>
+          <button onClick={this.confirmDelete.bind(this)}>Delete</button>
+          <button onClick={this.closeDelete.bind(this)}>Cancel</button>
         </Modal>
         <div className="albumPageHeader" >
           <div className="info">
@@ -92,6 +107,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
               <LikeButton item={this.props.album} update={this.props.updateAlbum}/>
             </div>
             <button onClick={this.editAlbum.bind(this)} className="editAlbum" >Edit Album</button>
+            <button onClick={this.deleteAlbum.bind(this)} className="deleteAlbum">Delete Album</button>
           </div>
           {this.getErrors()}
           {this.getWarnings()}
@@ -171,6 +187,19 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     this.props.setPlaylist(playlist, /* play= */ true);
   }
 
+  private deleteAlbum(): void {
+    this.setState({deleting: true});
+  }
+
+  private confirmDelete(): void {
+    this.props.deleteAlbum(this.props.albumId);
+    this.props.goToAlbumPicker();
+  }
+
+  private closeDelete(): void {
+    this.setState({deleting: false});
+  }
+
   private editAlbum(): void {
     this.setState({editing: true});
   }
@@ -193,4 +222,4 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, updateAlbum, updateLibrary, updateTrack})(AlbumPage);
+export default connect(mapStateToProps, {deleteAlbum, setPlaylist, updateAlbum, updateLibrary, updateTrack})(AlbumPage);
