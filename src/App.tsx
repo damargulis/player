@@ -1,5 +1,6 @@
-import {nextTrack, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime, updateTrack} from './redux/actions';
-import {LibraryInfo, LibraryState, Track, TrackInfo} from './redux/actionTypes';
+import {nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime,
+  updateTrack} from './redux/actions';
+import {Album, Artist, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {DATA_DIR} from './constants';
 import {ipcRenderer} from 'electron';
@@ -14,13 +15,17 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {
+  getAlbumsByIds,
   getAllAlbumIds,
   getAllArtistIds,
   getAllTrackIds,
+  getArtistsByIds,
   getCurrentTrack,
   getIsPlaying,
   getSetTime,
-  getVolume
+  getSyncedPlaylists,
+  getTrackById,
+  getVolume,
 } from './redux/selectors';
 import {RootState} from './redux/store';
 
@@ -29,11 +34,15 @@ interface StateProps {
   track?: Track;
   playing: boolean;
   setTime?: number;
+  albums: Album[];
+  artists: Artist[];
   runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
   getAllAlbumIds(): string[];
   getAllArtistIds(): string[];
+  getSyncedPlaylists(): Playlist[];
+  getTrackById(trackId: string): Track;
 }
 
 interface DispatchProps {
@@ -41,9 +50,11 @@ interface DispatchProps {
   updateLibrary(library: LibraryInfo): void;
   resetLibrary(library: LibraryInfo): void;
   nextTrack(): void;
+  prevAlbum(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   playPause(): void;
+  nextAlbum(): void;
   updateTrack(id: string, info: TrackInfo): void;
 }
 
@@ -80,11 +91,41 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('nextTrack', () => {
       this.props.nextTrack();
     });
+    ipcRenderer.on('prevAlbum', () => {
+      this.props.prevAlbum();
+    });
     ipcRenderer.on('prevTrack', () => {
       this.props.prevTrack();
     });
     ipcRenderer.on('playTrack', () => {
       this.props.playPause();
+    });
+    ipcRenderer.on('nextAlbum', () => {
+      this.props.nextAlbum();
+    });
+    ipcRenderer.on('favoriteTrack', () => {
+      if (!this.props.track) {
+        return;
+      }
+      const favorites = this.props.track.favorites.slice();
+      const year = new Date().getFullYear();
+      const index = favorites.indexOf(year);
+      if (index === -1) {
+        favorites.push(year);
+      } else {
+        favorites.splice(index, 1);
+      }
+      this.props.updateTrack(this.props.track.id, {favorites});
+    });
+    ipcRenderer.on('setTime', (evt, data) => {
+      this.audio.currentTime = data;
+    });
+    ipcRenderer.on('get-synced-playlists', (evt) => {
+      ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
+    });
+    ipcRenderer.on('get-track', (evt, trackId) => {
+      const data = this.props.getTrackById(trackId);
+      ipcRenderer.send('get-track-' + trackId, data);
     });
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
@@ -131,6 +172,16 @@ class App extends React.Component<AppProps, AppState> {
     this.audio.volume = this.props.volume;
     this.audio.addEventListener('timeupdate', () => {
       this.props.updateTime(this.audio.currentTime);
+      ipcRenderer.send('controller-state', {
+        track: this.props.track,
+        artists: this.props.artists,
+        albums: this.props.albums,
+        currentTime: this.audio.currentTime,
+        mediaState: {
+          paused: this.audio.paused,
+          volume: this.audio.volume,
+        },
+      });
     });
     this.audio.addEventListener('ended', () => {
       const track = this.props.track;
@@ -197,6 +248,8 @@ class App extends React.Component<AppProps, AppState> {
 
 function mapStateToProps(store: RootState): StateProps {
   const track = getCurrentTrack(store);
+  const albums = track ? getAlbumsByIds(store, track.albumIds) : [];
+  const artists = track ? getArtistsByIds(store, track.artistIds) : [];
   return {
     playing: getIsPlaying(store),
     runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),
@@ -204,11 +257,15 @@ function mapStateToProps(store: RootState): StateProps {
     setTime: getSetTime(store),
     track,
     volume: getVolume(store),
+    getSyncedPlaylists: () => getSyncedPlaylists(store),
     getAllArtistIds: () => getAllArtistIds(store),
     getAllAlbumIds: () => getAllAlbumIds(store),
     getAllTrackIds: () => getAllTrackIds(store),
+    albums,
+    artists,
+    getTrackById: (trackId) => getTrackById(store, trackId),
   };
 }
 
-export default connect(mapStateToProps,
-  {updateTime, updateLibrary, resetLibrary, nextTrack, prevTrack, setPlaylist, updateTrack})(App);
+export default connect(mapStateToProps, {updateTime, playPause, updateLibrary, resetLibrary, nextTrack, prevAlbum,
+  prevTrack, setPlaylist, updateTrack, nextAlbum})(App);

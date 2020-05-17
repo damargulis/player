@@ -223,6 +223,13 @@ export function getAutoPlaylists(store: RootState): Playlist[] {
   ];
 }
 
+export function getSyncedPlaylists(store: RootState): Playlist[] {
+  return [
+    getMostPlayed(store),
+    ...getLikesByYear(store),
+  ];
+}
+
 export function getVolume(store: RootState): number {
   return store.currentlyPlaying.volume;
 }
