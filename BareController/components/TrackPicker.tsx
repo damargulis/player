@@ -2,34 +2,35 @@ import React from 'react';
 import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default class TrackPicker extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      shuffling: false,
-    }
-
   }
 
-  shuffle(): void {
-    this.setState({shuffling: true});
-    const trackIds = this.props.route.params.playlist.trackIds;
-    let trackId = null;
-    while (!this.props.tracks[trackId]) {
-      trackId = trackIds[Math.floor(Math.random() * trackIds.length)];
-    }
-    this.playTrack(trackId);
-  }
+  async shuffle(): void {
+    const trackIds = shuffleArray(this.props.route.params.playlist.trackIds.slice());
 
-  async play(trackId): void {
-    this.setState({shuffling: false});
-    await this.playTrack(trackId);
-  }
+    const hasTrack = trackIds.filter((id) => this.props.tracks[id]);
 
-  async playTrack(trackId) {
-    console.log("Play Track");
+    const data = hasTrack.map((id) => {
+      const track = this.props.tracks[id];
+      return {
+        id: track.id,
+        url: track.filePath,
+        title: track.name,
+      }
+    });
     await TrackPlayer.setupPlayer();
+    await TrackPlayer.reset();
     const options = {
       capabilities: [
         TrackPlayer.CAPABILITY_PLAY,
@@ -37,6 +38,29 @@ export default class TrackPicker extends React.Component {
         TrackPlayer.CAPABILITY_STOP,
         TrackPlayer.CAPABILITY_SKIP_TO_NEXT,
         TrackPlayer.CAPABILITY_SKIP_TO_PREVIOUS,
+      ],
+
+      compactCapabilities: [
+        TrackPlayer.CAPABILITY_PLAY,
+        TrackPlayer.CAPABILITY_PAUSE,
+      ],
+
+    }
+    await TrackPlayer.updateOptions(options);
+    await TrackPlayer.add(data);
+    console.log("playing");
+    await TrackPlayer.play();
+  }
+
+  async playTrack(trackId) {
+    console.log("Play Track");
+    await TrackPlayer.setupPlayer();
+    await TrackPlayer.reset();
+    const options = {
+      capabilities: [
+        TrackPlayer.CAPABILITY_PLAY,
+        TrackPlayer.CAPABILITY_PAUSE,
+        TrackPlayer.CAPABILITY_STOP,
       ],
 
       compactCapabilities: [
@@ -73,7 +97,7 @@ export default class TrackPicker extends React.Component {
               return null;
             }
             return (
-              <TouchableHighlight onPress={() => this.play(item)}>
+              <TouchableHighlight onPress={() => this.playTrack(item)}>
                 <Text>{track.name}</Text>
               </TouchableHighlight>
             );

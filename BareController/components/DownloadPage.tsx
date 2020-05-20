@@ -5,7 +5,7 @@ import PromisePool from 'es6-promise-pool';
 import {FileSystem} from 'react-native-unimodules';
 import PlaylistPicker from './PlaylistPicker';
 import React from 'react';
-import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import {AsyncStorage, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import TrackPicker from "./TrackPicker";
 
 const styles = StyleSheet.create({
@@ -57,7 +57,7 @@ class Main extends React.Component {
       return null;
     }
     return (
-      <Text style={styles.sync}>Syncing TODO: show progress</Text>
+      <Text style={styles.sync}>{this.props.progressString}</Text>
     );
   }
 }
@@ -73,6 +73,21 @@ export default class DownloadPage extends React.Component {
       syncing: false,
       playlists: [],
     };
+  }
+
+  componentDidMount() {
+    this.fetchData();
+  }
+
+  async fetchData() {
+    const tracks = await AsyncStorage.getItem('tracks');
+    const playlists = await AsyncStorage.getItem('playlists');
+    if (tracks && playlists) {
+      this.setState({
+        tracks: JSON.parse(tracks),
+        playlists: JSON.parse(playlists),
+      });
+    }
   }
 
   sync(): void {
@@ -108,6 +123,8 @@ export default class DownloadPage extends React.Component {
       }, 1);
       return trackPromises.start().then(() => {
         this.setState({syncing: false});
+        AsyncStorage.setItem('tracks', JSON.stringify(this.state.tracks));
+        AsyncStorage.setItem('playlists', JSON.stringify(this.state.playlists));
       });
     }).catch((err) => {
       console.log('Err:');
@@ -117,12 +134,20 @@ export default class DownloadPage extends React.Component {
   }
 
   render() {
+    const synced = Object.values(this.state.tracks).length;
+    const total = this.state.playlists.reduce((total, playlist) => { return total + playlist.trackIds.length}, 0);
+    const progressString = `Synced ${synced} out of ${total} tracks`;
     return (
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="main" >
             {
-              props => <Main {...props} sync={this.sync.bind(this)} connected={this.props.connected} syncing={this.state.syncing} />
+              props => <Main {...props}
+                sync={this.sync.bind(this)}
+                connected={this.props.connected}
+                syncing={this.state.syncing}
+                progressString={progressString}
+              />
             }
           </Stack.Screen>
           <Stack.Screen name="Playlists">
