@@ -90,42 +90,73 @@ export default class DownloadPage extends React.Component {
     }
   }
 
+  syncTrackId(trackId: string): Promise {
+    return fetch(API_URL + '/get-track-data/' + trackId)
+      .then((res) => res.json()).then((res) => {
+        const path = FileSystem.documentDirectory + trackId + '.mp3';
+        console.log("checking: " + path);
+        return FileSystem.getInfoAsync(path).then(({exists}) => {
+          console.log('got info, exists: ' + exists);
+          if (exists) {
+            this.setState({
+              tracks: Object.assign({}, this.state.tracks, {[trackId]: {...res, filePath: path}}),
+            });
+          } else {
+            const url = API_URL + '/get-track/' + trackId;
+            return FileSystem.downloadAsync(url, path).then(({uri}) => {
+              this.setState({
+                tracks: Object.assign({}, this.state.tracks, {[trackId]: { ...res, filePath: uri}}),
+              });
+            });
+          }
+        });
+      });
+  }
+
+  syncTrackIds(trackIds) {
+    trackIds = trackIds.keys();
+    const trackPromises = new PromisePool(() => {
+      const next = trackIds.next();
+      if (next.done) {
+        return null;
+      }
+      return this.syncTrackId(next.value);
+    }, 3);
+    return trackPromises.start();
+  }
+
+  save() {
+    AsyncStorage.setItem('tracks', JSON.stringify(this.state.tracks));
+    AsyncStorage.setItem('playlists', JSON.stringify(this.state.playlists));
+  }
+
+  removeOldTracks(keepTracks) {
+    const tracks = Object.assign({}, this.state.tracks);
+    const deletes = Promise.all(Object.keys(this.state.tracks).map((trackId) => {
+      if (!keepTracks.has(trackId)) {
+        const path = this.state.tracks[trackId].filePath;
+        delete tracks[trackId]
+        return FileSystem.deleteAsync(path, {idempotent: true});
+      }
+    }));
+    this.setState({tracks});
+    return deletes;
+  }
+
   sync(): void {
+    console.log('syncing');
     this.setState({syncing: true});
     fetch(API_URL + '/start-sync').then((res) => res.json())
     .then((json) => {
-      let trackIds = new Set() as Set<number>;
+      let trackIds = new Set() as Set<string>;
       const playlists = json.playlists;
       playlists.forEach((playlist) => {
         playlist.trackIds.forEach((id) => trackIds.add(id));
       });
       this.setState({playlists});
-      trackIds = trackIds.keys();
-      const trackPromises = new PromisePool(() => {
-        const next = trackIds.next();
-        if (next.done) {
-          return null;
-        }
-        const trackId = next.value;
-        const url = API_URL + '/get-track/' + trackId;
-        return FileSystem.downloadAsync(url, FileSystem.documentDirectory + trackId + '.mp3').then(({uri}) => {
-          return fetch(API_URL + '/get-track-data/' + trackId).then((res) => res.json()).then((res) => {
-            this.setState({
-              tracks: Object.assign({}, this.state.tracks, {
-                [trackId]: {
-                  ...res,
-                  filePath: uri,
-                },
-              }),
-            });
-          });
-        });
-      }, 1);
-      return trackPromises.start().then(() => {
-        this.setState({syncing: false});
-        AsyncStorage.setItem('tracks', JSON.stringify(this.state.tracks));
-        AsyncStorage.setItem('playlists', JSON.stringify(this.state.playlists));
-      });
+      return this.removeOldTracks(trackIds)
+        .then(() => this.syncTrackIds(trackIds))
+        .then(() => this.setState({syncing: false}, () => this.save()));
     }).catch((err) => {
       console.log('Err:');
       console.log(err);
