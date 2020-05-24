@@ -34,8 +34,8 @@ interface StateProps {
   track?: Track;
   playing: boolean;
   setTime?: number;
-  albums: Album[];
-  artists: Artist[];
+  getArtistsByIds(artistIds: string[]): Artist[];
+  getAlbumsByIds(albumIds: string[]): Album[];
   runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
@@ -127,6 +127,14 @@ class App extends React.Component<AppProps, AppState> {
       const data = this.props.getTrackById(trackId);
       ipcRenderer.send('get-track-' + trackId, data);
     });
+    ipcRenderer.on('get-artist', (evt, artistId) => {
+      const artist = this.props.getArtistsByIds([artistId])[0];
+      ipcRenderer.send('get-artist-' + artistId, artist);
+    });
+    ipcRenderer.on('get-album', (evt, albumId) => {
+      const album = this.props.getAlbumsByIds([albumId])[0];
+      ipcRenderer.send('get-album-' + albumId, album);
+    });
     ipcRenderer.on('run-extension', (type: {}, arg: string) => {
       switch (arg) {
       case 'wikipedia':
@@ -172,10 +180,12 @@ class App extends React.Component<AppProps, AppState> {
     this.audio.volume = this.props.volume;
     this.audio.addEventListener('timeupdate', () => {
       this.props.updateTime(this.audio.currentTime);
+      const artists = this.props.track ? this.props.getArtistsByIds(this.props.track.artistIds) : [];
+      const albums = this.props.track ? this.props.getAlbumsByIds(this.props.track.albumIds) : [];
       ipcRenderer.send('controller-state', {
         track: this.props.track,
-        artists: this.props.artists,
-        albums: this.props.albums,
+        artists: artists,
+        albums: albums,
         currentTime: this.audio.currentTime,
         mediaState: {
           paused: this.audio.paused,
@@ -248,8 +258,6 @@ class App extends React.Component<AppProps, AppState> {
 
 function mapStateToProps(store: RootState): StateProps {
   const track = getCurrentTrack(store);
-  const albums = track ? getAlbumsByIds(store, track.albumIds) : [];
-  const artists = track ? getArtistsByIds(store, track.artistIds) : [];
   return {
     playing: getIsPlaying(store),
     runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),
@@ -261,8 +269,8 @@ function mapStateToProps(store: RootState): StateProps {
     getAllArtistIds: () => getAllArtistIds(store),
     getAllAlbumIds: () => getAllAlbumIds(store),
     getAllTrackIds: () => getAllTrackIds(store),
-    albums,
-    artists,
+    getArtistsByIds: (artistIds) => getArtistsByIds(store, artistIds),
+    getAlbumsByIds: (albumIds) => getAlbumsByIds(store, albumIds),
     getTrackById: (trackId) => getTrackById(store, trackId),
   };
 }

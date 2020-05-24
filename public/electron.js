@@ -226,6 +226,20 @@ expressApp.get("/start-sync", (req, res) => {
   extEvt.reply("get-synced-playlists");
 });
 
+expressApp.get("/get-artist-data/:artistId", (req, res) => {
+  ipcMain.once("get-artist-" + req.params.artistId, (evt, data) => {
+    res.send(JSON.stringify(data));
+  });
+  extEvt.reply("get-artist", req.params.artistId);
+});
+
+expressApp.get("/get-album-data/:albumId", (req, res) => {
+  ipcMain.once("get-album-" + req.params.albumId, (evt, data) => {
+    res.send(JSON.stringify(data));
+  });
+  extEvt.reply("get-album", req.params.albumId);
+});
+
 expressApp.get("/get-track-data/:trackId", (req, res) => {
   ipcMain.once("get-track-" + req.params.trackId, (evt, data) => {
     res.send(JSON.stringify(data));
@@ -240,6 +254,30 @@ expressApp.get("/get-track/:trackId", (req, res) => {
     res.sendFile(pathName);
   });
   extEvt.reply("get-track", req.params.trackId);
+});
+
+expressApp.get("/get-artist-pic/:artistId", (req, res) => {
+  ipcMain.once("get-artist-" + req.params.artistId, (evt, data) => {
+    const fileName = data.artFile;
+    if (fileName) {
+      const pathName = decodeURI(fileName.slice(7));
+      res.sendFile(pathName);
+    }
+    // TODO: else send error?
+  });
+  extEvt.reply("get-artist", req.params.artistId);
+});
+
+expressApp.get("/get-album-art/:albumId", (req, res) => {
+  ipcMain.once("get-album-" + req.params.albumId, (evt, data) => {
+    const fileName = data.albumArtFile;
+    if (fileName) {
+      const pathName = path.resolve(fileName);
+      res.sendFile(pathName);
+    }
+    // TODO: else send error?
+  });
+  extEvt.reply("get-album", req.params.albumId);
 });
 
 http.listen(expressPort);

@@ -2,32 +2,46 @@ import React from 'react';
 import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 
-function shuffleArray(arr) {
+const styles = StyleSheet.create({
+  name: {
+    fontSize: 20,
+  },
+  artist: {
+    fontSize: 12,
+  },
+});
+
+function shuffleArray<T>(arr: T[]): void {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i+1));
+    const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return arr;
 }
 
 export default class TrackPicker extends React.Component {
-  constructor(props) {
-    super(props);
-
-  }
-
   async shuffle(): void {
-    const trackIds = shuffleArray(this.props.route.params.playlist.trackIds.slice());
+    const trackIds = this.getTrackIds();
+    shuffleArray(trackIds);
 
     const hasTrack = trackIds.filter((id) => this.props.tracks[id]);
 
     const data = hasTrack.map((id) => {
       const track = this.props.tracks[id];
+      const artists = track.artistIds.map((artistId) => {
+        return this.props.artists[artistId].name;
+      }).join(', ');
+      const albums = track.albumIds.map((albumId) => {
+        return this.props.albums[albumId].name;
+      }).join(', ');
+      const albumArt = this.props.albums[track.albumIds[0]].albumArtFile;
       return {
         id: track.id,
         url: track.filePath,
         title: track.name,
-      }
+        artist: artists,
+        album: albums,
+        artwork: albumArt,
+      };
     });
     await TrackPlayer.setupPlayer();
     await TrackPlayer.reset();
@@ -45,15 +59,13 @@ export default class TrackPicker extends React.Component {
         TrackPlayer.CAPABILITY_PAUSE,
       ],
 
-    }
+    };
     await TrackPlayer.updateOptions(options);
     await TrackPlayer.add(data);
-    console.log("playing");
     await TrackPlayer.play();
   }
 
-  async playTrack(trackId) {
-    console.log("Play Track");
+  async playTrack(trackId: string): void {
     await TrackPlayer.setupPlayer();
     await TrackPlayer.reset();
     const options = {
@@ -68,43 +80,60 @@ export default class TrackPicker extends React.Component {
         TrackPlayer.CAPABILITY_PAUSE,
       ],
 
-    }
+    };
     await TrackPlayer.updateOptions(options);
     const track = this.props.tracks[trackId];
+    const artists = track.artistIds.map((artistId) => {
+      return this.props.artists[artistId].name;
+    }).join(', ');
+    const albums = track.albumIds.map((albumId) => {
+      return this.props.albums[albumId].name;
+    }).join(', ');
+    const albumArt = this.props.albums[track.albumIds[0]].albumArtFile;
     const playerData = {
       id: track.id,
       url: track.filePath,
       title: track.name,
-    }
-    console.log("Adding");
+      artist: artists,
+      album: albums,
+      artwork: albumArt,
+    };
     await TrackPlayer.add([playerData]);
-    console.log("playing");
     await TrackPlayer.play();
   }
 
-  render() {
+  getTrackIds(): string[] {
+    const trackIds = this.props.route.params ?
+      this.props.route.params.playlist.trackIds.slice() : Object.keys(this.props.tracks);
+    return trackIds;
+  }
+
+  render(): JSX.Element {
+    const trackIds = this.getTrackIds().filter((trackId) => this.props.tracks[trackId]);
+    const name = this.props.route.params ? this.props.route.params.playlist.name : 'All Tracks';
     return (
       <View>
-        <Text>{this.props.route.params.playlist.name}</Text>
+        <Text>{name}</Text>
         <TouchableHighlight onPress={this.shuffle.bind(this)}>
           <Text>Shuffle</Text>
         </TouchableHighlight>
         <FlatList
-          data={this.props.route.params.playlist.trackIds}
+          data={trackIds}
           renderItem={({item}) => {
             const track = this.props.tracks[item];
-            if (!track) {
-              return null;
-            }
+            const artists = track.artistIds.map((artistId) => this.props.artists[artistId].name).join(', ');
             return (
               <TouchableHighlight onPress={() => this.playTrack(item)}>
-                <Text>{track.name}</Text>
+                <View>
+                  <Text style={styles.name} >{track.name}</Text>
+                  <Text style={styles.artist} >{artists}</Text>
+                </View>
               </TouchableHighlight>
             );
           }}
           keyExtractor={trackId => trackId}
         />
       </View>
-    )
+    );
   }
 }

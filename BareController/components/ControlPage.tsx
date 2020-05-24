@@ -36,6 +36,6 @@ export default class ControlPage extends React.Component {
           sendMessage={this.props.sendMessage.bind(this)}
         />
       </View>
-    )
+    );
   }
 }
