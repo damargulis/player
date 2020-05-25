@@ -1,3 +1,4 @@
+import ErrorBoundary from 'react-native-error-boundary';
 import AlbumPicker from './AlbumPicker';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -5,7 +6,7 @@ import {API_URL} from '../constants';
 import PromisePool from 'es6-promise-pool';
 import PlaylistPicker from './PlaylistPicker';
 import React from 'react';
-import {AsyncStorage, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import {AsyncStorage, Button, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import {FileSystem} from 'react-native-unimodules';
 import TrackPicker from './TrackPicker';
 import ArtistPicker from './ArtistPicker';
@@ -57,6 +58,9 @@ class Main extends React.Component {
   }
 
   renderSyncStatus(): JSX.Element | null {
+    if (this.props.errString) {
+      return (<Text style={styles.sync}>{this.props.errString}</Text>);
+    }
     if (!this.props.syncing) {
       return null;
     }
@@ -68,6 +72,14 @@ class Main extends React.Component {
 
 const Stack = createStackNavigator();
 
+const Fallback = (props: { error: Error, resetError: Function}) => (
+  <View>
+    <Text>Something Bad Happened!</Text>
+    <Text>{props.error.toString()}</Text>
+    <Button onPress={props.resetError} title="Reset" />
+  </View>
+);
+
 export default class DownloadPage extends React.Component {
   constructor(props: object) {
     super(props);
@@ -78,6 +90,7 @@ export default class DownloadPage extends React.Component {
       artists: {},
       syncing: false,
       playlists: [],
+      err: '',
     };
   }
 
@@ -161,7 +174,7 @@ export default class DownloadPage extends React.Component {
     return fetch(`${API_URL}/get-album-data/${albumId}`)
       .then((res) => res.json()).then((res) => {
         const picPath = `${FileSystem.documentDirectory}/album-art/${albumId}.png`;
-        if (res.albumArtFile) {
+        if (res && res.albumArtFile) {
           const url = `${API_URL}/get-album-art/${albumId}`;
           return FileSystem.downloadAsync(url, picPath).then(({uri}) => {
             this.setState({
@@ -257,10 +270,11 @@ export default class DownloadPage extends React.Component {
     const albums = Object.assign({}, this.state.albums);
     const deletes = Promise.all(Object.keys(this.state.albums).map((albumId) => {
       if (!keepAlbums.has(albumId)) {
-        const artPath = this.state.albums[albumId].albumArtFile;
+        const album = this.state.albums[albumId];
+        const artPath = album && album.albumArtFile;
         delete albums[albumId];
         if (artPath) {
-          return FileSystem.delete(artPath, {idempotent: true});
+          return FileSystem.deleteAsync(artPath, {idempotent: true});
         }
       }
     }));
@@ -288,45 +302,51 @@ export default class DownloadPage extends React.Component {
     }).catch((err) => {
       console.log("Err: ");
       console.log(err);
-      this.setState({syncing: false});
+      this.setState({syncing: false, err: "Final Catch: " + err});
     });
   }
 
   render(): JSX.Element {
     const synced = Object.values(this.state.tracks).length;
-    const total = this.state.playlists.reduce((cur, playlist) => cur + playlist.trackIds.length, 0);
-    const progressString = `Synced ${synced} out of ${total} tracks`;
+    const toSync = new Set() as Set<string>;
+    this.state.playlists.forEach((playlist) => {
+      playlist.trackIds.forEach((id) => toSync.add(id));
+    });
+    const progressString = `Synced ${synced} out of ${toSync.size} tracks.  Last Err: ${this.state.err}`;
     return (
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="main" >
-            {
-              props => <Main {...props}
-                sync={this.sync.bind(this)}
-                connected={this.props.connected}
-                syncing={this.state.syncing}
-                progressString={progressString}
-              />
-            }
-          </Stack.Screen>
-          <Stack.Screen name="Playlists">
-            {props => <PlaylistPicker {...props} playlists={this.state.playlists}/>}
-          </Stack.Screen>
-          <Stack.Screen name="Albums">
-            {props => <AlbumPicker {...props} albums={this.state.albums}/>}
-          </Stack.Screen>
-          <Stack.Screen name="Artists">
-            {props => <ArtistPicker {...props} artists={this.state.artists}/>}
-          </Stack.Screen>
-          <Stack.Screen name="Tracks" >
-            {props => <TrackPicker {...props}
-              tracks={this.state.tracks}
-              artists={this.state.artists}
-              albums={this.state.albums}
-            />}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>
+      <ErrorBoundary FallbackComponent={Fallback}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="main" >
+              {
+                props => <Main {...props}
+                  sync={this.sync.bind(this)}
+                  connected={this.props.connected}
+                  syncing={this.state.syncing}
+                  progressString={progressString}
+                  errString={this.state.err}
+                />
+              }
+            </Stack.Screen>
+            <Stack.Screen name="Playlists">
+              {props => <PlaylistPicker {...props} playlists={this.state.playlists}/>}
+            </Stack.Screen>
+            <Stack.Screen name="Albums">
+              {props => <AlbumPicker {...props} albums={this.state.albums}/>}
+            </Stack.Screen>
+            <Stack.Screen name="Artists">
+              {props => <ArtistPicker {...props} artists={this.state.artists}/>}
+            </Stack.Screen>
+            <Stack.Screen name="Tracks" >
+              {props => <TrackPicker {...props}
+                tracks={this.state.tracks}
+                artists={this.state.artists}
+                albums={this.state.albums}
+              />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </ErrorBoundary>
     );
   }
 }

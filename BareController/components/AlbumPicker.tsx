@@ -4,7 +4,7 @@ import {AsyncStorage, FlatList, StyleSheet, Text, TouchableHighlight, View } fro
 export default class AlbumPicker extends React.Component {
   render(): JSX.Element {
     const albums = Object.values(this.props.albums);
-    albums.sort((a, b) => a.name.localeCompare(b.name));
+    //albums.sort((a, b) => a.name.localeCompare(b.name));
     return (
       <View>
         <FlatList
@@ -16,7 +16,7 @@ export default class AlbumPicker extends React.Component {
                 trackIds: item.trackIds,
               }
             })}>
-              <Text>{item.name}</Text>
+              <Text>Album: {item ? item.name : ''}</Text>
             </TouchableHighlight>
           )}
           keyExtractor={item => item.id}
