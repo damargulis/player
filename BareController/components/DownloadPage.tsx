@@ -10,6 +10,7 @@ import {AsyncStorage, Button, FlatList, StyleSheet, Text, TouchableHighlight, Vi
 import {FileSystem} from 'react-native-unimodules';
 import TrackPicker from './TrackPicker';
 import ArtistPicker from './ArtistPicker';
+import TrackPlayer from 'react-native-track-player';
 
 const CONCURRENCY = 1;
 
@@ -91,12 +92,34 @@ export default class DownloadPage extends React.Component {
       syncing: false,
       playlists: [],
       err: '',
+      storedPlays: {},
     };
   }
+
+  componentWillUnmount() {
+    this.onTrackChange.remove();
+  }
+
 
   componentDidMount(): void {
     this.fetchData();
     this.setUpDirectories();
+    this.onTrackChange = TrackPlayer.addEventListener('playback-track-changed', (data) => {
+      if (data.track !== null) {
+        const track = this.state.tracks[data.track];
+        const bigPos = data.position * 100;
+        const isGreater = bigPos >= track.duration;
+        if (data.position * 1000 >= track.duration * .95) {
+          console.log("SONG ENDED!");
+          this.setState({
+            storedPlays: Object.assign({}, this.state.storedPlays, {
+              [track.id]: this.state.storedPlays[track.id] ? this.state.storedPlays[track.id] + 1 : 1,
+            })
+          });
+          console.log("set player");
+        }
+      }
+    });
   }
 
   setUpDirectories() {
@@ -119,12 +142,14 @@ export default class DownloadPage extends React.Component {
     const playlists = await AsyncStorage.getItem('playlists');
     const artists = await AsyncStorage.getItem('artists');
     const albums = await AsyncStorage.getItem('albums');
+    const storedPlays = await AsyncStorage.getItem('storedPlays');
     if (tracks && playlists && artists) {
       this.setState({
         tracks: JSON.parse(tracks),
         playlists: JSON.parse(playlists),
         artists: JSON.parse(artists),
         albums: JSON.parse(albums),
+        storedPlays: JSON.parse(storedPlays),
       });
     }
   }
@@ -170,7 +195,6 @@ export default class DownloadPage extends React.Component {
   }
 
   syncAlbumId(albumId: string): Promise<undefined> {
-    console.log("Syncing album id: " + albumId);
     return fetch(`${API_URL}/get-album-data/${albumId}`)
       .then((res) => res.json()).then((res) => {
         const picPath = `${FileSystem.documentDirectory}/album-art/${albumId}.png`;
@@ -230,6 +254,7 @@ export default class DownloadPage extends React.Component {
     AsyncStorage.setItem('playlists', JSON.stringify(this.state.playlists));
     AsyncStorage.setItem('artists', JSON.stringify(this.state.artists));
     AsyncStorage.setItem('albums', JSON.stringify(this.state.albums));
+    AsyncStorage.setItem('storedPlays', JSON.stringify(this.state.storedPlays));
   }
 
   removeOldTracks(keepTracks: Set<string>): Promise<undefined> {
@@ -284,7 +309,11 @@ export default class DownloadPage extends React.Component {
 
   sync(): void {
     this.setState({syncing: true});
-    fetch(API_URL + '/start-sync').then((res) => res.json())
+
+    const url = `${API_URL}/start-sync?plays=${encodeURIComponent(JSON.stringify(this.state.storedPlays))}`;
+    console.log("Sending url: " + url);
+    fetch(url).then((res) => res.json())
+    .then(() => this.setState({storedPlays: {}}))
     .then((json) => {
       const trackIds = new Set() as Set<string>;
       const playlists = json.playlists;
@@ -307,6 +336,8 @@ export default class DownloadPage extends React.Component {
   }
 
   render(): JSX.Element {
+    console.log("REndering: ");
+    console.log(this.state.storedPlays);
     const synced = Object.values(this.state.tracks).length;
     const toSync = new Set() as Set<string>;
     this.state.playlists.forEach((playlist) => {
