@@ -110,13 +110,11 @@ export default class DownloadPage extends React.Component {
         const bigPos = data.position * 100;
         const isGreater = bigPos >= track.duration;
         if (data.position * 1000 >= track.duration * .95) {
-          console.log("SONG ENDED!");
           this.setState({
             storedPlays: Object.assign({}, this.state.storedPlays, {
               [track.id]: this.state.storedPlays[track.id] ? this.state.storedPlays[track.id] + 1 : 1,
             })
           });
-          console.log("set player");
         }
       }
     });
@@ -311,10 +309,9 @@ export default class DownloadPage extends React.Component {
     this.setState({syncing: true});
 
     const url = `${API_URL}/start-sync?plays=${encodeURIComponent(JSON.stringify(this.state.storedPlays))}`;
-    console.log("Sending url: " + url);
     fetch(url).then((res) => res.json())
-    .then(() => this.setState({storedPlays: {}}))
     .then((json) => {
+      this.setState({storedPlays: {}});
       const trackIds = new Set() as Set<string>;
       const playlists = json.playlists;
       playlists.forEach((playlist) => {
@@ -336,8 +333,6 @@ export default class DownloadPage extends React.Component {
   }
 
   render(): JSX.Element {
-    console.log("REndering: ");
-    console.log(this.state.storedPlays);
     const synced = Object.values(this.state.tracks).length;
     const toSync = new Set() as Set<string>;
     this.state.playlists.forEach((playlist) => {

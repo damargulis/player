@@ -121,8 +121,6 @@ class App extends React.Component<AppProps, AppState> {
       this.audio.currentTime = data;
     });
     ipcRenderer.on('get-synced-playlists', (evt, plays) => {
-      console.log("Got plays:");
-      console.log(plays);
       Object.keys(plays).forEach((trackId) => {
         const track = this.props.getTrackById(trackId);
         this.props.updateTrack(track.id, {

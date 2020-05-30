@@ -223,8 +223,7 @@ expressApp.get("/start-sync", (req, res) => {
   ipcMain.once("synced-playlists", (evt, data) => {
     res.send(JSON.stringify(data));
   });
-  console.log("Got plays: " + req.query.plays);
-  const plays = JSON.parse(req.query.plays);
+  const plays = JSON.parse(decodeURIComponent(req.query.plays));
   extEvt.reply("get-synced-playlists", plays);
 });
 
