@@ -134,7 +134,7 @@ function getUnlistened(store: RootState): Playlist {
   return {name: 'Unheard', trackIds: tracks};
 }
 
-const THREE_MONTHS = 1000 * 60 * 60 * 24;
+const THREE_MONTHS = 1000 * 60 * 60 * 24 * 90;
 
 /**
  * Gets the tracks added to the library in the last 3 months.
@@ -227,6 +227,8 @@ export function getSyncedPlaylists(store: RootState): Playlist[] {
   return [
     getMostPlayed(store),
     ...getLikesByYear(store),
+    ...getAlbumLikesByYear(store),
+    getRecentlyAdded(store),
   ];
 }
 

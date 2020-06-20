@@ -11,8 +11,9 @@ import {FileSystem} from 'react-native-unimodules';
 import TrackPicker from './TrackPicker';
 import ArtistPicker from './ArtistPicker';
 import TrackPlayer from 'react-native-track-player';
+import {getPlays, clearPlays} from '../service.js';
 
-const CONCURRENCY = 1;
+const CONCURRENCY = 3;
 
 const styles = StyleSheet.create({
   container: {
@@ -97,25 +98,36 @@ export default class DownloadPage extends React.Component {
   }
 
   componentWillUnmount() {
-    this.onTrackChange.remove();
+    this.onTrackChangeListener.remove();
+    this.save();
+    clearPlays();
+  }
+
+  onTrackChange(trackId, position) {
+    const track = this.state.tracks[trackId];
+    if (position * 1000 >= track.duration * .95) {
+      this.setState({
+        storedPlays: Object.assign({}, this.state.storedPlays, {
+          [track.id]: this.state.storedPlays[track.id] ? this.state.storedPlays[track.id] + 1 : 1,
+        })
+      });
+    }
   }
 
 
   componentDidMount(): void {
-    this.fetchData();
-    this.setUpDirectories();
-    this.onTrackChange = TrackPlayer.addEventListener('playback-track-changed', (data) => {
+    this.fetchData().then(() => {
+      this.setUpDirectories();
+    }).then(() => {
+      const plays = getPlays();
+      Object.keys(plays).forEach((trackId) => {
+        const positions = plays[trackId];
+        positions.forEach((position) => this.onTrackChange(trackId, position));
+      })
+    });
+    this.onTrackChangeListener = TrackPlayer.addEventListener('playback-track-changed', (data) => {
       if (data.track !== null) {
-        const track = this.state.tracks[data.track];
-        const bigPos = data.position * 100;
-        const isGreater = bigPos >= track.duration;
-        if (data.position * 1000 >= track.duration * .95) {
-          this.setState({
-            storedPlays: Object.assign({}, this.state.storedPlays, {
-              [track.id]: this.state.storedPlays[track.id] ? this.state.storedPlays[track.id] + 1 : 1,
-            })
-          });
-        }
+        this.onTrackChange(data.track, data.position);
       }
     });
   }
@@ -136,20 +148,22 @@ export default class DownloadPage extends React.Component {
   }
 
   async fetchData(): void {
-    const tracks = await AsyncStorage.getItem('tracks');
-    const playlists = await AsyncStorage.getItem('playlists');
-    const artists = await AsyncStorage.getItem('artists');
-    const albums = await AsyncStorage.getItem('albums');
-    const storedPlays = await AsyncStorage.getItem('storedPlays');
-    if (tracks && playlists && artists) {
-      this.setState({
-        tracks: JSON.parse(tracks),
-        playlists: JSON.parse(playlists),
-        artists: JSON.parse(artists),
-        albums: JSON.parse(albums),
-        storedPlays: JSON.parse(storedPlays),
-      });
-    }
+    return new Promise(async (resolve) => {
+      const tracks = await AsyncStorage.getItem('tracks');
+      const playlists = await AsyncStorage.getItem('playlists');
+      const artists = await AsyncStorage.getItem('artists');
+      const albums = await AsyncStorage.getItem('albums');
+      const storedPlays = await AsyncStorage.getItem('storedPlays');
+      if (tracks && playlists && artists) {
+        this.setState({
+          tracks: JSON.parse(tracks),
+          playlists: JSON.parse(playlists),
+          artists: JSON.parse(artists),
+          albums: JSON.parse(albums),
+          storedPlays: JSON.parse(storedPlays),
+        }, () => resolve());
+      }
+    })
   }
 
   syncTrackId(trackId: string): Promise {
