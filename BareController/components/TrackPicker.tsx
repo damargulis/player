@@ -19,10 +19,12 @@ function shuffleArray<T>(arr: T[]): void {
 }
 
 export default class TrackPicker extends React.Component {
-  async shuffle(): void {
-    const trackIds = this.getTrackIds();
-    shuffleArray(trackIds);
 
+  playPlaylist(): void {
+    this.playTracks(this.getTrackIds());
+  }
+
+  async playTracks(trackIds) {
     const hasTrack = trackIds.filter((id) => this.props.tracks[id]);
 
     const data = hasTrack.map((id) => {
@@ -63,6 +65,13 @@ export default class TrackPicker extends React.Component {
     await TrackPlayer.updateOptions(options);
     await TrackPlayer.add(data);
     await TrackPlayer.play();
+  }
+
+  shuffle(): void {
+    const trackIds = this.getTrackIds();
+    shuffleArray(trackIds);
+    this.playTracks(trackIds);
+
   }
 
   async playTrack(trackId: string): void {
@@ -116,6 +125,9 @@ export default class TrackPicker extends React.Component {
         <Text>{name}</Text>
         <TouchableHighlight onPress={this.shuffle.bind(this)}>
           <Text>Shuffle</Text>
+        </TouchableHighlight>
+        <TouchableHighlight onPress={this.playPlaylist.bind(this)}>
+          <Text>Play All</Text>
         </TouchableHighlight>
         <FlatList
           data={trackIds}

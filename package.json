@@ -34,7 +34,8 @@
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
     "rn-nodeify": "^10.1.0",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.3.0",
+    "supports-color": "^7.1.0"
   },
   "main": "public/electron.js",
   "scripts": {

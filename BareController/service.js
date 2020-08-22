@@ -1,17 +1,14 @@
 import TrackPlayer from 'react-native-track-player';
+import {AsyncStorage} from 'react-native';
 
 /*
  * @type {!Object<TrackId, Array<duration>>}
  */
 let plays = {};
 
-exports.getPlays = function() {
-  return plays;
-}
-
-exports.clearPlays = function() {
-  plays = {};
-}
+AsyncStorage.getItem('storedPlays').then((storedPlays) => {
+  plays = storedPlays ? JSON.parse(storedPlays) : {};
+});
 
 exports.service = async function() {
   TrackPlayer.addEventListener('remote-play', () => TrackPlayer.play());
@@ -26,6 +23,7 @@ exports.service = async function() {
       } else {
         plays[data.track] = [data.position];
       }
+      AsyncStorage.setItem('storedPlays', JSON.stringify(plays));
     }
   });
 }
