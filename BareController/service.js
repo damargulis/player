@@ -2,13 +2,8 @@ import TrackPlayer from 'react-native-track-player';
 import {AsyncStorage} from 'react-native';
 
 /*
- * @type {!Object<TrackId, Array<duration>>}
+ * storedPlays = {!Object<TrackId, Array<stopped playing at time>>}
  */
-let plays = {};
-
-AsyncStorage.getItem('storedPlays').then((storedPlays) => {
-  plays = storedPlays ? JSON.parse(storedPlays) : {};
-});
 
 exports.service = async function() {
   TrackPlayer.addEventListener('remote-play', () => TrackPlayer.play());
@@ -18,12 +13,15 @@ exports.service = async function() {
   TrackPlayer.addEventListener('remote-previous', () => TrackPlayer.skipToPrevious());
   TrackPlayer.addEventListener('playback-track-changed', (data) => {
     if (data.track !== null) {
-      if (plays[data.track]) {
-        plays[data.track].push(data.position);
-      } else {
-        plays[data.track] = [data.position];
-      }
-      AsyncStorage.setItem('storedPlays', JSON.stringify(plays));
+      AsyncStorage.getItem('storePlays').then((storedPlays) => {
+        const plays = storedPlays ? JSON.parse(storedPlays) : {};
+        if (plays[data.track]) {
+          plays[data.track].push(data.position);
+        } else {
+          plays[data.track] = [data.position];
+        }
+        AsyncStorage.setItem('storedPlays', JSON.stringify(plays));
+      });
     }
   });
 }
