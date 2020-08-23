@@ -13,7 +13,7 @@ exports.service = async function() {
   TrackPlayer.addEventListener('remote-previous', () => TrackPlayer.skipToPrevious());
   TrackPlayer.addEventListener('playback-track-changed', (data) => {
     if (data.track !== null) {
-      AsyncStorage.getItem('storePlays').then((storedPlays) => {
+      AsyncStorage.getItem('storedPlays').then((storedPlays) => {
         const plays = storedPlays ? JSON.parse(storedPlays) : {};
         if (plays[data.track]) {
           plays[data.track].push(data.position);
