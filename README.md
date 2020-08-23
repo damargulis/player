@@ -1,4 +1,4 @@
-Desktop mp3 player.
+Desktop + mobile mp3 player.
 
 Features:
 
@@ -8,8 +8,13 @@ Features:
   - Filter by genre
   - Shuffle playlist by album or song
   - Mini-player window
+  - Mobile app that can sync songs / playlists / play counts
 
-run `yarn electron-dev` to run development server.
+`yarn electron-dev` to run development server.
+`yarn electron-pack` to build production
+
+`cd BareController; react-native start; react-native run-android` to run mobile app
+`cd android; ./gradlew assembleRelease` to build production
 
 images from:
 https://thenounproject.com/coquet_adrien/collection/music-media-player-control-play-multimedia-record/
