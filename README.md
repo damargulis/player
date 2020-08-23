@@ -11,9 +11,12 @@ Features:
   - Mobile app that can sync songs / playlists / play counts
 
 `yarn electron-dev` to run development server.
+
 `yarn electron-pack` to build production
 
+
 `cd BareController; react-native start; react-native run-android` to run mobile app
+
 `cd android; ./gradlew assembleRelease` to build production
 
 images from:
