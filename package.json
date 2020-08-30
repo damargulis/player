@@ -35,7 +35,7 @@
     "redux-thunk": "^2.3.0",
     "rn-nodeify": "^10.1.0",
     "socket.io": "^2.3.0",
-    "supports-color": "^7.1.0"
+    "supports-color": "^7.2.0"
   },
   "main": "public/electron.js",
   "scripts": {
@@ -47,7 +47,7 @@
     "electron-rebuild": "electron-rebuild -f -s -v 1.7.8",
     "postinstall": "node_modules/.bin/rn-nodeify --install fs --hack && electron-builder install-app-deps",
     "preelectron-pack": "yarn build",
-    "electron-pack": "electron-builder build -mw"
+    "electron-pack": "electron-builder build -m"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -72,7 +72,7 @@
     "@types/react-redux": "^7.1.6",
     "awesome-typescript-loader": "^5.2.1",
     "bindings": "^1.5.0",
-    "electron": "^7.2.4",
+    "electron": "^7.3.3",
     "electron-build": "0.0.3",
     "electron-builder": "^21.2.0",
     "electron-default-menu": "^1.0.1",
@@ -108,8 +108,8 @@
     "email": "damargulis1@gmail.com"
   },
   "build": {
-    "appId": "com.music.app",
-    "productName": "Music",
+    "appId": "com.mymusic.app",
+    "productName": "MyMusic",
     "copyright": "Copyright © 2019 ${author}",
     "mac": {
       "category": "public.app-categories.utilities"

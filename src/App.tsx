@@ -123,10 +123,12 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('get-synced-playlists', (evt, plays) => {
       Object.keys(plays).forEach((trackId) => {
         const track = this.props.getTrackById(trackId);
-        this.props.updateTrack(track.id, {
-          playCount: track.playCount + plays[trackId],
-          playDate: new Date(),
-        });
+        if (track && plays[trackId]) {
+          this.props.updateTrack(track.id, {
+            playCount: track.playCount + plays[trackId],
+            playDate: new Date(),
+          });
+        }
       });
       ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
     });
