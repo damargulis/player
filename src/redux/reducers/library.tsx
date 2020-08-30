@@ -2,6 +2,7 @@ import {
   ADD_TO_PLAYLIST,
   Album,
   Artist,
+  CREATE_BACKUP,
   DELETE_ALBUM,
   DELETE_ARTIST,
   Genre,
@@ -51,6 +52,24 @@ function getUpdatedMemberIds(memberIds: string[], updatedId: string, updatedMemb
   }
   // Neithr have, do nothing
   return memberIds;
+}
+
+function createBackup(library: LibraryState): Promise<void> {
+  const backups = `${DATA_DIR}/backups`;
+  if (!fs.existsSync(backups)) {
+    fs.mkdirSync(backups);
+  }
+  const fileName = `${backups}/${Date.now()}.json`;
+  // TODO: maybe use sync if you want to do this on exit so it doesn't half write?
+  // will have to see how exiting works on electron...
+  return new Promise((resolve, reject) => {
+    fs.writeFile(fileName, JSON.stringify(library), (err: Error | null) => {
+      if (err) {
+        reject(err);
+      }
+      return resolve();
+    });
+  });
 }
 
 function save(library: LibraryState): Promise<void> {
@@ -523,6 +542,9 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
 export default function reducer(state: LibraryState = initialState, action: LibraryActionTypes): LibraryState {
   const library = runReducer(state, action);
   switch (action.type) {
+    case CREATE_BACKUP:
+      createBackup(library);
+      break;
     case UPDATE_ALBUM:
     case UPDATE_ARTIST:
     case DELETE_ARTIST:

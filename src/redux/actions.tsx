@@ -3,6 +3,7 @@ import {
   AlbumInfo,
   ArtistInfo,
   CHANGE_VOLUME,
+  CREATE_BACKUP,
   DELETE_ALBUM,
   DELETE_ARTIST,
   LibraryInfo,
@@ -111,6 +112,10 @@ export const addToPlaylist = (index: number, trackIds: string[]) => ({
 
 export const saveNewTracks = () => ({
   type: SAVE_NEW_TRACKS,
+});
+
+export const createBackup = () => ({
+  type: CREATE_BACKUP,
 });
 
 function getMetadata(file: File): Promise<Metadata> {

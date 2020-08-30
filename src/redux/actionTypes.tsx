@@ -2,6 +2,7 @@ import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
 export const DELETE_ARTIST = 'DELETE_ARTIST';
 export const DELETE_ALBUM = 'DELETE_ALBUM';
+export const CREATE_BACKUP = 'CREATE_BACKUP';
 export const SAVE_NEW_TRACKS = 'SAVE_NEW_TRACKS';
 export const UPLOAD_FILES = 'UPLOAD_FILES';
 export const UPDATE_TIME = 'UPDATE_TIME';
@@ -272,6 +273,10 @@ interface SaveNewTracks {
   type: typeof SAVE_NEW_TRACKS;
 }
 
+interface CreateBackup {
+  type: typeof CREATE_BACKUP;
+}
+
 interface UploadFile {
   type: typeof UPLOAD_FILES;
   payload: {files: File[]; metadatas: Metadata[]};
@@ -288,4 +293,4 @@ interface AddToPlaylist {
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum;
+  | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup;

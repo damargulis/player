@@ -1,8 +1,8 @@
-import {nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary, updateTime,
-  updateTrack} from './redux/actions';
+import {createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary,
+  updateTime, updateTrack} from './redux/actions';
 import {Album, Artist, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
-import {DATA_DIR} from './constants';
+import {BACKUP_TIME, DATA_DIR} from './constants';
 import {ipcRenderer} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import {createLibrary} from './library/itunes';
@@ -48,6 +48,7 @@ interface StateProps {
 interface DispatchProps {
   updateTime(time: number): void;
   updateLibrary(library: LibraryInfo): void;
+  createBackup(): void;
   resetLibrary(library: LibraryInfo): void;
   nextTrack(): void;
   prevAlbum(): void;
@@ -66,9 +67,12 @@ interface AppState {
 
 class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
+  private backupTimer?: number;
 
   constructor(props: AppProps) {
     super(props);
+
+    this.backupTimer = undefined;
 
     this.state = {
       mini: false,
@@ -215,6 +219,16 @@ class App extends React.Component<AppProps, AppState> {
     });
   }
 
+  componentDidMount(): void {
+    this.backupTimer = window.setInterval(() => {
+      this.props.createBackup();
+    }, BACKUP_TIME);
+  }
+
+  componentWillUnmount(): void {
+    clearInterval(this.backupTimer);
+  }
+
   public componentDidUpdate(prevProps: AppProps): void {
     if (this.audio.volume !== this.props.volume) {
       this.audio.volume = this.props.volume;
@@ -285,4 +299,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps, {updateTime, playPause, updateLibrary, resetLibrary, nextTrack, prevAlbum,
-  prevTrack, setPlaylist, updateTrack, nextAlbum})(App);
+  prevTrack, setPlaylist, updateTrack, nextAlbum, createBackup})(App);
