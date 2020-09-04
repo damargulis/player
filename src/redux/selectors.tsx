@@ -1,5 +1,6 @@
 import {Album, Artist, Genre, Playlist, Track} from './actionTypes';
 import {RootState} from './store';
+import shortid from 'shortid';
 
 export function getAllTracks(store: RootState): Track[] {
   return Object.values(store.library.tracks);
@@ -67,7 +68,7 @@ export function getGenreIds(store: RootState, genres: string[]): string[] {
     if (genreId) {
       return genreId;
     }
-    const newId = Object.keys(store).reduce((max, curr) => Math.max(max, parseInt(curr, 10)), -1);
+    const newId = shortid.generate();
     // TODO: needs to be its own action...
     store.library.genres[newId.toString()] = {name: genre};
     return newId.toString();
