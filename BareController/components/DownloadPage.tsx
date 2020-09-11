@@ -2,7 +2,6 @@ import ErrorBoundary from 'react-native-error-boundary';
 import AlbumPicker from './AlbumPicker';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import {API_URL} from '../constants';
 import PromisePool from 'es6-promise-pool';
 import PlaylistPicker from './PlaylistPicker';
 import React from 'react';
@@ -138,7 +137,7 @@ export default class DownloadPage extends React.Component {
   }
 
   syncTrackId(trackId: string): Promise {
-    return fetch(`${API_URL}/get-track-data/${trackId}`)
+    return fetch(`${this.props.apiUrl}/get-track-data/${trackId}`)
       .then((res) => res.json()).then((res) => {
         const path = `${FileSystem.documentDirectory}${trackId}.mp3`;
         return FileSystem.getInfoAsync(path).then(({exists}) => {
@@ -147,7 +146,7 @@ export default class DownloadPage extends React.Component {
               tracks: Object.assign({}, this.state.tracks, {[trackId]: {...res, filePath: path}}),
             });
           } else {
-            const url = `${API_URL}/get-track/${trackId}`;
+            const url = `${this.props.apiUrl}/get-track/${trackId}`;
             return FileSystem.downloadAsync(url, path).then(({uri}) => {
               this.setState({
                 tracks: Object.assign({}, this.state.tracks, {[trackId]: { ...res, filePath: uri}}),
@@ -159,11 +158,11 @@ export default class DownloadPage extends React.Component {
   }
 
   syncArtistId(artistId: string): Promise<undefined> {
-    return fetch(`${API_URL}/get-artist-data/${artistId}`)
+    return fetch(`${this.props.apiUrl}/get-artist-data/${artistId}`)
       .then((res) => res.json()).then((res) => {
         const picPath = `${FileSystem.documentDirectory}/artist-pics/${artistId}.png`;
         if (res.filePath) {
-          const url = `${API_URL}/get-artist-pic/${artistId}`;
+          const url = `${this.props.apiUrl}/get-artist-pic/${artistId}`;
           return FileSystem.downloadAsync(url, picPath).then(({uri}) => {
             this.setState({
               artists: Object.assign({}, this.state.artists, {[artistId]: {...res, artFile: uri}}),
@@ -178,11 +177,11 @@ export default class DownloadPage extends React.Component {
   }
 
   syncAlbumId(albumId: string): Promise<undefined> {
-    return fetch(`${API_URL}/get-album-data/${albumId}`)
+    return fetch(`${this.props.apiUrl}/get-album-data/${albumId}`)
       .then((res) => res.json()).then((res) => {
         const picPath = `${FileSystem.documentDirectory}/album-art/${albumId}.png`;
         if (res && res.albumArtFile) {
-          const url = `${API_URL}/get-album-art/${albumId}`;
+          const url = `${this.props.apiUrl}/get-album-art/${albumId}`;
           return FileSystem.downloadAsync(url, picPath).then(({uri}) => {
             this.setState({
               albums: Object.assign({}, this.state.albums, {[albumId]: {...res, albumArtFile: uri}}),
@@ -301,7 +300,7 @@ export default class DownloadPage extends React.Component {
         }
         // TODO: what to do if track not found? Keep play for later? Throw error?
       });
-      return `${API_URL}/start-sync?plays=${encodeURIComponent(JSON.stringify(plays))}`;
+      return `${this.props.apiUrl}/start-sync?plays=${encodeURIComponent(JSON.stringify(plays))}`;
     }).then((url) => fetch(url))
     .then((res) => res.json())
     .then((json) => {
@@ -342,6 +341,7 @@ export default class DownloadPage extends React.Component {
                 props => <Main {...props}
                   sync={this.sync.bind(this)}
                   connected={this.props.connected}
+                  apiUrl={this.props.apiUrl}
                   syncing={this.state.syncing}
                   progressString={progressString}
                   errString={this.state.err}

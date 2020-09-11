@@ -8,7 +8,7 @@ const {
   shell,
 } = require("electron");
 
-// shouldn't need package for this ... figure out better way
+// TODO: shouldn't need package for this ... figure out better way
 const isDev = require("electron-is-dev");
 const path = require("path");
 const defaultMenu = require("electron-default-menu");
@@ -282,3 +282,10 @@ expressApp.get("/get-album-art/:albumId", (req, res) => {
 });
 
 http.listen(expressPort);
+
+// discovery
+
+const bonjour = require('bonjour')();
+
+bonjour.publish({name: 'MyMusic', type: 'http', port: expressPort});
+
