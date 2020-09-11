@@ -64,6 +64,6 @@ public class MdnsModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void stop() {
-    nsdManager.stopServiceDiscovery(DiscoveryListener);
+    nsdManager.stopServiceDiscovery(discoveryListener);
   }
 }
