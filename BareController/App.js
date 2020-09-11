@@ -15,7 +15,6 @@ import {
   StyleSheet,
   ScrollView,
   View,
-  Text,
   StatusBar,
   NativeEventEmitter,
 } from 'react-native';
@@ -52,7 +51,7 @@ export default class App extends React.Component {
   componentDidMount() {
     const emitter = new NativeEventEmitter(MdnsModule);
     this.mdnsListener = emitter.addListener('resolve', (event) => {
-      if (event.port === PORT) {
+      if (event.port == PORT) {
         const apiUrl = `http://${event.host}:${event.port}`;
         this.setState({apiUrl});
         clearTimeout(this.endScanTimeout);
