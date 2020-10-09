@@ -136,23 +136,24 @@ export default class DownloadPage extends React.Component {
     })
   }
 
+  syncFile(filePath: string, urlPath: string): Promise {
+    return FileSystem.getInfoAsync(filePath).then(({exists}) => {
+      if (exists) {
+        return Promise.resolve(filePath);
+      }
+      return FileSystem.downloadAsync(urlPath, filePath);
+    });
+  }
+
   syncTrackId(trackId: string): Promise {
     return fetch(`${this.props.apiUrl}/get-track-data/${trackId}`)
       .then((res) => res.json()).then((res) => {
         const path = `${FileSystem.documentDirectory}${trackId}.mp3`;
-        return FileSystem.getInfoAsync(path).then(({exists}) => {
-          if (exists) {
-            this.setState({
-              tracks: Object.assign({}, this.state.tracks, {[trackId]: {...res, filePath: path}}),
-            });
-          } else {
-            const url = `${this.props.apiUrl}/get-track/${trackId}`;
-            return FileSystem.downloadAsync(url, path).then(({uri}) => {
-              this.setState({
-                tracks: Object.assign({}, this.state.tracks, {[trackId]: { ...res, filePath: uri}}),
-              });
-            });
-          }
+        const url = `${this.props.apiUrl}/get-track/${trackId}`;
+        return this.syncFile(path, url).then((path) => {
+          this.setState({
+            tracks: Object.assign({}, this.state.tracks, {[trackId]: {...res, filePath: path}}),
+          });
         });
       });
   }
@@ -160,38 +161,37 @@ export default class DownloadPage extends React.Component {
   syncArtistId(artistId: string): Promise<undefined> {
     return fetch(`${this.props.apiUrl}/get-artist-data/${artistId}`)
       .then((res) => res.json()).then((res) => {
-        const picPath = `${FileSystem.documentDirectory}/artist-pics/${artistId}.png`;
-        if (res.filePath) {
-          const url = `${this.props.apiUrl}/get-artist-pic/${artistId}`;
-          return FileSystem.downloadAsync(url, picPath).then(({uri}) => {
-            this.setState({
-              artists: Object.assign({}, this.state.artists, {[artistId]: {...res, artFile: uri}}),
-            });
-          });
-        } else {
-          this.setState({
-            artists: Object.assign({}, this.state.artists, {[artistId]: {...res}}),
-          });
+        // pic is stored on main as filePath, but need to call get-artist-pic to get pic data
+        // if no filePath, artist has no pic
+        // TODO: default pic
+        if (!res.filePath) {
+          this.setState({artists: Object.assign({}, this.state.artists, {[artistId]: {...res}})});
+          return;
         }
+        const picPath = `${FileSystem.documentDirectory}/artist-pics/${artistId}.png`;
+        const url = `${this.props.apiUrl}/get-artist-pic/${artistId}`;
+        return this.syncFile(picPath, url).then((path) => {
+          this.setState({ artists: Object.assign({}, this.state.artists, {[artistId]: {...res, artFile: path}})});
+        });
       });
   }
 
   syncAlbumId(albumId: string): Promise<undefined> {
     return fetch(`${this.props.apiUrl}/get-album-data/${albumId}`)
       .then((res) => res.json()).then((res) => {
-        const picPath = `${FileSystem.documentDirectory}/album-art/${albumId}.png`;
-        if (res && res.albumArtFile) {
-          const url = `${this.props.apiUrl}/get-album-art/${albumId}`;
-          return FileSystem.downloadAsync(url, picPath).then(({uri}) => {
-            this.setState({
-              albums: Object.assign({}, this.state.albums, {[albumId]: {...res, albumArtFile: uri}}),
-            })
-          });
-        } else {
+        if (!res || !res.albumArtFile) {
           this.setState({
             albums: Object.assign({}, this.state.albums, {[albumId]: {...res}}),
           });
+          return;
         }
+        const picPath = `${FileSystem.documentDirectory}/album-art/${albumId}.png`;
+        const url = `${this.props.apiUrl}/get-album-art/${albumId}`;
+        return this.syncFile(picPath, url).then((path) => {
+            this.setState({
+              albums: Object.assign({}, this.state.albums, {[albumId]: {...res, albumArtFile: path}}),
+            })
+        });
       });
   }
 
@@ -254,7 +254,7 @@ export default class DownloadPage extends React.Component {
   removeOldArtists(keepTracks: Set<string>): Promise<Set<string>> {
     const keepArtists = new Set([...keepTracks].map((trackId) => {
       return this.state.tracks[trackId].artistIds;
-    }));
+    }).flat());
     const artists = Object.assign({}, this.state.artists);
     const deletes = Promise.all(Object.keys(this.state.artists).map((artistId) => {
       if (!keepArtists.has(artistId)) {
@@ -272,7 +272,7 @@ export default class DownloadPage extends React.Component {
   removeOldAlbums(keepTracks: Set<string>): Promise<Set<string>> {
     const keepAlbums = new Set([...keepTracks].map((trackId) => {
       return this.state.tracks[trackId].albumIds;
-    }));
+    }).flat());
     const albums = Object.assign({}, this.state.albums);
     const deletes = Promise.all(Object.keys(this.state.albums).map((albumId) => {
       if (!keepAlbums.has(albumId)) {
@@ -293,13 +293,15 @@ export default class DownloadPage extends React.Component {
     AsyncStorage.getItem('storedPlays').then((stored) => {
       const plays = {};
       const storedPlays = JSON.parse(stored);
-      Object.keys(storedPlays).forEach((trackId) => {
-        if (this.state.tracks[trackId]) {
-          const duration = this.state.tracks[trackId].duration
-          plays[trackId] = storedPlays[trackId].filter((time) => time * 1000 > duration * .95).length;
-        }
-        // TODO: what to do if track not found? Keep play for later? Throw error?
-      });
+      if (storedPlays) {
+        Object.keys(storedPlays).forEach((trackId) => {
+          if (this.state.tracks[trackId]) {
+            const duration = this.state.tracks[trackId].duration
+            plays[trackId] = storedPlays[trackId].filter((time) => time * 1000 > duration * .95).length;
+          }
+          // TODO: what to do if track not found? Keep play for later? Throw error?
+        });
+      }
       return `${this.props.apiUrl}/start-sync?plays=${encodeURIComponent(JSON.stringify(plays))}`;
     }).then((url) => fetch(url))
     .then((res) => res.json())

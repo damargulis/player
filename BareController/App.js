@@ -8,7 +8,7 @@
 
 import DownloadPage from './components/DownloadPage';
 import {Pages} from 'react-native-pages';
-import {PORT} from './constants';
+import {DEV_API_URL, PORT} from './constants';
 import React from 'react';
 import {
   SafeAreaView,
@@ -50,6 +50,11 @@ export default class App extends React.Component {
 
   componentDidMount() {
     const emitter = new NativeEventEmitter(MdnsModule);
+    if (__DEV__) {
+      this.setState({apiUrl: DEV_API_URL});
+      this.setupSocket(DEV_API_URL);
+      return;
+    }
     this.mdnsListener = emitter.addListener('resolve', (event) => {
       if (event.port == PORT) {
         const apiUrl = `http://${event.host}:${event.port}`;
