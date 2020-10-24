@@ -9,7 +9,6 @@ import {AsyncStorage, Button, FlatList, StyleSheet, Text, TouchableHighlight, Vi
 import {FileSystem} from 'react-native-unimodules';
 import TrackPicker from './TrackPicker';
 import ArtistPicker from './ArtistPicker';
-import TrackPlayer from 'react-native-track-player';
 
 const CONCURRENCY = 3;
 

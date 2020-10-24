@@ -11,6 +11,7 @@ import {Pages} from 'react-native-pages';
 import {DEV_API_URL, PORT} from './constants';
 import React from 'react';
 import {
+  AsyncStorage,
   SafeAreaView,
   StyleSheet,
   ScrollView,
@@ -37,6 +38,7 @@ export default class App extends React.Component {
     this.socket = io.connect(url);
     this.socket.on('connect', () => {
       this.setState({connected: true});
+      AsyncStorage.setItem('last-host', url);
     });
     this.socket.on('disconnect', () => {
       this.setState({connected: false});
@@ -65,10 +67,17 @@ export default class App extends React.Component {
       }
     });
 
-    MdnsModule.scan();
     this.endScanTimeout = setTimeout(() => {
       MdnsModule.stop();
     }, 10000);
+
+    AsyncStorage.getItem('last-host').then((host) => {
+      // current url -- just to get something to start
+      let apiUrl = host || `http://192.168.1.75:${PORT}`;
+      this.setState({apiUrl});
+      this.setupSocket(apiUrl);
+      MdnsModule.scan();
+    });
   }
 
   componentWillUnmount() {

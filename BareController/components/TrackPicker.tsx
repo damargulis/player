@@ -1,6 +1,7 @@
 import React from 'react';
 import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
+import defaultAlbumArt from '../assets/missing_album.png';
 
 const styles = StyleSheet.create({
   name: {
@@ -35,7 +36,7 @@ export default class TrackPicker extends React.Component {
       const albums = track.albumIds.map((albumId) => {
         return this.props.albums[albumId].name;
       }).join(', ');
-      const albumArt = this.props.albums[track.albumIds[0]].albumArtFile;
+      const albumArt = this.props.albums[track.albumIds[0]].albumArtFile || defaultAlbumArt;
       return {
         id: track.id,
         url: track.filePath,
