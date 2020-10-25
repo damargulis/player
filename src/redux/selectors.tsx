@@ -1,7 +1,7 @@
 import {Album, Artist, Genre, Playlist, Track} from './actionTypes';
-import {RootState} from './store';
-import shortid from 'shortid';
 import isDev from 'electron-is-dev';
+import shortid from 'shortid';
+import {RootState} from './store';
 
 export function getAllTracks(store: RootState): Track[] {
   return Object.values(store.library.tracks);
