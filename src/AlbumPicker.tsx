@@ -1,13 +1,19 @@
 import {Album, Artist} from './redux/actionTypes';
+import AlbumEditor from './AlbumEditor';
 import AlbumInfo from './AlbumInfo';
 import * as React from 'react';
+import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import SearchBar from './SearchBar';
 import {getArtistsByIds} from './redux/selectors';
+import shortid from 'shortid';
 import {RootState} from './redux/store';
 import WrappedGrid from './WrappedGrid';
 
 import './App.css';
+
+// see: http://reactcommunity.org/react-modal/accessibility/#app-element
+Modal.setAppElement('#root');
 
 interface OwnProps {
   albums: Album[];
@@ -21,6 +27,7 @@ interface StateProps {
 type AlbumPickerProps = OwnProps & StateProps;
 
 interface AlbumPickerState {
+  addingAlbum: boolean;
   search?: string;
   reverse: boolean;
   sortedAlbums: Album[];
@@ -39,6 +46,7 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     this.sortByArtist = this.sortByArtist.bind(this);
 
     this.state = {
+      addingAlbum: false,
       reverse: false,
       search: undefined,
       sortMethod: this.sortByName,
@@ -83,12 +91,28 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
     // Should reset if you reclick album on the left.
     return (
       <div className="main" >
+        <Modal isOpen={this.state.addingAlbum} onRequestClose={this.closeAddAlbum.bind(this)}>
+          <AlbumEditor exit={this.closeAddAlbum.bind(this)} album={{
+            id: shortid.generate(),
+              warnings: {},
+              errors: [],
+              artistIds: [],
+              name: '',
+              trackIds: [],
+              year: 0,
+              genreIds: [],
+              playCount: 0,
+              skipCount: 0,
+              favorites: [],
+          }} />
+        </Modal>
         <div id="sortPicker" style={{textAlign: 'center'}}>
           <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
           <button onClick={() => this.chooseSort(this.sortByArtist)}>Artist</button>
           <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
           <button onClick={() => this.withErrors()}>Show Wiki Status</button>
           <SearchBar onSearch={(search: string) => this.onSearch(search)} />
+          <button onClick={() => this.addAlbum()}>+</button>
         </div>
         <WrappedGrid cellRenderer={this.cellRenderer.bind(this)} numItems={items.length} />
       </div>
@@ -97,6 +121,14 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
 
   private goToAlbum(album: Album): void {
     this.props.goToAlbum(album.id);
+  }
+
+  private addAlbum(): void {
+    this.setState({addingAlbum: true});
+  }
+
+  private closeAddAlbum(): void {
+    this.setState({addingAlbum: false});
   }
 
   private cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element {

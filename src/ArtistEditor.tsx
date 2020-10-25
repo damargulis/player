@@ -68,6 +68,8 @@ class ArtistEditor extends React.Component<ArtistEditorProps, ArtistEditorState>
       albumIds: this.state.albumIds,
       trackIds: this.state.trackIds,
       wikiPage: this.wikiPage.current && this.wikiPage.current.value,
+      id: this.props.artist.id,
+      errors: this.props.artist.errors,
     });
     this.props.exit();
   }

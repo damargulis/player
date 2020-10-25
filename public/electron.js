@@ -285,7 +285,6 @@ http.listen(expressPort);
 
 // discovery
 
-const bonjour = require('bonjour')();
+const bonjour = require("bonjour")();
 
-bonjour.publish({name: 'MyMusic', type: 'http', port: expressPort});
-
+bonjour.publish({name: "MyMusic", type: "http", port: expressPort});
