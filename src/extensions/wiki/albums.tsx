@@ -92,6 +92,11 @@ function searchForWikiPage(store: RootState, album: Album): Promise<string> {
   });
 }
 
+function getInsideOfQuotes(text: string): string {
+  const matches = text.match(/"(?<inner>.*?)"/);
+  return matches && matches.groups ? matches.groups.inner : '';
+}
+
 function getTracksFromTracklist(tracklist: Element): string[] {
   const rows = tracklist.getElementsByTagName('tr');
   // splits into two arrays, headers which contains any rows that have a <th>
@@ -120,8 +125,7 @@ function getTracksFromTracklist(tracklist: Element): string[] {
   return dataRows.map((row) => {
     const data = row.getElementsByTagName('td');
     const titleText = data[titleIndex].textContent || '';
-    const matches = titleText.match(/"(?<inner>.*?)"/);
-    return matches && matches.groups ? matches.groups.inner : undefined;
+    return getInsideOfQuotes(titleText);
   }).filter(Boolean) as string[];
 }
 
@@ -131,7 +135,28 @@ function getTracks(doc: Document): string[] {
   // determine what to do with it; can include multi releases, discs, versions,
   // etc.
   if (tracklists.length === 0) {
-    return [];
+    // if none, use header to find list
+    const span = doc.getElementById('Track_listing');
+    const header = span && span.parentElement;
+    const list = header && header.nextElementSibling;
+    if (!list) {
+      return [];
+    }
+    const tracks = list.getElementsByTagName('li');
+    const names = [];
+    for (const track of tracks) {
+      // 8211 = long hyphen character
+      const text = track.textContent || "";
+      let split = text.split(String.fromCharCode(8211));
+      let title = split[0];
+      split = title.split(String.fromCharCode(45));
+      title = split[0] || "";
+      title = getInsideOfQuotes(title.trim());
+      if (title) {
+        names.push(title);
+      }
+    }
+    return names;
   }
   let tracks = [] as string[];
   for (const tracklist of tracklists) {

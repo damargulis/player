@@ -173,7 +173,10 @@ function getAlbums(tracks: Record<string, Track>, data: ItunesData): Record<stri
  * i.e. "Rock", "Indie Rock", "Folk Rock"
  */
 function getGenresFromTrack(trackData: {Comments: string}): string[] {
-  return trackData.Comments.split(', ').map((genre) => genre.slice(1, -1));
+  if (trackData.Comments) {
+    return trackData.Comments.split(', ').map((genre) => genre.slice(1, -1));
+  }
+  return [];
 }
 
 function getGenres(data: ItunesData): Record<string, Genre> {
