@@ -39,6 +39,7 @@ interface MaxWindowState {
   genres: string[];
   playlistType: string;
   scenes: Array<(genres: string[]) => JSX.Element>;
+  scrollPosition: number;
 }
 
 class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
@@ -50,6 +51,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       genres: [],
       playlistType: 'album',
       scenes: [],
+      scrollPosition: -1,
     };
     this.onArtistMessage = this.onArtistMessage.bind(this);
     this.onAlbumMessage = this.onAlbumMessage.bind(this);
@@ -114,6 +116,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       curScene: -1,
       playlistType: type,
       scenes: [],
+      scrollPosition: -1,
     });
   }
 
@@ -190,6 +193,10 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.setState({scenes, curScene});
   }
 
+  private setScroll(position: number): void {
+    this.setState({scrollPosition: position});
+  }
+
   private getPicker(): JSX.Element | undefined {
     if (this.state.curScene >= 0) {
       return this.state.scenes[this.state.curScene](this.state.genres);
@@ -197,13 +204,20 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     switch (this.state.playlistType) {
     case 'album':
       return (
-        <AlbumPicker albums={this.props.getAlbumsByGenres(this.state.genres)} goToAlbum={this.goToAlbum.bind(this)} />
+        <AlbumPicker
+          albums={this.props.getAlbumsByGenres(this.state.genres)}
+          goToAlbum={this.goToAlbum.bind(this)}
+          setScroll={this.setScroll.bind(this)}
+          scrollPosition={this.state.scrollPosition}
+        />
       );
     case 'artist':
       return (
         <ArtistPicker
           artists={this.props.getArtistsByGenres(this.state.genres)}
           goToArtist={this.goToArtist.bind(this)}
+          setScroll={this.setScroll.bind(this)}
+          scrollPosition={this.state.scrollPosition}
         />
       );
     case 'track':

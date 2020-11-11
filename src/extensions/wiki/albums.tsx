@@ -142,15 +142,15 @@ function getTracks(doc: Document): string[] {
     if (!list) {
       return [];
     }
-    const tracks = list.getElementsByTagName('li');
+    const trackElements = list.getElementsByTagName('li');
     const names = [];
-    for (const track of tracks) {
+    for (const track of trackElements) {
       // 8211 = long hyphen character
-      const text = track.textContent || "";
+      const text = track.textContent || '';
       let split = text.split(String.fromCharCode(8211));
       let title = split[0];
       split = title.split(String.fromCharCode(45));
-      title = split[0] || "";
+      title = split[0] || '';
       title = getInsideOfQuotes(title.trim());
       if (title) {
         names.push(title);

@@ -17,7 +17,9 @@ Modal.setAppElement('#root');
 
 interface OwnProps {
   albums: Album[];
+  scrollPosition?: number;
   goToAlbum(albumId: string): void;
+  setScroll?(position: number): void;
 }
 
 interface StateProps {
@@ -114,7 +116,12 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
           <SearchBar onSearch={(search: string) => this.onSearch(search)} />
           <button onClick={() => this.addAlbum()}>+</button>
         </div>
-        <WrappedGrid cellRenderer={this.cellRenderer.bind(this)} numItems={items.length} />
+        <WrappedGrid
+          cellRenderer={this.cellRenderer.bind(this)}
+          numItems={items.length}
+          scrollTop={this.props.scrollPosition}
+          setScroll={this.props.setScroll}
+        />
       </div>
     );
   }

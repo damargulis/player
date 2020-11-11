@@ -19,7 +19,9 @@ interface ArtistPickerState {
 
 interface ArtistPickerProps {
   artists: Artist[];
+  scrollPosition?: number;
   goToArtist(artistId: string): void;
+  setScroll?(position: number): void;
 }
 
 export default class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState> {
@@ -71,6 +73,8 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
         <WrappedGrid
           cellRenderer={this.cellRenderer.bind(this)}
           numItems={items.length}
+          scrollTop={this.props.scrollPosition}
+          setScroll={this.props.setScroll}
         />
       </div>
     );
