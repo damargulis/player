@@ -3,6 +3,7 @@ const albums = require('./albums');
 const {getDoc} = require('./utils');
 const closerToTheSun = require('./test_pages/closer_to_the_sun');
 const numberOneRecord = require('./test_pages/number_one_record');
+const jacksonBrowne = require('./test_pages/jackson_browne');
 
 /**
  * Test basic, unformatted tracklist.
@@ -16,6 +17,11 @@ const numberOneRecord = require('./test_pages/number_one_record');
 test('testing unformatted list', () => {
   const doc = getDoc(closerToTheSun.doc);
   expect(albums.getTracks(doc)).toStrictEqual(closerToTheSun.tracklist);
+});
+
+test('testing multi side unformatted list', () => {
+  const doc = getDoc(jacksonBrowne.doc);
+  expect(albums.getTracks(doc)).toStrictEqual(jacksonBrowne.tracklist);
 });
 
 /**

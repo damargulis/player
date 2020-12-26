@@ -135,15 +135,33 @@ export function getTracks(doc: Document): string[] {
   // etc.
   if (tracklists.length === 0) {
     // if none, use header to find list
-    const span = doc.getElementById('Track_listing');
-    const header = span && span.parentElement;
-    const list = header && header.nextElementSibling;
-    if (!list) {
+    // Track_listing id will be within h2 tag
+    // Listing will go on until next h2 tag,
+    // take all li items in between as song titles
+    let trackListHeader = doc.getElementById('Track_listing');
+    if (!trackListHeader) {
       return [];
     }
-    const trackElements = list.getElementsByTagName('li');
+    while(trackListHeader.tagName != "H2") {
+      if (!trackListHeader.parentElement) {
+        return [];
+      }
+      trackListHeader = trackListHeader.parentElement;
+    }
+    let next = trackListHeader.nextElementSibling;
+    let listItems = [] as Element[];
+    if (!next) {
+      return [];
+    }
+    while (next.tagName != "H2") {
+      listItems = [...listItems, ...next.getElementsByTagName('li')];
+      if (!next.nextElementSibling) {
+        break;
+      }
+      next = next.nextElementSibling;
+    }
     const names = [];
-    for (const track of trackElements) {
+    for (const track of listItems) {
       // 8211 = long hyphen character
       const text = track.textContent || '';
       let split = text.split(String.fromCharCode(8211));
