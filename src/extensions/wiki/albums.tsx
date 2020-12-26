@@ -99,12 +99,12 @@ function getInsideOfQuotes(text: string): string {
 
 function getTracksFromTracklist(tracklist: Element): string[] {
   const rows = tracklist.getElementsByTagName('tr');
-  // splits into two arrays, headers which contains any rows that have a <th>
-  // element, and dataRows which has all the others
+  // splits into two arrays, headers which contains any rows that have only <th>
+  // elements, and dataRows which has all the others
   const headers = [];
   const dataRows = [];
   for (const row of rows) {
-    if (row.getElementsByTagName('th').length) {
+    if (row.getElementsByTagName('td').length == 0) {
       headers.push(row);
     } else {
       dataRows.push(row);
@@ -119,17 +119,16 @@ function getTracksFromTracklist(tracklist: Element): string[] {
   }
   const headerCells = goodHeader ? goodHeader.getElementsByTagName('th') : [];
   const headerNames = Array(...headerCells).map((cell) => cell.textContent);
-  // const noIndex = headerNames.indexOf('No.');
   const titleIndex = headerNames.indexOf('Title');
-  // const lengthIndex = headerNames.indexOf('Length');
   return dataRows.map((row) => {
     const data = row.getElementsByTagName('td');
-    const titleText = data[titleIndex].textContent || '';
+    // -1 because the number col is th cells, so it doesn't get counted.
+    const titleText = data[titleIndex - 1].textContent || '';
     return getInsideOfQuotes(titleText);
   }).filter(Boolean) as string[];
 }
 
-function getTracks(doc: Document): string[] {
+export function getTracks(doc: Document): string[] {
   const tracklists = doc.getElementsByClassName('tracklist');
   // TODO: using first for now, should loop through all, check header to
   // determine what to do with it; can include multi releases, discs, versions,
