@@ -21,7 +21,7 @@ function getGenres(rootNode: ChildNode): string[] {
   // filter out ", ", " ", ".", and any other weird symbols that might be
   // accidental
   const textNodes = leafNodes.filter((node) => node.textContent);
-  const text = textNodes.map((node) => node.textContent && node.textContent.split(',')).flat();
+  const text = textNodes.map((node) => node.textContent && node.textContent.split(',')).flat().filter(Boolean) as string[];
   const sanitized = text.map((genre) => sanitize(genre));
   return sanitized.map((genre) => formatGenre(genre)).filter(Boolean).filter(
     (genre) => genre.length > 1);

@@ -1,5 +1,5 @@
 import {Album, Artist, Genre, Playlist, Track} from './actionTypes';
-import isDev from 'electron-is-dev';
+import {IS_DEV} from '../constants';
 import shortid from 'shortid';
 import {RootState} from './store';
 
@@ -226,7 +226,7 @@ export function getAutoPlaylists(store: RootState): Playlist[] {
 }
 
 export function getSyncedPlaylists(store: RootState): Playlist[] {
-  if (isDev) {
+  if (IS_DEV) {
     const most = getMostPlayed(store);
     most.trackIds.splice(10);
     return [most];
