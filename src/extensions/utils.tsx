@@ -1,7 +1,7 @@
+import {IS_DEV} from '../constants';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
 import {RootState} from '../redux/store';
-import {IS_DEV} from '../constants';
 
 // TODO: set num in a smart way, use network strength?, optimize while running?
 const CONCURRENT = IS_DEV ? 5 : 7;

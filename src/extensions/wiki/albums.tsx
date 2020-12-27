@@ -104,7 +104,7 @@ function getTracksFromTracklist(tracklist: Element): string[] {
   const headers = [];
   const dataRows = [];
   for (const row of rows) {
-    if (row.getElementsByTagName('td').length == 0) {
+    if (row.getElementsByTagName('td').length === 0) {
       headers.push(row);
     } else {
       dataRows.push(row);
@@ -142,7 +142,7 @@ export function getTracks(doc: Document): string[] {
     if (!trackListHeader) {
       return [];
     }
-    while(trackListHeader.tagName != "H2") {
+    while (trackListHeader.tagName !== 'H2') {
       if (!trackListHeader.parentElement) {
         return [];
       }
@@ -153,7 +153,7 @@ export function getTracks(doc: Document): string[] {
     if (!next) {
       return [];
     }
-    while (next.tagName != "H2") {
+    while (next.tagName !== 'H2') {
       listItems = [...listItems, ...next.getElementsByTagName('li')];
       if (!next.nextElementSibling) {
         break;

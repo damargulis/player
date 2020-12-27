@@ -1,6 +1,6 @@
 import electron from 'electron';
-//import {remote} from 'electron';
-//import isDev from 'electron-is-dev';
+// import {remote} from 'electron';
+// import isDev from 'electron-is-dev';
 
 export const BACKUP_TIME = 1000 * 60 * 60 * 24;
 
@@ -15,3 +15,4 @@ if (typeof electron === 'string') {
 }
 export const IS_DEV = isDev;
 export const DATA_DIR = isDev ? './data' : electron.remote.app.getPath('userData') + '/data';
+export const DEFAULT_VOLUME = isDev ? .1 : 1;

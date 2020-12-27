@@ -11,9 +11,8 @@ import {
   SET_TIME,
   UPDATE_TIME,
 } from '../actionTypes';
+import {DEFAULT_VOLUME} from '../../constants';
 import EmptyPlaylist from '../../playlist/EmptyPlaylist';
-
-const DEFAULT_VOLUME = .1;
 
 const initialState: CurrentlyPlayingState = {
   isPlaying: false,
