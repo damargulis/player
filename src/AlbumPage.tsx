@@ -71,17 +71,17 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     // TODO: set playTrack to play an album playlist of by artist ?
     return (
       <div className="main">
-        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
-          <AlbumEditor exit={this.closeEdit.bind(this)} album={this.props.album} />
+        <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()}>
+          <AlbumEditor exit={() => this.closeEdit()} album={this.props.album} />
         </Modal>
         <Modal
           style={{content: {margin: '20%'}}}
           isOpen={this.state.deleting}
-          onRequestClose={this.closeDelete.bind(this)}
+          onRequestClose={() => this.closeDelete()}
         >
           <div>Confirm Delete Album?</div>
-          <button onClick={this.confirmDelete.bind(this)}>Delete</button>
-          <button onClick={this.closeDelete.bind(this)}>Cancel</button>
+          <button onClick={() => this.confirmDelete()}>Delete</button>
+          <button onClick={() => this.closeDelete()}>Cancel</button>
         </Modal>
         <div className="albumPageHeader" >
           <div className="info">
@@ -97,17 +97,17 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             <div>{this.props.album.year}</div>
             <div>{this.props.album.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ' )}</div>
             <WikiLabel wikiPage={this.props.album.wikiPage} />
-            <button onClick={this.runWiki.bind(this)}>
+            <button onClick={() => this.runWiki()}>
               Run Wiki Extension
             </button>
           </div>
           <div className="albumPageControls" >
-            <button onClick={this.playAlbum.bind(this)} className="playAlbum" >Play Album</button>
+            <button onClick={() => this.playAlbum()} className="playAlbum" >Play Album</button>
             <div className="likeButtonContainer">
               <LikeButton item={this.props.album} update={this.props.updateAlbum}/>
             </div>
-            <button onClick={this.editAlbum.bind(this)} className="editAlbum" >Edit Album</button>
-            <button onClick={this.deleteAlbum.bind(this)} className="deleteAlbum">Delete Album</button>
+            <button onClick={() => this.editAlbum()} className="editAlbum" >Edit Album</button>
+            <button onClick={() => this.deleteAlbum()} className="deleteAlbum">Delete Album</button>
           </div>
           {this.getErrors()}
           {this.getWarnings()}
@@ -154,7 +154,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             );
           })
         }
-        <button onClick={this.acceptTrackWarnings.bind(this)}>Accept</button>
+        <button onClick={() => this.acceptTrackWarnings()}>Accept</button>
       </div>
     );
   }

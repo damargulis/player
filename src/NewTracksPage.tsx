@@ -23,7 +23,7 @@ class NewTracksPage extends React.Component<NewTracksPageProps> {
     return (
       <div className="main">
         <h2 className="pageTitle">New Songs:</h2>
-        <button onClick={this.saveAll.bind(this)} className="saveButton">Save All</button>
+        <button onClick={() => this.saveAll()} className="saveButton">Save All</button>
         <TrackPicker tracks={this.props.newTracks} />
       </div>
     );

@@ -37,7 +37,7 @@ type MaxWindowProps = StateProps & DispatchProps;
 interface MaxWindowState {
   curScene: number;
   genres: string[];
-  scenes: Array<JSX.Element>;
+  scenes: JSX.Element[];
   scrollPosition: number;
 }
 
@@ -67,16 +67,16 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     return (
       <div id="max-window" >
         <Header
-          goToAlbum={this.goToAlbum.bind(this)}
-          goToArtist={this.goToArtist.bind(this)}
-          goToTrack={this.goToTrack.bind(this)}
+          goToAlbum={(albumId) => this.goToAlbum(albumId)}
+          goToArtist={(artistId) => this.goToArtist(artistId)}
+          goToTrack={(trackId) => this.goToTrack(trackId)}
         />
         <div className="section">
           <div id="sidebar">
-            <PlaylistTypePicker setType={this.setType.bind(this)} />
-            <GenrePicker setGenres={this.setGenres.bind(this)} />
+            <PlaylistTypePicker setType={(type) => this.setType(type)} />
+            <GenrePicker />
           </div>
-          <Dropzone onDrop={this.onDrop.bind(this)}>
+          <Dropzone onDrop={(files) => this.onDrop(files)}>
             {({getRootProps, getInputProps}) => (
               <div {...getRootProps({onClick: (evt) => evt.stopPropagation()})} style={{width: '100%'}}>
                 <input {...getInputProps()} />
@@ -106,17 +106,13 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     this.goToArtist(data.artistId);
   }
 
-  private setGenres(genres: string[]): void {
-    this.setState({genres});
-  }
-
   private getPageType(type: string): JSX.Element {
     switch (type) {
     case 'album':
       return (
         <AlbumPicker
           albums={this.props.getAlbumsByGenres(this.state.genres)}
-          goToAlbum={this.goToAlbum.bind(this)}
+          goToAlbum={(albumId) => this.goToAlbum(albumId)}
           scrollPosition={this.state.scrollPosition}
         />
       );
@@ -124,14 +120,14 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       return (
         <ArtistPicker
           artists={this.props.getArtistsByGenres(this.state.genres)}
-          goToArtist={this.goToArtist.bind(this)}
+          goToArtist={(artistId) => this.goToArtist(artistId)}
           scrollPosition={this.state.scrollPosition}
         />
       );
     case 'track':
       return <TrackPicker tracks={this.props.getTracksByGenres(this.state.genres)} />;
     case 'playlist':
-      return <PlaylistPicker goToPlaylist={this.goToPlaylist.bind(this)} />;
+    return <PlaylistPicker goToPlaylist={(playlist) => this.goToPlaylist(playlist)} />;
     case 'new':
       return <NewTracksPage />;
     default:
@@ -168,7 +164,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       <TrackPicker
         scrollToTrackId={trackId}
         tracks={this.props.getTracksByGenres(this.state.genres)}
-      />,
+      />
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
@@ -180,11 +176,11 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       <AlbumPage
         albumId={albumId}
         canGoForward={this.canGoForward()}
-        goBack={this.goBack.bind(this)}
-        goForward={this.goForward.bind(this)}
-        goToArtist={this.goToArtist.bind(this)}
+        goBack={() => this.goBack()}
+        goForward={() => this.goForward()}
+        goToArtist={(artistId) => this.goToArtist(artistId)}
         goToAlbumPicker={() => this.setType('album')}
-      />,
+      />
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
@@ -196,12 +192,11 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       <ArtistPage
         artistId={artistId}
         canGoForward={this.canGoForward()}
-        goBack={this.goBack.bind(this)}
-        goForward={this.goForward.bind(this)}
-        goToAlbum={this.goToAlbum.bind(this)}
+        goBack={() => this.goBack()}
+        goForward={() => this.goForward()}
+        goToAlbum={(albumId) => this.goToAlbum(albumId)}
         goToArtistPicker={() => this.setType('artist')}
-      />,
-
+      />
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
@@ -213,10 +208,10 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       <PlaylistPage
         canGoForward={this.canGoForward()}
         genres={[]}
-        goBack={this.goBack.bind(this)}
-        goForward={this.goForward.bind(this)}
+        goBack={() => this.goBack()}
+        goForward={() => this.goForward()}
         playlist={playlist}
-      />,
+      />
     );
     const curScene = this.state.curScene + 1;
     this.setState({scenes, curScene});
@@ -229,7 +224,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
   private getPicker(): JSX.Element[] {
     return this.state.scenes.map((el, i) => {
       return (
-        <div key={i} style={{display: (i == this.state.curScene) ? 'initial' : 'none'}}>
+        <div key={i} style={{display: (i === this.state.curScene) ? 'initial' : 'none'}}>
             {el}
         </div>
       );

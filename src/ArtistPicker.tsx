@@ -56,21 +56,24 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     const items = this.state.sortedArtists;
     return (
       <div className="main">
-        <Modal isOpen={this.state.addingArtist} onRequestClose={this.closeAddArtist.bind(this)}>
-          <ArtistEditor exit={this.closeAddArtist.bind(this)} artist={{
-            id: shortid.generate(),
-            name: '',
-            albumIds: [],
-            errors: [],
-            genreIds: [],
-            trackIds: [],
-          }} />
+        <Modal isOpen={this.state.addingArtist} onRequestClose={() => this.closeAddArtist()}>
+          <ArtistEditor
+            exit={() => this.closeAddArtist()}
+            artist={{
+              id: shortid.generate(),
+              name: '',
+              albumIds: [],
+              errors: [],
+              genreIds: [],
+              trackIds: [],
+            }}
+          />
         </Modal>
         <button onClick={() => this.withErrors()}>Show Wiki Status</button>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <button onClick={() => this.addArtist()}>+</button>
         <WrappedGrid
-          cellRenderer={this.cellRenderer.bind(this)}
+          cellRenderer={(index, key, style) => this.cellRenderer(index, key, style)}
           numItems={items.length}
           scrollTop={this.props.scrollPosition}
         />

@@ -101,8 +101,8 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     });
     return (
       <div className="main">
-        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)} >
-          <TrackEditor exit={this.closeEdit.bind(this)} tracks={selectedTracks} />
+        <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()} >
+          <TrackEditor exit={() => this.closeEdit()} tracks={selectedTracks} />
         </Modal>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <AutoSizer>
@@ -111,16 +111,16 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
               <Table
                 headerHeight={20}
                 height={height - 40}
-                onRowClick={this.onRowClick.bind(this)}
-                onRowDoubleClick={this.onRowDoubleClick.bind(this)}
-                onRowRightClick={this.doRowRightClick.bind(this)}
+                onRowClick={(evt) => this.onRowClick(evt)}
+                onRowDoubleClick={(evt) => this.onRowDoubleClick(evt)}
+                onRowRightClick={(evt: {index: number}) => this.doRowRightClick(evt)}
                 rowClassName="trackRow"
                 rowCount={this.state.tracks.length}
                 rowGetter={({index}) => this.getTrackData(index)}
                 rowHeight={15}
-                rowStyle={this.getRowStyle.bind(this)}
+                rowStyle={({index}) => this.getRowStyle(index)}
                 scrollToIndex={this.state.scrollTo}
-                sort={this.sort.bind(this)}
+                sort={(data) => this.sort(data)}
                 sortBy={this.state.sortBy}
                 sortDirection={this.state.sortDirection}
                 width={width}
@@ -154,13 +154,13 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
-      cellData ? <img style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span></span>
+      cellData ? <img style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span/>
     );
   }
 
   private favoriteRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
-      cellData ? <img height="10px" width="10px" src={favoriteImg} alt="favotie"/> : <span></span>
+      cellData ? <img height="10px" width="10px" src={favoriteImg} alt="favotie"/> : <span/>
     );
   }
 
@@ -264,7 +264,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     };
   }
 
-  private getRowStyle({index}: {index: number}): React.CSSProperties {
+  private getRowStyle(index: number): React.CSSProperties {
     const style = {
       backgroundColor: index % 2 === 0 ? 'white' : 'lightgray',
       borderTop: 'solid black 1px',

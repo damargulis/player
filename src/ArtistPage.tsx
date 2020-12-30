@@ -59,17 +59,17 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
     const src = this.props.artist.artFile ? getImgSrc(this.props.artist.artFile) : defaultArtist;
     return (
       <div className="main">
-        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
-          <ArtistEditor exit={this.closeEdit.bind(this)} artist={this.props.artist} />
+        <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()}>
+          <ArtistEditor exit={() => this.closeEdit()} artist={this.props.artist} />
         </Modal>
         <Modal
           style={{content: {margin: '20%'}}}
           isOpen={this.state.deleting}
-          onRequestClose={this.closeDelete.bind(this)}
+          onRequestClose={() => this.closeDelete()}
         >
           <div>Confirm Delete Artist?</div>
-          <button onClick={this.confirmDelete.bind(this)}>Delete</button>
-          <button onClick={this.closeDelete.bind(this)}>Cancel</button>
+          <button onClick={() => this.confirmDelete()}>Delete</button>
+          <button onClick={() => this.closeDelete()}>Cancel</button>
         </Modal>
         <div className="artistPageHolder" >
           <div className="artistPageHeader" >
@@ -83,10 +83,10 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <div>{this.props.artist.name}</div>
               <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} />
-              <button onClick={this.runWiki.bind(this)}>Run Wiki Extension</button>
+              <button onClick={() => this.runWiki()}>Run Wiki Extension</button>
             </div>
-            <button onClick={this.editArtist.bind(this)} className="editArtist" >Edit Artist</button>
-            <button onClick={this.deleteArtist.bind(this)} className="deleteArtist">Delete Artist</button>
+            <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
+            <button onClick={() => this.deleteArtist()} className="deleteArtist">Delete Artist</button>
             {this.getErrors()}
           </div>
           <div className="artistPageBody" >

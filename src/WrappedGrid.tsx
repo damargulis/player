@@ -32,7 +32,7 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
           const rows = Math.ceil(this.props.numItems / this.numCols);
           return (
             <Grid
-              cellRenderer={this.cellRenderer.bind(this)}
+              cellRenderer={(opt) => this.cellRenderer(opt)}
               columnCount={this.numCols}
               columnWidth={width / this.numCols}
               height={height}

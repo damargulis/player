@@ -12,7 +12,7 @@ export default class WikiLabel extends React.Component<WikiLabelProps> {
     return (
       <div>
         <label>Wiki Page: </label>
-        <span className="link" onClick={this.openWiki.bind(this)}>{this.props.wikiPage}</span>
+        <span className="link" onClick={() => this.openWiki()}>{this.props.wikiPage}</span>
       </div>
     );
   }

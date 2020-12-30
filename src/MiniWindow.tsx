@@ -11,9 +11,9 @@ class MiniWindow extends React.Component {
     return (
       <div id="mini-window">
         <InfoPanel
-          goToAlbum={this.goToAlbum.bind(this)}
-          goToArtist={this.goToArtist.bind(this)}
-          goToTrack={this.goToTrack.bind(this)}
+          goToAlbum={(albumId) => this.goToAlbum(albumId)}
+          goToArtist={(artistId) => this.goToArtist(artistId)}
+          goToTrack={(trackId) => this.goToTrack(trackId)}
           small={true}
         />
         <div style={{height: '25px', display: 'flex'}}>

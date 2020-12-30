@@ -66,7 +66,7 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
         <AttributeEditor name="Wiki Page" val={album.wikiPage} ref={this.wikiPage} />
         <TrackAttributeEditor trackIds={this.state.trackIds} setIds={(trackIds) => this.setState({trackIds})}/>
         <div className="bottom-bar">
-          <button onClick={this.save.bind(this)}>Save</button>
+          <button onClick={() => this.save()}>Save</button>
           <button onClick={this.props.exit}>Cancel</button>
         </div>
       </div>

@@ -32,7 +32,7 @@ export default class AttributeList extends React.Component<AttributeListProps, A
         {this.getAttributes()}
         <AutoComplete
           getDisplayName={this.props.getDisplayName}
-          onSubmit={this.add.bind(this)}
+          onSubmit={(attr) => this.add(attr)}
           searchFilter={this.props.searchFilter}
           suggestions={suggestions}
         />

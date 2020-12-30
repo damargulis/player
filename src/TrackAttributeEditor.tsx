@@ -48,8 +48,8 @@ class TrackAttributeEditor extends React.Component<TrackAttributeEditorProps> {
   render(): JSX.Element {
     return (
       <div>
-        <h5 className="sectionLabel">Tracks: <span onClick={this.addTrack.bind(this)} className="add">+</span></h5>
-        <DragDropContext onDragEnd={this.onDragEnd.bind(this)} >
+        <h5 className="sectionLabel">Tracks: <span onClick={() => this.addTrack()} className="add">+</span></h5>
+        <DragDropContext onDragEnd={(result) => this.onDragEnd(result)} >
           <Droppable droppableId="droppable">
             {(provided, snapshot) => (
               <div

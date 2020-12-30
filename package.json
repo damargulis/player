@@ -44,6 +44,7 @@
     "start": "rescripts start",
     "build": "rescripts build",
     "test": "jest",
+    "lint": "tslint --project tsconfig.json",
     "eject": "react-scripts eject",
     "electron-dev": "BROWSER=none yarn start & electron .",
     "electron-rebuild": "electron-rebuild -f -s -v 1.7.8",

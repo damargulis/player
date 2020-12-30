@@ -25,11 +25,17 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps> {
         <div className="playlistPickerPage" >
           <div className="playlistPickerContainer" >
             Manual
-            <WrappedGrid cellRenderer={this.cellRenderer.bind(this)} numItems={this.props.playlists.length} />
+            <WrappedGrid
+              cellRenderer={(index, key, style) => this.cellRenderer(index, key, style)}
+              numItems={this.props.playlists.length}
+            />
           </div>
           <div className="playlistInfoContainer" >
             <span className="titleContainer" >Auto</span>
-            <WrappedGrid cellRenderer={this.autoCellRenderer.bind(this)} numItems={this.props.autoPlaylists.length} />
+            <WrappedGrid
+              cellRenderer={(index, key, style) => this.autoCellRenderer(index, key, style)}
+              numItems={this.props.autoPlaylists.length}
+            />
           </div>
         </div>
       </div>

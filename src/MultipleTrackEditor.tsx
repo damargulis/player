@@ -72,47 +72,47 @@ class MultipleTrackEditor extends React.Component<MultipleTrackEditorProps, Mult
         <ToggableEditableAttribute
           editing={this.state.editArtists}
           label="Artists"
-          toggleEdit={this.editArtists.bind(this)}
+          toggleEdit={(editing) => this.editArtists(editing)}
         >
           <ArtistAttributeEditor artistIds={this.state.artistIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editAlbums}
           label="Albums"
-          toggleEdit={this.editAlbums.bind(this)}
+          toggleEdit={(editing) => this.editAlbums(editing)}
         >
           <AlbumAttributeEditor albumIds={this.state.albumIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editYear}
           label="Year"
-          toggleEdit={this.editYear.bind(this)}
+          toggleEdit={(editing) => this.editYear(editing)}
         >
           <AttributeEditor name="Year" ref={this.year} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editGenre}
           label="Genres"
-          toggleEdit={this.editGenre.bind(this)}
+          toggleEdit={(editing) => this.editGenre(editing)}
         >
           <GenreAttributeEditor genreIds={this.state.genreIds} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editFavorites}
           label="Favorite Years"
-          toggleEdit={this.editFavorites.bind(this)}
+          toggleEdit={(editing) => this.editFavorites(editing)}
         >
           <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
         </ToggableEditableAttribute>
         <ToggableEditableAttribute
           editing={this.state.editPlayCount}
           label="Play Count"
-          toggleEdit={this.editPlayCount.bind(this)}
+          toggleEdit={(editing) => this.editPlayCount(editing)}
         >
           <AttributeEditor name="Play Count" ref={this.playCount} />
         </ToggableEditableAttribute>
         <div className="bottom-bar">
-          <button onClick={this.save.bind(this)}>Save</button>
+          <button onClick={() => this.save()}>Save</button>
           <button onClick={this.props.exit}>Cancel</button>
         </div>
       </div>

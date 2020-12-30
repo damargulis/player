@@ -84,8 +84,8 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
     }).join(', ');
     return (
       <div style={newStyle} >
-        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)}>
-          <AlbumEditor exit={this.closeEdit.bind(this)} album={this.props.album} />
+        <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()}>
+          <AlbumEditor exit={() => this.closeEdit()} album={this.props.album} />
         </Modal>
         <div style={{position: 'absolute', left: '50%'}}>
           <img

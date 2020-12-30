@@ -32,7 +32,7 @@ class LikeButton<T extends Likeable> extends React.Component<LikeButtonProps<T>>
         alt="favorite"
         className="control-button"
         disabled={!this.props.item}
-        onClick={this.favorite.bind(this)}
+        onClick={() => this.favorite()}
         src={favoriteButton}
         style={{width: '25px', opacity: favorite ? '1' : '.5'}}
         type="image"
