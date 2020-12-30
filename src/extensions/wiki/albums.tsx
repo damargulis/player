@@ -162,10 +162,11 @@ export function getTracks(doc: Document): string[] {
     }
     const names = [];
     for (const track of listItems) {
-      // 8211 = long hyphen character
       const text = track.textContent || '';
+      // 8211 = long hyphen character
       let split = text.split(String.fromCharCode(8211));
       let title = split[0];
+      // 45 = short hypen character
       split = title.split(String.fromCharCode(45));
       title = split[0] || '';
       title = getInsideOfQuotes(title.trim());
