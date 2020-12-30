@@ -19,7 +19,6 @@ interface OwnProps {
   albums: Album[];
   scrollPosition?: number;
   goToAlbum(albumId: string): void;
-  setScroll?(position: number): void;
 }
 
 interface StateProps {
@@ -120,7 +119,6 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
           cellRenderer={this.cellRenderer.bind(this)}
           numItems={items.length}
           scrollTop={this.props.scrollPosition}
-          setScroll={this.props.setScroll}
         />
       </div>
     );
