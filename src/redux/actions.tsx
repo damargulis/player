@@ -16,6 +16,7 @@ import {
   PREV_TRACK,
   RESET_LIBRARY,
   SAVE_NEW_TRACKS,
+  SET_GENRES,
   SET_PLAYLIST,
   SET_TIME,
   TrackInfo,
@@ -48,6 +49,11 @@ export const resetLibrary = (library: LibraryState) => ({
 export const changeVolume = (volume: number) => ({
   payload: {volume},
   type: CHANGE_VOLUME,
+});
+
+export const setGenres = (genres: string[]) => ({
+  payload: {genres},
+  type: SET_GENRES,
 });
 
 export const nextTrack = () => ({

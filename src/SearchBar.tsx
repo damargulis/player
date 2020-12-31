@@ -20,7 +20,7 @@ export default class SearchBar extends React.Component<SearchBarProps, SearchBar
   public render(): JSX.Element {
     return (
       <input
-        onChange={this.onChange.bind(this)}
+        onChange={(evt) => this.onChange(evt)}
         placeholder="Search"
         value={this.state.value}
       />

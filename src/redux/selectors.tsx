@@ -281,3 +281,7 @@ export function getNewTracks(store: RootState): Track[] {
     return store.library.tracks[trackId];
   });
 }
+
+export function getSelectedGenres(store: RootState): string[] {
+  return store.settings.genres;
+}

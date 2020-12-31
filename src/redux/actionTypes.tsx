@@ -1,5 +1,6 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
+export const SET_GENRES = 'SET_GENRES';
 export const DELETE_ARTIST = 'DELETE_ARTIST';
 export const DELETE_ALBUM = 'DELETE_ALBUM';
 export const CREATE_BACKUP = 'CREATE_BACKUP';
@@ -135,6 +136,15 @@ export interface CurrentlyPlayingState {
   currentlyPlayingId?: string;
   isPlaying: boolean;
   setTime?: number;
+}
+
+export interface SettingsState {
+  genres: string[];
+}
+
+interface SetGenresAction {
+  type: typeof SET_GENRES;
+  payload: SettingsState;
 }
 
 interface UpdateTimeAction {
@@ -294,3 +304,4 @@ export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction 
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
   | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup;
+export type SettingsActionTypes = SetGenresAction;

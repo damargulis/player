@@ -73,7 +73,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
 
 }
 
-function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+function mapStateToProps(state: RootState): StateProps {
   const track = getCurrentTrack(state);
   const albums = track ? getAlbumsByIds(state, track.albumIds) : [];
   const artists = track ? getArtistsByIds(state, track.artistIds) : [];

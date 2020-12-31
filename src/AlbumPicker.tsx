@@ -5,7 +5,7 @@ import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import SearchBar from './SearchBar';
-import {getArtistsByIds} from './redux/selectors';
+import {getArtistsByIds, getSelectedGenres} from './redux/selectors';
 import shortid from 'shortid';
 import {RootState} from './redux/store';
 import WrappedGrid from './WrappedGrid';
@@ -19,10 +19,10 @@ interface OwnProps {
   albums: Album[];
   scrollPosition?: number;
   goToAlbum(albumId: string): void;
-  setScroll?(position: number): void;
 }
 
 interface StateProps {
+  albumsToShow: Album[];
   getArtistsByIds(ids: string[]): Artist[];
 }
 
@@ -73,11 +73,11 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   }
 
   public componentDidMount(): void {
-    this.setState({sortedAlbums: this.sortAlbums(this.props.albums)});
+    this.setState({sortedAlbums: this.sortAlbums(this.props.albumsToShow)});
   }
 
   public componentDidUpdate(): void {
-    const sortedAlbums = this.sortAlbums(this.props.albums);
+    const sortedAlbums = this.sortAlbums(this.props.albumsToShow);
     if (sortedAlbums.length !== this.state.sortedAlbums.length ||
       sortedAlbums.some((album, index) => {
         return this.state.sortedAlbums[index] !== album;
@@ -89,13 +89,13 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   public render(): JSX.Element {
     const items = this.state.sortedAlbums;
     // TODO: change wiki status to be generic extension with like list of dots instead of background
-    // These should persist (along with scroll height) when you click back.
-    // Should reset if you reclick album on the left.
     return (
       <div className="main" >
-        <Modal isOpen={this.state.addingAlbum} onRequestClose={this.closeAddAlbum.bind(this)}>
-          <AlbumEditor exit={this.closeAddAlbum.bind(this)} album={{
-            id: shortid.generate(),
+        <Modal isOpen={this.state.addingAlbum} onRequestClose={() => this.closeAddAlbum()}>
+          <AlbumEditor
+            exit={() => this.closeAddAlbum()}
+            album={{
+              id: shortid.generate(),
               warnings: {},
               errors: [],
               artistIds: [],
@@ -106,7 +106,8 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
               playCount: 0,
               skipCount: 0,
               favorites: [],
-          }} />
+            }}
+          />
         </Modal>
         <div id="sortPicker" style={{textAlign: 'center'}}>
           <button onClick={() => this.chooseSort(this.sortByName)}>Name</button>
@@ -117,10 +118,9 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
           <button onClick={() => this.addAlbum()}>+</button>
         </div>
         <WrappedGrid
-          cellRenderer={this.cellRenderer.bind(this)}
+          cellRenderer={(index, key, style) => this.cellRenderer(index, key, style)}
           numItems={items.length}
           scrollTop={this.props.scrollPosition}
-          setScroll={this.props.setScroll}
         />
       </div>
     );
@@ -184,9 +184,16 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   }
 }
 
-function mapStateToProps(store: RootState): StateProps {
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+  const genres = getSelectedGenres(store);
   return {
     getArtistsByIds: (ids: string[]) => getArtistsByIds(store, ids),
+    albumsToShow: ownProps.albums.filter((album) => {
+      if (!genres.length) {
+        return true;
+      }
+      return album.genreIds.some((id) => genres.includes(id));
+    }),
   };
 }
 

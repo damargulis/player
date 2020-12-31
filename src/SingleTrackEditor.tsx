@@ -63,7 +63,7 @@ class SingleTrackEditor extends React.Component<SingleTrackEditorProps, SingleTr
         <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
         <AttributeEditor name="Play Count" val={track.playCount} ref={this.playCount} />
         <div className="bottom-bar">
-          <button onClick={this.save.bind(this)}>Save</button>
+          <button onClick={() => this.save()}>Save</button>
           <button onClick={this.props.exit}>Cancel</button>
         </div>
       </div>

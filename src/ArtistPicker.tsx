@@ -3,8 +3,11 @@ import ArtistEditor from './ArtistEditor';
 import ArtistInfo from './ArtistInfo';
 import React from 'react';
 import Modal from 'react-modal';
+import {connect} from 'react-redux';
 import SearchBar from './SearchBar';
+import {getSelectedGenres} from './redux/selectors';
 import shortid from 'shortid';
+import {RootState} from './redux/store';
 import WrappedGrid from './WrappedGrid';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -17,14 +20,19 @@ interface ArtistPickerState {
   addingArtist: boolean;
 }
 
-interface ArtistPickerProps {
+interface StateProps {
+  artistsToShow: Artist[];
+}
+
+interface OwnProps {
   artists: Artist[];
   scrollPosition?: number;
   goToArtist(artistId: string): void;
-  setScroll?(position: number): void;
 }
 
-export default class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState> {
+type ArtistPickerProps = OwnProps & StateProps;
+
+class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState> {
   private numCols: number;
 
   constructor(props: ArtistPickerProps) {
@@ -40,11 +48,11 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
   }
 
   public componentDidMount(): void {
-    this.setState({sortedArtists: this.sortArtists(this.props.artists)});
+    this.setState({sortedArtists: this.sortArtists(this.props.artistsToShow)});
   }
 
   public componentDidUpdate(): void {
-    const sortedArtists = this.sortArtists(this.props.artists);
+    const sortedArtists = this.sortArtists(this.props.artistsToShow);
     if (sortedArtists.length !== this.state.sortedArtists.length ||
       sortedArtists.some((artist, index) => {
         return this.state.sortedArtists[index] !== artist;
@@ -57,24 +65,26 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     const items = this.state.sortedArtists;
     return (
       <div className="main">
-        <Modal isOpen={this.state.addingArtist} onRequestClose={this.closeAddArtist.bind(this)}>
-          <ArtistEditor exit={this.closeAddArtist.bind(this)} artist={{
-            id: shortid.generate(),
-            name: '',
-            albumIds: [],
-            errors: [],
-            genreIds: [],
-            trackIds: [],
-          }} />
+        <Modal isOpen={this.state.addingArtist} onRequestClose={() => this.closeAddArtist()}>
+          <ArtistEditor
+            exit={() => this.closeAddArtist()}
+            artist={{
+              id: shortid.generate(),
+              name: '',
+              albumIds: [],
+              errors: [],
+              genreIds: [],
+              trackIds: [],
+            }}
+          />
         </Modal>
         <button onClick={() => this.withErrors()}>Show Wiki Status</button>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <button onClick={() => this.addArtist()}>+</button>
         <WrappedGrid
-          cellRenderer={this.cellRenderer.bind(this)}
+          cellRenderer={(index, key, style) => this.cellRenderer(index, key, style)}
           numItems={items.length}
           scrollTop={this.props.scrollPosition}
-          setScroll={this.props.setScroll}
         />
       </div>
     );
@@ -124,3 +134,17 @@ export default class ArtistPicker extends React.Component<ArtistPickerProps, Art
     this.setState({search});
   }
 }
+
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+  const genres = getSelectedGenres(store);
+  return {
+    artistsToShow: ownProps.artists.filter((artist) => {
+      if (!genres.length) {
+        return true;
+      }
+      return artist.genreIds.some((id) => genres.includes(id));
+    }),
+  };
+}
+
+export default connect(mapStateToProps)(ArtistPicker);

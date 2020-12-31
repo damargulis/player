@@ -28,7 +28,7 @@ class ProgressBar extends React.Component<ProgressBarProps> {
         <input
           max={this.props.duration}
           min={0}
-          onChange={this.onChange.bind(this)}
+          onChange={(evt) => this.onChange(evt)}
           type="range"
           value={this.props.time * 1000}
         />

@@ -12,8 +12,7 @@ import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import SearchBar from './SearchBar';
-import {getPlaylists} from './redux/selectors';
-import {getAlbumsByIds, getArtistsByIds, getCurrentTrackId, getGenresByIds} from './redux/selectors';
+import {getAlbumsByIds, getArtistsByIds, getCurrentTrackId, getGenresByIds, getPlaylists, getSelectedGenres} from './redux/selectors';
 import {RootState} from './redux/store';
 import '../node_modules/react-virtualized/styles.css';
 import TrackEditor from './TrackEditor';
@@ -39,6 +38,7 @@ interface TrackPickerState {
 interface StateProps {
   playlists: Playlist[];
   currentlyPlayingId?: string;
+  tracksToShow: Track[];
   getArtistsByIds(ids: string[]): Artist[];
   getAlbumsByIds(ids: string[]): Album[];
   getGenresByIds(ids: string[]): string[];
@@ -86,7 +86,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   }
 
   public componentDidUpdate(prevProps: TrackPickerProps): void {
-    if (prevProps.tracks !== this.props.tracks) {
+    if (prevProps.tracksToShow !== this.props.tracksToShow) {
       this.sort(this.state);
     }
     // TODO: scroll doesnt happen again if you click same track title, maybe change this to an action?
@@ -101,8 +101,8 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     });
     return (
       <div className="main">
-        <Modal isOpen={this.state.editing} onRequestClose={this.closeEdit.bind(this)} >
-          <TrackEditor exit={this.closeEdit.bind(this)} tracks={selectedTracks} />
+        <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()} >
+          <TrackEditor exit={() => this.closeEdit()} tracks={selectedTracks} />
         </Modal>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <AutoSizer>
@@ -111,16 +111,16 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
               <Table
                 headerHeight={20}
                 height={height - 40}
-                onRowClick={this.onRowClick.bind(this)}
-                onRowDoubleClick={this.onRowDoubleClick.bind(this)}
-                onRowRightClick={this.doRowRightClick.bind(this)}
+                onRowClick={(evt) => this.onRowClick(evt)}
+                onRowDoubleClick={(evt) => this.onRowDoubleClick(evt)}
+                onRowRightClick={(evt: {index: number}) => this.doRowRightClick(evt)}
                 rowClassName="trackRow"
                 rowCount={this.state.tracks.length}
                 rowGetter={({index}) => this.getTrackData(index)}
                 rowHeight={15}
-                rowStyle={this.getRowStyle.bind(this)}
+                rowStyle={({index}) => this.getRowStyle(index)}
                 scrollToIndex={this.state.scrollTo}
-                sort={this.sort.bind(this)}
+                sort={(data) => this.sort(data)}
                 sortBy={this.state.sortBy}
                 sortDirection={this.state.sortDirection}
                 width={width}
@@ -154,18 +154,18 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
-      cellData ? <img style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span></span>
+      cellData ? <img style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span/>
     );
   }
 
   private favoriteRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
-      cellData ? <img height="10px" width="10px" src={favoriteImg} alt="favotie"/> : <span></span>
+      cellData ? <img height="10px" width="10px" src={favoriteImg} alt="favotie"/> : <span/>
     );
   }
 
   private getDuration(): string {
-    const duration = this.props.tracks.reduce((total: number, track: Track) => total + track.duration, 0);
+    const duration = this.props.tracksToShow.reduce((total: number, track: Track) => total + track.duration, 0);
     return toTime(duration);
   }
 
@@ -179,7 +179,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   }
 
   private sortTracks(sortBy: string, sortDirection: string): Track[] {
-    let tracks = this.props.tracks.slice().filter((track) => {
+    let tracks = this.props.tracksToShow.slice().filter((track) => {
       if (this.state && this.state.search) {
         return track.name.toLowerCase().includes(this.state.search.toLowerCase());
       }
@@ -254,7 +254,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
         .map((artist) => artist.name).join(', '),
       duration: toTime(track.duration),
       genres: this.props.getGenresByIds(track.genreIds).join(', '),
-      index: this.props.tracks.indexOf(track) + 1,
+      index: this.props.tracksToShow.indexOf(track) + 1,
       name: track.name,
       playCount: track.playCount,
       year: track.year,
@@ -264,7 +264,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     };
   }
 
-  private getRowStyle({index}: {index: number}): React.CSSProperties {
+  private getRowStyle(index: number): React.CSSProperties {
     const style = {
       backgroundColor: index % 2 === 0 ? 'white' : 'lightgray',
       borderTop: 'solid black 1px',
@@ -417,7 +417,8 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   }
 }
 
-function mapStateToProps(store: RootState): StateProps {
+function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+  const genres = getSelectedGenres(store);
   return {
     getAlbumsByIds: (ids: string[]) => getAlbumsByIds(store, ids),
     getArtistsByIds: (ids: string[]) => getArtistsByIds(store, ids),
@@ -425,6 +426,12 @@ function mapStateToProps(store: RootState): StateProps {
     playlists: getPlaylists(store),
     currentlyPlayingId: getCurrentTrackId(store),
     runGeniusExtension: (ids: string[]) => runGeniusExtension(store, ids),
+    tracksToShow: ownProps.tracks.filter((track) => {
+      if (!genres.length) {
+        return true;
+      }
+      return track.genreIds.some((id) => genres.includes(id));
+    }),
   };
 }
 

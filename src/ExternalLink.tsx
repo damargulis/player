@@ -11,10 +11,10 @@ type ExternalLinkProps = OwnProps;
 export default class ExternalLink extends React.Component<ExternalLinkProps> {
   render(): JSX.Element {
     if (!this.props.link) {
-      return (<span></span>);
+      return (<span/>);
     }
     return (
-      <span className="link" onClick={this.openLink.bind(this)}>{this.props.text}</span>
+      <span className="link" onClick={() => this.openLink()}>{this.props.text}</span>
     );
   }
 

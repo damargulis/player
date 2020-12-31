@@ -7,7 +7,6 @@ interface WrappedGridProps {
   numItems: number;
   scrollTop?: number;
   cellRenderer(index: number, key: string, style: React.CSSProperties): JSX.Element;
-  setScroll?(position: number): void;
 }
 
 export default class WrappedGrid extends React.Component<WrappedGridProps> {
@@ -16,12 +15,6 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
   constructor(props: WrappedGridProps) {
     super(props);
     this.numCols = 0;
-  }
-
-  public onScroll({scrollTop}: {scrollTop: number}): void {
-    if (this.props.setScroll) {
-      this.props.setScroll(scrollTop);
-    }
   }
 
   public render(): JSX.Element | null {
@@ -39,14 +32,13 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
           const rows = Math.ceil(this.props.numItems / this.numCols);
           return (
             <Grid
-              cellRenderer={this.cellRenderer.bind(this)}
+              cellRenderer={(opt) => this.cellRenderer(opt)}
               columnCount={this.numCols}
               columnWidth={width / this.numCols}
               height={height}
               rowCount={rows}
               rowHeight={150}
               width={width}
-              onScroll={this.onScroll.bind(this)}
               scrollTop={this.props.scrollTop}
             />
           );

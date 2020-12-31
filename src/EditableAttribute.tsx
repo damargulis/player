@@ -32,17 +32,16 @@ export default class EditableAttribute<T> extends
     return (
       <div>
         <input
-          onBlur={this.save.bind(this)}
-          onChange={this.onChange.bind(this)}
-          onKeyUp={this.onKeyUp.bind(this)}
+          onBlur={() => this.save()}
+          onChange={(evt) => this.onChange(evt)}
+          onKeyUp={(evt) => this.onKeyUp(evt)}
           ref={this.input}
           style={{display: this.state.editing ? '' : 'none'}}
           value={this.state.value as unknown as string}
-        >
-        </input>
+        />
         <div style={{display: this.state.editing ? 'none' : ''}}>
           {this.state.value}
-          <button onClick={this.edit.bind(this)}>Edit</button>
+          <button onClick={() => this.edit()}>Edit</button>
         </div>
       </div>
     );

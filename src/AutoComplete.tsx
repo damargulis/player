@@ -32,13 +32,13 @@ export default class AutoComplete extends React.Component<AutoCompleteProps, Aut
       <>
         <input
           className="serach-input"
-          onChange={this.onChange.bind(this)}
-          onKeyDown={this.onKeyDown.bind(this)}
+          onChange={(evt) => this.onChange(evt)}
+          onKeyDown={(evt) => this.onKeyDown(evt)}
           type="text"
           value={this.state.userInput}
         />
         {this.getSearchSuggestions()}
-        <button onClick={this.onSubmit.bind(this)}>Add</button>
+        <button onClick={() => this.onSubmit()}>Add</button>
       </>
     );
   }

@@ -134,20 +134,20 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           <input
             alt="volume"
             className="control-button"
-            onClick={this.onClick.bind(this)}
+            onClick={() => this.onClick()}
             src={volumeButton}
             type="image"
           />
           <Modal
             isOpen={this.state.volume}
-            onRequestClose={this.close.bind(this)}
+            onRequestClose={() => this.close()}
             style={style}
           >
             <input
               className="volume-input-modal"
               max={1}
               min={0}
-              onChange={this.setVolume.bind(this)}
+              onChange={(evt) => this.setVolume(evt)}
               step={.01}
               type="range"
               value={this.props.volume}
@@ -161,7 +161,7 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
         className="volume-input"
         max={1}
         min={0}
-        onChange={this.setVolume.bind(this)}
+        onChange={(evt) => this.setVolume(evt)}
         step={.01}
         type="range"
         value={this.props.volume}
