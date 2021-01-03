@@ -1,6 +1,12 @@
 import React from 'react';
 import {AsyncStorage, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 
+const styles = StyleSheet.create({
+  listItem: {
+    fontSize: 24,
+  }
+});
+
 export default class ArtistPicker extends React.Component {
   render(): JSX.Element {
     const artists = Object.values(this.props.artists);
@@ -16,7 +22,7 @@ export default class ArtistPicker extends React.Component {
                 trackIds: item.trackIds,
               }
             })}>
-              <Text>{item.name}</Text>
+              <Text style={styles.listItem}>{item.name}</Text>
             </TouchableHighlight>
           )}
           keyExtractor={item => item.id}

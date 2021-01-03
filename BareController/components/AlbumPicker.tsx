@@ -1,9 +1,16 @@
 import React from 'react';
 import {AsyncStorage, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 
+const styles = StyleSheet.create({
+  listItem: {
+    fontSize: 20,
+  },
+});
+
 export default class AlbumPicker extends React.Component {
   render(): JSX.Element {
     const albums = Object.values(this.props.albums);
+    //TODO:why is this commented?
     //albums.sort((a, b) => a.name.localeCompare(b.name));
     return (
       <View>
@@ -16,7 +23,7 @@ export default class AlbumPicker extends React.Component {
                 trackIds: item.trackIds,
               }
             })}>
-              <Text>Album: {item ? item.name : ''}</Text>
+              <Text style={styles.listItem}>{item ? item.name : ''}</Text>
             </TouchableHighlight>
           )}
           keyExtractor={item => item.id}
