@@ -10,15 +10,7 @@ import DownloadPage from './components/DownloadPage';
 import {Pages} from 'react-native-pages';
 import {DEV_API_URL, PORT} from './constants';
 import React from 'react';
-import {
-  AsyncStorage,
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  StatusBar,
-  NativeEventEmitter,
-} from 'react-native';
+import {AsyncStorage, NativeEventEmitter} from 'react-native';
 import io from 'socket.io-client';
 import ControlPage from './components/ControlPage';
 import MdnsModule from './MdnsModule';
@@ -43,7 +35,7 @@ export default class App extends React.Component {
     this.socket.on('disconnect', () => {
       this.setState({connected: false});
     });
-    this.socket.on('state', (state) => {
+    this.socket.on('state', state => {
       this.setState({
         currentlyPlaying: state,
       });
@@ -57,7 +49,7 @@ export default class App extends React.Component {
       this.setupSocket(DEV_API_URL);
       return;
     }
-    this.mdnsListener = emitter.addListener('resolve', (event) => {
+    this.mdnsListener = emitter.addListener('resolve', event => {
       if (event.port == PORT) {
         const apiUrl = `http://${event.host}:${event.port}`;
         this.setState({apiUrl});
@@ -71,7 +63,7 @@ export default class App extends React.Component {
       MdnsModule.stop();
     }, 10000);
 
-    AsyncStorage.getItem('last-host').then((host) => {
+    AsyncStorage.getItem('last-host').then(host => {
       // current url -- just to get something to start
       let apiUrl = host || `http://192.168.1.75:${PORT}`;
       this.setState({apiUrl});
@@ -89,15 +81,21 @@ export default class App extends React.Component {
   }
 
   sendMessage(type, data) {
-    this.socket.emit('action', { type, data });
+    this.socket.emit('action', {type, data});
   }
 
   render() {
     return (
       <Pages>
-        <DownloadPage apiUrl={this.state.apiUrl} connected={this.state.connected} />
-        <ControlPage current={this.state.currentlyPlaying} sendMessage={this.sendMessage.bind(this)} />
+        <DownloadPage
+          apiUrl={this.state.apiUrl}
+          connected={this.state.connected}
+        />
+        <ControlPage
+          current={this.state.currentlyPlaying}
+          sendMessage={this.sendMessage.bind(this)}
+        />
       </Pages>
-    )
+    );
   }
 }

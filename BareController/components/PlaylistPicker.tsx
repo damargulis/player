@@ -1,6 +1,12 @@
 import React from 'react';
 import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 
+const styles = StyleSheet.create({
+  listItem: {
+    fontSize: 24,
+  },
+});
+
 export default class PlaylistPicker extends React.Component {
   render(): JSX.Element {
     return (
@@ -11,7 +17,7 @@ export default class PlaylistPicker extends React.Component {
             <TouchableHighlight underlayColor="white" onPress={() => this.props.navigation.navigate('Tracks', {
               playlist: item,
             })}>
-              <Text>{item.name}</Text>
+              <Text style={styles.listItem}>{item.name}</Text>
             </TouchableHighlight>
           )}
           keyExtractor={item => item.name}

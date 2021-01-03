@@ -17,10 +17,10 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   listItem: {
-    fontSize: 20,
+    fontSize: 24,
   },
   sync: {
-    fontSize: 40,
+    fontSize: 42,
     width: '100%',
     textAlign: 'center',
   },

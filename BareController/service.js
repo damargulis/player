@@ -10,10 +10,12 @@ exports.service = async function() {
   TrackPlayer.addEventListener('remote-pause', () => TrackPlayer.pause());
   TrackPlayer.addEventListener('remote-stop', () => TrackPlayer.destroy());
   TrackPlayer.addEventListener('remote-next', () => TrackPlayer.skipToNext());
-  TrackPlayer.addEventListener('remote-previous', () => TrackPlayer.skipToPrevious());
-  TrackPlayer.addEventListener('playback-track-changed', (data) => {
+  TrackPlayer.addEventListener('remote-previous', () =>
+    TrackPlayer.skipToPrevious(),
+  );
+  TrackPlayer.addEventListener('playback-track-changed', data => {
     if (data.track !== null) {
-      AsyncStorage.getItem('storedPlays').then((storedPlays) => {
+      AsyncStorage.getItem('storedPlays').then(storedPlays => {
         const plays = storedPlays ? JSON.parse(storedPlays) : {};
         if (plays[data.track]) {
           plays[data.track].push(data.position);
@@ -24,4 +26,4 @@ exports.service = async function() {
       });
     }
   });
-}
+};
