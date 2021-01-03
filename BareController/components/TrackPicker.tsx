@@ -4,11 +4,32 @@ import TrackPlayer from 'react-native-track-player';
 import defaultAlbumArt from '../assets/missing_album.png';
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   name: {
     fontSize: 20,
   },
   artist: {
     fontSize: 12,
+  },
+  button: {
+    fontSize: 20,
+    width: '48%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: 'black',
+    borderWidth: 1,
+    marginLeft: '1%',
+    marginRight: '1%',
+  },
+  buttonContainer: {
+    height: 50,
+    flexDirection: 'row',
+  },
+  buttonText: {
+    fontSize: 20,
   },
 });
 
@@ -122,14 +143,16 @@ export default class TrackPicker extends React.Component {
     const trackIds = this.getTrackIds().filter((trackId) => this.props.tracks[trackId]);
     const name = this.props.route.params ? this.props.route.params.playlist.name : 'All Tracks';
     return (
-      <View>
+      <View style={styles.container}>
         <Text>{name}</Text>
-        <TouchableHighlight onPress={this.shuffle.bind(this)}>
-          <Text>Shuffle</Text>
-        </TouchableHighlight>
-        <TouchableHighlight onPress={this.playPlaylist.bind(this)}>
-          <Text>Play All</Text>
-        </TouchableHighlight>
+        <View style={styles.buttonContainer}>
+          <TouchableHighlight style={styles.button} onPress={this.shuffle.bind(this)}>
+            <Text style={styles.buttonText}>Shuffle</Text>
+          </TouchableHighlight>
+          <TouchableHighlight style={styles.button} onPress={this.playPlaylist.bind(this)}>
+            <Text style={styles.buttonText}>Play All</Text>
+          </TouchableHighlight>
+        </View>
         <FlatList
           data={trackIds}
           renderItem={({item}) => {
