@@ -18,7 +18,8 @@ export default class ControlPage extends React.Component {
   render(): JSX.Element {
     const current = this.props.current;
     const albums = current && current.albums;
-    const artFile =  albums && albums.length && albums[0].artFile;
+    const artId =  albums && albums.length && albums[0].id;
+    const artFile = artId ? `${this.props.apiUrl}/get-album-art/${artId}` : '';
     const artists = current && current.artists;
     const track = current && current.track;
     const mediaState = current && current.mediaState;

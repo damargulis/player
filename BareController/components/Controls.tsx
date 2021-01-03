@@ -12,17 +12,20 @@ const styles = StyleSheet.create({
   container: {
     height: 100,
     flexDirection: 'row',
-    backgroundColor: 'orange',
     alignItems: 'stretch',
   },
   button: {
     flex: 1,
-    height: 100,
+    height: 80,
+    width: 80,
     justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 10,
+    margin: 2,
   },
   buttonImage: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
   },
 });
 

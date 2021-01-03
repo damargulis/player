@@ -4,7 +4,7 @@ import {StyleSheet, Text, View} from 'react-native';
 const styles = StyleSheet.create({
   info: {
     flex: 1,
-    backgroundColor: 'blue',
+    alignItems: 'center',
   },
 });
 

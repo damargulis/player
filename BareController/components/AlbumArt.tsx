@@ -1,13 +1,15 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, Image, View} from 'react-native';
 
 const styles = StyleSheet.create({
   albumCover: {
     flex: 5,
-    backgroundColor: 'green',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  text: {
-    fontSize: 32,
+  image: {
+    width: 200,
+    height: 200,
   },
 });
 
@@ -15,7 +17,14 @@ export default class AlbumArt extends React.Component {
 
   render(): JSX.Element {
     return (
-        <View style={styles.albumCover}><Text style={styles.text}>{this.props.artFile}</Text></View>
+      <View style={styles.albumCover}>
+        <Image
+          style={styles.image}
+          source={{
+            uri: this.props.artFile,
+          }}
+        />
+      </View>
     );
   }
 }

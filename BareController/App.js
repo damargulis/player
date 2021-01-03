@@ -92,6 +92,7 @@ export default class App extends React.Component {
           connected={this.state.connected}
         />
         <ControlPage
+          apiUrl={this.state.apiUrl}
           current={this.state.currentlyPlaying}
           sendMessage={this.sendMessage.bind(this)}
         />
