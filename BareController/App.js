@@ -77,7 +77,9 @@ export default class App extends React.Component {
       MdnsModule.stop();
       clearTimeout(this.endScanTimeout);
     }
-    this.mdnsListener.remove();
+    if (this.mdnsListener) {
+      this.mdnsListener.remove();
+    }
   }
 
   sendMessage(type, data) {

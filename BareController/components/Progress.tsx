@@ -26,7 +26,7 @@ export default class Progress extends Component {
           value={this.props.currentTime * 1000}
           onValueChange={this.onValueChange.bind(this)}
         />
-        <Text>{this.props.duration}</Text>
+        <Text>{this.props.duration / 1000}</Text>
       </View>
     );
   }

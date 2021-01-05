@@ -16,15 +16,20 @@ const styles = StyleSheet.create({
 export default class AlbumArt extends React.Component {
 
   render(): JSX.Element {
+    if (this.props.artFile) {
+      return (
+        <View style={styles.albumCover}>
+          <Image
+            style={styles.image}
+            source={{
+              uri: this.props.artFile,
+            }}
+          />
+        </View>
+      );
+    }
     return (
-      <View style={styles.albumCover}>
-        <Image
-          style={styles.image}
-          source={{
-            uri: this.props.artFile,
-          }}
-        />
-      </View>
-    );
+      <View></View>
+    )
   }
 }
