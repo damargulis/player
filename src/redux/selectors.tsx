@@ -228,7 +228,7 @@ export function getAutoPlaylists(store: RootState): Playlist[] {
 export function getSyncedPlaylists(store: RootState): Playlist[] {
   if (IS_DEV) {
     const most = getMostPlayed(store);
-    most.trackIds.splice(10);
+    most.trackIds.splice(20);
     return [most];
   }
   return [

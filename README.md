@@ -8,7 +8,7 @@ Features:
   - Filter by genre
   - Shuffle playlist by album or song
   - Mini-player window
-  - Mobile app that can sync songs / playlists / play counts
+  - Mobile app that can sync songs / playlists / play counts, and control computer playback
 
 `yarn electron-dev` to run development server.
 
