@@ -75,6 +75,7 @@ class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState>
               errors: [],
               genreIds: [],
               trackIds: [],
+              memberIds: [],
             }}
           />
         </Modal>

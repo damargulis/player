@@ -81,6 +81,7 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
         errors: [],
         genreIds: [...album.genreIds],
         trackIds: [...album.trackIds],
+        memberIds: [],
       };
       artistsByLocation.set(location, artist);
     }
@@ -111,6 +112,7 @@ function getArtists(data: ItunesData, albums: Record<string, Album>, tracks: Rec
           errors: [],
           genreIds: [],
           trackIds: [],
+          memberIds: [],
         };
         artists[artist.id] = artist;
         artistsByName[artist.name] = artist;

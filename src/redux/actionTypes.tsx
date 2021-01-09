@@ -85,6 +85,7 @@ export interface Artist {
   wikiPage?: string;
   genreIds: string[];
   trackIds: string[];
+  memberIds: string[];
 }
 
 export interface Album {

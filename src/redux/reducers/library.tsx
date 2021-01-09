@@ -373,7 +373,8 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
 }
 
 function getOrCreateGenres(metadata: Metadata, state: LibraryState): string[] {
-  // TODO: only gets...also create or no?
+  // NOTE: doesn't actually create -- this is desired cause who knows what the comments are -- this is safer for now,
+  // until you can delete/edit genres at least
   const genreNames = metadata.genre.map((genre) => formatGenre(genre));
   const inverseGenres = inverse(state.genres);
   const genreIds = genreNames.map((name) => inverseGenres[name]).filter(Boolean);
@@ -423,6 +424,7 @@ function getOrCreateArtist(metadata: Metadata, existingArtists: Record<string, A
     errors: [],
     genreIds: [],
     trackIds: [],
+    memberIds: [],
   };
 }
 

@@ -4,7 +4,7 @@ import {BASE_URL} from './constants';
 import {GENRE_ERROR, NO_PAGE_ERROR, PARSER_ERROR, PIC_ERROR} from './errors';
 import fs from 'fs';
 import rp from 'request-promise-native';
-import {getGenreIds} from '../../redux/selectors';
+import {getGenreIds, getArtistsByGenres} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {addError, findAsync, getDoc, getGenresByRow, removeError} from './utils';
@@ -48,6 +48,19 @@ function searchForWikiPage(artist: Artist): Promise<string>  {
   });
 }
 
+function getMembersByRows(rows: HTMLCollectionOf<HTMLTableRowElement>): string[] {
+  // TODO: (past members???)
+  const memberRow = [...rows].find((row) => {
+    const headers = row.getElementsByTagName('th');
+    return headers[0] && headers[0].textContent == 'Members';
+  });
+  if (!memberRow) {
+    return [];
+  }
+  const names = memberRow.getElementsByTagName('li');
+  return [...names].map((names) => names.textContent || '');
+}
+
 function modifyArtist(store: RootState, artist: Artist): Promise<void> {
   if (!artist.wikiPage) {
     return Promise.resolve();
@@ -65,6 +78,16 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     } else {
       addError(artist, GENRE_ERROR);
     }
+    const members = getMembersByRows(rows);
+    const artists = getArtistsByGenres(store, []);
+    const memberIds = artists.filter((artist) => {
+      return members.includes(artist.name);
+    }).map((artist) => {
+      return artist.id;
+    });
+    // TODO: errors for this?
+    artist.memberIds = memberIds;
+
     const pics = infoBox.getElementsByTagName('img');
     // TODO: take multiple pictures (rotate them elsewhere in the app)
     const pic = pics[0];
