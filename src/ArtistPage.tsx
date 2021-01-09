@@ -55,6 +55,22 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
     };
   }
 
+  private getMembers(): JSX.Element | null {
+    if (!this.props.artist.memberIds) {
+      return null
+    }
+    return (
+      <div className="members">
+        {this.props.artist.memberIds.map((memberId) => {
+          return (
+            <div key={memberId}>{memberId}</div>
+          );
+        })
+        }
+      </div>
+    )
+  }
+
   public render(): JSX.Element {
     const src = this.props.artist.artFile ? getImgSrc(this.props.artist.artFile) : defaultArtist;
     return (
@@ -85,6 +101,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <WikiLabel wikiPage={this.props.artist.wikiPage} />
               <button onClick={() => this.runWiki()}>Run Wiki Extension</button>
             </div>
+            {this.getMembers()}
             <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
             <button onClick={() => this.deleteArtist()} className="deleteArtist">Delete Artist</button>
             {this.getErrors()}
