@@ -29,6 +29,8 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
           if (this.numCols <= 0) {
             return;
           }
+          // buffer for search bar, TODO: this should be a prop also
+          height = height - 15;
           const rows = Math.ceil(this.props.numItems / this.numCols);
           return (
             <Grid
