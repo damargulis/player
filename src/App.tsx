@@ -120,6 +120,7 @@ class App extends React.Component<AppProps, AppState> {
         favorites.splice(index, 1);
       }
       this.props.updateTrack(this.props.track.id, {favorites});
+      this.sendControllerUpdate();
     });
     ipcRenderer.on('setTime', (evt, data) => {
       this.audio.currentTime = data;
@@ -193,18 +194,7 @@ class App extends React.Component<AppProps, AppState> {
     this.audio.volume = this.props.volume;
     this.audio.addEventListener('timeupdate', () => {
       this.props.updateTime(this.audio.currentTime);
-      const artists = this.props.track ? this.props.getArtistsByIds(this.props.track.artistIds) : [];
-      const albums = this.props.track ? this.props.getAlbumsByIds(this.props.track.albumIds) : [];
-      ipcRenderer.send('controller-state', {
-        track: this.props.track,
-        artists: artists,
-        albums: albums,
-        currentTime: this.audio.currentTime,
-        mediaState: {
-          paused: this.audio.paused,
-          volume: this.audio.volume,
-        },
-      });
+      this.sendControllerUpdate();
     });
     this.audio.addEventListener('ended', () => {
       const track = this.props.track;
@@ -216,6 +206,21 @@ class App extends React.Component<AppProps, AppState> {
       }
       this.audio.src = '';
       this.props.nextTrack();
+    });
+  }
+
+  sendControllerUpdate() {
+    const artists = this.props.track ? this.props.getArtistsByIds(this.props.track.artistIds) : [];
+    const albums = this.props.track ? this.props.getAlbumsByIds(this.props.track.albumIds) : [];
+    ipcRenderer.send('controller-state', {
+      track: this.props.track,
+      artists: artists,
+      albums: albums,
+      currentTime: this.audio.currentTime,
+      mediaState: {
+        paused: this.audio.paused,
+        volume: this.audio.volume,
+      },
     });
   }
 
