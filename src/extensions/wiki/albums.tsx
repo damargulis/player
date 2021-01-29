@@ -97,13 +97,6 @@ function getInsideOfQuotes(text: string): string {
   return matches && matches.groups ? matches.groups.inner : '';
 }
 
-function getFeaturingText(text: string): string {
-  const quoteIndex = getInsideOfQuotes(text).length + 2;
-  const notInQuotes = text.slice(quoteIndex);
-  const matches = text.match(/\(featuring (?<inner>.*?)\)/);
-  return matches && matches.groups ? matches.groups.inner : '';
-}
-
 function getTracksFromTracklist(tracklist: Element): string[] {
   const rows = tracklist.getElementsByTagName('tr');
   // splits into two arrays, headers which contains any rows that have only <th>
@@ -131,8 +124,6 @@ function getTracksFromTracklist(tracklist: Element): string[] {
     const data = row.getElementsByTagName('td');
     // -1 because the number col is th cells, so it doesn't get counted.
     const titleText = data[titleIndex - 1].textContent || '';
-    const featured = getFeaturingText(titleText);
-    console.log(featured);
     return getInsideOfQuotes(titleText);
   }).filter(Boolean) as string[];
 }
