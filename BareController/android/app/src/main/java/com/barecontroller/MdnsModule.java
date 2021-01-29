@@ -4,6 +4,7 @@ package com.barecontroller;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
+import android.net.wifi.WifiManager;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
@@ -21,6 +22,7 @@ public class MdnsModule extends ReactContextBaseJavaModule {
   private NsdManager.DiscoveryListener discoveryListener;
   private NsdManager nsdManager;
   private NsdManager.ResolveListener resolveListener;
+  private WifiManager.MulticastLock multicastLock;
 
   MdnsModule(ReactApplicationContext context) {
     super(context);
@@ -58,6 +60,10 @@ public class MdnsModule extends ReactContextBaseJavaModule {
       @Override public void onStartDiscoveryFailed(String s, int i) {} 
       @Override public void onStopDiscoveryFailed(String s, int i) {}
     }; 
+    WifiManager wifi = (WifiManager) getReactApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    multicastLock = wifi.createMulticastLock("multicastLock");
+    multicastLock.setReferenceCounted(true);
+    multicastLock.acquire();
     nsdManager = (NsdManager) getReactApplicationContext().getSystemService(Context.NSD_SERVICE);
     nsdManager.discoverServices("_http._tcp", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
   }
@@ -65,5 +71,6 @@ public class MdnsModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void stop() {
     nsdManager.stopServiceDiscovery(discoveryListener);
+    multicastLock.release();
   }
 }
