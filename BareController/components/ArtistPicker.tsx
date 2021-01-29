@@ -1,5 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
-import {AsyncStorage, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 
 const styles = StyleSheet.create({
   listItem: {

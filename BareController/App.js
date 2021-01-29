@@ -6,11 +6,12 @@
  * @flow strict-local
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DownloadPage from './components/DownloadPage';
 import {Pages} from 'react-native-pages';
 import {DEV_API_URL, PORT} from './constants';
 import React from 'react';
-import {AsyncStorage, NativeEventEmitter} from 'react-native';
+import {NativeEventEmitter} from 'react-native';
 import io from 'socket.io-client';
 import ControlPage from './components/ControlPage';
 import MdnsModule from './MdnsModule';

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ErrorBoundary from 'react-native-error-boundary';
 import AlbumPicker from './AlbumPicker';
 import {NavigationContainer} from '@react-navigation/native';
@@ -5,7 +6,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import PromisePool from 'es6-promise-pool';
 import PlaylistPicker from './PlaylistPicker';
 import React from 'react';
-import {AsyncStorage, Button, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import {Button, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import {FileSystem} from 'react-native-unimodules';
 import TrackPicker from './TrackPicker';
 import ArtistPicker from './ArtistPicker';
