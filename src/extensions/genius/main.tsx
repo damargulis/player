@@ -39,6 +39,7 @@ function geniusRequest(url: string): Promise<string> {
 
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
   const primaryArtist = getArtistById(store, track.artistIds[0]);
+  // TODO: remove periods and other puncutation from search url?
   return geniusRequest(SEARCH_URL + encodeURIComponent(`${track.name} ${primaryArtist.name}`)).then(
       (jsonString: string) => {
     const results = JSON.parse(jsonString);
