@@ -6,7 +6,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import PromisePool from 'es6-promise-pool';
 import PlaylistPicker from './PlaylistPicker';
 import React from 'react';
-import {Button, FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import {Button, FlatList, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import {FileSystem} from 'react-native-unimodules';
 import TrackPicker from './TrackPicker';
 import ArtistPicker from './ArtistPicker';
@@ -25,9 +25,21 @@ const styles = StyleSheet.create({
     width: '100%',
     textAlign: 'center',
   },
+  input: {
+    borderWidth: 1,
+    borderColor: 'black',
+  },
 });
 
 class Main extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      curIpText: '',
+    }
+  }
+
   render(): JSX.Element {
     return (
       <View style={styles.container} >
@@ -41,6 +53,7 @@ class Main extends React.Component {
           keyExtractor={item => item}
         />
       { this.renderSyncButton() }
+      { this.renderManualInput() }
       { this.renderSyncStatus() }
       </View>
     );
@@ -54,6 +67,30 @@ class Main extends React.Component {
       <TouchableHighlight underlayColor="white" onPress={this.props.sync.bind(this)}>
         <Text style={styles.sync}>Press to Sync</Text>
       </TouchableHighlight>
+    );
+  }
+
+  setIpAddress() {
+    console.log(this.props);
+    this.props.setIp(this.state.curIpText);
+  }
+
+  onChangeIpText(ip) {
+    this.setState({curIpText: ip});
+  }
+
+  renderManualInput(): JSX.Element | null {
+    if (this.props.connected) {
+      return null;
+    }
+    return (
+      <View>
+        <Text>Not Connected, Enter IP Address to manually connect</Text>
+        <TextInput onChangeText={this.onChangeIpText.bind(this)} style={styles.input} maxLength={15}/>
+        <TouchableHighlight underlayColor="white" onPress={this.setIpAddress.bind(this)}>
+          <Text style={styles.sync}>Press to Connect</Text>
+        </TouchableHighlight>
+      </View>
     );
   }
 
@@ -344,6 +381,7 @@ export default class DownloadPage extends React.Component {
                   sync={this.sync.bind(this)}
                   connected={this.props.connected}
                   apiUrl={this.props.apiUrl}
+                  setIp={this.props.setIp}
                   syncing={this.state.syncing}
                   progressString={progressString}
                   errString={this.state.err}

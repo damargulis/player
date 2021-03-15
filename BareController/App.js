@@ -87,12 +87,19 @@ export default class App extends React.Component {
     this.socket.emit('action', {type, data});
   }
 
+  setIp(newIp) {
+    const apiUrl = `http://${newIp}:${PORT}`;
+    this.setState({apiUrl});
+    this.setupSocket(apiUrl);
+  }
+
   render() {
     return (
       <Pages>
         <DownloadPage
           apiUrl={this.state.apiUrl}
           connected={this.state.connected}
+          setIp={this.setIp.bind(this)}
         />
         <ControlPage
           apiUrl={this.state.apiUrl}

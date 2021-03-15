@@ -23,7 +23,7 @@ export default class ControlPage extends React.Component {
     const artists = current && current.artists;
     const track = current && current.track;
     const curYear = (new Date()).getFullYear();
-    const isFav = track.favorites.includes(curYear);
+    const isFav = track && track.favorites && track.favorites.includes(curYear);
     const mediaState = current && current.mediaState;
     return (
       <View style={styles.container}>
