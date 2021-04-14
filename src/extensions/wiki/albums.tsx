@@ -120,7 +120,7 @@ enum TracklistType {
   BONUS,
 }
 
-function classifyHeader(header: HTMLHeadingElement): TracklistType {
+function classifyHeader(header: Element): TracklistType {
   return classifyText(header.textContent && header.textContent.toLowerCase());
 }
 
@@ -190,6 +190,7 @@ interface PlaylistInfo {
 }
 
 export function getTracks(doc: Document): PlaylistInfo[] {
+  debugger;
   const tracklistSection = getAllNodesInSection(doc, "Track listing");
   const tables = tracklistSection.filter((ele) => ele instanceof HTMLTableElement) as HTMLTableElement[];
   if (tables.length > 0) {
@@ -200,8 +201,16 @@ export function getTracks(doc: Document): PlaylistInfo[] {
       }
     });
   }
-  const headers = tracklistSection.filter((ele) => ele instanceof HTMLHeadingElement) as HTMLHeadingElement[];
-  const lists = tracklistSection.filter((ele) => ele instanceof HTMLOListElement) as HTMLOListElement[];
+  const headers = [] as Element[];
+  const lists = [] as HTMLOListElement[];
+  tracklistSection.forEach((section, index) => {
+    if (section instanceof HTMLOListElement) {
+      lists.push(section);
+      if (index > 0) {
+        headers.push(tracklistSection[index-1]);
+      }
+    }
+  });
   if (lists.length == 1 && headers.length == 0) {
     return [{
       classification: TracklistType.SIDE,
@@ -218,8 +227,6 @@ export function getTracks(doc: Document): PlaylistInfo[] {
     }
   });
 }
-
-const TRACK_WARNING = 'trackWarning';
 
 function addTrackWarning(album: Album, index: number, trackTitles: string): void {
   album.warnings[index] = trackTitles;
