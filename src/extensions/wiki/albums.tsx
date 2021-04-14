@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {Album, AlbumInfo, Artist} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
@@ -97,95 +98,128 @@ function getInsideOfQuotes(text: string): string {
   return matches && matches.groups ? matches.groups.inner : '';
 }
 
-function getTracksFromTracklist(tracklist: Element): string[] {
-  const rows = tracklist.getElementsByTagName('tr');
-  // splits into two arrays, headers which contains any rows that have only <th>
-  // elements, and dataRows which has all the others
-  const headers = [];
-  const dataRows = [];
-  for (const row of rows) {
-    if (row.getElementsByTagName('td').length === 0) {
-      headers.push(row);
-    } else {
-      dataRows.push(row);
-    }
+function getAllNodesInSection(doc: Document, headerText: string): Element[] {
+  const headerNodes = [...doc.querySelectorAll('h1, h2, h3, h4, h5, h6')];
+
+  const targetHeader = headerNodes.find((node) => node.textContent && node.textContent.includes(headerText));
+  if (!targetHeader) {
+    return [];
   }
-  let goodHeader;
-  for (const header of headers) {
-    if (header.textContent && header.textContent.includes('Title')) {
-      goodHeader = header;
-      break;
-    }
+  const targetIndex = headerNodes.indexOf(targetHeader);
+  const contentNodes = [];
+  let nextNode = targetHeader.nextElementSibling;
+  while (nextNode && nextNode.tagName != targetHeader.tagName) {
+    contentNodes.push(nextNode);
+    nextNode = nextNode.nextElementSibling;
   }
-  const headerCells = goodHeader ? goodHeader.getElementsByTagName('th') : [];
-  const headerNames = Array(...headerCells).map((cell) => cell.textContent);
-  const titleIndex = headerNames.indexOf('Title');
-  return dataRows.map((row) => {
-    const data = row.getElementsByTagName('td');
-    // -1 because the number col is th cells, so it doesn't get counted.
-    const titleText = data[titleIndex - 1].textContent || '';
-    return getInsideOfQuotes(titleText);
-  }).filter(Boolean) as string[];
+  return contentNodes;
 }
 
-export function getTracks(doc: Document): string[] {
-  const tracklists = doc.getElementsByClassName('tracklist');
-  // TODO: using first for now, should loop through all, check header to
-  // determine what to do with it; can include multi releases, discs, versions,
-  // etc.
-  if (tracklists.length === 0) {
-    // if none, use header to find list
-    // Track_listing id will be within h2 tag
-    // Listing will go on until next h2 tag,
-    // take all li items in between as song titles
-    let trackListHeader = doc.getElementById('Track_listing');
-    if (!trackListHeader) {
-      return [];
-    }
-    while (trackListHeader.tagName !== 'H2') {
-      if (!trackListHeader.parentElement) {
-        return [];
-      }
-      trackListHeader = trackListHeader.parentElement;
-    }
-    let next = trackListHeader.nextElementSibling;
-    let listItems = [] as Element[];
-    if (!next) {
-      return [];
-    }
-    while (next.tagName !== 'H2') {
-      listItems = [...listItems, ...next.getElementsByTagName('li')];
-      if (!next.nextElementSibling) {
-        break;
-      }
-      next = next.nextElementSibling;
-    }
-    const names = [];
-    for (const track of listItems) {
-      const text = track.textContent || '';
-      // 8211 = long hyphen character
-      let split = text.split(String.fromCharCode(8211));
-      let title = split[0];
-      // 45 = short hypen character
-      split = title.split(String.fromCharCode(45));
-      title = split[0] || '';
-      title = getInsideOfQuotes(title.trim());
-      if (title) {
-        names.push(title);
-      }
-    }
-    return names;
-  }
-  let tracks = [] as string[];
-  for (const tracklist of tracklists) {
-    // tracklists that are hidden are usually bonus tracks .. maybe include
-    // but give different warning for missing bonus tracks?
-    if (!tracklist.className.includes('collapsible')) {
-      tracks = [...tracks, ...getTracksFromTracklist(tracklist)];
-    }
-  }
-  return tracks;
+enum TracklistType {
+  SIDE,
+  BONUS,
 }
+
+function classifyHeader(header: HTMLHeadingElement): TracklistType {
+  return classifyText(header.textContent && header.textContent.toLowerCase());
+}
+
+function classifyTable(table: HTMLTableElement): TracklistType {
+  return classifyText(table.caption && table.caption.textContent);
+}
+
+function classifyText(text: string | null): TracklistType {
+  if (!text) {
+    return TracklistType.SIDE;
+  } else if (text.includes('bonus')) {
+    return TracklistType.BONUS;
+  } else if (text.includes('Bonus')) {
+    return TracklistType.BONUS;
+  } else if (text.includes('Anniversary')) {
+    return TracklistType.BONUS;
+  }
+  return TracklistType.SIDE;
+}
+
+interface TrackInfo {
+  name: string;
+}
+
+function getTracksFromList(list: HTMLOListElement): TrackInfo[] {
+  const items = list.getElementsByTagName('li');
+  const tracks = [];
+  for (const item of items) {
+    const text = item.textContent || '';
+    // 8211 = long hyphen character
+    let split = text.split(String.fromCharCode(8211));
+    let title = split[0];
+    // 45 = short hypen character
+    split = title.split(String.fromCharCode(45));
+    title = split[0] || '';
+    title = getInsideOfQuotes(title.trim());
+    if (title) {
+      tracks.push({name: title});
+    }
+  }
+  return tracks
+}
+
+function getTracksFromTable(table: HTMLTableElement): TrackInfo[] {
+  const header = table.rows[0];
+  const infos = [] as TrackInfo[];
+  const headerCells = [...header.cells];
+  const titleCell = headerCells.find((cell) => cell.textContent == 'Title');
+  const titleIndex = headerCells.indexOf(titleCell as HTMLTableHeaderCellElement);
+  for (const row of table.rows) {
+    if (row == header) {
+      continue;
+    }
+    let title = getInsideOfQuotes(row.cells[titleIndex].textContent || '');
+    if (title) {
+      infos.push({
+        name: title
+      });
+    }
+  }
+  return infos;
+}
+
+interface PlaylistInfo {
+  classification: TracklistType;
+  tracks: TrackInfo[];
+}
+
+export function getTracks(doc: Document): PlaylistInfo[] {
+  const tracklistSection = getAllNodesInSection(doc, "Track listing");
+  const tables = tracklistSection.filter((ele) => ele instanceof HTMLTableElement) as HTMLTableElement[];
+  if (tables.length > 0) {
+    return tables.map((table) => {
+      return {
+        classification: classifyTable(table),
+        tracks: getTracksFromTable(table),
+      }
+    });
+  }
+  const headers = tracklistSection.filter((ele) => ele instanceof HTMLHeadingElement) as HTMLHeadingElement[];
+  const lists = tracklistSection.filter((ele) => ele instanceof HTMLOListElement) as HTMLOListElement[];
+  if (lists.length == 1 && headers.length == 0) {
+    return [{
+      classification: TracklistType.SIDE,
+      tracks: getTracksFromList(lists[0]),
+    }];
+  }
+  if (headers.length !== lists.length) {
+    return [];
+  }
+  return headers.map((header, index) => {
+    return {
+      classification: classifyHeader(header),
+      tracks: getTracksFromList(lists[index]),
+    }
+  });
+}
+
+const TRACK_WARNING = 'trackWarning';
 
 function addTrackWarning(album: Album, index: number, trackTitles: string): void {
   album.warnings[index] = trackTitles;
@@ -215,15 +249,35 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     } else {
       addError(album, GENRE_ERROR);
     }
-    const trackTitles = getTracks(doc);
-    if (album.trackIds.length === trackTitles.length) {
-      const tracks = getTracksByIds(store, album.trackIds);
-      tracks.forEach((track, index) => {
-        if (track.name !== trackTitles[index]) {
-          addTrackWarning(album, index, trackTitles[index]);
+    const playlists = getTracks(doc);
+    const regularPlaylists = playlists.filter((playlists) => playlists.classification == TracklistType.SIDE);
+    const regularTracks = regularPlaylists.map((playlist) => playlist.tracks).flat();
+    const bonusPlaylists = playlists.filter((playlists) => playlists.classification == TracklistType.BONUS);
+    const bonusTracks = bonusPlaylists.map((playlist) => playlist.tracks).flat();
+    const refTracks = getTracksByIds(store, album.trackIds);
+    removeError(album, TRACK_ERROR);
+    if (refTracks.length < regularTracks.length) {
+      addError(album, TRACK_ERROR);
+    } else if (refTracks.length == regularTracks.length) {
+      refTracks.forEach((track, index) => {
+        if (track.name !== regularTracks[index].name) {
+          addTrackWarning(album, index, regularTracks[index].name);
         }
       });
-      removeError(album, TRACK_ERROR);
+      // TODO: make this a warning?
+      //if (bonusTracks.length > 0) {
+      //  addError(album, TRACK_ERROR);
+      //}
+    } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
+      addError(album, TRACK_ERROR);
+      // see if it matches just some bonus versions?
+    } else if (refTracks.length == regularTracks.length + bonusTracks.length) {
+      const totalTracks = [...regularTracks, ...bonusTracks];
+      refTracks.forEach((track, index) => {
+        if (track.name !== totalTracks[index].name) {
+          addTrackWarning(album, index, totalTracks[index].name);
+        }
+      });
     } else {
       addError(album, TRACK_ERROR);
     }

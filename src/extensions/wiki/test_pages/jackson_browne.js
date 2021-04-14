@@ -1,14 +1,13 @@
+/** 
+ * Jackson Browne - Jackson Browne
+ * URL: https://en.wikipedia.org/wiki/Jackson_Browne_(album)
+ */
 
 const doc = `<!DOCTYPE html>
 <html class="client-nojs" lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8"/>
 <title>Jackson Browne (album) - Wikipedia</title>
-<script>document.documentElement.className="client-js";RLCONF={"wgBreakFrames":!1,"wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgRequestId":"X@eNawpAAL8AAM8wKd8AAAAL","wgCSPNonce":!1,"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":!1,"wgNamespaceNumber":0,"wgPageName":"Jackson_Browne_(album)","wgTitle":"Jackson Browne (album)","wgCurRevisionId":961270802,"wgRevisionId":961270802,"wgArticleId":1087894,"wgIsArticle":!0,"wgIsRedirect":!1,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Webarchive template wayback links","Articles with short description","Short description is different from Wikidata","Articles with hAudio microformats","Album articles lacking alt text for covers","Jackson Browne albums","1972 debut albums","Asylum Records albums"],"wgPageContentLanguage":
-"en","wgPageContentModel":"wikitext","wgRelevantPageName":"Jackson_Browne_(album)","wgRelevantArticleId":1087894,"wgIsProbablyEditable":!0,"wgRelevantPageIsProbablyEditable":!0,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgMediaViewerOnClick":!0,"wgMediaViewerEnabledByDefault":!0,"wgPopupsReferencePreviews":!1,"wgPopupsConflictsWithNavPopupGadget":!1,"wgPopupsConflictsWithRefTooltipsGadget":!0,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","pageVariantFallbacks":"en"},"wgMFDisplayWikibaseDescriptions":{"search":!0,"nearby":!0,"watchlist":!0,"tagline":!1},"wgWMESchemaEditAttemptStepOversample":!1,"wgULSCurrentAutonym":"English","wgNoticeProject":"wikipedia","wgCentralAuthMobileDomain":!1,"wgEditSubmitButtonLabelPublish":!0,"wgULSPosition":"interlanguage","wgWikibaseItemId":"Q1173031"};RLSTATE={"ext.globalCssJs.user.styles":"ready","site.styles":"ready","noscript":"ready","user.styles":"ready","ext.globalCssJs.user":"ready","user":
-"ready","user.options":"loading","ext.cite.styles":"ready","ext.categoryTree.styles":"ready","skins.vector.styles.legacy":"ready","jquery.makeCollapsible.styles":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","ext.wikimediaBadges":"ready","wikibase.client.init":"ready"};RLPAGEMODULES=["ext.cite.ux-enhancements","ext.categoryTree","site","mediawiki.page.ready","jquery.makeCollapsible","mediawiki.toc","skins.vector.legacy.js","ext.gadget.ReferenceTooltips","ext.gadget.charinsert","ext.gadget.extra-toolbar-buttons","ext.gadget.refToolbar","ext.gadget.switcher","ext.centralauth.centralautologin","mmv.head","mmv.bootstrap.autostart","ext.popups","ext.visualEditor.desktopArticleTarget.init","ext.visualEditor.targetLoader","ext.eventLogging","ext.wikimediaEvents","ext.navigationTiming","ext.uls.compactlinks","ext.uls.interface","ext.cx.eventlogging.campaigns","ext.centralNotice.geoIP","ext.centralNotice.startUp"];</script>
-<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.implement("user.options@1hzgi",function($,jQuery,require,module){/*@nomin*/mw.user.tokens.set({"patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});
-});});</script>
 <link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=ext.categoryTree.styles%7Cext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediaBadges%7Cjquery.makeCollapsible.styles%7Cskins.vector.styles.legacy%7Cwikibase.client.init&amp;only=styles&amp;skin=vector"/>
 <script async="" src="/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector"></script>
 <meta name="ResourceLoaderDynamicStyles" content=""/>
@@ -488,18 +487,25 @@ additional terms may apply.  By using this site, you agree to the <a href="//fou
   <script type="application/ld+json">{"@context":"https:\/\/schema.org","@type":"Article","name":"Jackson Browne (album)","url":"https:\/\/en.wikipedia.org\/wiki\/Jackson_Browne_(album)","sameAs":"http:\/\/www.wikidata.org\/entity\/Q1173031","mainEntity":"http:\/\/www.wikidata.org\/entity\/Q1173031","author":{"@type":"Organization","name":"Contributors to Wikimedia projects"},"publisher":{"@type":"Organization","name":"Wikimedia Foundation, Inc.","logo":{"@type":"ImageObject","url":"https:\/\/www.wikimedia.org\/static\/images\/wmf-hor-googpub.png"}},"datePublished":"2004-10-21T00:47:28Z","dateModified":"2020-06-07T14:33:23Z","image":"https:\/\/upload.wikimedia.org\/wikipedia\/en\/3\/3a\/Jacksonbrownedebut.jpg","headline":"1972 self-titled debut studio album by Jackson Browne"}</script>
   <script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":146,"wgHostname":"mw1387"});});</script>
   </body></html>`;
-const tracklist = [
-  "Jamaica Say You Will",
-  "A Child in These Hills",
-  "Song for Adam",
-  "Doctor, My Eyes",
-  "From Silver Lake",
-  "Something Fine",
-  "Under the Falling Sky",
-  "Looking into You",
-  "Rock Me on the Water",
-  "My Opening Farewell",
-];
+
+const tracklist = [{
+  classification: 0,
+  tracks: [
+    {name: "Jamaica Say You Will"},
+    {name: "A Child in These Hills"},
+    {name: "Song for Adam"},
+    {name: "Doctor, My Eyes"},
+    {name: "From Silver Lake"},
+]}, {
+  classification: 0,
+  tracks: [
+    {name: "Something Fine"},
+    {name: "Under the Falling Sky"},
+    {name: "Looking into You"},
+    {name: "Rock Me on the Water"},
+    {name: "My Opening Farewell"},
+  ]
+}];
 
 module.exports = {
   doc: doc,

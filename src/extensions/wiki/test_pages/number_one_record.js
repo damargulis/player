@@ -9,12 +9,6 @@ const doc = `<!DOCTYPE html>
   <head>
   <meta charset="UTF-8"/>
   <title>Number 1 Record - Wikipedia</title>
-  <script>document.documentElement.className="client-js";RLCONF={"wgBreakFrames":!1,"wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgRequestId":"X@dxwApAICsAAA-mVJsAAABG","wgCSPNonce":!1,"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":!1,"wgNamespaceNumber":0,"wgPageName":"Number_1_Record","wgTitle":"Number 1 Record","wgCurRevisionId":995193786,"wgRevisionId":995193786,"wgArticleId":3412884,"wgIsArticle":!0,"wgIsRedirect":!1,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["CS1 errors: missing periodical","Use mdy dates from July 2017","Restricted titles","Articles with short description","Short description is different from Wikidata","Articles with hAudio microformats","CS1 maint: ref=harv","Big Star albums","1972 debut albums","Ardent Records albums","Stax Records albums",
-    "Albums produced by John Fry (record producer)"],"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgRelevantPageName":"Number_1_Record","wgRelevantArticleId":3412884,"wgIsProbablyEditable":!0,"wgRelevantPageIsProbablyEditable":!0,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgMediaViewerOnClick":!0,"wgMediaViewerEnabledByDefault":!0,"wgPopupsReferencePreviews":!1,"wgPopupsConflictsWithNavPopupGadget":!1,"wgPopupsConflictsWithRefTooltipsGadget":!0,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","pageVariantFallbacks":"en"},"wgMFDisplayWikibaseDescriptions":{"search":!0,"nearby":!0,"watchlist":!0,"tagline":!1},"wgWMESchemaEditAttemptStepOversample":!1,"wgULSCurrentAutonym":"English","wgNoticeProject":"wikipedia","wgCentralAuthMobileDomain":!1,"wgEditSubmitButtonLabelPublish":!0,"wgULSPosition":"interlanguage","wgWikibaseItemId":"Q269307"};RLSTATE={"ext.globalCssJs.user.styles":"ready","site.styles":"ready","noscript":
-      "ready","user.styles":"ready","ext.globalCssJs.user":"ready","user":"ready","user.options":"loading","ext.cite.styles":"ready","ext.categoryTree.styles":"ready","skins.vector.styles.legacy":"ready","jquery.makeCollapsible.styles":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","ext.wikimediaBadges":"ready","wikibase.client.init":"ready"};RLPAGEMODULES=["ext.cite.ux-enhancements","ext.scribunto.logs","ext.categoryTree","site","mediawiki.page.ready","jquery.makeCollapsible","mediawiki.toc","skins.vector.legacy.js","ext.gadget.ReferenceTooltips","ext.gadget.charinsert","ext.gadget.extra-toolbar-buttons","ext.gadget.refToolbar","ext.gadget.switcher","ext.centralauth.centralautologin","mmv.head","mmv.bootstrap.autostart","ext.popups","ext.visualEditor.desktopArticleTarget.init","ext.visualEditor.targetLoader","ext.eventLogging","ext.wikimediaEvents","ext.navigationTiming","ext.uls.compactlinks","ext.uls.interface",
-        "ext.cx.eventlogging.campaigns","ext.centralNotice.geoIP","ext.centralNotice.startUp"];</script>
-  <script>(RLQ=window.RLQ||[]).push(function(){mw.loader.implement("user.options@1hzgi",function($,jQuery,require,module){/*@nomin*/mw.user.tokens.set({"patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});
-  });});</script>
   <link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=ext.categoryTree.styles%7Cext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediaBadges%7Cjquery.makeCollapsible.styles%7Cskins.vector.styles.legacy%7Cwikibase.client.init&amp;only=styles&amp;skin=vector"/>
   <script async="" src="/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector"></script>
   <meta name="ResourceLoaderDynamicStyles" content=""/>
@@ -421,20 +415,26 @@ additional terms may apply.  By using this site, you agree to the <a href="//fou
   <script type="application/ld+json">{"@context":"https:\/\/schema.org","@type":"Article","name":"Number 1 Record","url":"https:\/\/en.wikipedia.org\/wiki\/Number_1_Record","sameAs":"http:\/\/www.wikidata.org\/entity\/Q269307","mainEntity":"http:\/\/www.wikidata.org\/entity\/Q269307","author":{"@type":"Organization","name":"Contributors to Wikimedia projects"},"publisher":{"@type":"Organization","name":"Wikimedia Foundation, Inc.","logo":{"@type":"ImageObject","url":"https:\/\/www.wikimedia.org\/static\/images\/wmf-hor-googpub.png"}},"datePublished":"2005-12-14T01:33:34Z","dateModified":"2020-12-19T19:08:24Z","image":"https:\/\/upload.wikimedia.org\/wikipedia\/en\/5\/57\/Big_Star_-1_Record.jpg","headline":"album by Big Star"}</script>
   <script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":137,"wgHostname":"mw1322"});});</script>
   </body></html>`;
-const tracklist = [
-  "Feel",
-  "The Ballad of El Goodo",
-  "In the Street",
-  "Thirteen",
-  "Don't Lie to Me",
-  "The India Song",
-  "When My Baby's Beside Me",
-  "My Life Is Right",
-  "Give Me Another Chance",
-  "Try Again",
-  "Watch the Sunrise",
-  "ST 100/6",
-];
+const tracklist = [{
+  classification: 0,
+  tracks: [
+    {name: "Feel"},
+    {name: "The Ballad of El Goodo"},
+    {name: "In the Street"},
+    {name: "Thirteen"},
+    {name: "Don't Lie to Me"},
+    {name: "The India Song"},
+  ]}, {
+    classification: 0,
+    tracks: [
+    {name: "When My Baby's Beside Me"},
+    {name: "My Life Is Right"},
+    {name: "Give Me Another Chance"},
+    {name: "Try Again"},
+    {name: "Watch the Sunrise"},
+    {name: "ST 100/6"},
+  ]
+}];
 
 module.exports = {
   doc: doc,
