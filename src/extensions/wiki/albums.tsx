@@ -190,7 +190,6 @@ interface PlaylistInfo {
 }
 
 export function getTracks(doc: Document): PlaylistInfo[] {
-  debugger;
   const tracklistSection = getAllNodesInSection(doc, "Track listing");
   const tables = tracklistSection.filter((ele) => ele instanceof HTMLTableElement) as HTMLTableElement[];
   if (tables.length > 0) {
