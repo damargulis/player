@@ -87,6 +87,7 @@ export interface Artist {
   trackIds: string[];
 }
 
+// TODO(maybe): move all extension data into Record<string,JSON>
 export interface Album {
   id: string;
   warnings: Record<string, string>;

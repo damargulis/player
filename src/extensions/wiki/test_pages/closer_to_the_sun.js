@@ -373,28 +373,31 @@ const doc = `<!DOCTYPE html>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </body></html>
 `;
 
-const tracklist = [
-  "Intro",
-  "Babylon Is Falling'",
-  "Somebody",
-  "Fat Spliffs",
-  "Bandelero",
-  "See It No Other Way",
-  "Nothin Over Me",
-  "This Joint",
-  "Older",
-  "Ain't Got a Lot of Money",
-  "'Till It Gets Wet",
-  "Don't Care",
-  "Basher",
-  "Righteous Man",
-  "Up on a Plane",
-  "Waiting",
-  "Closer to the Sun",
-  "Zeplike",
-  "Comb 4 My Dome",
-  "Open Road",
-];
+const tracklist = [{
+  classification: 0,
+  tracks: [
+    {name: "Intro"},
+    {name: "Babylon Is Falling'"},
+    {name: "Somebody"},
+    {name: "Fat Spliffs"},
+    {name: "Bandelero"},
+    {name: "See It No Other Way"},
+    {name: "Nothin Over Me"},
+    {name: "This Joint"},
+    {name: "Older"},
+    {name: "Ain't Got a Lot of Money"},
+    {name: "'Till It Gets Wet"},
+    {name: "Don't Care"},
+    {name: "Basher"},
+    {name: "Righteous Man"},
+    {name: "Up on a Plane"},
+    {name: "Waiting"},
+    {name: "Closer to the Sun"},
+    {name: "Zeplike"},
+    {name: "Comb 4 My Dome"},
+    {name: "Open Road"},
+  ]
+}];
 
 module.exports = {
   doc: doc,
