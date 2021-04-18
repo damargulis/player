@@ -139,7 +139,6 @@ function getAlbums(tracks: Record<string, Track>, data: ItunesData): Record<stri
       const albumId = (id++).toString() as string;
       albumsByLocation.set(location, {
         id: albumId,
-        warnings: {},
         errors: [],
         albumArtFile: '',
         artistIds: [],

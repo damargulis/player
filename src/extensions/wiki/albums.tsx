@@ -1,5 +1,4 @@
-import * as React from 'react';
-import {Album, AlbumInfo, Artist} from '../../redux/actionTypes';
+import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {
@@ -12,6 +11,7 @@ import {
 } from './errors';
 import fs from 'fs';
 import moment from 'moment';
+import * as React from 'react';
 import rp from 'request-promise-native';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
@@ -108,11 +108,23 @@ function getAllNodesInSection(doc: Document, headerText: string): Element[] {
   const targetIndex = headerNodes.indexOf(targetHeader);
   const contentNodes = [];
   let nextNode = targetHeader.nextElementSibling;
-  while (nextNode && nextNode.tagName != targetHeader.tagName) {
+  while (nextNode && nextNode.tagName !== targetHeader.tagName) {
     contentNodes.push(nextNode);
     nextNode = nextNode.nextElementSibling;
   }
   return contentNodes;
+}
+
+function getFeaturedText(text: string): string {
+  const matches = text.match(/\(featuring (?<inner>.*?)\)/);
+  return matches && matches.groups ? matches.groups.inner : '';
+}
+
+function getFeaturedArtists(text: string): string[] {
+  const featuredText = getFeaturedText(text);
+  // TODO: probably uses lists with commas
+  const parts = featuredText.split(' and ');
+  return parts;
 }
 
 enum TracklistType {
@@ -161,23 +173,23 @@ function getTracksFromList(list: HTMLOListElement): TrackInfo[] {
       tracks.push({name: title});
     }
   }
-  return tracks
+  return tracks;
 }
 
 function getTracksFromTable(table: HTMLTableElement): TrackInfo[] {
   const header = table.rows[0];
   const infos = [] as TrackInfo[];
   const headerCells = [...header.cells];
-  const titleCell = headerCells.find((cell) => cell.textContent == 'Title');
+  const titleCell = headerCells.find((cell) => cell.textContent === 'Title');
   const titleIndex = headerCells.indexOf(titleCell as HTMLTableHeaderCellElement);
   for (const row of table.rows) {
-    if (row == header) {
+    if (row === header) {
       continue;
     }
-    let title = getInsideOfQuotes(row.cells[titleIndex].textContent || '');
+    const title = getInsideOfQuotes(row.cells[titleIndex].textContent || '');
     if (title) {
       infos.push({
-        name: title
+        name: title,
       });
     }
   }
@@ -190,14 +202,14 @@ interface PlaylistInfo {
 }
 
 export function getTracks(doc: Document): PlaylistInfo[] {
-  const tracklistSection = getAllNodesInSection(doc, "Track listing");
+  const tracklistSection = getAllNodesInSection(doc, 'Track listing');
   const tables = tracklistSection.filter((ele) => ele instanceof HTMLTableElement) as HTMLTableElement[];
   if (tables.length > 0) {
     return tables.map((table) => {
       return {
         classification: classifyTable(table),
         tracks: getTracksFromTable(table),
-      }
+      };
     });
   }
   const headers = [] as Element[];
@@ -206,11 +218,11 @@ export function getTracks(doc: Document): PlaylistInfo[] {
     if (section instanceof HTMLOListElement) {
       lists.push(section);
       if (index > 0) {
-        headers.push(tracklistSection[index-1]);
+        headers.push(tracklistSection[index - 1]);
       }
     }
   });
-  if (lists.length == 1 && headers.length == 0) {
+  if (lists.length === 1 && headers.length === 0) {
     return [{
       classification: TracklistType.SIDE,
       tracks: getTracksFromList(lists[0]),
@@ -223,12 +235,19 @@ export function getTracks(doc: Document): PlaylistInfo[] {
     return {
       classification: classifyHeader(header),
       tracks: getTracksFromList(lists[index]),
-    }
+    };
   });
 }
 
-function addTrackWarning(album: Album, index: number, trackTitles: string): void {
-  album.warnings[index] = trackTitles;
+function addTrackWarning(track: Track, name: string): void {
+  track.warning = track.warning || {};
+  track.warning.name = name;
+}
+
+function modifyTrack(track: Track, trackInfo: TrackInfo): void {
+  if (track.name !== trackInfo.name) {
+    addTrackWarning(track, trackInfo.name);
+  }
 }
 
 function modifyAlbum(store: RootState, album: Album): Promise<void> {
@@ -256,33 +275,29 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
       addError(album, GENRE_ERROR);
     }
     const playlists = getTracks(doc);
-    const regularPlaylists = playlists.filter((playlists) => playlists.classification == TracklistType.SIDE);
+    const regularPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.SIDE);
     const regularTracks = regularPlaylists.map((playlist) => playlist.tracks).flat();
-    const bonusPlaylists = playlists.filter((playlists) => playlists.classification == TracklistType.BONUS);
+    const bonusPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.BONUS);
     const bonusTracks = bonusPlaylists.map((playlist) => playlist.tracks).flat();
     const refTracks = getTracksByIds(store, album.trackIds);
     removeError(album, TRACK_ERROR);
     if (refTracks.length < regularTracks.length) {
       addError(album, TRACK_ERROR);
-    } else if (refTracks.length == regularTracks.length) {
+    } else if (refTracks.length === regularTracks.length) {
       refTracks.forEach((track, index) => {
-        if (track.name !== regularTracks[index].name) {
-          addTrackWarning(album, index, regularTracks[index].name);
-        }
+        modifyTrack(track, regularTracks[index]);
       });
       // TODO: make this a warning?
-      //if (bonusTracks.length > 0) {
+      // if (bonusTracks.length > 0) {
       //  addError(album, TRACK_ERROR);
-      //}
+      // }
     } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
       addError(album, TRACK_ERROR);
       // see if it matches just some bonus versions?
-    } else if (refTracks.length == regularTracks.length + bonusTracks.length) {
+    } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
       const totalTracks = [...regularTracks, ...bonusTracks];
       refTracks.forEach((track, index) => {
-        if (track.name !== totalTracks[index].name) {
-          addTrackWarning(album, index, totalTracks[index].name);
-        }
+        modifyTrack(track, totalTracks[index]);
       });
     } else {
       addError(album, TRACK_ERROR);

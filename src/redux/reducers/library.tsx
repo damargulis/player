@@ -394,7 +394,6 @@ function getOrCreateAlbums(
   }
   return {
     id: shortid.generate(),
-    warnings: {},
     errors: [],
     artistIds: [],
     name: metadata.album,

@@ -74,6 +74,7 @@ export interface Track {
     page: string;
     errors: string[];
   };
+  warning?: TrackInfo;
 }
 
 export interface Artist {
@@ -90,7 +91,6 @@ export interface Artist {
 // TODO(maybe): move all extension data into Record<string,JSON>
 export interface Album {
   id: string;
-  warnings: Record<string, string>;
   errors: string[];
   albumArtFile?: string;
   artistIds: string[];
@@ -202,7 +202,6 @@ interface SetTimeAction {
 }
 
 export interface AlbumInfo {
-  warnings?: Record<string, string>;
   errors?: string[];
   albumArtFile?: string;
   artistIds?: string[];
@@ -244,6 +243,7 @@ export interface TrackInfo {
     page?: string;
     errors?: string[];
   };
+  warning?: TrackInfo;
 }
 
 interface UpdateAlbum {
