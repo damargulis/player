@@ -294,26 +294,24 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     removeError(album, TRACK_ERROR);
     if (refTracks.length < regularTracks.length) {
       addError(album, TRACK_ERROR);
-    } else {
-      // } else if (refTracks.length === regularTracks.length) {
+    } else if (refTracks.length === regularTracks.length) {
       refTracks.forEach((track, index) => {
         setTrackWarnings(track, regularTracks[index]);
       });
-      // TODO: re-enable
       // TODO: make this a warning?
-      // if (bonusTracks.length > 0) {
-      //  addError(album, TRACK_ERROR);
-      // }
-      // } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
-      //  addError(album, TRACK_ERROR);
-      //  // see if it matches just some bonus versions?
-      // } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
-      //  const totalTracks = [...regularTracks, ...bonusTracks];
-      //  refTracks.forEach((track, index) => {
-      //    setTrackWarnings(track, totalTracks[index]);
-      //  });
-      // } else {
-      //  addError(album, TRACK_ERROR);
+      if (bonusTracks.length > 0) {
+       addError(album, TRACK_ERROR);
+      }
+    } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
+       addError(album, TRACK_ERROR);
+       // see if it matches just some bonus versions?
+    } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
+     const totalTracks = [...regularTracks, ...bonusTracks];
+     refTracks.forEach((track, index) => {
+       setTrackWarnings(track, totalTracks[index]);
+     });
+    } else {
+     addError(album, TRACK_ERROR);
     }
 
     const pics = infoBox.getElementsByTagName('img');
