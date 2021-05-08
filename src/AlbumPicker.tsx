@@ -96,7 +96,6 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
             exit={() => this.closeAddAlbum()}
             album={{
               id: shortid.generate(),
-              warnings: {},
               errors: [],
               artistIds: [],
               name: '',

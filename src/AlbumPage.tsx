@@ -1,5 +1,5 @@
-import {deleteAlbum, setPlaylist, updateAlbum, updateLibrary, updateTrack} from './redux/actions';
-import {Album, AlbumInfo, Artist, Genre, LibraryInfo, Track, TrackInfo} from './redux/actionTypes';
+import {deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, updateTrack} from './redux/actions';
+import {Album, AlbumInfo, Artist, ArtistInfo, Genre, LibraryInfo, Track, TrackInfo, TrackWarning} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
@@ -12,7 +12,10 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import {getAlbumById, getArtistsByIds, getGenreById, getTrackById, getTracksByIds} from './redux/selectors';
+import {
+  getAlbumById, getArtistByName, getArtistsByIds, getGenreById, getTrackById, getTracksByIds, getWarningsFromAlbum
+} from './redux/selectors';
+import shortid from 'shortid';
 import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 import {getImgSrc, toTime} from './utils';
@@ -25,10 +28,12 @@ interface StateProps {
   artists: Artist[];
   tracks: Track[];
   album: Album;
+  warnings: TrackWarning[];
   getGenreById(id: string): Genre;
   getTracksByIds(ids: string[]): Track[];
   getTrackById(id: string): Track;
   runWikiExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
+  getArtistByName(name: string): Artist | undefined;
 }
 
 interface OwnProps {
@@ -46,6 +51,7 @@ interface DispatchProps {
   updateTrack(id: string, info: TrackInfo): void;
   updateAlbum(id: string, info: AlbumInfo): void;
   deleteAlbum(id: string): void;
+  updateArtist(id: string, info: object): void;
 }
 
 interface AlbumPageState {
@@ -126,34 +132,58 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   private acceptTrackWarnings(): void {
-    const warnings = {...this.props.album.warnings};
-    for (const indexStr in warnings) {
-      if (warnings.hasOwnProperty(indexStr)) {
-        const index = parseInt(indexStr, 10);
-        const track = this.props.getTrackById(this.props.album.trackIds[index]);
-        const name = warnings[indexStr];
-        this.props.updateTrack(track.id, {name});
+    this.props.warnings.forEach((warning, index) => {
+      if (Object.keys(warning).length === 0) {
+        return;
       }
-    }
-    this.props.updateAlbum(this.props.album.id, {warnings: {}});
+      const featuredArtists = (warning.featuring || []).map((artistName) => {
+        const artist = this.props.getArtistByName(artistName);
+        if (artist) {
+          return artist.id;
+        }
+        const newId = shortid.generate();
+        this.props.updateArtist(newId, {
+          id: newId,
+          name: artistName,
+          genreIds: [],
+          albumIds: [],
+          errors: [],
+          trackIds: [this.props.album.trackIds[index]],
+        });
+        return newId;
+      });
+      this.props.updateTrack(this.props.album.trackIds[index], {
+        ...warning,
+        warning: undefined,
+        artistIds: [...this.props.album.artistIds, ...featuredArtists],
+      });
+    });
   }
 
   private getWarnings(): JSX.Element | undefined {
-    const warnings = Object.keys(this.props.album.warnings);
-    if (!warnings.length) {
-      return;
+    if (!this.props.warnings.find((warning) => Object.keys(warning).length > 0)) {
+      return undefined;
     }
     return (
-      <div className="warningsContainer" >
-        <div> Warnings: </div>
-        {
-          warnings.map((trackIndex) => {
-            return (
-              <div key={trackIndex}>{`${parseInt(trackIndex, 10) + 1}: ${this.props.album.warnings[trackIndex]}`}
-              </div>
-            );
-          })
-        }
+      <div className="warningsContainer">
+        <table>
+          <tbody>
+            {
+              this.props.warnings.map((warning, index) => {
+                if (Object.keys(warning).length === 0) {
+                  return;
+                }
+                return (
+                  <tr key={index}>
+                    <td>{index + 1}.</td>
+                    {warning.name ? (<td>Title: {warning.name}</td>) : undefined}
+                    {warning.featuring ? (<td>Featuring: {warning.featuring.join(', ')}</td>) : undefined}
+                  </tr>
+                );
+              })
+            }
+          </tbody>
+        </table>
         <button onClick={() => this.acceptTrackWarnings()}>Accept</button>
       </div>
     );
@@ -212,6 +242,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
   const album = getAlbumById(state, ownProps.albumId);
   return {
+    getArtistByName: (name: string) => getArtistByName(state, name),
     artists: getArtistsByIds(state, album.artistIds),
     getTrackById: (id: string) => getTrackById(state, id),
     getTracksByIds: (ids: string[]) => getTracksByIds(state, ids),
@@ -219,7 +250,9 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
     tracks: getTracksByIds(state, album.trackIds),
     album: album,
     getGenreById: (id: string) => getGenreById(state, id),
+    warnings: getWarningsFromAlbum(state, album),
   };
 }
 
-export default connect(mapStateToProps, {deleteAlbum, setPlaylist, updateAlbum, updateLibrary, updateTrack})(AlbumPage);
+export default connect(mapStateToProps,
+  {deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, updateTrack})(AlbumPage);

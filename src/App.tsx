@@ -209,7 +209,7 @@ class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  sendControllerUpdate() {
+  sendControllerUpdate(): void {
     const artists = this.props.track ? this.props.getArtistsByIds(this.props.track.artistIds) : [];
     const albums = this.props.track ? this.props.getAlbumsByIds(this.props.track.albumIds) : [];
     ipcRenderer.send('controller-state', {

@@ -1,5 +1,5 @@
 import {setPlaylist, updateAlbum} from './redux/actions';
-import {Album, Artist} from './redux/actionTypes';
+import {Album, Artist, TrackInfo} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumInfo.css';
 import {remote} from 'electron';
@@ -9,7 +9,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds} from './redux/selectors';
+import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds, getWarningsFromAlbum} from './redux/selectors';
 import {RootState} from './redux/store';
 import {getImgSrc} from './utils';
 
@@ -19,6 +19,7 @@ Modal.setAppElement('#root');
 interface StateProps {
   artists: Artist[];
   allAlbums: Album[];
+  warnings: TrackInfo[];
 }
 
 interface OwnProps {
@@ -69,7 +70,7 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
     }
     if (this.props.showStatus) {
       newStyle.backgroundColor = 'green';
-      if (Object.keys(this.props.album.warnings).length > 0) {
+      if (this.props.warnings.find((warning) => Object.keys(warning).length > 0)) {
         newStyle.backgroundColor = 'yellow';
       }
       if (this.props.album.errors.length > 0 || !this.props.album.wikiPage) {
@@ -166,6 +167,7 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   return {
     artists: ownProps.album ? getArtistsByIds(store, ownProps.album.artistIds) : [],
     allAlbums: getAlbumsByIds(store, getAllAlbumIds(store)),
+    warnings: getWarningsFromAlbum(store, ownProps.album),
   };
 }
 

@@ -84,7 +84,6 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
       wikiPage: this.wikiPage.current && this.wikiPage.current.value,
       trackIds: this.state.trackIds,
       errors: this.props.album.errors,
-      warnings: this.props.album.warnings,
       id: this.props.album.id,
       skipCount: this.props.album.skipCount,
     });

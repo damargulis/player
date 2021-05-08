@@ -7,6 +7,7 @@ import path from 'path';
  * Loads a library from a given file.
  */
 export function loadLibrary(libraryFile: string): Promise<LibraryState> {
+  // TODO: why do this? Is it just to parse the dates? Gotta be an easier way...
   return new Promise((resolve, reject) => {
     fs.readFile(libraryFile, (err: Error | null, data: Buffer) => {
       if (err) {
@@ -18,7 +19,6 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
           albums: Object.values(libraryData.albums).reduce((map: Record<string, Album>, albumData: Album) => {
             map[albumData.id] = {
             id: albumData.id,
-            warnings: albumData.warnings,
             errors: albumData.errors,
             albumArtFile: albumData.albumArtFile,
             artistIds: albumData.artistIds,
@@ -63,6 +63,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             dateAdded: new Date(trackData.dateAdded),
             favorites: trackData.favorites,
             genius: trackData.genius,
+            warning: trackData.warning,
         };
         return map;
       }, {} as Record<string, Track>),
