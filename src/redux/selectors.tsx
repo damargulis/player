@@ -1,4 +1,4 @@
-import {Album, Artist, Genre, Playlist, Track, TrackInfo} from './actionTypes';
+import {Album, Artist, Genre, Playlist, Track, TrackWarning} from './actionTypes';
 import {IS_DEV} from '../constants';
 import shortid from 'shortid';
 import {RootState} from './store';
@@ -286,10 +286,14 @@ export function getSelectedGenres(store: RootState): string[] {
   return store.settings.genres;
 }
 
-export function getWarningsFromAlbum(store: RootState, album?: Album): TrackInfo[] {
+export function getWarningsFromAlbum(store: RootState, album?: Album): TrackWarning[] {
   if (!album) {
     return [];
   }
   const tracks = getTracksByIds(store, album.trackIds);
   return tracks.map((track) => track.warning || {});
+}
+
+export function getArtistByName(store: RootState, name: string): Artist | undefined {
+  return Object.values(store.library.artists).find((artist) => artist.name === name);
 }

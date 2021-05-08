@@ -1,4 +1,5 @@
 import {
+  ACCEPT_WARNINGS,
   ADD_TO_PLAYLIST,
   AlbumInfo,
   ArtistInfo,
@@ -99,6 +100,11 @@ export const updateArtist = (id: string, info: ArtistInfo) => ({
 export const updateTrack = (id: string, info: TrackInfo) => ({
   payload: {id, info},
   type: UPDATE_TRACK,
+});
+
+export const acceptTrackWarnings = (id: string, warnings: TrackInfo[]) => ({
+  payload: {id, warnings},
+  type: ACCEPT_WARNINGS,
 });
 
 export const deleteAlbum = (id: string) => ({

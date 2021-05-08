@@ -122,9 +122,8 @@ function getFeaturedText(text: string): string {
 
 function getFeaturedArtists(text: string): string[] {
   const featuredText = getFeaturedText(text);
-  // TODO: probably uses lists with commas
-  const parts = featuredText.split(' and ');
-  return parts;
+  const parts = featuredText.split(/, | and /);
+  return parts.filter((part) => part.length > 0);
 }
 
 enum TracklistType {
@@ -155,6 +154,18 @@ function classifyText(text: string | null): TracklistType {
 
 interface TrackInfo {
   name: string;
+  featuring: string[];
+}
+
+function getTrackInfoFromString(str: string): TrackInfo | undefined {
+  const title = getInsideOfQuotes(str);
+  if (!title) {
+    return undefined;
+  }
+  return {
+    name: title,
+    featuring: getFeaturedArtists(str),
+  };
 }
 
 function getTracksFromList(list: HTMLOListElement): TrackInfo[] {
@@ -168,9 +179,9 @@ function getTracksFromList(list: HTMLOListElement): TrackInfo[] {
     // 45 = short hypen character
     split = title.split(String.fromCharCode(45));
     title = split[0] || '';
-    title = getInsideOfQuotes(title.trim());
-    if (title) {
-      tracks.push({name: title});
+    const info = getTrackInfoFromString(title.trim());
+    if (info) {
+      tracks.push(info);
     }
   }
   return tracks;
@@ -186,11 +197,9 @@ function getTracksFromTable(table: HTMLTableElement): TrackInfo[] {
     if (row === header) {
       continue;
     }
-    const title = getInsideOfQuotes(row.cells[titleIndex].textContent || '');
-    if (title) {
-      infos.push({
-        name: title,
-      });
+    const info = getTrackInfoFromString(row.cells[titleIndex].textContent || '');
+    if (info) {
+      infos.push(info);
     }
   }
   return infos;
@@ -239,14 +248,16 @@ export function getTracks(doc: Document): PlaylistInfo[] {
   });
 }
 
-function addTrackWarning(track: Track, name: string): void {
-  track.warning = track.warning || {};
-  track.warning.name = name;
-}
-
-function modifyTrack(track: Track, trackInfo: TrackInfo): void {
+function setTrackWarnings(track: Track, trackInfo: TrackInfo): void {
+  const warning = track.warning || {};
   if (track.name !== trackInfo.name) {
-    addTrackWarning(track, trackInfo.name);
+    warning.name = trackInfo.name;
+  }
+  if (trackInfo.featuring.length > 0) {
+    warning.featuring = trackInfo.featuring;
+  }
+  if (Object.keys(warning).length > 0) {
+    track.warning = warning;
   }
 }
 
@@ -283,24 +294,26 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     removeError(album, TRACK_ERROR);
     if (refTracks.length < regularTracks.length) {
       addError(album, TRACK_ERROR);
-    } else if (refTracks.length === regularTracks.length) {
+    } else {
+      // } else if (refTracks.length === regularTracks.length) {
       refTracks.forEach((track, index) => {
-        modifyTrack(track, regularTracks[index]);
+        setTrackWarnings(track, regularTracks[index]);
       });
+      // TODO: re-enable
       // TODO: make this a warning?
       // if (bonusTracks.length > 0) {
       //  addError(album, TRACK_ERROR);
       // }
-    } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
-      addError(album, TRACK_ERROR);
-      // see if it matches just some bonus versions?
-    } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
-      const totalTracks = [...regularTracks, ...bonusTracks];
-      refTracks.forEach((track, index) => {
-        modifyTrack(track, totalTracks[index]);
-      });
-    } else {
-      addError(album, TRACK_ERROR);
+      // } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
+      //  addError(album, TRACK_ERROR);
+      //  // see if it matches just some bonus versions?
+      // } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
+      //  const totalTracks = [...regularTracks, ...bonusTracks];
+      //  refTracks.forEach((track, index) => {
+      //    setTrackWarnings(track, totalTracks[index]);
+      //  });
+      // } else {
+      //  addError(album, TRACK_ERROR);
     }
 
     const pics = infoBox.getElementsByTagName('img');
