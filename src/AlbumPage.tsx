@@ -159,14 +159,6 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
         artistIds: [...this.props.album.artistIds, ...featuredArtists],
       });
     });
-    // this.props.acceptTrackWarnings(this.props.album.id, this.props.warnings);
-    // this.props.warnings.forEach((warning, index) => {
-    //  const trackId = this.props.album.trackIds[index];
-    //  this.props.updateTrack(trackId, {
-    //    ...warning,
-    //    warning: undefined,
-    //  });
-    // });
   }
 
   private getWarnings(): JSX.Element | undefined {
@@ -185,8 +177,8 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
                 return (
                   <tr key={index}>
                     <td>{index + 1}.</td>
-                    <td>Title: {warning.name}</td>
-                    <td>Featuring: {warning.featuring && warning.featuring.join(', ')}</td>
+                    {warning.name ? (<td>Title: {warning.name}</td>) : undefined}
+                    {warning.featuring ? (<td>Featuring: {warning.featuring.join(', ')}</td>) : undefined}
                   </tr>
                 );
               })
