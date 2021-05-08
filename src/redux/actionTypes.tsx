@@ -21,7 +21,6 @@ export const PREV_TRACK = 'PREV_TRACK';
 export const PREV_ALBUM = 'PREV_ALBUM';
 export const PLAY_PAUSE = 'PLAY_PAUSE';
 export const SET_TIME = 'SET_TIME';
-export const ACCEPT_WARNINGS = 'ACCEPT_WARNINGS';
 
 export interface Playlist {
   name: string;
@@ -260,17 +259,6 @@ interface UpdateAlbum {
   };
 }
 
-interface AcceptWarnings {
-  type: typeof ACCEPT_WARNINGS;
-  payload: {
-    id: string;
-    warnings: Array<{
-      name: string;
-      featuring: string[];
-    }>;
-  };
-}
-
 interface UpdateArtist {
   type: typeof UPDATE_ARTIST;
   payload: {
@@ -321,5 +309,5 @@ interface AddToPlaylist {
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup | AcceptWarnings;
+  | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup;
 export type SettingsActionTypes = SetGenresAction;

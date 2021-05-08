@@ -1,4 +1,4 @@
-import {acceptTrackWarnings, deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, updateTrack} from './redux/actions';
+import {deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, updateTrack} from './redux/actions';
 import {Album, AlbumInfo, Artist, ArtistInfo, Genre, LibraryInfo, Track, TrackInfo, TrackWarning} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
@@ -51,7 +51,6 @@ interface DispatchProps {
   updateTrack(id: string, info: TrackInfo): void;
   updateAlbum(id: string, info: AlbumInfo): void;
   deleteAlbum(id: string): void;
-  acceptTrackWarnings(id: string, warnings: TrackInfo[]): void;
   updateArtist(id: string, info: object): void;
 }
 
@@ -256,4 +255,4 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
 }
 
 export default connect(mapStateToProps,
-  {acceptTrackWarnings, deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, updateTrack})(AlbumPage);
+  {deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, updateTrack})(AlbumPage);

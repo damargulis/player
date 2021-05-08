@@ -1,5 +1,4 @@
 import {
-  ACCEPT_WARNINGS,
   ADD_TO_PLAYLIST,
   Album,
   Artist,
@@ -555,7 +554,6 @@ export default function reducer(state: LibraryState = initialState, action: Libr
     case ADD_TO_PLAYLIST:
     case RESET_LIBRARY:
     case SAVE_NEW_TRACKS:
-    case ACCEPT_WARNINGS:
       save(library);
       break;
     default:
