@@ -7,19 +7,7 @@ import {getGenreIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {addError, findAsync, getDoc, getGenresByRow, removeError} from './utils';
-
-async function downloadImage(url: string, path: string) {
-  const res = await fetch(url);
-  const fileStream = fs.createWriteStream(path);
-  await new Promise((resolve, reject) => {
-    // @ts-ignore: 
-    res.body && res.body.pipe(fileStream);
-    // @ts-ignore: 
-    res.body && res.body.on("error", reject);
-    // @ts-ignore: 
-    res.body && res.body.on("finish", resolve);
-  });
-}
+import {downloadImage} from '../utils';
 
 function getWikiPageOptions(artist: Artist): string[] {
   const artistName = artist.name.replace(/ /g, '_');
@@ -86,17 +74,10 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    const options = {
-      encoding: 'binary',
-      url: picURL,
-    };
-    if (!artist.artFile) {
-      const id = shortid.generate();
-      artist.artFile = `${DATA_DIR}/${id}.png`;
-    }
-    console.log("Saving to art file!");
-    return downloadImage(picURL, artist.artFile).then(() => {
+    let filePath = artist.artFile || `${DATA_DIR}/${shortid.generate()}.png`;
+    return downloadImage(picURL, filePath).then(() => {
       removeError(artist, PIC_ERROR);
+      artist.artFile = filePath;
     }).catch(() => {
       addError(artist, PIC_ERROR);
       return Promise.resolve();

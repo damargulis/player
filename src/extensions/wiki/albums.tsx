@@ -1,4 +1,5 @@
 import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
+import {downloadImage} from '../utils';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {
@@ -16,13 +17,6 @@ import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors'
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {addError, findAsync, getDoc, getGenresByRow, removeError, sanitize} from './utils';
-
-async function downloadImage(url: string, path: string) {
-  console.log(path);
-  return fetch(url).then((res) => res.arrayBuffer()).then((data) => {
-    fs.writeFileSync(path, Buffer.from(data), 'binary');
-  });
-}
 
 
 function getYear(rootNode: HTMLElement): number {
@@ -87,7 +81,7 @@ function isRightLink(link: string, album: Album, artist: Artist): Promise<boolea
     }
     return infoBox.textContent.toLowerCase().includes(
       'by ' + artist.name.toLowerCase());
-  }).catch((err) => {
+  }).catch(() => {
     return false;
   });
 }
@@ -330,19 +324,11 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    const options = {
-      encoding: 'binary',
-      url: picURL,
-    };
-    if (!album.albumArtFile) {
-      const id = shortid.generate();
-      album.albumArtFile = `${DATA_DIR}/${id}.png`;
-    }
-    return downloadImage(picURL, album.albumArtFile).then(() => {
+    let filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
+    return downloadImage(picURL, filePath).then(() => {
       removeError(album, ALBUM_ART_ERROR);
-    }).catch((err) => {
-      console.log("ALBUM ERR:");
-      console.log(err);
+      album.albumArtFile = filePath;
+    }).catch(() => {
       addError(album, ALBUM_ART_ERROR);
       return Promise.resolve();
     });
