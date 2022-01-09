@@ -1,4 +1,5 @@
 import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
+import {downloadImage} from '../utils';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {
@@ -12,11 +13,11 @@ import {
 import fs from 'fs';
 import moment from 'moment';
 import * as React from 'react';
-import rp from 'request-promise-native';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {addError, findAsync, getDoc, getGenresByRow, removeError, sanitize} from './utils';
+
 
 function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || '';
@@ -70,7 +71,7 @@ function getAllWikiOptions(store: RootState, album: Album): string[] {
 }
 
 function isRightLink(link: string, album: Album, artist: Artist): Promise<boolean> {
-  return rp(link).then((htmlString: string) => {
+  return fetch(link).then((res: Response) => res.text()).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
     const infoBoxes = doc.getElementsByClassName('infobox');
@@ -265,7 +266,7 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
   if (!album.wikiPage) {
     return Promise.resolve();
   }
-  return rp(album.wikiPage).then((htmlString: string) => {
+  return fetch(album.wikiPage).then((res) => res.text()).then((htmlString: string) => {
     removeError(album, PARSER_ERROR);
     const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
@@ -323,17 +324,10 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    const options = {
-      encoding: 'binary',
-      url: picURL,
-    };
-    return rp(options).then((data: string) => {
-      if (!album.albumArtFile) {
-        const id = shortid.generate();
-        album.albumArtFile = `${DATA_DIR}/${id}.png`;
-      }
-      fs.writeFileSync(album.albumArtFile, data, 'binary');
+    let filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
+    return downloadImage(picURL, filePath).then(() => {
       removeError(album, ALBUM_ART_ERROR);
+      album.albumArtFile = filePath;
     }).catch(() => {
       addError(album, ALBUM_ART_ERROR);
       return Promise.resolve();
