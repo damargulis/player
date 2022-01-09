@@ -3,11 +3,23 @@ import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {GENRE_ERROR, NO_PAGE_ERROR, PARSER_ERROR, PIC_ERROR} from './errors';
 import fs from 'fs';
-import rp from 'request-promise-native';
 import {getGenreIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {addError, findAsync, getDoc, getGenresByRow, removeError} from './utils';
+
+async function downloadImage(url: string, path: string) {
+  const res = await fetch(url);
+  const fileStream = fs.createWriteStream(path);
+  await new Promise((resolve, reject) => {
+    // @ts-ignore: 
+    res.body && res.body.pipe(fileStream);
+    // @ts-ignore: 
+    res.body && res.body.on("error", reject);
+    // @ts-ignore: 
+    res.body && res.body.on("finish", resolve);
+  });
+}
 
 function getWikiPageOptions(artist: Artist): string[] {
   const artistName = artist.name.replace(/ /g, '_');
@@ -20,7 +32,7 @@ function getWikiPageOptions(artist: Artist): string[] {
 }
 
 function isRightLink(link: string): Promise<boolean> {
-  return rp(link).then((htmlString: string) => {
+  return fetch(link).then((res: Response) => res.text()).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
     const infoBoxes = doc.getElementsByClassName('infobox');
@@ -52,7 +64,7 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
   if (!artist.wikiPage) {
     return Promise.resolve();
   }
-  return rp(artist.wikiPage).then((htmlString: string) => {
+  return fetch(artist.wikiPage).then((res: Response) => res.text()).then((htmlString: string) => {
     removeError(artist, PARSER_ERROR);
     const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
@@ -78,13 +90,12 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
       encoding: 'binary',
       url: picURL,
     };
-    return rp(options).then((data: string) => {
-      if (!artist.artFile) {
-        const id = shortid.generate();
-        artist.artFile = `${DATA_DIR}/${id}.png`;
-      }
-      fs.writeFileSync(artist.artFile, data, 'binary');
-      // should this even be an error?
+    if (!artist.artFile) {
+      const id = shortid.generate();
+      artist.artFile = `${DATA_DIR}/${id}.png`;
+    }
+    console.log("Saving to art file!");
+    return downloadImage(picURL, artist.artFile).then(() => {
       removeError(artist, PIC_ERROR);
     }).catch(() => {
       addError(artist, PIC_ERROR);

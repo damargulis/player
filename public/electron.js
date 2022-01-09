@@ -6,6 +6,7 @@ const {
   MenuItem,
   ipcMain,
   shell,
+  protocol,
 } = require("electron");
 
 // TODO: shouldn't need package for this ... figure out better way
@@ -14,6 +15,13 @@ const path = require("path");
 const defaultMenu = require("electron-default-menu");
 const fs = require("fs");
 
+app.whenReady().then(() => {
+  protocol.registerFileProtocol('file', (req, callback) => {
+    const pathname = req.url.replace('file:///', '');
+    callback(pathname);
+  });
+});
+
 class ExtensionMonitor {
   constructor(extensionId) {
     this.extensionId = extensionId;
@@ -21,6 +29,7 @@ class ExtensionMonitor {
       height: 250,
       webPreferences: {
         nodeIntegration: true,
+        nodeIntegrationInWorker: true,
         webSecutiry: false,
       },
       width: 500,
