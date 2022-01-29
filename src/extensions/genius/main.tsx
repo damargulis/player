@@ -6,7 +6,6 @@ import {
 } from '../../redux/actionTypes';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
-import rp from 'request-promise-native';
 import {
   getArtistById,
   getArtistsByIds,
@@ -27,20 +26,21 @@ interface Result {
   info: TrackInfo;
 }
 
-function geniusRequest(url: string): Promise<string> {
+function geniusRequest(url: string): Promise<Response> {
   const options = {
     uri: url,
     headers: {
       Authorization: `Bearer ${ACCESS_TOKEN}`,
     },
   };
-  return rp(options);
+  return fetch(options.uri, options);
 }
 
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
   const primaryArtist = getArtistById(store, track.artistIds[0]);
-  return geniusRequest(SEARCH_URL + encodeURIComponent(`${track.name} ${primaryArtist.name}`)).then(
-      (jsonString: string) => {
+  // TODO: remove periods and other puncutation from search url?
+  return geniusRequest(SEARCH_URL + encodeURIComponent(`${track.name} ${primaryArtist.name}`))
+    .then((res: Response) => res.text()).then((jsonString: string) => {
     const results = JSON.parse(jsonString);
     const result = results.response.hits.find((hit: {result: {title: string; primary_artist: {name: string}}}) => {
       const title = hit.result.title.toLowerCase().replace('’', '\'');
@@ -52,7 +52,7 @@ function searchForTrackId(store: RootState, track: Track): Promise<string | unde
 }
 
 function modifyTrack(store: RootState, track: Track, geniusId: string): Promise<Result> {
-  return geniusRequest(TRACK_URL + geniusId).then((jsonString: string) => {
+  return geniusRequest(TRACK_URL + geniusId).then((res: Response) => res.text()).then((jsonString: string) => {
     const results = JSON.parse(jsonString);
     const url = results.response.song.url;
     return ({

@@ -27,6 +27,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
   },
+  fadeButton: {
+    width: 60,
+    height: 60,
+    opacity: .5,
+  },
 });
 
 export default class Controls extends Component {
@@ -85,7 +90,7 @@ export default class Controls extends Component {
         </View>
         <View style={styles.button}>
           <TouchableHighlight underlayColor="white" onPress={this.favoriteTrack.bind(this)}>
-            <Image style={styles.buttonImage} source={favoriteImg} />
+            <Image style={this.props.isFavorite ? styles.buttonImage : styles.fadeButton} source={favoriteImg} />
           </TouchableHighlight>
         </View>
       </View>

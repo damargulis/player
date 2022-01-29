@@ -6,11 +6,12 @@
  * @flow strict-local
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DownloadPage from './components/DownloadPage';
 import {Pages} from 'react-native-pages';
 import {DEV_API_URL, PORT} from './constants';
 import React from 'react';
-import {AsyncStorage, NativeEventEmitter} from 'react-native';
+import {NativeEventEmitter} from 'react-native';
 import io from 'socket.io-client';
 import ControlPage from './components/ControlPage';
 import MdnsModule from './MdnsModule';
@@ -86,12 +87,19 @@ export default class App extends React.Component {
     this.socket.emit('action', {type, data});
   }
 
+  setIp(newIp) {
+    const apiUrl = `http://${newIp}:${PORT}`;
+    this.setState({apiUrl});
+    this.setupSocket(apiUrl);
+  }
+
   render() {
     return (
       <Pages>
         <DownloadPage
           apiUrl={this.state.apiUrl}
           connected={this.state.connected}
+          setIp={this.setIp.bind(this)}
         />
         <ControlPage
           apiUrl={this.state.apiUrl}

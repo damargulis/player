@@ -1,4 +1,5 @@
-import {Album, AlbumInfo, Artist} from '../../redux/actionTypes';
+import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
+import {downloadImage} from '../utils';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {
@@ -11,11 +12,12 @@ import {
 } from './errors';
 import fs from 'fs';
 import moment from 'moment';
-import rp from 'request-promise-native';
+import * as React from 'react';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {addError, findAsync, getDoc, getGenresByRow, removeError, sanitize} from './utils';
+
 
 function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || '';
@@ -69,7 +71,7 @@ function getAllWikiOptions(store: RootState, album: Album): string[] {
 }
 
 function isRightLink(link: string, album: Album, artist: Artist): Promise<boolean> {
-  return rp(link).then((htmlString: string) => {
+  return fetch(link).then((res: Response) => res.text()).then((htmlString: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
     const infoBoxes = doc.getElementsByClassName('infobox');
@@ -97,105 +99,174 @@ function getInsideOfQuotes(text: string): string {
   return matches && matches.groups ? matches.groups.inner : '';
 }
 
-function getTracksFromTracklist(tracklist: Element): string[] {
-  const rows = tracklist.getElementsByTagName('tr');
-  // splits into two arrays, headers which contains any rows that have only <th>
-  // elements, and dataRows which has all the others
-  const headers = [];
-  const dataRows = [];
-  for (const row of rows) {
-    if (row.getElementsByTagName('td').length === 0) {
-      headers.push(row);
-    } else {
-      dataRows.push(row);
-    }
+function getAllNodesInSection(doc: Document, headerText: string): Element[] {
+  const headerNodes = [...doc.querySelectorAll('h1, h2, h3, h4, h5, h6')];
+
+  const targetHeader = headerNodes.find((node) => node.textContent && node.textContent.includes(headerText));
+  if (!targetHeader) {
+    return [];
   }
-  let goodHeader;
-  for (const header of headers) {
-    if (header.textContent && header.textContent.includes('Title')) {
-      goodHeader = header;
-      break;
-    }
+  const targetIndex = headerNodes.indexOf(targetHeader);
+  const contentNodes = [];
+  let nextNode = targetHeader.nextElementSibling;
+  while (nextNode && nextNode.tagName !== targetHeader.tagName) {
+    contentNodes.push(nextNode);
+    nextNode = nextNode.nextElementSibling;
   }
-  const headerCells = goodHeader ? goodHeader.getElementsByTagName('th') : [];
-  const headerNames = Array(...headerCells).map((cell) => cell.textContent);
-  const titleIndex = headerNames.indexOf('Title');
-  return dataRows.map((row) => {
-    const data = row.getElementsByTagName('td');
-    // -1 because the number col is th cells, so it doesn't get counted.
-    const titleText = data[titleIndex - 1].textContent || '';
-    return getInsideOfQuotes(titleText);
-  }).filter(Boolean) as string[];
+  return contentNodes;
 }
 
-export function getTracks(doc: Document): string[] {
-  const tracklists = doc.getElementsByClassName('tracklist');
-  // TODO: using first for now, should loop through all, check header to
-  // determine what to do with it; can include multi releases, discs, versions,
-  // etc.
-  if (tracklists.length === 0) {
-    // if none, use header to find list
-    // Track_listing id will be within h2 tag
-    // Listing will go on until next h2 tag,
-    // take all li items in between as song titles
-    let trackListHeader = doc.getElementById('Track_listing');
-    if (!trackListHeader) {
-      return [];
-    }
-    while (trackListHeader.tagName !== 'H2') {
-      if (!trackListHeader.parentElement) {
-        return [];
-      }
-      trackListHeader = trackListHeader.parentElement;
-    }
-    let next = trackListHeader.nextElementSibling;
-    let listItems = [] as Element[];
-    if (!next) {
-      return [];
-    }
-    while (next.tagName !== 'H2') {
-      listItems = [...listItems, ...next.getElementsByTagName('li')];
-      if (!next.nextElementSibling) {
-        break;
-      }
-      next = next.nextElementSibling;
-    }
-    const names = [];
-    for (const track of listItems) {
-      const text = track.textContent || '';
-      // 8211 = long hyphen character
-      let split = text.split(String.fromCharCode(8211));
-      let title = split[0];
-      // 45 = short hypen character
-      split = title.split(String.fromCharCode(45));
-      title = split[0] || '';
-      title = getInsideOfQuotes(title.trim());
-      if (title) {
-        names.push(title);
-      }
-    }
-    return names;
+function getFeaturedText(text: string): string {
+  const matches = text.match(/\(featuring (?<inner>.*?)\)/);
+  return matches && matches.groups ? matches.groups.inner : '';
+}
+
+function getFeaturedArtists(text: string): string[] {
+  const featuredText = getFeaturedText(text);
+  const parts = featuredText.split(/, | and /);
+  return parts.filter((part) => part.length > 0);
+}
+
+enum TracklistType {
+  SIDE,
+  BONUS,
+}
+
+function classifyHeader(header: Element): TracklistType {
+  return classifyText(header.textContent && header.textContent.toLowerCase());
+}
+
+function classifyTable(table: HTMLTableElement): TracklistType {
+  return classifyText(table.caption && table.caption.textContent);
+}
+
+function classifyText(text: string | null): TracklistType {
+  if (!text) {
+    return TracklistType.SIDE;
+  } else if (text.includes('bonus')) {
+    return TracklistType.BONUS;
+  } else if (text.includes('Bonus')) {
+    return TracklistType.BONUS;
+  } else if (text.includes('Anniversary')) {
+    return TracklistType.BONUS;
   }
-  let tracks = [] as string[];
-  for (const tracklist of tracklists) {
-    // tracklists that are hidden are usually bonus tracks .. maybe include
-    // but give different warning for missing bonus tracks?
-    if (!tracklist.className.includes('collapsible')) {
-      tracks = [...tracks, ...getTracksFromTracklist(tracklist)];
+  return TracklistType.SIDE;
+}
+
+interface TrackInfo {
+  name: string;
+  featuring: string[];
+}
+
+function getTrackInfoFromString(str: string): TrackInfo | undefined {
+  const title = getInsideOfQuotes(str);
+  if (!title) {
+    return undefined;
+  }
+  return {
+    name: title,
+    featuring: getFeaturedArtists(str),
+  };
+}
+
+function getTracksFromList(list: HTMLOListElement): TrackInfo[] {
+  const items = list.getElementsByTagName('li');
+  const tracks = [];
+  for (const item of items) {
+    const text = item.textContent || '';
+    // 8211 = long hyphen character
+    let split = text.split(String.fromCharCode(8211));
+    let title = split[0];
+    // 45 = short hypen character
+    split = title.split(String.fromCharCode(45));
+    title = split[0] || '';
+    const info = getTrackInfoFromString(title.trim());
+    if (info) {
+      tracks.push(info);
     }
   }
   return tracks;
 }
 
-function addTrackWarning(album: Album, index: number, trackTitles: string): void {
-  album.warnings[index] = trackTitles;
+function getTracksFromTable(table: HTMLTableElement): TrackInfo[] {
+  const header = table.rows[0];
+  const infos = [] as TrackInfo[];
+  const headerCells = [...header.cells];
+  const titleCell = headerCells.find((cell) => cell.textContent === 'Title');
+  const titleIndex = headerCells.indexOf(titleCell as HTMLTableHeaderCellElement);
+  for (const row of table.rows) {
+    if (row === header) {
+      continue;
+    }
+    const info = getTrackInfoFromString(row.cells[titleIndex].textContent || '');
+    if (info) {
+      infos.push(info);
+    }
+  }
+  return infos;
+}
+
+interface PlaylistInfo {
+  classification: TracklistType;
+  tracks: TrackInfo[];
+}
+
+export function getTracks(doc: Document): PlaylistInfo[] {
+  const tracklistSection = getAllNodesInSection(doc, 'Track listing');
+  const tables = tracklistSection.filter((ele) => ele instanceof HTMLTableElement) as HTMLTableElement[];
+  if (tables.length > 0) {
+    return tables.map((table) => {
+      return {
+        classification: classifyTable(table),
+        tracks: getTracksFromTable(table),
+      };
+    });
+  }
+  const headers = [] as Element[];
+  const lists = [] as HTMLOListElement[];
+  tracklistSection.forEach((section, index) => {
+    if (section instanceof HTMLOListElement) {
+      lists.push(section);
+      if (index > 0) {
+        headers.push(tracklistSection[index - 1]);
+      }
+    }
+  });
+  if (lists.length === 1 && headers.length === 0) {
+    return [{
+      classification: TracklistType.SIDE,
+      tracks: getTracksFromList(lists[0]),
+    }];
+  }
+  if (headers.length !== lists.length) {
+    return [];
+  }
+  return headers.map((header, index) => {
+    return {
+      classification: classifyHeader(header),
+      tracks: getTracksFromList(lists[index]),
+    };
+  });
+}
+
+function setTrackWarnings(track: Track, trackInfo: TrackInfo): void {
+  const warning = track.warning || {};
+  if (track.name !== trackInfo.name) {
+    warning.name = trackInfo.name;
+  }
+  if (trackInfo.featuring.length > 0) {
+    warning.featuring = trackInfo.featuring;
+  }
+  if (Object.keys(warning).length > 0) {
+    track.warning = warning;
+  }
 }
 
 function modifyAlbum(store: RootState, album: Album): Promise<void> {
   if (!album.wikiPage) {
     return Promise.resolve();
   }
-  return rp(album.wikiPage).then((htmlString: string) => {
+  return fetch(album.wikiPage).then((res) => res.text()).then((htmlString: string) => {
     removeError(album, PARSER_ERROR);
     const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
@@ -215,17 +286,33 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     } else {
       addError(album, GENRE_ERROR);
     }
-    const trackTitles = getTracks(doc);
-    if (album.trackIds.length === trackTitles.length) {
-      const tracks = getTracksByIds(store, album.trackIds);
-      tracks.forEach((track, index) => {
-        if (track.name !== trackTitles[index]) {
-          addTrackWarning(album, index, trackTitles[index]);
-        }
-      });
-      removeError(album, TRACK_ERROR);
-    } else {
+    const playlists = getTracks(doc);
+    const regularPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.SIDE);
+    const regularTracks = regularPlaylists.map((playlist) => playlist.tracks).flat();
+    const bonusPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.BONUS);
+    const bonusTracks = bonusPlaylists.map((playlist) => playlist.tracks).flat();
+    const refTracks = getTracksByIds(store, album.trackIds);
+    removeError(album, TRACK_ERROR);
+    if (refTracks.length < regularTracks.length) {
       addError(album, TRACK_ERROR);
+    } else if (refTracks.length === regularTracks.length) {
+      refTracks.forEach((track, index) => {
+        setTrackWarnings(track, regularTracks[index]);
+      });
+      // TODO: make this a warning?
+      if (bonusTracks.length > 0) {
+       addError(album, TRACK_ERROR);
+      }
+    } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
+       addError(album, TRACK_ERROR);
+       // see if it matches just some bonus versions?
+    } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
+     const totalTracks = [...regularTracks, ...bonusTracks];
+     refTracks.forEach((track, index) => {
+       setTrackWarnings(track, totalTracks[index]);
+     });
+    } else {
+     addError(album, TRACK_ERROR);
     }
 
     const pics = infoBox.getElementsByTagName('img');
@@ -237,17 +324,10 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    const options = {
-      encoding: 'binary',
-      url: picURL,
-    };
-    return rp(options).then((data: string) => {
-      if (!album.albumArtFile) {
-        const id = shortid.generate();
-        album.albumArtFile = `${DATA_DIR}/${id}.png`;
-      }
-      fs.writeFileSync(album.albumArtFile, data, 'binary');
+    let filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
+    return downloadImage(picURL, filePath).then(() => {
       removeError(album, ALBUM_ART_ERROR);
+      album.albumArtFile = filePath;
     }).catch(() => {
       addError(album, ALBUM_ART_ERROR);
       return Promise.resolve();

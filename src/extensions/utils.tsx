@@ -1,4 +1,5 @@
 import {IS_DEV} from '../constants';
+import fs from 'fs';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
 import {RootState} from '../redux/store';
@@ -68,3 +69,10 @@ export function getPool<T, S>(
   const pool = new Pool(items, getName, extensionId, (item: T) => modifyFunc(store, item));
   return new PromisePool(() => pool.next(), CONCURRENT);
 }
+
+export async function downloadImage(url: string, path: string) {
+  return fetch(url).then((res) => res.arrayBuffer()).then((data) => {
+    fs.writeFileSync(path, Buffer.from(data), 'binary');
+  });
+}
+

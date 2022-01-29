@@ -59,12 +59,12 @@ export default function runWikiExtension(
   return albumPool.start()
     .then(() => artistPool.start())
     .then(() => {
-      const albumsWithWarnings = albums.filter((album) => Object.values(album.warnings).length !== 0).length;
+      // TODO:redo
+      // const albumsWithWarnings = albums.filter((album) => Object.values(album.warnings).length !== 0).length;
       const albumsWithErrors = albums.filter((album) => album.errors.length !== 0).length;
       const artistsWithErrors = artists.filter((artist) => artist.errors.length !== 0).length;
       const msg = `Wikipedia Modifier Completed.<br>
         ${albums.length} album${plural(albums)} modified.<br>
-        ${albumsWithWarnings} with warnings.<br>
         ${albumsWithErrors} with errors.<br>
         <br>
         ${artists.length} artist${plural(artists)} modified.<br>

@@ -55,6 +55,11 @@ export interface NoOf {
   of: number;
 }
 
+export interface TrackWarning {
+  name?: string;
+  featuring?: string[];
+}
+
 export interface Track {
   id: string;
   duration: number;
@@ -74,6 +79,7 @@ export interface Track {
     page: string;
     errors: string[];
   };
+  warning?: TrackWarning;
 }
 
 export interface Artist {
@@ -88,9 +94,9 @@ export interface Artist {
   memberIds: string[];
 }
 
+// TODO(maybe): move all extension data into Record<string,JSON>
 export interface Album {
   id: string;
-  warnings: Record<string, string>;
   errors: string[];
   albumArtFile?: string;
   artistIds: string[];
@@ -202,7 +208,6 @@ interface SetTimeAction {
 }
 
 export interface AlbumInfo {
-  warnings?: Record<string, string>;
   errors?: string[];
   albumArtFile?: string;
   artistIds?: string[];
@@ -244,6 +249,7 @@ export interface TrackInfo {
     page?: string;
     errors?: string[];
   };
+  warning?: TrackWarning;
 }
 
 interface UpdateAlbum {

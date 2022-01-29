@@ -22,6 +22,8 @@ export default class ControlPage extends React.Component {
     const artFile = artId ? `${this.props.apiUrl}/get-album-art/${artId}` : '';
     const artists = current && current.artists;
     const track = current && current.track;
+    const curYear = (new Date()).getFullYear();
+    const isFav = track && track.favorites && track.favorites.includes(curYear);
     const mediaState = current && current.mediaState;
     return (
       <View style={styles.container}>
@@ -33,6 +35,7 @@ export default class ControlPage extends React.Component {
           duration={track ? track.duration : 0}
         />
         <Controls
+          isFavorite={isFav}
           paused={mediaState && mediaState.paused}
           sendMessage={this.props.sendMessage.bind(this)}
         />
