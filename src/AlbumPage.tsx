@@ -132,6 +132,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   private acceptTrackWarnings(): void {
+    const newArtistNamesToId = new Map();
     this.props.warnings.forEach((warning, index) => {
       if (Object.keys(warning).length === 0) {
         return;
@@ -141,7 +142,11 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
         if (artist) {
           return artist.id;
         }
+        if (newArtistNamesToId.has(artistName)) {
+          return newArtistNamesToId.get(artistName);
+        }
         const newId = shortid.generate();
+        newArtistNamesToId.set(artistName, newId);
         this.props.updateArtist(newId, {
           id: newId,
           name: artistName,
