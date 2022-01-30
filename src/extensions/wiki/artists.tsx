@@ -57,7 +57,7 @@ function getMembersByRows(rows: HTMLCollectionOf<HTMLTableRowElement>): string[]
   if (!memberRow) {
     return [];
   }
-  const names = memberRow.getElementsByTagName('li');
+  const names = [...memberRow.getElementsByTagName('li'), ...memberRow.getElementsByTagName('a')];
   return [...names].map((names) => names.textContent || '');
 }
 
