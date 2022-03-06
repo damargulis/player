@@ -1,5 +1,6 @@
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 
+export const DELETE_TRACK = 'DELETE_TRACK';
 export const SET_GENRES = 'SET_GENRES';
 export const DELETE_ARTIST = 'DELETE_ARTIST';
 export const DELETE_ALBUM = 'DELETE_ALBUM';
@@ -285,6 +286,13 @@ interface UpdateTrack {
   };
 }
 
+interface DeleteTrack {
+  type: typeof DELETE_TRACK;
+  payload: {
+    track: Track,
+  }
+}
+
 interface SaveNewTracks {
   type: typeof SAVE_NEW_TRACKS;
 }
@@ -309,5 +317,5 @@ interface AddToPlaylist {
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
-  | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup;
+  | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup | DeleteTrack;
 export type SettingsActionTypes = SetGenresAction;
