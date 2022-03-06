@@ -5,6 +5,7 @@ import {
   CREATE_BACKUP,
   DELETE_ALBUM,
   DELETE_ARTIST,
+  DELETE_TRACK,
   Genre,
   LibraryActionTypes,
   LibraryState,
@@ -88,6 +89,10 @@ function save(library: LibraryState): Promise<void> {
 
 function tracks(state: Record<string, Track>, action: LibraryActionTypes): Record<string, Track> {
   switch (action.type) {
+    case DELETE_TRACK: {
+      delete state[action.payload.track.id];
+      return {...state};
+    }
     case UPDATE_LIBRARY: {
       const update = action.payload.library.tracks;
       if (!update) {
@@ -192,6 +197,15 @@ function playlists(state: Record<string, Playlist>, action: LibraryActionTypes):
         },
       });
     }
+    case DELETE_TRACK: {
+      return Object.fromEntries(Object.entries(state).map(([id, playlist]) => {
+        const newIds = playlist.trackIds.filter((trackId) => trackId !== action.payload.track.id);
+        return [id, {
+          ...playlist,
+          trackIds: newIds,
+        }]
+      }));
+    }
     default: {
       return state;
     }
@@ -231,6 +245,19 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
           ...artist,
         }];
       })));
+    }
+    case DELETE_TRACK: {
+      const effectedArtists = action.payload.track.artistIds.map((id) => {
+        return state[id];
+      });
+      const newState = {...state};
+      effectedArtists.forEach((artist) => {
+        newState[artist.id] = {
+          ...artist,
+          trackIds: artist.trackIds.filter((trackId) => trackId !== action.payload.track.id)
+        };
+      });
+      return newState;
     }
     case DELETE_ALBUM: {
       return Object.fromEntries(Object.entries(state).map(([id, artist]) => {
@@ -316,11 +343,28 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
         }];
       })));
     }
+    case DELETE_TRACK: {
+      const effectedAlbums = action.payload.track.albumIds.map((id) => {
+        return state[id];
+      });
+      const newState = {...state};
+      effectedAlbums.forEach((album) => {
+        newState[album.id] = {
+          ...album,
+          trackIds: album.trackIds.filter((trackId) => action.payload.track.id),
+        }
+      });
+      return newState;
+    }
     case DELETE_ALBUM: {
       delete state[action.payload.id];
       return {...state};
     }
     case DELETE_ARTIST: {
+      // TODO:...just get the albumIds effected from the artist info obviously....
+      // this is so dumb...why did you do this...
+      // change this for all these...this is why its so slow
+      // just send the whole deleted object in with the action
       return Object.fromEntries(Object.entries(state).map(([id, album]) => {
         const index = album.artistIds.indexOf(action.payload.id);
         if (index >= 0) {
@@ -463,6 +507,7 @@ function runReducer(state: LibraryState, action: LibraryActionTypes): LibrarySta
     case ADD_TO_PLAYLIST:
     case DELETE_ARTIST:
     case DELETE_ALBUM:
+    case DELETE_TRACK:
       return Object.assign({}, state, {
         albums: albums(state.albums, action),
         artists: artists(state.artists, action),
@@ -552,6 +597,7 @@ export default function reducer(state: LibraryState = initialState, action: Libr
     case UPDATE_TRACK:
     case UPLOAD_FILES:
     case ADD_TO_PLAYLIST:
+    case DELETE_TRACK:
     case RESET_LIBRARY:
     case SAVE_NEW_TRACKS:
       save(library);

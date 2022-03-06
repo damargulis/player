@@ -1,4 +1,4 @@
-import {addToPlaylist, setPlaylist, updateLibrary, updateTrack} from './redux/actions';
+import {addToPlaylist, setPlaylist, updateLibrary, updateTrack, deleteTrack} from './redux/actions';
 import {Album, Artist, LibraryInfo, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
@@ -54,6 +54,7 @@ interface OwnProps {
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   updateTrack(id: string, info: TrackInfo): void;
+  deleteTrack(track: Track): void;
   addToPlaylist(index: number, trackIds: string[]): void;
   updateLibrary(update: LibraryInfo): void;
 }
@@ -315,6 +316,13 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     });
   }
 
+  private deleteTracks(): void {
+    this.state.selected.forEach((id) => {
+      const track = this.state.tracks[id];
+      this.props.deleteTrack(track);
+    });
+  }
+
   private doRowRightClick({index}: {index: number}): void {
     if (!this.state.selected.includes(index)) {
       this.setState({selected: [index], lastSelected: index}, () => this.doRowRightClickNext(index));
@@ -341,6 +349,8 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     menu.append(new remote.MenuItem({label: 'Extensions', submenu: [{
       label: 'Genius', click: this.runGenius.bind(this),
     }]}));
+    menu.append(new remote.MenuItem({label: `Delete Track${this.state.selected.length > 1 ? 's' : ''}`,
+      click: this.deleteTracks.bind(this)}));
     const playlists = this.props.playlists.map((playlist, playlistIndex) => {
       return {
         label: playlist.name,
@@ -435,4 +445,4 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, updateLibrary, updateTrack, addToPlaylist})(TrackPicker);
+export default connect(mapStateToProps, {setPlaylist, updateLibrary, updateTrack, addToPlaylist, deleteTrack})(TrackPicker);

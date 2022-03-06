@@ -6,6 +6,7 @@ import {
   CREATE_BACKUP,
   DELETE_ALBUM,
   DELETE_ARTIST,
+  DELETE_TRACK,
   LibraryInfo,
   LibraryState,
   Metadata,
@@ -19,6 +20,7 @@ import {
   SET_GENRES,
   SET_PLAYLIST,
   SET_TIME,
+  Track,
   TrackInfo,
   UPDATE_ALBUM,
   UPDATE_ARTIST,
@@ -99,6 +101,11 @@ export const updateArtist = (id: string, info: ArtistInfo) => ({
 export const updateTrack = (id: string, info: TrackInfo) => ({
   payload: {id, info},
   type: UPDATE_TRACK,
+});
+
+export const deleteTrack = (track: Track) => ({
+  payload: {track},
+  type: DELETE_TRACK,
 });
 
 export const deleteAlbum = (id: string) => ({
