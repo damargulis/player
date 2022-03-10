@@ -42,8 +42,10 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             artFile: artistData.artFile,
             errors: artistData.errors,
             wikiPage: artistData.wikiPage,
+            songkickId: artistData.songkickId,
             genreIds: artistData.genreIds,
             trackIds: artistData.trackIds,
+            events: artistData.events,
           };
           return map;
           }, {} as Record<string, Artist>),

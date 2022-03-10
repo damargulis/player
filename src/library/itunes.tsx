@@ -2,7 +2,7 @@ import { Album, Artist, Genre, LibraryState, Playlist, Track} from '../redux/act
 import {DATA_DIR} from '../constants';
 import {remote} from 'electron';
 import fs from 'fs';
-import mm from 'musicmetadata';
+//import mm from 'musicmetadata';
 import plist from 'plist';
 import shortid from 'shortid';
 import {inverse} from '../utils';
@@ -245,19 +245,20 @@ function getAlbumArt(filePath: string): Promise<string | undefined> {
     filePath = decodeURI(filePath.slice(7)).replace('%23', '#');
     try {
       const readStream = fs.createReadStream(filePath);
-      mm(readStream, (err: Error | undefined, data: {picture: Array<{data: Buffer}>}) => {
-        const id = shortid.generate();
-        if (err) {
-          return;
-        }
-        if (data.picture[0] && data.picture[0].data) {
-          fs.writeFileSync(`${DATA_DIR}/${id}.png`, data.picture[0].data);
-        } else {
-          resolve();
-        }
-        readStream.close();
-        resolve(`${DATA_DIR}/${id}.png`);
-      });
+      resolve();
+      //mm(readStream, (err: Error | undefined, data: {picture: Array<{data: Buffer}>}) => {
+      //  const id = shortid.generate();
+      //  if (err) {
+      //    return;
+      //  }
+      //  if (data.picture[0] && data.picture[0].data) {
+      //    fs.writeFileSync(`${DATA_DIR}/${id}.png`, data.picture[0].data);
+      //  } else {
+      //    resolve();
+      //  }
+      //  readStream.close();
+      //  resolve(`${DATA_DIR}/${id}.png`);
+      //});
     } catch (err) {
       resolve();
     }

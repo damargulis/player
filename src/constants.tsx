@@ -16,3 +16,4 @@ if (typeof electron === 'string') {
 export const IS_DEV = isDev;
 export const DATA_DIR = isDev ? './data' : electron.remote.app.getPath('userData') + '/data';
 export const DEFAULT_VOLUME = isDev ? .1 : 1;
+

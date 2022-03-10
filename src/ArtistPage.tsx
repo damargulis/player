@@ -1,9 +1,11 @@
 import {deleteArtist, updateArtist, updateLibrary} from './redux/actions';
+import {shell} from 'electron';
 import {Album, Artist, ArtistInfo, Genre, LibraryInfo, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
 import runWikiExtension from './extensions/wiki/main';
+import runSongkickExtension from './extensions/songkick/main';
 import defaultArtist from './resources/missing_artist.png';
 import NavigationBar from './NavigationBar';
 import React from 'react';
@@ -20,6 +22,7 @@ interface StateProps {
   tracks: Track[];
   artist: Artist;
   runWikiExtension(artistIds: string[]): PromiseLike<LibraryInfo>;
+  runSongkickExtension(artistIds: string[]): PromiseLike<LibraryInfo>;
   getGenreById(genreId: string): Genre;
 }
 
@@ -84,10 +87,12 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} />
               <button onClick={() => this.runWiki()}>Run Wiki Extension</button>
+              <button onClick={() => this.runSongkick()}>Run Songkick Extension</button>
             </div>
             <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
             <button onClick={() => this.deleteArtist()} className="deleteArtist">Delete Artist</button>
             {this.getErrors()}
+            {this.getUpcomingEvents()}
           </div>
           <div className="artistPageBody" >
             <div className="artistPageContainer" >
@@ -129,6 +134,30 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
     });
   }
 
+  private runSongkick(): void {
+    this.props.runSongkickExtension([this.props.artist.id]).then((updates) => {
+      this.props.updateLibrary(updates);
+    });
+  }
+
+  private getUpcomingEvents(): JSX.Element {
+    if (!this.props.artist.songkickId) {
+      return <div className="eventsContainer">Error: No songkick artist found</div>
+    }
+    if (!this.props.artist.events) {
+      return <div className="eventsContainer">No upcoming shows</div>
+    }
+    return <div className="eventsContainer">
+      <div>Upcoming Shows Near You:</div>
+      {this.props.artist.events.map((event) => (
+        <div key={event.id} onClick={() => shell.openExternal(event.uri)}>
+          {event.displayName}
+          <span>{(new Date(event.start.date)).toDateString()}</span>
+        </div>
+      ))}
+    </div>
+  }
+
   private getErrors(): JSX.Element | undefined {
     if (!this.props.artist.errors.length) {
       return;
@@ -154,6 +183,7 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   return {
     albums: getAlbumsByIds(store, artist.albumIds),
     runWikiExtension: (artistIds: string[]) => runWikiExtension(/* albumIds= */ [], artistIds, store),
+    runSongkickExtension: (artistIds: string[]) => runSongkickExtension(artistIds, store),
     tracks: getTracksByIds(store, artist.trackIds),
     artist: artist,
     getGenreById: (genreId: string) => getGenreById(store, genreId),

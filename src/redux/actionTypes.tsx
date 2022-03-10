@@ -90,8 +90,17 @@ export interface Artist {
   artFile?: string;
   errors: string[];
   wikiPage?: string;
+  songkickId?: string;
   genreIds: string[];
   trackIds: string[];
+  events?: {
+    displayName: string;
+    id: string;
+    start: {
+      date: string;
+    }
+    uri: string;
+  }[]
 }
 
 // TODO(maybe): move all extension data into Record<string,JSON>
