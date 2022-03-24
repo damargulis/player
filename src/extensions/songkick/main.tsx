@@ -11,9 +11,6 @@ const MY_LAT = parseInt(process.env.MY_LAT || "0", 10);
 const MY_LONG = parseInt(process.env.MY_LONG || "0", 10);
 const BASE_URL = "https://api.songkick.com/api/3.0";
 const MAX_MILES = 50;
-console.log("PROCESS:");
-console.log(process.env);
-console.log(SONGKICK_API_KEY);
 
 function deg2rad(deg: number) {
   return deg * (Math.PI/180)

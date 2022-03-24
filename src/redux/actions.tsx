@@ -31,7 +31,7 @@ import {
 } from './actionTypes';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import fs from 'fs';
-// import mm from 'musicmetadata';
+import mm from 'musicmetadata';
 
 export const updateTime = (time: number) => ({
   payload: {time},
@@ -134,14 +134,14 @@ export const createBackup = () => ({
 function getMetadata(file: File): Promise<Metadata> {
   return new Promise<Metadata>((resolve, reject) => {
     reject();
-    //const stream = fs.createReadStream(file.path);
-    //mm(stream, {duration: true}, (err, metadata) => {
-    //  if (err) {
-    //    reject();
-    //  }
-    //  stream.close();
-    //  resolve(metadata);
-    //});
+    const stream = fs.createReadStream(file.path);
+    mm(stream, {duration: true}, (err, metadata) => {
+      if (err) {
+        reject();
+      }
+      stream.close();
+      resolve(metadata);
+    });
   });
 }
 
