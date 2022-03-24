@@ -8,10 +8,10 @@ let isDev;
 if (typeof electron === 'string') {
   isDev = true;
 } else {
-  const app = electron.app || electron.remote.app;
+  const app = (electron && electron.app) || (electron && electron.remote && electron.remote.app);
   const isEnvSet = 'ELECTRON_IS_DEV' in process.env;
   const getFromEnv = parseInt(process.env.ELECTRON_IS_DEV as string, 10) === 1;
-  isDev = isEnvSet ? getFromEnv : !app.isPackaged;
+  isDev = isEnvSet ? getFromEnv : !(app && app.isPackaged);
 }
 export const IS_DEV = isDev;
 export const DATA_DIR = isDev ? './data' : electron.remote.app.getPath('userData') + '/data';
