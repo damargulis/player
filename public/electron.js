@@ -153,6 +153,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,
+      enableRemoteModule: true
     },
     width: 1430,
   });
