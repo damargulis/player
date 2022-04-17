@@ -107,15 +107,19 @@ function maximize() {
 }
 ipcMain.on("extension-ready", (evt) => {
   extEvt = evt;
+  extEvt.reply("env-vars", {
+    SONGKICK_API_KEY: process.env.ELECTRON_WEBPACK_APP_SONGKICK_API_KEY,
+    MY_LAT: process.env.ELECTRON_WEBPACK_APP_MY_LAT,
+    MY_LONG: process.env.ELECTRON_WEBPACK_APP_MY_LONG,
+  });
 });
+
+const extensionsRunning = {};
 
 ipcMain.on("extension-monitor-ready", (evt, arg) => {
   let extension = extensionsRunning[arg.extensionId];
   extension.setEvent(evt);
 });
-
-const messageQueue = [];
-const extensionsRunning = {};
 
 ipcMain.on("extension-update", (evt, arg) => {
   let extension = extensionsRunning[arg.extensionId];
@@ -150,12 +154,12 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     frame: false,
     height: 800,
+    width: 1430,
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,
       enableRemoteModule: true
     },
-    width: 1430,
   });
   mainWindow.loadURL(isDev
     ? "http://localhost:3000"
@@ -212,6 +216,10 @@ const http = require("http").createServer(expressApp);
 const io = require("socket.io")(http);
 
 let lastState = null;
+
+console.log("ENVIRONMENT VARS:");
+console.log(process.env);
+console.log(process.env.ELECTRON_WEBPACK_APP_SONGKICK_API_KEY);
 
 io.on("connection", (socket) => {
   if (lastState) {

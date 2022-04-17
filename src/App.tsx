@@ -77,6 +77,11 @@ class App extends React.Component<AppProps, AppState> {
     this.state = {
       mini: false,
     };
+    ipcRenderer.on('env-vars', (evt, data) => {
+      console.log("GOT ENV VARS:");
+      console.log(data);
+      (window as any).customEnv = data;
+    });
     ipcRenderer.on('minimize-reply', () => {
       this.onMinimize();
     });

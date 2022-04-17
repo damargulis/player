@@ -6,9 +6,6 @@ import {RootState} from '../../redux/store';
 import {Artist, ArtistInfo, LibraryInfo} from '../../redux/actionTypes';
 
 // TODO: dynamically get location, make distance an option
-const SONGKICK_API_KEY = process.env.SONGKICK_API_KEY;
-const MY_LAT = parseInt(process.env.MY_LAT || "0", 10);
-const MY_LONG = parseInt(process.env.MY_LONG || "0", 10);
 const BASE_URL = "https://api.songkick.com/api/3.0";
 const MAX_MILES = 50;
 
@@ -53,7 +50,7 @@ interface SongkickResponse {
 }
 
 function searchForSongkickId(artist: Artist) {
-  const url = `${BASE_URL}/search/artists.json?apikey=${SONGKICK_API_KEY}&query=${artist.name}`;
+  const url = `${BASE_URL}/search/artists.json?apikey=${(window as any).customEnv.SONGKICK_API_KEY}&query=${artist.name}`;
   return fetch(url).then((res: Response) => res.json()).then((res: SongkickResponse) => {
     console.log("Got:");
     console.log(res);
@@ -68,17 +65,19 @@ function searchForSongkickId(artist: Artist) {
 }
 
 function runArtistModifier(store: RootState, artist: Artist) {
+  console.log("RUNNIN!");
+  console.log((window as any).customEnv);
   if (!artist.songkickId) {
     return Promise.resolve();
   }
-  const url = `${BASE_URL}/artists/${artist.songkickId}/calendar.json?apikey=${SONGKICK_API_KEY}`;
+  const url = `${BASE_URL}/artists/${artist.songkickId}/calendar.json?apikey=${(window as any).customEnv.SONGKICK_API_KEY}`;
   return fetch(url).then((res: Response) => res.json()).then((res: SongkickResponse) => {
     if (!res.resultsPage.results.event) {
       return;
     }
     const events = res.resultsPage.results.event.filter((event) => {
       console.log(event.displayName);
-      const distanceKm = getDistanceFromLatLonInKm(event.location.lat, event.location.lng, MY_LAT, MY_LONG);
+      const distanceKm = getDistanceFromLatLonInKm(event.location.lat, event.location.lng, (window as any).customEnv.MY_LAT, (window as any).customEnv.MY_LONG);
       const distanceMiles = distanceKm * 0.62137;
       console.log(distanceMiles);
       return distanceMiles <= MAX_MILES;
