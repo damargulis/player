@@ -89,7 +89,7 @@
     "jest": "^26.6.3",
     "jest-electron": "^0.1.11",
     "jimp": "^0.10.1",
-    "libxmljs": "^0.19.7",
+    "libxmljs": "^0.19.8",
     "moment": "^2.24.0",
     "music-metadata": "^4.8.0",
     "musicmetadata": "^2.0.5",
