@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Music Client</string>
+    <string name="dismiss" tools:ignore="ExtraTranslation">dismiss</string>
+    <string name="previous">previous</string>
+    <string name="pause">pause</string>
+    <string name="playpause">playpause</string>
+    <string name="downloads">downloads</string>
+    <string name="remote">remote</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">Shuffle a playlist from your home screen</string>
+</resources>
