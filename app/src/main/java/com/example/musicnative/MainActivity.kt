@@ -104,7 +104,6 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
         }
 
         val onSync = {
-            // TODO: Save plays and send when syncing
             lifecycleScope.launch {
                 println("kicking off")
                 syncHelper!!.startSync()
@@ -268,14 +267,8 @@ fun MainApp(modifier: Modifier = Modifier,
                     ListScreen("Playlists", goBack, listItems = playlists, renderer = null, onClick = goToPlaylist, onShuffle = null)
                 }
                 composable(route = DownloadScreens.PlaylistDetail.name + "/{playlistId}") {
-                    println("Here1")
-                    println(it.arguments?.get("playlistId"))
                     val playlistId = it.arguments?.getString("playlistId")?.toInt() ?: 0
-                    println("playlist id:")
-                    println(playlistId)
                     val playlist = playlists[playlistId]
-                    println(playlist)
-                    println("Here2")
                     TrackPicker(
                         tracks = getTrackData(playlist.trackIds),
                         title = playlist.name,
