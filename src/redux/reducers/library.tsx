@@ -351,7 +351,7 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
       effectedAlbums.forEach((album) => {
         newState[album.id] = {
           ...album,
-          trackIds: album.trackIds.filter((trackId) => action.payload.track.id),
+          trackIds: album.trackIds.filter((trackId) => trackId !== action.payload.track.id),
         }
       });
       return newState;
