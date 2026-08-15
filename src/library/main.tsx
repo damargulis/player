@@ -1,5 +1,6 @@
 import {Album, Artist, Genre, LibraryState, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
+import {migrateLegacyErrors} from '../extensions/errors';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,13 +20,14 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
           albums: Object.values(libraryData.albums).reduce((map: Record<string, Album>, albumData: Album) => {
             map[albumData.id] = {
             id: albumData.id,
-            errors: albumData.errors,
+            errors: migrateLegacyErrors(albumData.errors),
             albumArtFile: albumData.albumArtFile,
             artistIds: albumData.artistIds,
             name: albumData.name,
             trackIds: albumData.trackIds,
             year: albumData.year,
             wikiPage: albumData.wikiPage,
+            mbid: albumData.mbid,
             genreIds: albumData.genreIds,
             playCount: albumData.playCount,
             skipCount: albumData.skipCount,
@@ -40,8 +42,9 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             name: artistData.name,
             albumIds: artistData.albumIds,
             artFile: artistData.artFile,
-            errors: artistData.errors,
+            errors: migrateLegacyErrors(artistData.errors),
             wikiPage: artistData.wikiPage,
+            mbid: artistData.mbid,
             genreIds: artistData.genreIds,
             trackIds: artistData.trackIds,
           };

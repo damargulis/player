@@ -176,6 +176,7 @@ function createWindow() {
     submenu: [
     {label: "Wikipedia", click: () => runExtension("wikipedia")},
     {label: "Genius", click: () => runExtension("genius")},
+    {label: "MusicBrainz", click: () => runExtension("musicbrainz")},
   ],
   }));
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));

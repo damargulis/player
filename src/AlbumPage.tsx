@@ -6,6 +6,8 @@ import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
 import runWikiExtension from './extensions/wiki/main';
+import runMusicBrainzExtension from './extensions/musicbrainz/main';
+import MusicBrainzLabel from './MusicBrainzLabel';
 import defaultAlbum from './resources/missing_album.png';
 import NavigationBar from './NavigationBar';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
@@ -33,6 +35,7 @@ interface StateProps {
   getTracksByIds(ids: string[]): Track[];
   getTrackById(id: string): Track;
   runWikiExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
+  runMusicBrainzExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
   getArtistByName(name: string): Artist | undefined;
 }
 
@@ -103,8 +106,12 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             <div>{this.props.album.year}</div>
             <div>{this.props.album.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ' )}</div>
             <WikiLabel wikiPage={this.props.album.wikiPage} />
+            <MusicBrainzLabel mbid={this.props.album.mbid} entityType="release-group" />
             <button onClick={() => this.runWiki()}>
               Run Wiki Extension
+            </button>
+            <button onClick={() => this.runMusicBrainz()}>
+              Run MusicBrainz Extension
             </button>
           </div>
           <div className="albumPageControls" >
@@ -127,6 +134,12 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
 
   private runWiki(): void {
     this.props.runWikiExtension([this.props.album.id]).then((updates) => {
+      this.props.updateLibrary(updates);
+    });
+  }
+
+  private runMusicBrainz(): void {
+    this.props.runMusicBrainzExtension([this.props.album.id]).then((updates) => {
       this.props.updateLibrary(updates);
     });
   }
@@ -252,6 +265,7 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
     getTrackById: (id: string) => getTrackById(state, id),
     getTracksByIds: (ids: string[]) => getTracksByIds(state, ids),
     runWikiExtension: (albumIds: string[]) => runWikiExtension(albumIds, /* artistIds= */ [], state),
+    runMusicBrainzExtension: (albumIds: string[]) => runMusicBrainzExtension(albumIds, /* artistIds= */ [], state),
     tracks: getTracksByIds(state, album.trackIds),
     album: album,
     getGenreById: (id: string) => getGenreById(state, id),

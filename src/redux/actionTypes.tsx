@@ -90,6 +90,7 @@ export interface Artist {
   artFile?: string;
   errors: string[];
   wikiPage?: string;
+  mbid?: string;
   genreIds: string[];
   trackIds: string[];
 }
@@ -104,6 +105,7 @@ export interface Album {
   trackIds: string[];
   year: number;
   wikiPage?: string;
+  mbid?: string;
   genreIds: string[];
   playCount: number;
   skipCount: number;
@@ -215,6 +217,7 @@ export interface AlbumInfo {
   trackIds?: string[];
   year?: number;
   wikiPage?: string;
+  mbid?: string;
   genreIds?: string[];
   playCount?: number;
   skipCount?: number;
@@ -227,6 +230,7 @@ export interface ArtistInfo {
   artFile?: string;
   errors?: string[];
   wikiPage?: string;
+  mbid?: string;
   genreIds?: string[];
   trackIds?: string[];
 }

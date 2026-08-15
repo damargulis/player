@@ -3,6 +3,7 @@ import {Artist} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
 import AttributeEditor from './AttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
+import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import React from 'react';
 import {connect} from 'react-redux';
 import {RootState} from './redux/store';
@@ -31,6 +32,7 @@ interface ArtistEditorState {
 class ArtistEditor extends React.Component<ArtistEditorProps, ArtistEditorState> {
   private name = React.createRef<AttributeEditor>();
   private wikiPage = React.createRef<AttributeEditor>();
+  private mbid = React.createRef<AttributeEditor>();
 
   constructor(props: ArtistEditorProps) {
     super(props);
@@ -51,6 +53,7 @@ class ArtistEditor extends React.Component<ArtistEditorProps, ArtistEditorState>
         <AttributeEditor name="Name" val={artist.name} ref={this.name} />
         <GenreAttributeEditor genreIds={this.state.genreIds} />
         <AttributeEditor name="Wiki Page" val={artist.wikiPage} ref={this.wikiPage} />
+        <AttributeEditor name="MusicBrainz" val={musicBrainzUrl('artist', artist.mbid)} ref={this.mbid} />
         <AlbumAttributeEditor albumIds={this.state.albumIds} />
         <TrackAttributeEditor trackIds={this.state.trackIds} setIds={(trackIds) => this.setState({trackIds})} />
         <div className="bottom-bar">
@@ -68,6 +71,7 @@ class ArtistEditor extends React.Component<ArtistEditorProps, ArtistEditorState>
       albumIds: this.state.albumIds,
       trackIds: this.state.trackIds,
       wikiPage: this.wikiPage.current && this.wikiPage.current.value,
+      mbid: this.mbid.current ? parseMbid(this.mbid.current.value) : this.props.artist.mbid,
       id: this.props.artist.id,
       errors: this.props.artist.errors,
     });

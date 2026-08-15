@@ -1,12 +1,12 @@
 import {Artist, ArtistInfo} from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
-import {GENRE_ERROR, NO_PAGE_ERROR, PARSER_ERROR, PIC_ERROR} from './errors';
+import {addError, ExtensionError, removeError} from '../errors';
 import fs from 'fs';
 import {getGenreIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
-import {addError, findAsync, getDoc, getGenresByRow, removeError} from './utils';
+import {findAsync, getDoc, getGenresByRow} from './utils';
 import {downloadImage} from '../utils';
 
 function getWikiPageOptions(artist: Artist): string[] {
@@ -53,7 +53,7 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     return Promise.resolve();
   }
   return fetch(artist.wikiPage).then((res: Response) => res.text()).then((htmlString: string) => {
-    removeError(artist, PARSER_ERROR);
+    removeError(artist, ExtensionError.PARSER);
     const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
@@ -61,9 +61,9 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
       artist.genreIds = getGenreIds(store, genres);
-      removeError(artist, GENRE_ERROR);
+      removeError(artist, ExtensionError.GENRE);
     } else {
-      addError(artist, GENRE_ERROR);
+      addError(artist, ExtensionError.GENRE);
     }
     const pics = infoBox.getElementsByTagName('img');
     // TODO: take multiple pictures (rotate them elsewhere in the app)
@@ -76,32 +76,38 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     }
     let filePath = artist.artFile || `${DATA_DIR}/${shortid.generate()}.png`;
     return downloadImage(picURL, filePath).then(() => {
-      removeError(artist, PIC_ERROR);
+      removeError(artist, ExtensionError.PIC);
       artist.artFile = filePath;
     }).catch(() => {
-      addError(artist, PIC_ERROR);
+      addError(artist, ExtensionError.PIC);
       return Promise.resolve();
     });
   }).catch(() => {
-    addError(artist, PARSER_ERROR);
+    addError(artist, ExtensionError.PARSER);
     return Promise.resolve();
   });
 }
 
 export default function runArtistModifier(store: RootState, artist: Artist): Promise<ArtistInfo> {
-  removeError(artist, NO_PAGE_ERROR);
   if (!artist.wikiPage) {
     return searchForWikiPage(artist).then((wikiPage) => {
       if (wikiPage) {
         artist.wikiPage = wikiPage;
+        removeError(artist, ExtensionError.NO_MATCH);
         return modifyArtist(store, artist).then(() => {
           return {...artist};
         });
       }
-      addError(artist, NO_PAGE_ERROR);
-      return Promise.resolve({errors: [NO_PAGE_ERROR]});
+      // Only an error state if the MusicBrainz extension has no match either.
+      if (artist.mbid) {
+        removeError(artist, ExtensionError.NO_MATCH);
+      } else {
+        addError(artist, ExtensionError.NO_MATCH);
+      }
+      return Promise.resolve({errors: [...artist.errors]});
     });
   }
+  removeError(artist, ExtensionError.NO_MATCH);
   return modifyArtist(store, artist).then(() => {
     return {...artist};
   });

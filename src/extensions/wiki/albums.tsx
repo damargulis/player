@@ -2,21 +2,14 @@ import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
 import {downloadImage} from '../utils';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
-import {
-  ALBUM_ART_ERROR,
-  GENRE_ERROR,
-  NO_PAGE_ERROR,
-  PARSER_ERROR,
-  TRACK_ERROR,
-  YEAR_ERROR,
-} from './errors';
+import {addError, ExtensionError, removeError} from '../errors';
 import fs from 'fs';
 import moment from 'moment';
 import * as React from 'react';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
-import {addError, findAsync, getDoc, getGenresByRow, removeError, sanitize} from './utils';
+import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
 
 
 function getYear(rootNode: HTMLElement): number {
@@ -267,7 +260,7 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     return Promise.resolve();
   }
   return fetch(album.wikiPage).then((res) => res.text()).then((htmlString: string) => {
-    removeError(album, PARSER_ERROR);
+    removeError(album, ExtensionError.PARSER);
     const doc = getDoc(htmlString);
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
@@ -275,16 +268,16 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     const year = getYearByRow(rows);
     if (year) {
       album.year = year;
-      removeError(album, YEAR_ERROR);
+      removeError(album, ExtensionError.YEAR);
     } else {
-      addError(album, YEAR_ERROR);
+      addError(album, ExtensionError.YEAR);
     }
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
       album.genreIds = getGenreIds(store, genres);
-      removeError(album, GENRE_ERROR);
+      removeError(album, ExtensionError.GENRE);
     } else {
-      addError(album, GENRE_ERROR);
+      addError(album, ExtensionError.GENRE);
     }
     const playlists = getTracks(doc);
     const regularPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.SIDE);
@@ -292,19 +285,19 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     const bonusPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.BONUS);
     const bonusTracks = bonusPlaylists.map((playlist) => playlist.tracks).flat();
     const refTracks = getTracksByIds(store, album.trackIds);
-    removeError(album, TRACK_ERROR);
+    removeError(album, ExtensionError.TRACK);
     if (refTracks.length < regularTracks.length) {
-      addError(album, TRACK_ERROR);
+      addError(album, ExtensionError.TRACK);
     } else if (refTracks.length === regularTracks.length) {
       refTracks.forEach((track, index) => {
         setTrackWarnings(track, regularTracks[index]);
       });
       // TODO: make this a warning?
       if (bonusTracks.length > 0) {
-       addError(album, TRACK_ERROR);
+       addError(album, ExtensionError.TRACK);
       }
     } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
-       addError(album, TRACK_ERROR);
+       addError(album, ExtensionError.TRACK);
        // see if it matches just some bonus versions?
     } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
      const totalTracks = [...regularTracks, ...bonusTracks];
@@ -312,7 +305,7 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
        setTrackWarnings(track, totalTracks[index]);
      });
     } else {
-     addError(album, TRACK_ERROR);
+     addError(album, ExtensionError.TRACK);
     }
 
     const pics = infoBox.getElementsByTagName('img');
@@ -326,33 +319,39 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     }
     let filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
     return downloadImage(picURL, filePath).then(() => {
-      removeError(album, ALBUM_ART_ERROR);
+      removeError(album, ExtensionError.ALBUM_ART);
       album.albumArtFile = filePath;
     }).catch(() => {
-      addError(album, ALBUM_ART_ERROR);
+      addError(album, ExtensionError.ALBUM_ART);
       return Promise.resolve();
     });
   }).catch(() => {
-    addError(album, PARSER_ERROR);
+    addError(album, ExtensionError.PARSER);
     return Promise.resolve();
   });
 }
 
 export default function runAlbumModifier(store: RootState, album: Album): Promise<AlbumInfo> {
   // TODO: fix this so you don't modify album ...pass in new data object and pass aronud?
-  removeError(album, NO_PAGE_ERROR);
   if (!album.wikiPage) {
     return searchForWikiPage(store, album).then((wikiPage) => {
       if (wikiPage) {
         album.wikiPage = wikiPage;
+        removeError(album, ExtensionError.NO_MATCH);
         return modifyAlbum(store, album).then(() => {
           return {...album};
         });
       }
-      addError(album, NO_PAGE_ERROR);
-      return Promise.resolve({errors: [NO_PAGE_ERROR]});
+      // Only an error state if the MusicBrainz extension has no match either.
+      if (album.mbid) {
+        removeError(album, ExtensionError.NO_MATCH);
+      } else {
+        addError(album, ExtensionError.NO_MATCH);
+      }
+      return Promise.resolve({errors: [...album.errors]});
     });
   }
+  removeError(album, ExtensionError.NO_MATCH);
   return modifyAlbum(store, album).then(() => {
     return {...album};
   });

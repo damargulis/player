@@ -4,6 +4,8 @@ import AlbumPicker from './AlbumPicker';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
 import runWikiExtension from './extensions/wiki/main';
+import runMusicBrainzExtension from './extensions/musicbrainz/main';
+import MusicBrainzLabel from './MusicBrainzLabel';
 import defaultArtist from './resources/missing_artist.png';
 import NavigationBar from './NavigationBar';
 import React from 'react';
@@ -20,6 +22,7 @@ interface StateProps {
   tracks: Track[];
   artist: Artist;
   runWikiExtension(artistIds: string[]): PromiseLike<LibraryInfo>;
+  runMusicBrainzExtension(artistIds: string[]): PromiseLike<LibraryInfo>;
   getGenreById(genreId: string): Genre;
 }
 
@@ -83,7 +86,9 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <div>{this.props.artist.name}</div>
               <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} />
+              <MusicBrainzLabel mbid={this.props.artist.mbid} entityType="artist" />
               <button onClick={() => this.runWiki()}>Run Wiki Extension</button>
+              <button onClick={() => this.runMusicBrainz()}>Run MusicBrainz Extension</button>
             </div>
             <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
             <button onClick={() => this.deleteArtist()} className="deleteArtist">Delete Artist</button>
@@ -129,6 +134,12 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
     });
   }
 
+  private runMusicBrainz(): void {
+    this.props.runMusicBrainzExtension([this.props.artist.id]).then((updates) => {
+      this.props.updateLibrary(updates);
+    });
+  }
+
   private getErrors(): JSX.Element | undefined {
     if (!this.props.artist.errors.length) {
       return;
@@ -154,6 +165,7 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
   return {
     albums: getAlbumsByIds(store, artist.albumIds),
     runWikiExtension: (artistIds: string[]) => runWikiExtension(/* albumIds= */ [], artistIds, store),
+    runMusicBrainzExtension: (artistIds: string[]) => runMusicBrainzExtension(/* albumIds= */ [], artistIds, store),
     tracks: getTracksByIds(store, artist.trackIds),
     artist: artist,
     getGenreById: (genreId: string) => getGenreById(store, genreId),

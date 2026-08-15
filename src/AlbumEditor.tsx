@@ -4,6 +4,7 @@ import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditor from './AttributeEditor';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
+import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getArtistById, getTrackById} from './redux/selectors';
@@ -38,6 +39,7 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
   private year = React.createRef<AttributeEditor>();
   private playCount = React.createRef<AttributeEditor>();
   private wikiPage = React.createRef<AttributeEditor>();
+  private mbid = React.createRef<AttributeEditor>();
 
   constructor(props: AlbumEditorProps) {
     super(props);
@@ -64,6 +66,7 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
         <FavoritesAttributeEditor yearsFavorited={this.state.yearsFavorited} />
         <AttributeEditor name="Play Count" val={album.playCount} ref={this.playCount} />
         <AttributeEditor name="Wiki Page" val={album.wikiPage} ref={this.wikiPage} />
+        <AttributeEditor name="MusicBrainz" val={musicBrainzUrl('release-group', album.mbid)} ref={this.mbid} />
         <TrackAttributeEditor trackIds={this.state.trackIds} setIds={(trackIds) => this.setState({trackIds})}/>
         <div className="bottom-bar">
           <button onClick={() => this.save()}>Save</button>
@@ -82,6 +85,7 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
       genreIds: this.state.genreIds,
       artistIds: this.state.artistIds,
       wikiPage: this.wikiPage.current && this.wikiPage.current.value,
+      mbid: this.mbid.current ? parseMbid(this.mbid.current.value) : this.props.album.mbid,
       trackIds: this.state.trackIds,
       errors: this.props.album.errors,
       id: this.props.album.id,
