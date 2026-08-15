@@ -30,7 +30,8 @@ class ExtensionMonitor {
       webPreferences: {
         nodeIntegration: true,
         nodeIntegrationInWorker: true,
-        webSecutiry: false,
+        contextIsolation: false,
+        webSecurity: false,
       },
       width: 500,
     });
@@ -152,6 +153,8 @@ function createWindow() {
     height: 800,
     webPreferences: {
       nodeIntegration: true,
+      contextIsolation: false,
+      enableRemoteModule: true,
       webSecurity: false,
     },
     width: 1430,
