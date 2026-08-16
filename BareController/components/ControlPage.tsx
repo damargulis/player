@@ -2,6 +2,7 @@ import AlbumArt from './AlbumArt';
 import Controls from './Controls';
 import Info from './Info';
 import Progress from './Progress';
+import VolumeSlider from './VolumeSlider';
 import React, {Component} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
@@ -33,6 +34,10 @@ export default class ControlPage extends React.Component {
           sendMessage={this.props.sendMessage.bind(this)}
           currentTime={current && current.currentTime}
           duration={track ? track.duration : 0}
+        />
+        <VolumeSlider
+          sendMessage={this.props.sendMessage.bind(this)}
+          volume={mediaState ? mediaState.volume : 0}
         />
         <Controls
           isFavorite={isFav}

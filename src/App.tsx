@@ -1,5 +1,5 @@
-import {createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist, updateLibrary,
-  updateTime, updateTrack} from './redux/actions';
+import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist,
+  updateLibrary, updateTime, updateTrack} from './redux/actions';
 import {Album, Artist, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {BACKUP_TIME, DATA_DIR} from './constants';
@@ -48,6 +48,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
+  changeVolume(volume: number): void;
   updateTime(time: number): void;
   updateLibrary(library: LibraryInfo): void;
   createBackup(): void;
@@ -126,6 +127,9 @@ class App extends React.Component<AppProps, AppState> {
     });
     ipcRenderer.on('setTime', (evt, data) => {
       this.audio.currentTime = data;
+    });
+    ipcRenderer.on('setVolume', (evt, volume) => {
+      this.props.changeVolume(volume);
     });
     ipcRenderer.on('get-synced-playlists', (evt, plays) => {
       Object.keys(plays).forEach((trackId) => {
@@ -313,5 +317,5 @@ function mapStateToProps(store: RootState): StateProps {
   };
 }
 
-export default connect(mapStateToProps, {updateTime, playPause, updateLibrary, resetLibrary, nextTrack, prevAlbum,
-  prevTrack, setPlaylist, updateTrack, nextAlbum, createBackup})(App);
+export default connect(mapStateToProps, {changeVolume, updateTime, playPause, updateLibrary, resetLibrary, nextTrack,
+  prevAlbum, prevTrack, setPlaylist, updateTrack, nextAlbum, createBackup})(App);
