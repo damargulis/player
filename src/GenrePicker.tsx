@@ -1,7 +1,7 @@
 import {setGenres} from './redux/actions';
 import React from 'react';
 import {connect} from 'react-redux';
-import {getGenres} from './redux/selectors';
+import {getUsedGenres} from './redux/selectors';
 import {RootState} from './redux/store';
 
 interface DispatchProps {
@@ -9,15 +9,10 @@ interface DispatchProps {
 }
 
 interface StateProps {
-  genres: string[];
+  genres: Array<{id: string; name: string}>;
 }
 
 type GenrePickerProps = DispatchProps & StateProps;
-
-interface GenreElement {
-  html: JSX.Element;
-  value: string;
-}
 
 // TODO: make this a part of the pages only when its needed, send in available
 // genres as a prop
@@ -39,16 +34,11 @@ class GenrePicker extends React.Component<GenrePickerProps> {
   }
 
   private getOptions(): JSX.Element[] {
-    return this.props.genres.map((genre: string, index: number) => {
-      return {
-        html: <option key={genre} value={index}>{genre}</option>,
-        value: genre,
-      };
-    }).sort((option1: GenreElement, option2: GenreElement) => {
-      return option1.value.localeCompare(option2.value);
-    }).map((option: GenreElement) => {
-      return option.html;
-    });
+    return [...this.props.genres]
+      .sort((genre1, genre2) => genre1.name.localeCompare(genre2.name))
+      .map((genre) => {
+        return <option key={genre.id} value={genre.id}>{genre.name}</option>;
+      });
   }
 
   private onChange(evt: React.ChangeEvent<HTMLSelectElement>): void {
@@ -62,7 +52,7 @@ class GenrePicker extends React.Component<GenrePickerProps> {
 
 function mapStateToProps(state: RootState): StateProps {
   return {
-    genres: getGenres(state).map((genre) => genre.name),
+    genres: getUsedGenres(state),
   };
 }
 

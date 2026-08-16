@@ -39,6 +39,24 @@ export function getGenres(store: RootState): Genre[] {
   return Object.values(store.library.genres);
 }
 
+let usedGenresCache: {library: {}; result: Array<{id: string; name: string}>} | undefined;
+
+/** Genres referenced by at least one track, album, or artist; memoized per library state. */
+export function getUsedGenres(store: RootState): Array<{id: string; name: string}> {
+  if (usedGenresCache && usedGenresCache.library === store.library) {
+    return usedGenresCache.result;
+  }
+  const used = new Set() as Set<string>;
+  Object.values(store.library.tracks).forEach((track) => track.genreIds.forEach((id) => used.add(id)));
+  Object.values(store.library.albums).forEach((album) => album.genreIds.forEach((id) => used.add(id)));
+  Object.values(store.library.artists).forEach((artist) => artist.genreIds.forEach((id) => used.add(id)));
+  const result = Object.keys(store.library.genres)
+    .filter((id) => used.has(id))
+    .map((id) => ({id, name: store.library.genres[id].name}));
+  usedGenresCache = {library: store.library, result};
+  return result;
+}
+
 export function getAllGenreIds(store: RootState): string[] {
   return Object.keys(store.library.genres);
 }
