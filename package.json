@@ -120,7 +120,8 @@
     "productName": "MyMusic",
     "copyright": "Copyright © 2019 ${author}",
     "mac": {
-      "category": "public.app-categories.utilities"
+      "category": "public.app-categories.utilities",
+      "target": "zip"
     },
     "files": [
       "build/**/*",
