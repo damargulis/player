@@ -294,10 +294,54 @@ expressApp.get("/get-album-art/:albumId", (req, res) => {
   extEvt.reply("get-album", req.params.albumId);
 });
 
+// Identity endpoint so clients can verify a discovered address actually
+// belongs to this app (and check protocol compatibility) before trusting it.
+const PROTOCOL_VERSION = 1;
+expressApp.get("/ping", (req, res) => {
+  res.json({app: "MyMusic", protocol: PROTOCOL_VERSION});
+});
+
 http.listen(expressPort);
 
 // discovery
 
-const bonjour = require("bonjour")();
+/**
+ * Advertise over mDNS. Preferred path: register with the OS's own Bonjour
+ * responder via dns-sd, which handles interface selection (VPNs, Docker,
+ * etc.), sleep/wake, and network changes correctly. The unmaintained JS
+ * responder is kept only as a fallback and for old clients browsing _http.
+ */
+const {spawn} = require("child_process");
 
+function advertise() {
+  try {
+    const dnssd = spawn("dns-sd", [
+      "-R", "MyMusic", "_mymusic._tcp", ".", String(expressPort),
+      `protocol=${PROTOCOL_VERSION}`,
+    ], {stdio: "ignore"});
+    dnssd.on("error", advertiseFallback);
+    dnssd.on("exit", (code) => {
+      if (code !== 0 && code !== null) {
+        advertiseFallback();
+      }
+    });
+    app.on("will-quit", () => dnssd.kill());
+  } catch (err) {
+    advertiseFallback();
+  }
+}
+
+let fellBack = false;
+function advertiseFallback() {
+  if (fellBack) {
+    return;
+  }
+  fellBack = true;
+  require("bonjour")().publish({name: "MyMusic", type: "mymusic", port: expressPort});
+}
+
+advertise();
+
+// legacy advertisement for old mobile builds that browse _http._tcp
+const bonjour = require("bonjour")();
 bonjour.publish({name: "MyMusic", type: "http", port: expressPort});

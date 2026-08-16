@@ -9,6 +9,7 @@ buildscript {
     }
     repositories {
         google()
+        mavenCentral()
         jcenter()
     }
     dependencies {
@@ -20,6 +21,15 @@ buildscript {
 }
 
 allprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            // exoplayer 2.10.x only ever lived on jcenter, which shut down;
+            // google's maven starts at 2.12, so lift track-player onto it
+            if (details.requested.group == 'com.google.android.exoplayer') {
+                details.useVersion '2.13.3'
+            }
+        }
+    }
     repositories {
         mavenLocal()
         maven {
@@ -32,6 +42,7 @@ allprojects {
         }
 
         google()
+        mavenCentral()
         jcenter()
         maven { url 'https://www.jitpack.io' }
     }

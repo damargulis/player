@@ -138,6 +138,12 @@ def pass = getPassword("damargulis", "android_keystore")
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
+    lintOptions {
+        // lintVitalRelease resolves the debug classpath, which drags in
+        // flipper artifacts that no longer exist since jcenter shut down
+        checkReleaseBuilds false
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8

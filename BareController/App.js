@@ -16,6 +16,10 @@ import io from 'socket.io-client';
 import ControlPage from './components/ControlPage';
 import MdnsModule from './MdnsModule';
 
+const SCAN_WINDOW_MS = 10000;
+const PING_TIMEOUT_MS = 3000;
+const SUPPORTED_PROTOCOL = 1;
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -27,20 +31,69 @@ export default class App extends React.Component {
     };
   }
 
+  /**
+   * Confirms a discovered address actually belongs to the desktop app before
+   * trusting it. Old desktop builds have no /ping, so a 404 also passes.
+   */
+  verifyHost(url) {
+    return new Promise(resolve => {
+      const timeout = setTimeout(() => resolve(false), PING_TIMEOUT_MS);
+      fetch(`${url}/ping`)
+        .then(res => {
+          if (res.status === 404) {
+            return {app: 'MyMusic'};
+          }
+          return res.json();
+        })
+        .then(json => {
+          clearTimeout(timeout);
+          // desktops older than /ping report no protocol; treat as compatible
+          const compatible = json && (json.protocol === undefined || json.protocol === SUPPORTED_PROTOCOL);
+          resolve(json && json.app === 'MyMusic' && compatible);
+        })
+        .catch(() => {
+          clearTimeout(timeout);
+          resolve(false);
+        });
+    });
+  }
+
   setupSocket(url) {
+    if (this.socket) {
+      this.socket.close();
+    }
     this.socket = io.connect(url);
     this.socket.on('connect', () => {
+      this.stopScan();
       this.setState({connected: true});
       AsyncStorage.setItem('last-host', url);
     });
     this.socket.on('disconnect', () => {
       this.setState({connected: false});
+      // the desktop may have moved to a new address; look for it again
+      this.startScan();
     });
     this.socket.on('state', state => {
       this.setState({
         currentlyPlaying: state,
       });
     });
+  }
+
+  startScan() {
+    if (__DEV__) {
+      return;
+    }
+    MdnsModule.scan();
+    clearTimeout(this.endScanTimeout);
+    this.endScanTimeout = setTimeout(() => {
+      MdnsModule.stop();
+    }, SCAN_WINDOW_MS);
+  }
+
+  stopScan() {
+    clearTimeout(this.endScanTimeout);
+    MdnsModule.stop();
   }
 
   componentDidMount() {
@@ -51,35 +104,39 @@ export default class App extends React.Component {
       return;
     }
     this.mdnsListener = emitter.addListener('resolve', event => {
-      if (event.port == PORT) {
-        const apiUrl = `http://${event.host}:${event.port}`;
-        this.setState({apiUrl});
-        clearTimeout(this.endScanTimeout);
-        MdnsModule.stop();
-        this.setupSocket(apiUrl);
+      // ipv6 literals need brackets inside a url
+      const host = event.host.includes(':') ? `[${event.host}]` : event.host;
+      const apiUrl = `http://${host}:${event.port}`;
+      if (apiUrl === this.state.apiUrl && this.state.connected) {
+        return;
       }
+      this.verifyHost(apiUrl).then(ok => {
+        if (!ok) {
+          return;
+        }
+        this.stopScan();
+        this.setState({apiUrl});
+        this.setupSocket(apiUrl);
+      });
     });
 
-    this.endScanTimeout = setTimeout(() => {
-      MdnsModule.stop();
-    }, 10000);
-
     AsyncStorage.getItem('last-host').then(host => {
-      // current url -- just to get something to start
-      let apiUrl = host || `http://192.168.1.75:${PORT}`;
-      this.setState({apiUrl});
-      this.setupSocket(apiUrl);
-      MdnsModule.scan();
+      // try the last known address immediately while discovery runs
+      if (host) {
+        this.setState({apiUrl: host});
+        this.setupSocket(host);
+      }
+      this.startScan();
     });
   }
 
   componentWillUnmount() {
-    if (this.endScanTimeout) {
-      MdnsModule.stop();
-      clearTimeout(this.endScanTimeout);
-    }
+    this.stopScan();
     if (this.mdnsListener) {
       this.mdnsListener.remove();
+    }
+    if (this.socket) {
+      this.socket.close();
     }
   }
 

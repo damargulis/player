@@ -1,0 +1,26 @@
+--- a/node_modules/react-native-track-player/android/src/main/java/com/guichaguri/trackplayer/service/MusicManager.java
++++ b/node_modules/react-native-track-player/android/src/main/java/com/guichaguri/trackplayer/service/MusicManager.java
+@@ -130,7 +130,7 @@
+         SimpleExoPlayer player = ExoPlayerFactory.newSimpleInstance(service, new DefaultRenderersFactory(service), new DefaultTrackSelector(), control);
+ 
+         player.setAudioAttributes(new com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+-                .setContentType(C.CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build());
++                .setContentType(C.CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build(), false);
+ 
+         return new LocalPlayback(service, this, player, cacheMaxSize);
+     }
+--- a/node_modules/react-native-track-player/android/src/main/java/com/guichaguri/trackplayer/service/player/ExoPlayback.java
++++ b/node_modules/react-native-track-player/android/src/main/java/com/guichaguri/trackplayer/service/player/ExoPlayback.java
+@@ -230,10 +230,10 @@
+     }
+ 
+     @Override
+-    public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
++    public void onTimelineChanged(Timeline timeline, int reason) {
+         Log.d(Utils.LOG, "onTimelineChanged: " + reason);
+ 
+-        if((reason == Player.TIMELINE_CHANGE_REASON_PREPARED || reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC) && !timeline.isEmpty()) {
++        if((reason == Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE || reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) && !timeline.isEmpty()) {
+             onPositionDiscontinuity(Player.DISCONTINUITY_REASON_INTERNAL);
+         }
+     }
