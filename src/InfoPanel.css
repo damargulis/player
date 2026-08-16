@@ -1,12 +1,44 @@
-.track-label {
-  font-size: 14px;
+#info-panel {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+}
+
+#mini-window .progress-container {
+  width: auto;
+}
+
+#mini-window .control-panel {
+  flex: 1;
+  justify-content: center;
+}
+
+#info-panel img {
+  object-fit: cover;
+  cursor: pointer;
+  flex: 0 0 auto;
 }
 
 .track-label {
   width: 100%;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   white-space: nowrap;
   overflow: hidden;
   box-sizing: border-box;
 }
 
+.track-label#name {
+  font-weight: 600;
+}
+
+.track-label#author,
+.track-label#album {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.track-label#year {
+  font-size: 11px;
+  color: var(--text-faint);
+}

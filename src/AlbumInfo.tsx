@@ -69,12 +69,12 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
       return <div style={this.props.style} />;
     }
     if (this.props.showStatus) {
-      newStyle.backgroundColor = 'green';
+      newStyle.backgroundColor = 'rgba(63, 185, 80, 0.18)';
       if (this.props.warnings.find((warning) => Object.keys(warning).length > 0)) {
-        newStyle.backgroundColor = 'yellow';
+        newStyle.backgroundColor = 'rgba(210, 153, 34, 0.22)';
       }
       if (this.props.album.errors.length > 0 || !this.props.album.wikiPage) {
-        newStyle.backgroundColor = 'red';
+        newStyle.backgroundColor = 'rgba(248, 81, 73, 0.2)';
       }
     }
 
@@ -91,12 +91,13 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
         <div style={{position: 'absolute', left: '50%'}}>
           <img
             alt="album art"
+            className="grid-art"
             height="100"
             onClick={() => this.onClickAlbum()}
             onDoubleClick={() => this.onDoubleClickAlbum()}
             onContextMenu={() => this.onRightClickAlbum()}
             src={src.toString()}
-            style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
+            style={{marginTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />
           <div className="info-label" >{this.props.album.name}</div>

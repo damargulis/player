@@ -7,14 +7,41 @@
 
 .artistPageHeader {
   display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #15151b, var(--bg));
+}
+
+.artistPageHeader .info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+}
+
+.artistPageHeader .info img {
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: var(--shadow);
+  margin: 6px 0;
+}
+
+.artistPageHeader .info img + div {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.artistPageHeader > button {
+  margin-top: 16px;
 }
 
 .artistPageBody {
   height: 100%;
+  min-height: 0;
 }
 
 .artistPageContainer {
   height: 50%;
 }
-
-

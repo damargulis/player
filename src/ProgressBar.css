@@ -1,6 +1,21 @@
 
 .progress-container {
-  width: 210px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 280px;
   padding: 5px;
   overflow: hidden;
+}
+
+.progress-container span {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
+.progress-container input[type="range"] {
+  flex: 1;
+  min-width: 0;
 }

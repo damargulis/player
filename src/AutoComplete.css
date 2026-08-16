@@ -1,33 +1,43 @@
 
 .search-input {
-  border: 1px solid #999;
-  padding: .5rem;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
   width: 300px;
+  font: inherit;
+  font-size: 12.5px;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
 }
 
 .suggestions {
-  border: 1px solid #999;
-  border-top-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
   list-style: none;
-  margin-top: 0;
-  max-height: 143px;
+  margin-top: 4px;
+  max-height: 200px;
   overflow-y: auto;
-  padding-left: 0;
+  padding: 4px;
   width: calc(300px + 1rem);
+  position: absolute;
+  z-index: 20;
 }
 
 .suggestions li {
-  padding: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  color: var(--text-dim);
 }
 
 .active,
 .suggestions li:hover {
-  background-color: #008f68;
-  color: #fae042;
+  background-color: var(--accent-soft);
+  color: var(--text);
   cursor: pointer;
-  font-weight: 700;
-}
-
-.suggestions li:not(:last-of-type) {
-  border-bottom: 1px solid #999;
 }

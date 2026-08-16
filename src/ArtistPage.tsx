@@ -91,7 +91,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <button onClick={() => this.runMusicBrainz()}>Run MusicBrainz Extension</button>
             </div>
             <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
-            <button onClick={() => this.deleteArtist()} className="deleteArtist">Delete Artist</button>
+            <button onClick={() => this.deleteArtist()} className="deleteArtist button-danger">Delete Artist</button>
             {this.getErrors()}
           </div>
           <div className="artistPageBody" >

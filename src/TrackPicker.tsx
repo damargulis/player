@@ -101,17 +101,19 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
       return this.state.tracks[trackId];
     });
     return (
-      <div className="main">
+      <div className="main trackPicker">
         <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()} >
           <TrackEditor exit={() => this.closeEdit()} tracks={selectedTracks} />
         </Modal>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
+        <div className="trackTableContainer">
         <AutoSizer>
           {({height, width}) => {
             return (
               <Table
                 headerHeight={20}
-                height={height - 40}
+                // AutoSizer rounds fractional flex heights up; keep the grid inside the container
+                height={Math.max(height - 2, 0)}
                 onRowClick={(evt) => this.onRowClick(evt)}
                 onRowDoubleClick={(evt) => this.onRowDoubleClick(evt)}
                 onRowRightClick={(evt: {index: number}) => this.doRowRightClick(evt)}
@@ -141,6 +143,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
             );
           }}
         </AutoSizer>
+        </div>
         <div className="status-bar" >
           <span style={{float: 'left', paddingLeft: '3px'}}>{this.state.tracks.length} Tracks</span>
           <span style={{float: 'right', paddingRight: '3px'}}>{this.getDuration()}</span>
@@ -267,16 +270,15 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private getRowStyle(index: number): React.CSSProperties {
     const style = {
-      backgroundColor: index % 2 === 0 ? 'white' : 'lightgray',
-      borderTop: 'solid black 1px',
+      backgroundColor: index % 2 === 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
       fontSize: 10,
       userSelect: 'none',
     } as React.CSSProperties;
     if (index === -1) {
-      style.backgroundColor = 'gray';
+      style.backgroundColor = 'var(--surface)';
     }
     if (this.state.selected.includes(index)) {
-      style.backgroundColor = '#5e92e0';
+      style.backgroundColor = 'var(--accent-soft)';
     }
     return style;
   }

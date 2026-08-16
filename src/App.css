@@ -1,7 +1,21 @@
 #header {
-  border: solid black 1px;
-  height: 100px;
+  flex: 0 0 auto;
+  height: 92px;
   display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 16px;
+  background: linear-gradient(180deg, #17171d, #131318);
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+}
+
+#header button,
+#header input,
+#header select,
+#header img,
+#header .link {
+  -webkit-app-region: no-drag;
 }
 
 #mini-window {
@@ -13,6 +27,15 @@
   right: 0;
   display: flex;
   flex-direction: column;
+  background: var(--bg);
+  -webkit-app-region: drag;
+}
+
+#mini-window button,
+#mini-window input,
+#mini-window img,
+#mini-window .link {
+  -webkit-app-region: no-drag;
 }
 
 #max-window {
@@ -24,33 +47,43 @@
   right: 0;
   display: flex;
   flex-direction: column;
+  background: var(--bg);
 }
 
 .section {
   display: flex;
   height: 100%;
+  min-height: 0;
 }
 
 #sidebar {
-  border: solid black 1px;
+  flex: 0 0 auto;
   display: flex;
-  width: 100px;
+  width: 150px;
   flex-direction: column;
+  gap: 8px;
+  padding: 12px 8px;
+  background: #141419;
+  border-right: 1px solid var(--border);
 }
 
 #playlist-picker {
-  height: 150px;
+  height: 175px;
+  flex: 0 0 auto;
 }
 
 #genre-picker {
   height: 100%;
+  min-height: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
 }
 
 .main {
   position: relative;
-  border: solid black 1px;
   flex: 3;
   height: 100%;
+  min-width: 0;
 }
 
 .control-button {
@@ -62,30 +95,41 @@
 }
 
 .trackRow {
-  border-bottom: solid black 1px;
+  border-bottom: 1px solid #1b1b22;
 }
 
-.link:hover{
+.link:hover {
   text-decoration: underline;
-  color: blue;
+  color: var(--accent-strong);
   cursor: pointer;
 }
 
-input[type=image]:disabled{
-  opacity:0.5;
+input[type="image"]:disabled {
+  opacity: 0.25;
 }
 
 .warningsContainer {
-  border: solid yellow 3px;
-  margin-bottom: 10px;
-  margin-left: 100px;
-  margin-top: 10px;
-  overflow: scroll;
+  background: var(--warning-soft);
+  border: 1px solid rgba(210, 153, 34, 0.45);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 16px;
+  max-height: 100%;
+  overflow: auto;
+  font-size: 12px;
+}
+
+.warningsContainer button {
+  margin-top: 8px;
 }
 
 .errorsContainer {
-  border: solid red 3px;
-  margin-bottom: 10px;
-  margin-left: 100px;
-  margin-top: 10px;
+  background: var(--danger-soft);
+  border: 1px solid rgba(248, 81, 73, 0.45);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 16px;
+  overflow: auto;
+  font-size: 12px;
+  color: #f0a9a5;
 }

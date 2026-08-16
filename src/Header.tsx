@@ -12,7 +12,7 @@ interface HeaderProps {
 export default class Header extends React.Component<HeaderProps> {
   public render(): JSX.Element {
     return (
-      <div id="header" style={{padding: '2px'}}>
+      <div id="header">
         <ControlPanel />
         <ProgressBar />
         <InfoPanel

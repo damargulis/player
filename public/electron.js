@@ -93,7 +93,7 @@ ipcMain.on("goToAlbum", (evt, data) => {
 });
 
 ipcMain.on("minimize", (evt) => {
-  mainWindow.setSize(240, 120);
+  mainWindow.setSize(320, 120);
   evt.reply("minimize-reply");
 });
 

@@ -1,10 +1,22 @@
 
 .control-panel {
   display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
-.control-button {
-  width: 25px;
+.control-panel .control-button {
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+  border-radius: 6px;
+  /* the control icons are black pngs; lift them onto the dark theme */
+  filter: invert(0.85);
+  transition: background 0.12s ease;
+}
+
+.control-panel .control-button:hover:enabled {
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .volume-input-modal {
@@ -17,6 +29,8 @@
 
 .volume-input {
   -webkit-appearance: slider-vertical;
-  height: 80%;
-  width: 25px;
+  height: 52px;
+  width: 22px;
+  align-self: center;
+  margin: 0 6px;
 }

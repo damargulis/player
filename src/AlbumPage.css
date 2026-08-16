@@ -1,33 +1,39 @@
 
 .albumPageHeader {
   display: flex;
+  gap: 8px;
   height: 50%;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: auto;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #15151b, var(--bg));
+}
+
+.albumPageHeader .info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+}
+
+.albumPageHeader .info img {
+  box-shadow: var(--shadow);
+  margin: 6px 0;
+}
+
+/* the element right after the art is the album title */
+.albumPageHeader .info img + div {
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .albumPageControls {
-  position: relative;
-}
-
-.playAlbum {
-  position: absolute;
-  top: 20%;
-  translate: translateY(-80%);
-}
-
-.likeButtonContainer {
-  position: absolute;
-  top: 40%;
-  translate: translateY(-60%);
-}
-
-.editAlbum {
-  position: absolute;
-  top: 60%;
-  translate: translateY(-40%);
-}
-
-.deleteAlbum {
-  position: absolute;
-  top: 80%;
-  translate: translateY(-20%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  flex: 0 0 auto;
 }

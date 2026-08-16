@@ -1,11 +1,26 @@
 
+.grid-art {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.grid-art:hover {
+  transform: scale(1.03);
+}
+
 .info-label {
   white-space: nowrap;
   overflow: hidden;
   width: 100px;
   position: relative;
   left: -50%;
-  white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 12px;
+  text-align: center;
+}
+
+.info-label + .info-label {
+  color: var(--text-dim);
+  font-size: 11px;
 }
