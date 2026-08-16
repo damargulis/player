@@ -5,11 +5,11 @@
 ## Commands
 
 - `yarn electron-dev` — run the app in development (starts the CRA dev server on :3000 and Electron pointed at it)
-- `yarn build` / `yarn electron-pack` — production build / package the mac app (electron-builder)
+- `yarn build` / `yarn electron-pack` — production build / package the mac app (electron-builder; zip target only — the DMG target needs Python 2, which modern macOS lacks). Never run these with `sudo`: a sudo'd run leaves `build/`/`dist/` root-owned and every later build fails with EACCES until they're `sudo rm -rf`'d.
 - `yarn test` — run tests with Jest. Tests run **inside Electron** (`jest-electron` runner), not plain Node
 - `yarn test src/extensions/wiki/albums.test.js` — run a single test file; `yarn test -t "name"` for a single test
 - `yarn lint` — tslint with `--fix` (this repo uses tslint, not eslint)
-- Mobile app: `cd BareController; react-native start; react-native run-android` (excluded from Jest via `testPathIgnorePatterns`)
+- Mobile app (`BareController/`, RN 0.62): build a release APK with `cd BareController/android && NODE_OPTIONS=--openssl-legacy-provider JAVA_HOME=$(/usr/libexec/java_home -v 1.8.0_292) ./gradlew assembleRelease`. Needs JDK 8 (AGP 3.5), the legacy OpenSSL provider (metro's md4 vs Node 17+), and the committed `patches/` (patch-package fixes track-player for ExoPlayer 2.13, since 2.10 died with jcenter). This machine is Apple Silicon: only arm64 AVDs run (e.g. ShowTimeTest); the old x86 AVDs don't. Emulators can't receive mDNS multicast — test discovery on a real phone; test connection/sync in-emulator via manual IP `10.0.2.2`.
 
 ## Architecture
 
