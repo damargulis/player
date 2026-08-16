@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Music Client</string>
+    <string name="app_name">MyMusic</string>
     <string name="dismiss" tools:ignore="ExtraTranslation">dismiss</string>
     <string name="previous">previous</string>
     <string name="pause">pause</string>

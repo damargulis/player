@@ -3,39 +3,39 @@ package com.example.musicnative
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
-import com.example.musicnative.components.AlbumItem
-import com.example.musicnative.ui.theme.MusicNativeTheme
-import io.socket.client.IO
-import io.socket.client.Socket
-import io.socket.client.Socket.EVENT_CONNECT
-import io.socket.emitter.Emitter
+import com.example.musicnative.components.ImageBox
+import com.example.musicnative.components.NowPlayingBar
+import com.example.musicnative.components.PillButton
+import com.example.musicnative.components.SearchField
+import com.example.musicnative.ui.theme.*
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import kotlin.random.Random
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
 import kotlin.math.roundToInt
 
 
@@ -63,18 +63,11 @@ const val PLAYLIST = "playlist"
 const val PLAY_TRACK = "play_track"
 const val PLAY_PLAYLIST = "play_playlist"
 
-const val BASE_URL = "http://192.168.1.249:4443"
-val mSocket: Socket = IO.socket(BASE_URL)
-
-class MainActivity : AppCompatActivity(), LifecycleObserver {
+class MainActivity : AppCompatActivity() {
     private var library: Library? = null
     private var syncHelper: SyncHelper2? = null
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        super.onCreate(/* savedInstanceState = */ savedInstanceState)
-        lifecycle.addObserver(this)
-        val connected = MutableLiveData(false)
-        val remoteState = MutableLiveData(JSONObject())
+        super.onCreate(savedInstanceState)
         val syncState = MutableLiveData(Steps.READY)
         val percentageState = MutableLiveData(0.0)
         library = Library(baseContext)
@@ -84,37 +77,22 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
         val intent = Intent(baseContext, MediaPlaybackService::class.java)
         startService(intent)
 
-        mSocket.on(EVENT_CONNECT) {
-            runOnUiThread {
-                connected.value = true
-            }
-        }
-        mSocket.on("state") {
-            args ->
-            val data = args[0] as JSONObject
-            runOnUiThread {
-                remoteState.value = data
-            }
-        }
-        mSocket.connect()
-        val emit = { type: String ->
-            val data = JSONObject()
-            data.put("type", type)
-            mSocket.emit("action", data)
+        ServerConnection.start(applicationContext)
+
+        val emit = { type: String, data: Any? ->
+            ServerConnection.emit(type, data)
         }
 
         val onSync = {
             lifecycleScope.launch {
-                println("kicking off")
                 syncHelper!!.startSync()
             }
-            println("done/started")
+            Unit
         }
 
         val playPlaylist = {
             playlist: List<TrackData> ->
             Intent(this, MediaPlaybackService::class.java).apply {
-                // TODO: carry through track data to show data in notification (?)
                 putExtra(PLAYLIST, playlist.toTypedArray())
                 action = PLAY_PLAYLIST
                 try {
@@ -127,14 +105,13 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
 
         setContent {
             MusicNativeTheme {
-                // A surface container using the 'background' color from the theme
                 Box {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colors.background
                     ) {
                         MainApp(
-                            connected = connected,
+                            connected = ServerConnection.connected,
                             emit = emit,
                             onSync = onSync,
                             playlistsMutable = library!!.library.playlists,
@@ -144,20 +121,12 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
                             playPlaylist = playPlaylist,
                             syncStatusMutable = syncHelper!!.syncState,
                             syncPercentMutable = syncHelper!!.percent,
-                            remoteState = remoteState
+                            remoteState = ServerConnection.remoteState
                         )
                     }
                 }
             }
-
         }
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    override fun onDestroy() {
-        super.onDestroy()
-        mSocket.disconnect()
-        lifecycle.removeObserver(this)
     }
 }
 
@@ -166,15 +135,15 @@ class TrackData(var track: Track, artists: Map<String, Artist>, albums: Map<Stri
     var albums: List<Album>
 
     init {
-        this.artists = track.artistIds.map { artistId -> artists[artistId] as Artist }
-        this.albums = track.albumIds.map { albumId -> albums[albumId] as Album}
+        this.artists = track.artistIds.mapNotNull { artistId -> artists[artistId] }
+        this.albums = track.albumIds.mapNotNull { albumId -> albums[albumId] }
     }
 }
 
 @Composable
 fun MainApp(modifier: Modifier = Modifier,
             connected: LiveData<Boolean>,
-            emit: (str: String) -> Emitter,
+            emit: (type: String, data: Any?) -> Unit,
             onSync: () -> Unit,
             playlistsMutable: MutableList<Playlist>,
             tracksMutable: MutableMap<String, Track>,
@@ -183,10 +152,10 @@ fun MainApp(modifier: Modifier = Modifier,
             playPlaylist: (tracks: List<TrackData>) -> Unit,
             syncStatusMutable: LiveData<Steps>,
             syncPercentMutable: LiveData<Double>,
-            remoteState: LiveData<JSONObject>) {
+            remoteState: LiveData<org.json.JSONObject>) {
     val navController = rememberNavController()
     val isConnected by connected.observeAsState(initial = false)
-    val mRemoteState by remoteState.observeAsState(initial = JSONObject())
+    val mRemoteState by remoteState.observeAsState(initial = org.json.JSONObject())
     val playlists = remember { playlistsMutable }
     val tracks = remember {tracksMutable}
     val albums = remember {albumsMutable}
@@ -195,22 +164,17 @@ fun MainApp(modifier: Modifier = Modifier,
     val percentage by syncPercentMutable.observeAsState(initial = 0.0)
 
     val onNavigate = { screen: DownloadScreens ->
-
         navController.navigate(screen.name)
     }
-    val goToPlaylist: (pos: Int, playlist: Playlist) -> Unit = {
-        pos, _ ->
-        println("go to playlist is running")
-        navController.navigate(DownloadScreens.PlaylistDetail.name + "/${pos}")
+    val goToPlaylist: (playlist: Playlist) -> Unit = {
+        playlist ->
+        navController.navigate(DownloadScreens.PlaylistDetail.name + "/${playlists.indexOf(playlist)}")
     }
-    val goToAlbum: (index: Int, album: Album) -> Unit = {
-        _, album -> navController.navigate(DownloadScreens.AlbumDetail.name + "/${album.id}")
+    val goToAlbum: (album: Album) -> Unit = {
+        album -> navController.navigate(DownloadScreens.AlbumDetail.name + "/${album.id}")
     }
-    val goToArtist: (index: Int, artist: Artist) -> Unit = {
-        _, artist -> navController.navigate(DownloadScreens.ArtistDetail.name + "/${artist.id}")
-    }
-    val goBack: () -> Unit = {
-        navController.popBackStack()
+    val goToArtist: (artist: Artist) -> Unit = {
+        artist -> navController.navigate(DownloadScreens.ArtistDetail.name + "/${artist.id}")
     }
     val getTrackData: (trackIds: Array<String>) -> List<TrackData> = {
         trackIds -> trackIds.mapNotNull { track ->
@@ -221,24 +185,43 @@ fun MainApp(modifier: Modifier = Modifier,
     }
     }
     val items = listOf(Screen.Downloads, Screen.Remote)
-    val icons = listOf(Icons.Filled.Home, Icons.Filled.Share)
+    val labels = listOf("Library", "Remote")
+    val icons = listOf(R.drawable.ic_baseline_album_24, R.drawable.ic_baseline_headset_24)
     Scaffold(bottomBar = {
-        BottomNavigation {
+        Column {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            // the full player has its own controls; hide the mini bar there
+            if (navBackStackEntry?.destination?.route != "player") {
+                NowPlayingBar(onOpen = { navController.navigate("player") })
+            }
+        BottomNavigation(backgroundColor = com.example.musicnative.ui.theme.Surface) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
             items.forEachIndexed { index, screen ->
-                BottomNavigationItem(selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true, onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                BottomNavigationItem(
+                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }, icon = {
-                    Icon(icons[index], contentDescription = null)
-                })
+                    },
+                    icon = {
+                        Icon(
+                            painterResource(icons[index]),
+                            contentDescription = labels[index],
+                            modifier = Modifier.size(24.dp),
+                        )
+                    },
+                    label = { Text(labels[index], fontSize = 12.sp) },
+                    selectedContentColor = Accent,
+                    unselectedContentColor = TextSecondary,
+                )
             }
+        }
         }
     }) {
         innerPadding ->
@@ -249,6 +232,9 @@ fun MainApp(modifier: Modifier = Modifier,
         ) {
             composable(route = Screen.Remote.route) {
                 RemoteScreen(connected = isConnected, emit = emit, remoteState = mRemoteState)
+            }
+            composable(route = "player") {
+                LocalPlayerScreen(onClose = { navController.popBackStack() })
             }
             navigation(
                 route = Screen.Downloads.route,
@@ -264,7 +250,12 @@ fun MainApp(modifier: Modifier = Modifier,
                     )
                 }
                 composable(route = DownloadScreens.Playlists.name) {
-                    ListScreen("Playlists", goBack, listItems = playlists, renderer = null, onClick = goToPlaylist, onShuffle = null)
+                    ListScreen(
+                        title = "Playlists",
+                        listItems = playlists,
+                        onClick = goToPlaylist,
+                        subtitle = { playlist -> "${playlist.trackIds.size} tracks" },
+                    )
                 }
                 composable(route = DownloadScreens.PlaylistDetail.name + "/{playlistId}") {
                     val playlistId = it.arguments?.getString("playlistId")?.toInt() ?: 0
@@ -276,10 +267,15 @@ fun MainApp(modifier: Modifier = Modifier,
                     )
                 }
                 composable(route = DownloadScreens.Albums.name) {
-                    ListScreen("Albums", goBack, listItems = albums.values.toList().sortedBy { album -> album.name }, renderer = { album -> AlbumItem(album, artists) }, goToAlbum, onShuffle = {
-                        album ->
-                        playPlaylist(getTrackData(album.trackIds))
-                    })
+                    ListScreen(
+                        title = "Albums",
+                        listItems = albums.values.toList().sortedBy { album -> album.name },
+                        onClick = goToAlbum,
+                        thumb = { album -> ImageBox(filePath = album.artFile) },
+                        subtitle = { album ->
+                            combineNames(album.artistIds.mapNotNull { artistId -> artists[artistId] })
+                        },
+                    )
                 }
                 composable(route = DownloadScreens.AlbumDetail.name + "/{albumId}") {
                     val albumId = it.arguments?.getString("albumId") as String
@@ -293,8 +289,19 @@ fun MainApp(modifier: Modifier = Modifier,
                     }
                 }
                 composable(route = DownloadScreens.Artists.name) {
-                    ListScreen("Artists", goBack, listItems = artists.values.toList().sortedBy { artist -> artist.name}, renderer = null, onShuffle = null,
-                        onClick = goToArtist
+                    ListScreen(
+                        title = "Artists",
+                        listItems = artists.values.toList().sortedBy { artist -> artist.name},
+                        onClick = goToArtist,
+                        thumb = { artist ->
+                            ImageBox(
+                                filePath = "/artistArt/${artist.id}.png",
+                                round = true,
+                                placeholder = R.drawable.missing_artist,
+                            )
+                        },
+                        // trackIds spans the whole desktop library; only count what's synced
+                        subtitle = { artist -> "${artist.trackIds.count { id -> tracks.containsKey(id) }} tracks" },
                     )
                 }
                 composable(route = DownloadScreens.ArtistDetail.name + "/{artistId}") {
@@ -317,49 +324,149 @@ fun MainApp(modifier: Modifier = Modifier,
     }
 }
 
+private fun stepLabel(step: Steps): String {
+    return when (step) {
+        Steps.READY -> "Ready"
+        Steps.GETTING_MANIFEST -> "Fetching manifest"
+        Steps.SYNCING_TRACKS -> "Syncing tracks"
+        Steps.SYNCING_ALBUMS -> "Syncing albums"
+        Steps.SYNCING_ARTISTS -> "Syncing artists"
+    }
+}
+
 @Composable
 fun MainOptions(
     onNavigate: (screen: DownloadScreens) -> Unit, connected: Boolean, onSync: () -> Unit,
     syncStatus: Steps,
     percent: Double
 ) {
-    Box {
-        Column(modifier = Modifier.padding(all = 8.dp)) {
-            RouteButton(screen = DownloadScreens.Playlists, onNavigate = onNavigate)
-            RouteButton(screen = DownloadScreens.Albums, onNavigate = onNavigate)
-            RouteButton(screen = DownloadScreens.Artists, onNavigate = onNavigate)
-            RouteButton(screen = DownloadScreens.Tracks, onNavigate = onNavigate)
-            Spacer(modifier = Modifier.height(200.dp))
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onSync()
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ) {
+        Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp)
             ) {
-                if(connected) {
-                    if (syncStatus !== Steps.READY) {
-                        Text(syncStatus.name + " " + (percent * 100).roundToInt() + "%")
-                    } else {
-                        Text("Ready")
-                    }
-                } else {
-                    Text("Waiting...")
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(if (connected) Success else Warning)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    if (connected) "Connected to desktop" else "Not connected — searching…",
+                    color = TextPrimary,
+                    fontSize = 15.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                if (!connected) {
+                    PillButton("Rescan", filled = false) { ServerConnection.rescan() }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun RouteButton(screen: DownloadScreens, onNavigate: (screen: DownloadScreens) -> Unit) {
-    Box {
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                onNavigate(screen)
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            "LIBRARY",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 2.sp,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+        )
+        Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
+            Column {
+                val sections = listOf(
+                    DownloadScreens.Playlists,
+                    DownloadScreens.Albums,
+                    DownloadScreens.Artists,
+                    DownloadScreens.Tracks,
+                )
+                sections.forEachIndexed { index, screen ->
+                    if (index > 0) {
+                        Divider(color = Border, thickness = 0.5.dp, startIndent = 20.dp)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigate(screen) }
+                            .padding(horizontal = 20.dp, vertical = 14.dp)
+                    ) {
+                        Text(
+                            screen.name,
+                            color = TextPrimary,
+                            fontSize = 17.sp,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text("›", color = TextSecondary, fontSize = 22.sp)
+                    }
+                }
             }
-        ) {
-            Text(text = screen.name)
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        if (connected) {
+            if (syncStatus != Steps.READY) {
+                Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "${stepLabel(syncStatus)} — ${(percent * 100).roundToInt()}%",
+                            color = TextPrimary,
+                            fontSize = 14.sp,
+                        )
+                        LinearProgressIndicator(
+                            progress = percent.toFloat(),
+                            color = Accent,
+                            backgroundColor = Border,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                        )
+                    }
+                }
+            } else {
+                PillButton("Sync Library", filled = true, modifier = Modifier.fillMaxWidth()) {
+                    onSync()
+                }
+            }
+        } else {
+            var ipText by remember { mutableStateOf("") }
+            Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "Enter the desktop's IP address to connect manually",
+                        color = TextSecondary,
+                        fontSize = 13.sp,
+                    )
+                    TextField(
+                        value = ipText,
+                        onValueChange = { ipText = it },
+                        placeholder = { Text("192.168.1.42", color = TextSecondary) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = TextFieldDefaults.textFieldColors(
+                            backgroundColor = Background,
+                            textColor = TextPrimary,
+                            cursorColor = Accent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    )
+                    PillButton("Connect", filled = false, modifier = Modifier.fillMaxWidth()) {
+                        if (ipText.isNotBlank()) {
+                            ServerConnection.connectToIp(ipText.trim())
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -369,34 +476,67 @@ interface ListItem {
 }
 
 @Composable
-fun <T> ListScreen(title: String, goBack: () -> Unit, listItems: List<T>, renderer: (@Composable (item: T) -> Unit)?, onClick: (pos: Int, item: T) -> Unit,
-onShuffle: ((item: T) -> Unit)?) where T : ListItem {
-    Column {
-        Row {
-            Button(onClick = goBack) {
-                Text("Back")
-            }
-            Spacer(modifier = Modifier.weight(1.0f))
-            if (onShuffle != null) {
-                Button(onClick = {onShuffle(listItems[Random.nextInt(listItems.size)])}) {
-                    Text("Play Random")
-                }
-            }
-        }
-
-        Text(title, fontSize = 24.sp)
-        LazyColumn(horizontalAlignment = Alignment.Start) {
-            items(listItems.size) {
-                item -> Button(onClick = { onClick(item, listItems[item])}, modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)) {
-                    Row (modifier = Modifier.fillMaxWidth()){
-                        if (renderer != null) {
-                            renderer(listItems[item])
-                        } else {
-                            Text(listItems[item].name, textAlign = TextAlign.Left)
+fun <T> ListScreen(
+    title: String,
+    listItems: List<T>,
+    onClick: (item: T) -> Unit,
+    thumb: (@Composable (item: T) -> Unit)? = null,
+    subtitle: ((item: T) -> String)? = null,
+) where T : ListItem {
+    var query by remember { mutableStateOf("") }
+    val filtered = if (query.isBlank()) {
+        listItems
+    } else {
+        listItems.filter { it.name.contains(query.trim(), ignoreCase = true) }
+    }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            title,
+            color = TextPrimary,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 6.dp),
+        )
+        SearchField(query, "Search ${title.lowercase()}") { query = it }
+        LazyColumn {
+            items(filtered.size) { i ->
+                val item = filtered[i]
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onClick(item) }
+                            .padding(horizontal = 20.dp, vertical = 10.dp)
+                    ) {
+                        if (thumb != null) {
+                            thumb(item)
+                            Spacer(modifier = Modifier.width(14.dp))
                         }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                item.name,
+                                color = TextPrimary,
+                                fontSize = 17.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            if (subtitle != null) {
+                                val sub = subtitle(item)
+                                if (sub.isNotEmpty()) {
+                                    Text(
+                                        sub,
+                                        color = TextSecondary,
+                                        fontSize = 13.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                        }
+                        Text("›", color = TextSecondary, fontSize = 22.sp)
                     }
+                    Divider(color = Border, thickness = 0.5.dp, startIndent = 20.dp)
                 }
             }
         }

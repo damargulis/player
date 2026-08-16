@@ -38,7 +38,7 @@ class MediaSessionCallback(private val service: MediaPlaybackService) : MediaSes
     }
 
     override fun onSeekTo(pos: Long) {
-        service.updateProgress((pos / 1000).toInt())
+        service.seekTo(pos.toInt())
     }
 
     override fun onCustomAction(action: String?, extras: Bundle?) {

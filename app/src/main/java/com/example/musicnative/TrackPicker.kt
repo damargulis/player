@@ -1,18 +1,26 @@
 package com.example.musicnative
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Divider
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.annotation.ExperimentalCoilApi
 import com.example.musicnative.components.ImageBox
+import com.example.musicnative.components.PillButton
+import com.example.musicnative.components.SearchField
+import com.example.musicnative.ui.theme.Accent
+import com.example.musicnative.ui.theme.Border
+import com.example.musicnative.ui.theme.TextPrimary
+import com.example.musicnative.ui.theme.TextSecondary
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -38,6 +46,7 @@ fun createTrack(name: String): TrackData {
     trackData.put("id", name)
     trackData.put("year", 2012)
     trackData.put("duration", 201560)
+    trackData.put("favorites", JSONArray())
     val artistIds = JSONArray()
     artistIds.put(0, "artist1")
     val albumIds = JSONArray()
@@ -64,59 +73,90 @@ fun TestTrackPicker() {
     }
 }
 
-@Composable
-fun TrackPicker(tracks: List<TrackData>, title: String, playPlaylist: (tracks: List<TrackData>) -> Unit) {
-    Column {
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-            Text(title, fontSize = 32.sp)
-        }
-        Row(
-            modifier = Modifier
-                .padding(vertical = 2.dp)
-                .fillMaxWidth()
-        ) {
-            Button(onClick = {
-                val asList = tracks.toMutableList()
-                asList.shuffle()
-                playPlaylist(asList)
-                             }, modifier = Modifier.fillMaxWidth(.5f)) {
-                Text("Shuffle")
-            }
-            Button(onClick = { playPlaylist(tracks) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)) {
-                Text("Play All")
-            }
-        }
-
-        LazyColumn {
-            items(tracks.size) {
-            item -> Button(onClick = {playPlaylist(listOf(tracks[item])) },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                modifier = Modifier.padding(vertical = 0.dp)
-            ) { TrackRowItem(track = tracks[item])}}
-        }
-    }
-}
-
 interface NamedItem {
     val name: String
 }
 
 fun combineNames(items: List<NamedItem>): String {
-    return items.joinToString(separator = " & ") { item -> item.name }
+    return items.joinToString(separator = ", ") { item -> item.name }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
-fun TrackRowItem(track: TrackData) {
-    val artistText = combineNames(track.artists)
-    val album = track.albums[0]
-    // TODO: rotate images
-    Row {
-        ImageBox("/albumArt/${album.id}.png")
-        Column(Modifier.fillMaxWidth(1f)) {
-            Text(track.track.name, fontSize = 24.sp)
-            Text(text = artistText, fontSize = 16.sp)
+fun TrackPicker(tracks: List<TrackData>, title: String, playPlaylist: (tracks: List<TrackData>) -> Unit) {
+    var query by remember { mutableStateOf("") }
+    val playingTrack by PlaybackState.currentTrack.observeAsState(null)
+    val visible = if (query.isBlank()) {
+        tracks
+    } else {
+        tracks.filter { it.track.name.contains(query.trim(), ignoreCase = true) }
+    }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp)) {
+            Text(
+                title,
+                color = TextPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                "${visible.size} tracks",
+                color = TextSecondary,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+        ) {
+            PillButton("Shuffle", filled = true, modifier = Modifier.weight(1f)) {
+                playPlaylist(visible.shuffled())
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            PillButton("Play All", filled = false, modifier = Modifier.weight(1f)) {
+                playPlaylist(visible)
+            }
+        }
+        SearchField(query, "Search tracks") { query = it }
+        LazyColumn {
+            items(visible.size) { i ->
+                val trackData = visible[i]
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            // play the visible list from this track onward
+                            .clickable { playPlaylist(visible.drop(i)) }
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                    ) {
+                        ImageBox(filePath = trackData.albums.firstOrNull()?.artFile)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        val isCurrent = playingTrack?.track?.id == trackData.track.id
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                trackData.track.name,
+                                color = if (isCurrent) Accent else TextPrimary,
+                                fontSize = 16.sp,
+                                fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                combineNames(trackData.artists),
+                                color = TextSecondary,
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    Divider(color = Border, thickness = 0.5.dp, startIndent = 20.dp)
+                }
+            }
         }
     }
-
 }

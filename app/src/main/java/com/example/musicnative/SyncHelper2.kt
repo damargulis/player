@@ -12,9 +12,6 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-// TODO: save and send plays
-const val SYNC_START_URL = "$BASE_URL/start-sync"
-
 enum class Steps {
     READY,
     GETTING_MANIFEST,
@@ -82,10 +79,13 @@ class SyncHelper2(private var context: Context, private var library: Library, va
         setPercent()
     }
 
+    private fun base(): String? = ServerConnection.baseUrl
+
     private suspend fun getManifest() {
+        val base = base() ?: return
         val tracker = PlayTracker(context)
         val plays = tracker.getQueryString()
-        val response = downloadJson("$SYNC_START_URL?$plays")
+        val response = downloadJson("$base/start-sync?$plays")
         tracker.clearPlays()
         val res = JSONObject(response)
         val playlistsObj = res.getJSONArray("playlists")
@@ -140,15 +140,16 @@ class SyncHelper2(private var context: Context, private var library: Library, va
 
     @OptIn(InternalCoroutinesApi::class)
     suspend fun syncTrack(trackId: String) {
+        val base = base() ?: return
         semaphore.acquire()
-        val dataUrl = "$BASE_URL/get-track-data/$trackId"
+        val dataUrl = "$base/get-track-data/$trackId"
         val response = downloadJson(dataUrl)
         val data = JSONObject(response)
         synchronized(library.saveLock) {
             library.addTrack(Track(data))
             library.save()
         }
-        val fileUrl = "$BASE_URL/get-track/$trackId"
+        val fileUrl = "$base/get-track/$trackId"
         val destinationPath = "${context.getExternalFilesDir(null)?.absolutePath}/tracks/$trackId.mp3"
         downloadDataFile(fileUrl, destinationPath)
     }
@@ -158,8 +159,9 @@ class SyncHelper2(private var context: Context, private var library: Library, va
         if (albumId == null) {
             return
         }
+        val base = base() ?: return
         semaphore.acquire()
-        val dataUrl = "$BASE_URL/get-album-data/$albumId"
+        val dataUrl = "$base/get-album-data/$albumId"
         val response = downloadJson(dataUrl)
         val data = JSONObject(response)
         synchronized(library.saveLock) {
@@ -167,7 +169,7 @@ class SyncHelper2(private var context: Context, private var library: Library, va
             library.save()
         }
         if (data.has("albumArtFile")) {
-            val artUrl = "$BASE_URL/get-album-art/$albumId"
+            val artUrl = "$base/get-album-art/$albumId"
             val destinationPath = "${context.getExternalFilesDir(null)?.absolutePath}/albumArt/$albumId.png"
             downloadDataFile(artUrl, destinationPath)
         } else {
@@ -177,16 +179,17 @@ class SyncHelper2(private var context: Context, private var library: Library, va
 
     @OptIn(InternalCoroutinesApi::class)
     suspend fun syncArtistId(artistId: String) {
+        val base = base() ?: return
         semaphore.acquire()
-        val dataUrl = "$BASE_URL/get-artist-data/$artistId"
+        val dataUrl = "$base/get-artist-data/$artistId"
         val response = downloadJson(dataUrl)
         val data = JSONObject(response)
         synchronized(library.saveLock) {
             library.addArtist(Artist(data))
             library.save()
         }
-        if (data.has("filePath")) {
-            val artUrl = "$BASE_URL/get-artist-pic/$artistId"
+        if (data.has("artFile")) {
+            val artUrl = "$base/get-artist-pic/$artistId"
             val destinationPath = "${context.getExternalFilesDir(null)?.absolutePath}/artistArt/$artistId.png"
             downloadDataFile(artUrl, destinationPath)
         } else {

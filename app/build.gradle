@@ -24,6 +24,8 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // sideload-signed with the debug keystore; swap in a real keystore for store distribution
+            signingConfig signingConfigs.debug
         }
         debug {
             applicationIdSuffix = ".debug"
