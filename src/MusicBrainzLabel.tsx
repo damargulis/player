@@ -1,5 +1,5 @@
-import {shell} from 'electron';
 import {musicBrainzUrl} from './extensions/musicbrainz/api';
+import {shell} from 'electron';
 import React from 'react';
 
 interface OwnProps {

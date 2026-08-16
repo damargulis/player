@@ -1,10 +1,4 @@
 import {Artist, ArtistInfo} from '../../redux/actionTypes';
-import {DATA_DIR} from '../../constants';
-import {addError, ExtensionError, removeError} from '../errors';
-import fs from 'fs';
-import {getGenreIds} from '../../redux/selectors';
-import shortid from 'shortid';
-import {RootState} from '../../redux/store';
 import {
   ArtistLookup,
   fetchWithRetry,
@@ -14,6 +8,12 @@ import {
   pickBestArtist,
   searchArtists,
 } from './api';
+import {DATA_DIR} from '../../constants';
+import {addError, ExtensionError, removeError} from '../errors';
+import fs from 'fs';
+import {getGenreIds} from '../../redux/selectors';
+import shortid from 'shortid';
+import {RootState} from '../../redux/store';
 
 function downloadArtistImage(artist: Artist, lookup: ArtistLookup): Promise<void> {
   return getArtistImageUrl(lookup).then((url) => {

@@ -74,7 +74,7 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    let filePath = artist.artFile || `${DATA_DIR}/${shortid.generate()}.png`;
+    const filePath = artist.artFile || `${DATA_DIR}/${shortid.generate()}.png`;
     return downloadImage(picURL, filePath).then(() => {
       removeError(artist, ExtensionError.PIC);
       artist.artFile = filePath;

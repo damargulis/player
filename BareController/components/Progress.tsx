@@ -1,3 +1,4 @@
+import {COLORS} from './theme';
 import React, {Component} from 'react';
 import {Slider} from 'react-native';
 import {StyleSheet, Text, View} from 'react-native';
@@ -6,16 +7,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
   },
   time: {
     fontVariant: ['tabular-nums'],
-    width: 45,
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    width: 44,
     textAlign: 'center',
+  },
+  slider: {
+    flex: 1,
+    height: 40,
   },
 });
 
-function toTime(seconds: number): string {
+export function toTime(seconds: number): string {
   if (!seconds && seconds !== 0) {
     return '-:--';
   }
@@ -51,9 +57,12 @@ export default class Progress extends Component {
       <View style={styles.container}>
         <Text style={styles.time}>{toTime(positionMs / 1000)}</Text>
         <Slider
-          style={{flex: 1, height: 40}}
+          style={styles.slider}
           minimumValue={0}
           maximumValue={this.props.duration}
+          minimumTrackTintColor={COLORS.accent}
+          maximumTrackTintColor={COLORS.border}
+          thumbTintColor={COLORS.text}
           value={this.state.dragging ? undefined : this.props.currentTime * 1000}
           onValueChange={this.onValueChange.bind(this)}
           onSlidingComplete={this.onSlidingComplete.bind(this)}

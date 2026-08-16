@@ -1,4 +1,4 @@
-import {addToPlaylist, setPlaylist, updateLibrary, updateTrack, deleteTrack} from './redux/actions';
+import {addToPlaylist, deleteTrack, setPlaylist, updateLibrary, updateTrack} from './redux/actions';
 import {Album, Artist, LibraryInfo, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';

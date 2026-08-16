@@ -10,8 +10,8 @@
   height: 26px;
   padding: 4px;
   border-radius: 6px;
-  /* the control icons are black pngs; lift them onto the dark theme */
-  filter: invert(0.85);
+  /* icons are white pngs; dim slightly to match the theme's text tone */
+  opacity: 0.85;
   transition: background 0.12s ease;
 }
 

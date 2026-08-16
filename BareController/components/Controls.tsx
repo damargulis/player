@@ -1,36 +1,58 @@
-import favoriteImg from '../assets/favorite.png';
 import nextAlbumImg from '../assets/next_album.png';
 import nextTrackImg from '../assets/next_track.png';
 import pauseButton from '../assets/pause.png';
 import playButton from '../assets/play.png';
 import prevAlbumImg from '../assets/previous_album.png';
 import prevTrackImg from '../assets/previous_track.png';
+import {COLORS} from './theme';
 import React, {Component} from 'react';
-import {Image, StyleSheet, Text, TouchableHighlight, View} from 'react-native';
+import {Image, StyleSheet, TouchableOpacity, View} from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
-    height: 100,
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
   },
-  button: {
-    flex: 1,
-    height: 80,
-    width: 80,
+  albumIcon: {
+    width: 26,
+    height: 26,
+    tintColor: COLORS.textSecondary,
+  },
+  trackIcon: {
+    width: 32,
+    height: 32,
+    tintColor: COLORS.text,
+  },
+  sideButton: {
+    padding: 10,
+  },
+  playButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.accent,
+    alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderRadius: 10,
-    margin: 2,
+    shadowColor: COLORS.accent,
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  buttonImage: {
-    width: 60,
-    height: 60,
+  playIcon: {
+    width: 32,
+    height: 32,
+    tintColor: '#FFFFFF',
+    // the triangle reads better nudged toward center
+    marginLeft: 3,
   },
-  fadeButton: {
-    width: 60,
-    height: 60,
-    opacity: .5,
+  pauseIcon: {
+    width: 32,
+    height: 32,
+    tintColor: '#FFFFFF',
   },
 });
 
@@ -55,44 +77,27 @@ export default class Controls extends Component {
     this.props.sendMessage('nextAlbum');
   }
 
-  favoriteTrack(): void {
-    this.props.sendMessage('favoriteTrack');
-  }
-
   render(): JSX.Element {
-    // TODO: share images with other
     return (
       <View style={styles.container}>
-        <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.prevAlbum.bind(this)}>
-            <Image style={styles.buttonImage} source={prevAlbumImg} />
-          </TouchableHighlight>
-        </View>
-        <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.prevTrack.bind(this)}>
-            <Image style={styles.buttonImage} source={prevTrackImg} />
-          </TouchableHighlight>
-        </View>
-        <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.playPause.bind(this)}>
-            <Image style={styles.buttonImage} source={this.props.paused ? playButton : pauseButton} />
-          </TouchableHighlight>
-        </View>
-        <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.nextTrack.bind(this)}>
-            <Image style={styles.buttonImage} source={nextTrackImg} />
-          </TouchableHighlight>
-        </View>
-        <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.nextAlbum.bind(this)}>
-            <Image style={styles.buttonImage} source={nextAlbumImg} />
-          </TouchableHighlight>
-        </View>
-        <View style={styles.button}>
-          <TouchableHighlight underlayColor="white" onPress={this.favoriteTrack.bind(this)}>
-            <Image style={this.props.isFavorite ? styles.buttonImage : styles.fadeButton} source={favoriteImg} />
-          </TouchableHighlight>
-        </View>
+        <TouchableOpacity style={styles.sideButton} onPress={this.prevAlbum.bind(this)}>
+          <Image style={styles.albumIcon} source={prevAlbumImg} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.sideButton} onPress={this.prevTrack.bind(this)}>
+          <Image style={styles.trackIcon} source={prevTrackImg} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.playButton} onPress={this.playPause.bind(this)}>
+          <Image
+            style={this.props.paused ? styles.playIcon : styles.pauseIcon}
+            source={this.props.paused ? playButton : pauseButton}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.sideButton} onPress={this.nextTrack.bind(this)}>
+          <Image style={styles.trackIcon} source={nextTrackImg} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.sideButton} onPress={this.nextAlbum.bind(this)}>
+          <Image style={styles.albumIcon} source={nextAlbumImg} />
+        </TouchableOpacity>
       </View>
     );
   }

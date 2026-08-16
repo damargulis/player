@@ -240,7 +240,7 @@ function playlists(state: Record<string, Playlist>, action: LibraryActionTypes):
         return [id, {
           ...playlist,
           trackIds: newIds,
-        }]
+        }];
       }));
     }
     default: {
@@ -291,7 +291,7 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
       effectedArtists.forEach((artist) => {
         newState[artist.id] = {
           ...artist,
-          trackIds: artist.trackIds.filter((trackId) => trackId !== action.payload.track.id)
+          trackIds: artist.trackIds.filter((trackId) => trackId !== action.payload.track.id),
         };
       });
       return newState;
@@ -389,7 +389,7 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
         newState[album.id] = {
           ...album,
           trackIds: album.trackIds.filter((trackId) => trackId !== action.payload.track.id),
-        }
+        };
       });
       return newState;
     }

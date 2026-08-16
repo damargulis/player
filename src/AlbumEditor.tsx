@@ -1,10 +1,10 @@
 import {updateAlbum} from './redux/actions';
 import {Album, Artist, Track} from './redux/actionTypes';
+import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditor from './AttributeEditor';
 import FavoritesAttributeEditor from './FavoritesAttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
-import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getArtistById, getTrackById} from './redux/selectors';

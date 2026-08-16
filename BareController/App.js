@@ -11,10 +11,18 @@ import DownloadPage from './components/DownloadPage';
 import {Pages} from 'react-native-pages';
 import {DEV_API_URL, PORT} from './constants';
 import React from 'react';
-import {NativeEventEmitter} from 'react-native';
+import {NativeEventEmitter, StatusBar, StyleSheet, View} from 'react-native';
 import io from 'socket.io-client';
 import ControlPage from './components/ControlPage';
+import {COLORS} from './components/theme';
 import MdnsModule from './MdnsModule';
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+});
 
 const SCAN_WINDOW_MS = 10000;
 const PING_TIMEOUT_MS = 3000;
@@ -152,18 +160,25 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <Pages>
-        <DownloadPage
-          apiUrl={this.state.apiUrl}
-          connected={this.state.connected}
-          setIp={this.setIp.bind(this)}
+      <View style={styles.root}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={COLORS.background}
         />
-        <ControlPage
-          apiUrl={this.state.apiUrl}
-          current={this.state.currentlyPlaying}
-          sendMessage={this.sendMessage.bind(this)}
-        />
-      </Pages>
+        <Pages indicatorColor={COLORS.accent}>
+          <DownloadPage
+            apiUrl={this.state.apiUrl}
+            connected={this.state.connected}
+            setIp={this.setIp.bind(this)}
+            rescan={this.startScan.bind(this)}
+          />
+          <ControlPage
+            apiUrl={this.state.apiUrl}
+            current={this.state.currentlyPlaying}
+            sendMessage={this.sendMessage.bind(this)}
+          />
+        </Pages>
+      </View>
     );
   }
 }

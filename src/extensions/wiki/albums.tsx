@@ -1,5 +1,4 @@
 import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
-import {downloadImage} from '../utils';
 import {DATA_DIR} from '../../constants';
 import {BASE_URL} from './constants';
 import {addError, ExtensionError, removeError} from '../errors';
@@ -9,8 +8,8 @@ import * as React from 'react';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
+import {downloadImage} from '../utils';
 import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
-
 
 function getYear(rootNode: HTMLElement): number {
   const released = rootNode.textContent || '';
@@ -317,7 +316,7 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    let filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
+    const filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
     return downloadImage(picURL, filePath).then(() => {
       removeError(album, ExtensionError.ALBUM_ART);
       album.albumArtFile = filePath;

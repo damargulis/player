@@ -12,12 +12,12 @@ import PlaylistPage from './PlaylistPage';
 import PlaylistPicker from './PlaylistPicker';
 import PlaylistTypePicker from './PlaylistTypePicker';
 import React from 'react';
-import StatsPage from './StatsPage';
 import Dropzone from 'react-dropzone';
 import {connect} from 'react-redux';
 import {
   getAlbumById, getAlbumsByGenres, getArtistById, getArtistsByGenres, getTracksByGenres,
 } from './redux/selectors';
+import StatsPage from './StatsPage';
 import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 

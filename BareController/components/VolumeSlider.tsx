@@ -1,6 +1,9 @@
+import volumeHighImg from '../assets/volume_high.png';
+import volumeLowImg from '../assets/volume_low.png';
+import {COLORS} from './theme';
 import React, {Component} from 'react';
 import {Slider} from 'react-native';
-import {StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 
 const LIVE_UPDATE_MS = 150;
 
@@ -8,11 +11,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
   },
-  label: {
-    width: 45,
-    textAlign: 'center',
+  icon: {
+    width: 18,
+    height: 18,
+    tintColor: COLORS.textSecondary,
+  },
+  slider: {
+    flex: 1,
+    height: 36,
+    marginHorizontal: 6,
   },
 });
 
@@ -43,16 +52,19 @@ export default class VolumeSlider extends Component {
   render(): JSX.Element {
     return (
       <View style={styles.container}>
-        <Text style={styles.label}>Vol</Text>
+        <Image style={styles.icon} source={volumeLowImg} />
         <Slider
-          style={{flex: 1, height: 40}}
+          style={styles.slider}
           minimumValue={0}
           maximumValue={1}
+          minimumTrackTintColor={COLORS.accent}
+          maximumTrackTintColor={COLORS.border}
+          thumbTintColor={COLORS.text}
           value={this.state.dragging ? undefined : this.props.volume}
           onValueChange={this.onValueChange.bind(this)}
           onSlidingComplete={this.onSlidingComplete.bind(this)}
         />
-        <Text style={styles.label} />
+        <Image style={styles.icon} source={volumeHighImg} />
       </View>
     );
   }

@@ -293,8 +293,8 @@ interface UpdateTrack {
 interface DeleteTrack {
   type: typeof DELETE_TRACK;
   payload: {
-    track: Track,
-  }
+    track: Track;
+  };
 }
 
 interface SaveNewTracks {

@@ -1,9 +1,9 @@
 import {updateArtist} from './redux/actions';
 import {Artist} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
+import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import AttributeEditor from './AttributeEditor';
 import GenreAttributeEditor from './GenreAttributeEditor';
-import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import React from 'react';
 import {connect} from 'react-redux';
 import {RootState} from './redux/store';

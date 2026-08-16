@@ -1,13 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ErrorBoundary from 'react-native-error-boundary';
 import AlbumPicker from './AlbumPicker';
+import AlbumScreen from './AlbumScreen';
+import ArtistScreen from './ArtistScreen';
+import ListRow, {ListSeparator} from './ListRow';
+import PlayerScreen from './PlayerScreen';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import PromisePool from 'es6-promise-pool';
 import PlaylistPicker from './PlaylistPicker';
 import React from 'react';
-import {Button, FlatList, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
+import {Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import {FileSystem} from 'react-native-unimodules';
+import {COLORS, RADIUS, SPACING} from './theme';
 import TrackPicker from './TrackPicker';
 import ArtistPicker from './ArtistPicker';
 
@@ -15,21 +20,119 @@ const CONCURRENCY = 3;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 20,
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  listItem: {
-    fontSize: 24,
+  content: {
+    padding: SPACING.screen,
   },
-  sync: {
-    fontSize: 42,
-    width: '100%',
-    textAlign: 'center',
+  sectionLabel: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 2,
+    marginTop: 24,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.card,
+    overflow: 'hidden',
+  },
+  statusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.card,
+    padding: SPACING.card,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  statusText: {
+    color: COLORS.text,
+    fontSize: 15,
+    flex: 1,
+  },
+  primaryButton: {
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.button,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  rescanButton: {
+    borderColor: COLORS.accent,
+    borderWidth: 1,
+    borderRadius: RADIUS.button,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    marginLeft: 10,
+  },
+  rescanButtonText: {
+    color: COLORS.accent,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  outlineButton: {
+    borderColor: COLORS.accent,
+    borderWidth: 1,
+    borderRadius: RADIUS.button,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  outlineButtonText: {
+    color: COLORS.accent,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  helperText: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    marginBottom: 10,
   },
   input: {
+    backgroundColor: COLORS.background,
+    borderColor: COLORS.border,
     borderWidth: 1,
-    borderColor: 'black',
+    borderRadius: 10,
+    color: COLORS.text,
+    fontSize: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  manualCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.card,
+    padding: SPACING.card,
+    marginTop: 24,
+  },
+  statusMessage: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  errorMessage: {
+    color: COLORS.warning,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 16,
   },
 });
+
+const SECTIONS = ['Playlists', 'Albums', 'Artists', 'Tracks'];
 
 class Main extends React.Component {
   constructor(props) {
@@ -42,19 +145,40 @@ class Main extends React.Component {
 
   render(): JSX.Element {
     return (
-      <View style={styles.container} >
-        <FlatList
-          data={['Playlists', 'Albums', 'Artists', 'Tracks']}
-          renderItem={({item}) => (
-            <TouchableHighlight underlayColor="white" onPress={() => this.props.navigation.navigate(item)}>
-              <Text style={styles.listItem}>{item}</Text>
-            </TouchableHighlight>
-          )}
-          keyExtractor={item => item}
-        />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        { this.renderConnectionStatus() }
+        <Text style={styles.sectionLabel}>LIBRARY</Text>
+        <View style={styles.card}>
+          {SECTIONS.map((item, i) => (
+            <View key={item}>
+              {i > 0 ? <ListSeparator /> : null}
+              <ListRow title={item} onPress={() => this.props.navigation.navigate(item)} />
+            </View>
+          ))}
+        </View>
       { this.renderSyncButton() }
       { this.renderManualInput() }
       { this.renderSyncStatus() }
+      </ScrollView>
+    );
+  }
+
+  renderConnectionStatus(): JSX.Element {
+    const connected = this.props.connected;
+    return (
+      <View style={styles.statusCard}>
+        <View style={[
+          styles.statusDot,
+          {backgroundColor: connected ? COLORS.success : COLORS.warning},
+        ]} />
+        <Text style={styles.statusText}>
+          {connected ? 'Connected to desktop' : 'Not connected — searching…'}
+        </Text>
+        {connected ? null : (
+          <TouchableOpacity style={styles.rescanButton} onPress={this.props.rescan}>
+            <Text style={styles.rescanButtonText}>Rescan</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -64,14 +188,13 @@ class Main extends React.Component {
       return null;
     }
     return (
-      <TouchableHighlight underlayColor="white" onPress={this.props.sync.bind(this)}>
-        <Text style={styles.sync}>Press to Sync</Text>
-      </TouchableHighlight>
+      <TouchableOpacity style={styles.primaryButton} onPress={this.props.sync.bind(this)}>
+        <Text style={styles.primaryButtonText}>Sync Library</Text>
+      </TouchableOpacity>
     );
   }
 
   setIpAddress() {
-    console.log(this.props);
     this.props.setIp(this.state.curIpText);
   }
 
@@ -84,36 +207,66 @@ class Main extends React.Component {
       return null;
     }
     return (
-      <View>
-        <Text>Not Connected, Enter IP Address to manually connect</Text>
-        <TextInput onChangeText={this.onChangeIpText.bind(this)} style={styles.input} maxLength={15}/>
-        <TouchableHighlight underlayColor="white" onPress={this.setIpAddress.bind(this)}>
-          <Text style={styles.sync}>Press to Connect</Text>
-        </TouchableHighlight>
+      <View style={styles.manualCard}>
+        <Text style={styles.helperText}>Enter the desktop's IP address to connect manually</Text>
+        <TextInput
+          onChangeText={this.onChangeIpText.bind(this)}
+          style={styles.input}
+          maxLength={15}
+          placeholder="192.168.1.42"
+          placeholderTextColor={COLORS.textSecondary}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <TouchableOpacity style={styles.outlineButton} onPress={this.setIpAddress.bind(this)}>
+          <Text style={styles.outlineButtonText}>Connect</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   renderSyncStatus(): JSX.Element | null {
     if (this.props.errString) {
-      return (<Text style={styles.sync}>{this.props.errString}</Text>);
+      return (<Text style={styles.errorMessage}>{this.props.errString}</Text>);
     }
     if (!this.props.syncing) {
       return null;
     }
     return (
-      <Text style={styles.sync}>{this.props.progressString}</Text>
+      <Text style={styles.statusMessage}>{this.props.progressString}</Text>
     );
   }
 }
 
 const Stack = createStackNavigator();
 
+const fallbackStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.screen,
+  },
+  title: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  detail: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+});
+
 const Fallback = (props: { error: Error, resetError: Function}) => (
-  <View>
-    <Text>Something Bad Happened!</Text>
-    <Text>{props.error.toString()}</Text>
-    <Button onPress={props.resetError} title="Reset" />
+  <View style={fallbackStyles.container}>
+    <Text style={fallbackStyles.title}>Something went wrong</Text>
+    <Text style={fallbackStyles.detail}>{props.error.toString()}</Text>
+    <Button color={COLORS.accent} onPress={props.resetError} title="Reset" />
   </View>
 );
 
@@ -198,10 +351,8 @@ export default class DownloadPage extends React.Component {
   syncArtistId(artistId: string): Promise<undefined> {
     return fetch(`${this.props.apiUrl}/get-artist-data/${artistId}`)
       .then((res) => res.json()).then((res) => {
-        // pic is stored on main as filePath, but need to call get-artist-pic to get pic data
-        // if no filePath, artist has no pic
-        // TODO: default pic
-        if (!res.filePath) {
+        // the desktop stores artist art as artFile; get-artist-pic serves the bytes
+        if (!res.artFile) {
           this.setState({artists: Object.assign({}, this.state.artists, {[artistId]: {...res}})});
           return;
         }
@@ -295,7 +446,7 @@ export default class DownloadPage extends React.Component {
     const artists = Object.assign({}, this.state.artists);
     const deletes = Promise.all(Object.keys(this.state.artists).map((artistId) => {
       if (!keepArtists.has(artistId)) {
-        const artPath = this.state.artists[artistId].filePath;
+        const artPath = this.state.artists[artistId].artFile;
         delete artists[artistId];
         if (artPath) {
           return FileSystem.deleteAsync(artPath, {idempotent: true});
@@ -374,14 +525,26 @@ export default class DownloadPage extends React.Component {
     return (
       <ErrorBoundary FallbackComponent={Fallback}>
         <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen name="main" >
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: COLORS.surface,
+                elevation: 0,
+                shadowColor: 'transparent',
+              },
+              headerTintColor: COLORS.text,
+              headerTitleStyle: {fontWeight: '700'},
+              headerBackTitleVisible: false,
+              cardStyle: {backgroundColor: COLORS.background},
+            }}>
+            <Stack.Screen name="main" options={{title: 'MyMusic'}}>
               {
                 props => <Main {...props}
                   sync={this.sync.bind(this)}
                   connected={this.props.connected}
                   apiUrl={this.props.apiUrl}
                   setIp={this.props.setIp}
+                  rescan={this.props.rescan}
                   syncing={this.state.syncing}
                   progressString={progressString}
                   errString={this.state.err}
@@ -403,6 +566,23 @@ export default class DownloadPage extends React.Component {
                 artists={this.state.artists}
                 albums={this.state.albums}
               />}
+            </Stack.Screen>
+            <Stack.Screen name="Album" options={{title: 'Album'}}>
+              {props => <AlbumScreen {...props}
+                tracks={this.state.tracks}
+                artists={this.state.artists}
+                albums={this.state.albums}
+              />}
+            </Stack.Screen>
+            <Stack.Screen name="Artist" options={{title: 'Artist'}}>
+              {props => <ArtistScreen {...props}
+                tracks={this.state.tracks}
+                artists={this.state.artists}
+                albums={this.state.albums}
+              />}
+            </Stack.Screen>
+            <Stack.Screen name="Player" options={{title: 'Now Playing'}}>
+              {props => <PlayerScreen {...props} />}
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>

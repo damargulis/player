@@ -1,7 +1,7 @@
 import {IS_DEV} from '../constants';
-import fs from 'fs';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
+import fs from 'fs';
 import {RootState} from '../redux/store';
 
 // TODO: set num in a smart way, use network strength?, optimize while running?
@@ -75,4 +75,3 @@ export async function downloadImage(url: string, path: string) {
     fs.writeFileSync(path, Buffer.from(data), 'binary');
   });
 }
-

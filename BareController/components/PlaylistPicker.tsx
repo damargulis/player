@@ -1,24 +1,30 @@
+import ListRow, {ListSeparator} from './ListRow';
+import {COLORS} from './theme';
 import React from 'react';
-import {FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import {FlatList, StyleSheet, View} from 'react-native';
 
 const styles = StyleSheet.create({
-  listItem: {
-    fontSize: 24,
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
 });
 
 export default class PlaylistPicker extends React.Component {
   render(): JSX.Element {
     return (
-      <View>
+      <View style={styles.container}>
         <FlatList
           data={this.props.playlists}
+          ItemSeparatorComponent={ListSeparator}
           renderItem={({item}) => (
-            <TouchableHighlight underlayColor="white" onPress={() => this.props.navigation.navigate('Tracks', {
-              playlist: item,
-            })}>
-              <Text style={styles.listItem}>{item.name}</Text>
-            </TouchableHighlight>
+            <ListRow
+              title={item.name}
+              subtitle={item.trackIds ? `${item.trackIds.length} tracks` : undefined}
+              onPress={() => this.props.navigation.navigate('Tracks', {
+                playlist: item,
+              })}
+            />
           )}
           keyExtractor={item => item.name}
         />

@@ -16,8 +16,8 @@ const defaultMenu = require("electron-default-menu");
 const fs = require("fs");
 
 app.whenReady().then(() => {
-  protocol.registerFileProtocol('file', (req, callback) => {
-    const pathname = req.url.replace('file:///', '');
+  protocol.registerFileProtocol("file", (req, callback) => {
+    const pathname = req.url.replace("file:///", "");
     callback(pathname);
   });
 });
@@ -274,10 +274,15 @@ expressApp.get("/get-artist-pic/:artistId", (req, res) => {
   ipcMain.once("get-artist-" + req.params.artistId, (evt, data) => {
     const fileName = data.artFile;
     if (fileName) {
-      const pathName = decodeURI(fileName.slice(7));
+      // artist art is stored as a plain absolute path, but strip a
+      // file:// prefix in case old library entries carry one
+      const pathName = fileName.startsWith("file://")
+        ? decodeURI(fileName.slice(7))
+        : path.resolve(fileName);
       res.sendFile(pathName);
+    } else {
+      res.status(404).end();
     }
-    // TODO: else send error?
   });
   extEvt.reply("get-artist", req.params.artistId);
 });

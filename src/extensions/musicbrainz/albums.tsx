@@ -1,10 +1,4 @@
 import {Album, AlbumInfo, Track} from '../../redux/actionTypes';
-import {DATA_DIR} from '../../constants';
-import {addError, ExtensionError, removeError} from '../errors';
-import fs from 'fs';
-import {getArtistsByIds, getGenreIds, getTracksByIds} from '../../redux/selectors';
-import shortid from 'shortid';
-import {RootState} from '../../redux/store';
 import {
   browseReleases,
   COVER_ART_BASE,
@@ -18,6 +12,12 @@ import {
   ReleaseTrack,
   searchReleaseGroups,
 } from './api';
+import {DATA_DIR} from '../../constants';
+import {addError, ExtensionError, removeError} from '../errors';
+import fs from 'fs';
+import {getArtistsByIds, getGenreIds, getTracksByIds} from '../../redux/selectors';
+import shortid from 'shortid';
+import {RootState} from '../../redux/store';
 
 function searchForReleaseGroup(store: RootState, album: Album): Promise<string | undefined> {
   const artistNames = getArtistsByIds(store, album.artistIds).map((artist) => artist.name);

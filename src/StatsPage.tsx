@@ -1,7 +1,7 @@
 import {Album, Artist, Genre, Track} from './redux/actionTypes';
-import './StatsPage.css';
 import * as React from 'react';
 import {connect} from 'react-redux';
+import './StatsPage.css';
 import {RootState} from './redux/store';
 
 interface OwnProps {
