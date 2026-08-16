@@ -82,9 +82,9 @@ ipcMain.on("goToArtist", (evt, data) => {
   evt.reply("toArtist", data);
 });
 
-ipcMain.on("goToSong", (evt, data) => {
+ipcMain.on("goToTrack", (evt, data) => {
   maximize();
-  evt.reply("toSong", data);
+  evt.reply("toTrack", data);
 });
 
 ipcMain.on("goToAlbum", (evt, data) => {

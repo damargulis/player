@@ -2,6 +2,7 @@ import {setPlaylist, updateAlbum} from './redux/actions';
 import {Album, Artist, TrackInfo} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumInfo.css';
+import ArtImg from './ArtImg';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import defaultAlbum from './resources/missing_album.png';
@@ -11,7 +12,6 @@ import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import {getAlbumsByIds, getAllAlbumIds, getArtistsByIds, getWarningsFromAlbum} from './redux/selectors';
 import {RootState} from './redux/store';
-import {getImgSrc} from './utils';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement('#root');
@@ -79,7 +79,6 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
     }
 
     const file = this.props.album.albumArtFile;
-    const src = file ? getImgSrc(file) : defaultAlbum;
     const artists = this.props.artists.map((artist: Artist) => {
       return artist.name;
     }).join(', ');
@@ -89,14 +88,15 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
           <AlbumEditor exit={() => this.closeEdit()} album={this.props.album} />
         </Modal>
         <div style={{position: 'absolute', left: '50%'}}>
-          <img
+          <ArtImg
             alt="album art"
             className="grid-art"
+            fallback={defaultAlbum}
+            file={file}
             height="100"
             onClick={() => this.onClickAlbum()}
             onDoubleClick={() => this.onDoubleClickAlbum()}
             onContextMenu={() => this.onRightClickAlbum()}
-            src={src.toString()}
             style={{marginTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />

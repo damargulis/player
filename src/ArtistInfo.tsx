@@ -1,10 +1,10 @@
 import {Artist} from './redux/actionTypes';
+import ArtImg from './ArtImg';
 import defaultArtist from './resources/missing_artist.png';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getArtFilesByArtist} from './redux/selectors';
 import {RootState} from './redux/store';
-import {getImgSrc} from './utils';
 
 interface StateProps {
   artFiles: string[];
@@ -82,14 +82,14 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
     }
     const artFiles = this.props.artFiles;
     const file = artFiles[this.state.currentImg % artFiles.length];
-    const src = file ? getImgSrc(file) : defaultArtist;
     return (
       <div onClick={() => this.props.goToArtist(artist.id)} style={newStyle} >
         <div style={{position: 'absolute', left: '50%'}}>
-          <img
+          <ArtImg
             alt="artist art"
+            fallback={defaultArtist}
+            file={file}
             height="100"
-            src={src}
             style={{paddingTop: '10px', position: 'relative', left: '-50%'}}
             width="100"
           />

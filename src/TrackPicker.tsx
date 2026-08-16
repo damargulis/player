@@ -120,7 +120,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
                 rowClassName="trackRow"
                 rowCount={this.state.tracks.length}
                 rowGetter={({index}) => this.getTrackData(index)}
-                rowHeight={15}
+                rowHeight={20}
                 rowStyle={({index}) => this.getRowStyle(index)}
                 scrollToIndex={this.state.scrollTo}
                 sort={(data) => this.sort(data)}
@@ -130,7 +130,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
               >
                 <Column dataKey="index" label="#" width={50} />
                 <Column dataKey="name" label="Name" width={300} />
-                <Column dataKey="playing" width={10} cellRenderer={this.playingRenderer}/>
+                <Column dataKey="playing" width={18} cellRenderer={this.playingRenderer}/>
                 <Column dataKey="favorite" width={15} cellRenderer={this.favoriteRenderer}/>
                 <Column dataKey="genius" width={10} cellRenderer={this.geniusRenderer}/>
                 <Column dataKey="duration" label="Time" width={50} />
@@ -158,13 +158,13 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
-      cellData ? <img style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span/>
+      cellData ? <img height="14px" width="14px" style={{marginTop: '3px'}} src={playingImg} alt="isPlaying"/> : <span/>
     );
   }
 
   private favoriteRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
-      cellData ? <img height="10px" width="10px" src={favoriteImg} alt="favotie"/> : <span/>
+      cellData ? <img height="12px" width="12px" src={favoriteImg} alt="favorite"/> : <span/>
     );
   }
 
@@ -177,7 +177,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     const scrollTo = this.state.tracks.findIndex((track) => {
       return track.id === this.props.scrollToTrackId;
     });
-    if (scrollTo) {
+    if (scrollTo !== -1) {
       this.setState({scrollTo, selected: [scrollTo]});
     }
   }
@@ -271,7 +271,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   private getRowStyle(index: number): React.CSSProperties {
     const style = {
       backgroundColor: index % 2 === 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
-      fontSize: 10,
+      fontSize: 12,
       userSelect: 'none',
     } as React.CSSProperties;
     if (index === -1) {
