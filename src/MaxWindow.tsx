@@ -12,6 +12,7 @@ import PlaylistPage from './PlaylistPage';
 import PlaylistPicker from './PlaylistPicker';
 import PlaylistTypePicker from './PlaylistTypePicker';
 import React from 'react';
+import StatsPage from './StatsPage';
 import Dropzone from 'react-dropzone';
 import {connect} from 'react-redux';
 import {
@@ -130,6 +131,14 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     return <PlaylistPicker goToPlaylist={(playlist) => this.goToPlaylist(playlist)} />;
     case 'new':
       return <NewTracksPage />;
+    case 'stats':
+      return (
+        <StatsPage
+          goToAlbum={(albumId) => this.goToAlbum(albumId)}
+          goToArtist={(artistId) => this.goToArtist(artistId)}
+          goToTrack={(trackId) => this.goToTrack(trackId)}
+        />
+      );
     default:
     return <></>;
     }

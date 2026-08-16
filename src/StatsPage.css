@@ -1,0 +1,268 @@
+
+.statsPage {
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 24px 40px;
+  box-sizing: border-box;
+}
+
+.statsPage h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.statsPage h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.statsPage h4 {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.statTiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.statTile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 18px;
+  min-width: 110px;
+}
+
+.statTileValue {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.statTileLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.statsColumns {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.statsColumns > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.statsSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.statsEmpty {
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+/* --- ranked bar lists --- */
+
+.rankedRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+}
+
+.rankedIndex {
+  width: 18px;
+  flex: 0 0 auto;
+  text-align: right;
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankedBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.rankedNames {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rankedDetail {
+  color: var(--text-dim);
+}
+
+.rankedBarTrack {
+  height: 5px;
+  margin-top: 3px;
+}
+
+.rankedBar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+  min-width: 2px;
+}
+
+.rankedValue {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- column charts --- */
+
+.columnChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 140px;
+}
+
+.columnCell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.columnBarArea {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+}
+
+.columnValue {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  padding-bottom: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.columnCell:hover .columnValue {
+  opacity: 1;
+}
+
+.columnBar {
+  width: 100%;
+  background: var(--accent);
+  border-radius: 3px 3px 0 0;
+  min-height: 1px;
+}
+
+.columnCell:hover .columnBar {
+  background: var(--accent-strong);
+}
+
+.columnCellClickable {
+  cursor: pointer;
+}
+
+.columnCellSelected .columnBar {
+  background: var(--accent-strong);
+}
+
+.columnCellSelected .columnLabel {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.statsSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.statsSectionHeader h3 {
+  margin-bottom: 0;
+}
+
+.statsSectionHeader {
+  margin-bottom: 10px;
+}
+
+.statsChipGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.statsChipGroup .yearChip {
+  padding: 2px 10px;
+  font-size: 11px;
+}
+
+/* --- favorites year filter --- */
+
+.statsFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.statsFilterLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.statsFilterDivider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-strong);
+  margin: 0 6px;
+}
+
+.yearChip {
+  border-radius: 14px;
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
+.yearChipActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.columnLabel {
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 9.5px;
+  color: var(--text-faint);
+  padding-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
