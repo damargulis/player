@@ -55,6 +55,42 @@ function getUpdatedMemberIds(memberIds: string[], updatedId: string, updatedMemb
   return memberIds;
 }
 
+const BACKUP_KEEP_ALL_MS = 1000 * 60 * 60 * 24 * 30;
+
+/**
+ * Returns the backup files to delete: everything from the last 30 days is
+ * kept, older backups are thinned to the newest one per calendar month.
+ */
+export function selectBackupsToDelete(files: string[], now: number): string[] {
+  const timestamps = files
+    .filter((file) => /^\d+\.json$/.test(file))
+    .map((file) => parseInt(file, 10));
+  const old = timestamps.filter((time) => now - time > BACKUP_KEEP_ALL_MS);
+  const newestPerMonth = new Map() as Map<string, number>;
+  old.forEach((time) => {
+    const date = new Date(time);
+    const month = `${date.getFullYear()}-${date.getMonth()}`;
+    const existing = newestPerMonth.get(month);
+    if (existing === undefined || time > existing) {
+      newestPerMonth.set(month, time);
+    }
+  });
+  const keep = new Set() as Set<number>;
+  newestPerMonth.forEach((time) => keep.add(time));
+  return old.filter((time) => !keep.has(time)).map((time) => `${time}.json`);
+}
+
+function pruneBackups(backups: string): void {
+  try {
+    const files = fs.readdirSync(backups);
+    selectBackupsToDelete(files, Date.now()).forEach((file) => {
+      fs.unlinkSync(`${backups}/${file}`);
+    });
+  } catch (err) {
+    // pruning is best-effort; never let it break the backup itself
+  }
+}
+
 function createBackup(library: LibraryState): Promise<void> {
   const backups = `${DATA_DIR}/backups`;
   if (!fs.existsSync(backups)) {
@@ -68,6 +104,7 @@ function createBackup(library: LibraryState): Promise<void> {
       if (err) {
         reject(err);
       }
+      pruneBackups(backups);
       return resolve();
     });
   });
