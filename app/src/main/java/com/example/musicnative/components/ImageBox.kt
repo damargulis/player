@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
@@ -60,9 +63,12 @@ fun ImageBox(
     val sizePx = with(LocalDensity.current) { size.roundToPx() }
     // cache per size bucket so the big player art isn't served a list thumbnail
     val cacheKey = "$filePath@$sizePx"
-    val imgBitmap by produceState(initialValue = bitmapCache.get(cacheKey), filePath, sizePx) {
-        if (value == null && filePath != null) {
-            value = withContext(Dispatchers.IO) {
+    // remember(cacheKey) resets the shown bitmap the moment the target image
+    // changes; without that, a stale bitmap survives track changes
+    var imgBitmap by remember(cacheKey) { mutableStateOf(bitmapCache.get(cacheKey)) }
+    LaunchedEffect(cacheKey) {
+        if (imgBitmap == null && filePath != null) {
+            imgBitmap = withContext(Dispatchers.IO) {
                 decodeSampled("$fileDir/$filePath", sizePx)
             }?.also { bitmapCache.put(cacheKey, it) }
         }
