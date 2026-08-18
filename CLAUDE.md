@@ -1,6 +1,6 @@
 ## What this is
 
-"MyMusic" — an Electron + React + Redux desktop mp3 player with a companion React Native mobile app (`BareController/`). The desktop app imports a library from iTunes, plays local files, and enriches album/artist metadata via Wikipedia and Genius "extensions". The mobile app discovers the desktop over bonjour/mDNS, syncs songs/playlists/play counts, and remote-controls playback.
+"MyMusic" — an Electron + React + Redux desktop mp3 player with a companion native Android app (`MusicNative/`, Kotlin + Jetpack Compose). The desktop app imports a library from iTunes, plays local files, and enriches album/artist metadata via Wikipedia and Genius "extensions". The mobile app discovers the desktop over bonjour/mDNS, syncs songs/playlists/play counts, remote-controls playback, and plays synced tracks locally. `BareController/` is the older React Native client kept as a fallback; it shares the same desktop API but no code.
 
 ## Commands
 
@@ -9,7 +9,8 @@
 - `yarn test` — run tests with Jest. Tests run **inside Electron** (`jest-electron` runner), not plain Node
 - `yarn test src/extensions/wiki/albums.test.js` — run a single test file; `yarn test -t "name"` for a single test
 - `yarn lint` — tslint with `--fix` (this repo uses tslint, not eslint)
-- Mobile app (`BareController/`, RN 0.62): build a release APK with `cd BareController/android && NODE_OPTIONS=--openssl-legacy-provider JAVA_HOME=$(/usr/libexec/java_home -v 1.8.0_292) ./gradlew assembleRelease`. Needs JDK 8 (AGP 3.5), the legacy OpenSSL provider (metro's md4 vs Node 17+), and the committed `patches/` (patch-package fixes track-player for ExoPlayer 2.13, since 2.10 died with jcenter). This machine is Apple Silicon: only arm64 AVDs run (e.g. ShowTimeTest); the old x86 AVDs don't. Emulators can't receive mDNS multicast — test discovery on a real phone; test connection/sync in-emulator via manual IP `10.0.2.2`.
+- Mobile app (`MusicNative/`, the primary Android client, package `com.example.musicnative`): build a release APK with `cd MusicNative && JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-11.jdk/Contents/Home ./gradlew assembleRelease` (JDK 11, AGP 7.3.1). Release builds sign with the debug keystore for sideloading; debug builds get a `.debug` application-id suffix. It was merged in via `git subtree` from its own repo and keeps its own `.gitignore`.
+- Legacy mobile app (`BareController/`, RN 0.62): build a release APK with `cd BareController/android && NODE_OPTIONS=--openssl-legacy-provider JAVA_HOME=$(/usr/libexec/java_home -v 1.8.0_292) ./gradlew assembleRelease`. Needs JDK 8 (AGP 3.5), the legacy OpenSSL provider (metro's md4 vs Node 17+), and the committed `patches/` (patch-package fixes track-player for ExoPlayer 2.13, since 2.10 died with jcenter). This machine is Apple Silicon: only arm64 AVDs run (e.g. ShowTimeTest); the old x86 AVDs don't. Emulators can't receive mDNS multicast — test discovery on a real phone; test connection/sync in-emulator via manual IP `10.0.2.2`.
 
 ## Architecture
 
