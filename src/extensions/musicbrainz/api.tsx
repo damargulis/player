@@ -1,3 +1,4 @@
+import {normalizeQuotes} from '../utils';
 import {formatGenre} from '../../utils';
 
 const API_BASE = 'https://musicbrainz.org/ws/2';
@@ -213,7 +214,13 @@ export function getReleaseTrackCount(release: ReleaseResult): number {
 
 /** Returns the release's tracks flattened across discs, in play order. */
 export function getReleaseTracks(release: ReleaseResult): ReleaseTrack[] {
-  return (release.media || []).map((media) => media.tracks || []).flat();
+  return (release.media || []).map((media) => media.tracks || []).flat().map((track) => ({
+    ...track,
+    'title': normalizeQuotes(track.title),
+    'artist-credit': (track['artist-credit'] || []).map((credit) => {
+      return {...credit, name: normalizeQuotes(credit.name)};
+    }),
+  }));
 }
 
 /**

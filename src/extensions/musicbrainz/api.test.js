@@ -203,6 +203,21 @@ test('flattens tracks across discs in play order', () => {
   expect(titles).toStrictEqual(['Track One', 'Track Two', 'Bonus Track']);
 });
 
+test('normalizes typographic apostrophes in titles and credits', () => {
+  const release = {
+    id: 'release-curly',
+    status: 'Official',
+    media: [{'track-count': 1, 'tracks': [{
+      'title': 'Don’t Stop Believin’',
+      'position': 1,
+      'artist-credit': [{name: 'The Artist’s Band'}],
+    }]}],
+  };
+  const tracks = getReleaseTracks(release);
+  expect(tracks[0].title).toBe('Don\'t Stop Believin\'');
+  expect(tracks[0]['artist-credit'][0].name).toBe('The Artist\'s Band');
+});
+
 test('finds featured artists from artist credits', () => {
   const track = {
     'title': 'A Song',

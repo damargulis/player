@@ -70,6 +70,14 @@ export function getPool<T, S>(
   return new PromisePool(() => pool.next(), CONCURRENT);
 }
 
+/**
+ * Maps typographic quotes (MusicBrainz favors ’ in titles and credits) to
+ * their plain ascii forms so they match iTunes-sourced names and Genius urls.
+ */
+export function normalizeQuotes(str: string): string {
+  return str.replace(/[‘’ʼ]/g, '\'').replace(/[“”]/g, '"');
+}
+
 export async function downloadImage(url: string, path: string) {
   return fetch(url).then((res) => res.arrayBuffer()).then((data) => {
     fs.writeFileSync(path, Buffer.from(data), 'binary');

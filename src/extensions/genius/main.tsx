@@ -4,8 +4,10 @@ import {
   Track,
   TrackInfo
 } from '../../redux/actionTypes';
+import {DATA_DIR} from '../../constants';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
+import fs from 'fs';
 import {
   getArtistById,
   getArtistsByIds,
@@ -13,13 +15,34 @@ import {
 } from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
+import {normalizeQuotes} from '../utils';
 import {getPool} from '../utils';
 
 const BASE_URL = 'https://api.genius.com/';
 const SEARCH_URL = `${BASE_URL}search?q=`;
 const TRACK_URL = `${BASE_URL}songs/`;
-// TODO: don't put in source code lol
-const ACCESS_TOKEN = 'I2ff7nUpgZRm7Ef5Q0KUYG8Y5OUcATEkROCoq2xd3GMyjlH4Vs0JzDQ3pQrhEDZe';
+const TOKEN_KEY = 'GENIUS_ACCESS_TOKEN';
+
+function readTokenFrom(filePath: string): string | undefined {
+  try {
+    const line = fs.readFileSync(filePath, 'utf8').split('\n')
+      .find((envLine) => envLine.startsWith(`${TOKEN_KEY}=`));
+    return line ? line.slice(TOKEN_KEY.length + 1).trim() : undefined;
+  } catch (err) {
+    return undefined;
+  }
+}
+
+let cachedToken: string | undefined;
+
+/** Reads the Genius API token from .env.local (dev) or DATA_DIR/.env (packaged). */
+function getAccessToken(): string | undefined {
+  if (cachedToken === undefined) {
+    cachedToken = readTokenFrom('.env.local') || readTokenFrom('.env') ||
+      readTokenFrom(`${DATA_DIR}/.env`) || '';
+  }
+  return cachedToken || undefined;
+}
 
 interface Result {
   id: string;
@@ -27,13 +50,7 @@ interface Result {
 }
 
 function geniusRequest(url: string): Promise<Response> {
-  const options = {
-    uri: url,
-    headers: {
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
-    },
-  };
-  return fetch(options.uri, options);
+  return fetch(url, {headers: {Authorization: `Bearer ${getAccessToken()}`}});
 }
 
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
@@ -43,9 +60,12 @@ function searchForTrackId(store: RootState, track: Track): Promise<string | unde
     .then((res: Response) => res.text()).then((jsonString: string) => {
     const results = JSON.parse(jsonString);
     const result = results.response.hits.find((hit: {result: {title: string; primary_artist: {name: string}}}) => {
-      const title = hit.result.title.toLowerCase().replace('’', '\'');
-      const artist = hit.result.primary_artist.name.toLowerCase().replace('’', '\'');
-      return title === track.name.toLowerCase() && artist === primaryArtist.name.toLowerCase();
+      // normalize both sides so curly apostrophes (from either Genius or
+      // MusicBrainz-sourced library names) never break the match
+      const title = normalizeQuotes(hit.result.title).toLowerCase();
+      const artist = normalizeQuotes(hit.result.primary_artist.name).toLowerCase();
+      return title === normalizeQuotes(track.name).toLowerCase() &&
+        artist === normalizeQuotes(primaryArtist.name).toLowerCase();
     });
     return result && result.result.id;
   }).catch(() => {});
@@ -98,6 +118,14 @@ function getTrackPool(store: RootState, trackIds: string[], extensionId: string)
 
 export default function runGeniusExtension(store: RootState, trackIds: string[]): PromiseLike<LibraryInfo> {
   const extensionId = shortid.generate();
+  if (!getAccessToken()) {
+    ipcRenderer.send('extension-update', {
+      msg: `Genius extension skipped: no ${TOKEN_KEY} found in .env.local or ${DATA_DIR}/.env`,
+      type: 'done',
+      extensionId,
+    });
+    return Promise.resolve({tracks: {}});
+  }
   const tracks = {} as Record<string, TrackInfo>;
   const trackPool = getTrackPool(store, trackIds, extensionId);
   trackPool.addEventListener('fulfilled', (evt) => {
