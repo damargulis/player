@@ -1,0 +1,1016 @@
+<html>
+  <head>
+    <title>Name That Tune</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101014;
+        --surface: #1a1a21;
+        --border: #2a2a33;
+        --text: #e7e7ec;
+        --text-dim: #9a9aa6;
+        --accent: #8b7cf6;
+        --accent-strong: #a89bff;
+        --accent-soft: rgba(139, 124, 246, 0.16);
+        --danger: #f85149;
+        --success: #3fb950;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 24px;
+        user-select: none;
+      }
+      h1 {
+        font-size: 22px;
+        letter-spacing: 1px;
+        margin: 0 0 4px 0;
+        text-align: center;
+      }
+      .subtitle {
+        color: var(--text-dim);
+        font-size: 13px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .screen { display: none; }
+      .screen.active { display: block; }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+      }
+      .rules {
+        color: var(--text-dim);
+        font-size: 12px;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+      .option-row {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .option-label {
+        color: var(--text-dim);
+        font-size: 11px;
+        letter-spacing: 1px;
+        width: 76px;
+      }
+      .segment {
+        display: flex;
+        flex: 1;
+        gap: 6px;
+      }
+      .segment label {
+        cursor: pointer;
+        flex: 1;
+        font-size: 12px;
+        text-align: center;
+      }
+      .segment input { display: none; }
+      .segment span {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: block;
+        padding: 7px 0;
+      }
+      .segment input:checked + span {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+      select, .filter-input {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-sizing: border-box;
+        color: var(--text);
+        flex: 1;
+        font-size: 13px;
+        outline: none;
+        padding: 8px 10px;
+      }
+      .filter-input:focus, select:focus { border-color: var(--accent); }
+      #match-count {
+        color: var(--text-dim);
+        font-size: 12px;
+        margin-top: 4px;
+        text-align: center;
+      }
+      #match-count.none { color: var(--danger); }
+      .round-header {
+        color: var(--text-dim);
+        display: flex;
+        font-size: 13px;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      #timer-outer {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        height: 12px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      #timer-inner {
+        background: var(--accent);
+        display: block;
+        height: 100%;
+        transition: width 0.1s linear;
+        width: 100%;
+      }
+      #timer-inner.low { background: var(--danger); }
+      .guess-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .guess-label {
+        color: var(--text-dim);
+        font-size: 11px;
+        line-height: 38px;
+        text-align: right;
+        width: 64px;
+      }
+      .guess-input {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-sizing: border-box;
+        color: var(--text);
+        flex: 1;
+        font-size: 15px;
+        outline: none;
+        padding: 9px 12px;
+      }
+      .guess-input:focus { border-color: var(--accent); }
+      .guess-input.locked {
+        border-color: var(--success);
+        color: var(--success);
+      }
+      /* typed inputs vs. multiple choice, toggled by a body-level mode class */
+      body.mode-choices .guess-row { display: none; }
+      .choice-block { display: none; margin-bottom: 10px; }
+      body.mode-choices .choice-block { display: block; }
+      .choice-label {
+        color: var(--text-dim);
+        font-size: 11px;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+      }
+      .choice-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: 1fr 1fr;
+      }
+      .choice-button {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        cursor: pointer;
+        display: block;
+        font-size: 13px;
+        font-weight: 400;
+        margin: 0;
+        overflow: hidden;
+        padding: 9px 10px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .choice-button:hover:enabled { background: var(--surface); border-color: var(--accent); }
+      .choice-button:disabled { cursor: default; }
+      .choice-button.correct {
+        background: rgba(63, 185, 80, 0.12);
+        border-color: var(--success);
+        color: var(--success);
+      }
+      .choice-button.wrong {
+        background: rgba(248, 81, 73, 0.1);
+        border-color: var(--danger);
+        color: var(--danger);
+      }
+      #replay-button {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-dim);
+        display: none;
+        font-size: 12px;
+        font-weight: 400;
+        margin: -6px auto 12px auto;
+        padding: 6px 16px;
+      }
+      body.mode-short #replay-button { display: block; }
+      #replay-button:hover:enabled {
+        background: var(--surface);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      .insight-row {
+        display: flex;
+        font-size: 13px;
+        justify-content: space-between;
+        padding: 4px 2px;
+      }
+      .insight-rounds { color: var(--text-dim); }
+      #feedback {
+        font-size: 14px;
+        margin-top: 12px;
+        min-height: 20px;
+        text-align: center;
+      }
+      .good { color: var(--success); }
+      .bad { color: var(--danger); }
+      .dim { color: var(--text-dim); }
+      button {
+        background: var(--accent);
+        border: none;
+        border-radius: 20px;
+        color: white;
+        cursor: pointer;
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        margin: 18px auto 0 auto;
+        padding: 10px 28px;
+      }
+      button:hover:enabled { background: var(--accent-strong); }
+      button:disabled {
+        background: var(--surface);
+        color: var(--text-dim);
+        cursor: default;
+      }
+      #score-line {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 8px 0 16px 0;
+        text-align: center;
+      }
+      .answer-row {
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        font-size: 13px;
+        gap: 10px;
+        padding: 7px 2px;
+      }
+      .answer-row:last-child { border-bottom: none; }
+      .answer-title { flex: 1; }
+      .answer-artist { flex: 1; }
+      .answer-points {
+        color: var(--text-dim);
+        text-align: right;
+        width: 48px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>NAME THAT TUNE</h1>
+    <div class="subtitle">10 rounds &middot; 20 seconds each</div>
+
+    <div id="start-screen" class="screen active">
+      <div class="card">
+        <div class="rules">
+          A song plays from a random spot. Name the <b>title</b> (2 pts) and
+          <b>artist</b> (1 pt) before time runs out &mdash; Enter to guess, unlimited
+          tries, capitalization and punctuation ignored. Get both fast for a
+          <b>speed bonus</b> (+2 in the first 5s, +1 in the first 10s) and chain
+          perfect rounds for a <b>streak bonus</b> (up to +2).
+        </div>
+        <div class="option-row">
+          <span class="option-label">MODE</span>
+          <div class="segment" id="mode">
+            <label><input type="radio" name="mode" value="classic" checked><span>Classic<br>random spot</span></label>
+            <label><input type="radio" name="mode" value="intro"><span>Intro<br>from the top</span></label>
+            <label><input type="radio" name="mode" value="short"><span>Short<br>3s clip</span></label>
+            <label><input type="radio" name="mode" value="choices"><span>Choices<br>pick from 4</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DIFFICULTY</span>
+          <div class="segment" id="difficulty">
+            <label><input type="radio" name="difficulty" value="easy"><span>Easy<br>most played</span></label>
+            <label><input type="radio" name="difficulty" value="normal" checked><span>Normal<br>everything</span></label>
+            <label><input type="radio" name="difficulty" value="hard"><span>Hard<br>deep cuts</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DECADE</span>
+          <select id="decade-select"><option value="">Any decade</option></select>
+        </div>
+        <div class="option-row">
+          <span class="option-label">GENRES</span>
+          <input id="genre-filter" class="filter-input" list="genre-options"
+            placeholder="Any &mdash; or comma-separated genres" autocomplete="off" spellcheck="false">
+          <datalist id="genre-options"></datalist>
+        </div>
+        <div class="option-row">
+          <span class="option-label">ARTISTS</span>
+          <input id="artist-filter" class="filter-input" list="artist-options"
+            placeholder="Any &mdash; or comma-separated artists" autocomplete="off" spellcheck="false">
+          <datalist id="artist-options"></datalist>
+        </div>
+        <div id="match-count">Loading library&hellip;</div>
+        <div id="history-line" class="dim" style="font-size: 12px; margin-top: 4px; text-align: center;"></div>
+      </div>
+      <button id="start-button" disabled>Start</button>
+    </div>
+
+    <div id="round-screen" class="screen">
+      <div class="card">
+        <div class="round-header">
+          <span id="round-label">Round 1 / 10</span>
+          <span id="streak-label"></span>
+          <span id="score-label">Score: 0</span>
+        </div>
+        <div id="timer-outer"><span id="timer-inner"></span></div>
+        <button id="replay-button" type="button">↻ Replay clip</button>
+        <div class="guess-row">
+          <span class="guess-label">TITLE (2)</span>
+          <input id="guess-title" class="guess-input" type="text" placeholder="Song title&hellip;"
+            autocomplete="off" spellcheck="false">
+        </div>
+        <div class="guess-row">
+          <span class="guess-label">ARTIST (1)</span>
+          <input id="guess-artist" class="guess-input" type="text" placeholder="Artist&hellip;"
+            autocomplete="off" spellcheck="false">
+        </div>
+        <div class="choice-block" id="choice-title-block">
+          <div class="choice-label">TITLE (2)</div>
+          <div class="choice-grid" id="title-choices"></div>
+        </div>
+        <div class="choice-block" id="choice-artist-block">
+          <div class="choice-label">ARTIST (1)</div>
+          <div class="choice-grid" id="artist-choices"></div>
+        </div>
+        <div id="feedback"></div>
+      </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+      <div id="score-line"></div>
+      <div id="best-line" class="dim" style="font-size: 14px; margin: -8px 0 16px 0; text-align: center;"></div>
+      <div class="card" id="answers"></div>
+      <div class="card" id="insights" style="display: none; margin-top: 14px;">
+        <div class="choice-label">YOUR TRACK RECORD · ALL-TIME</div>
+        <div id="insight-rows"></div>
+      </div>
+      <button id="again-button">Play Again</button>
+      <button id="setup-button">Change Settings</button>
+    </div>
+
+    <audio id="player"></audio>
+
+  <script>
+const electron = window.require('electron');
+
+const ROUNDS = 10;
+const ROUND_MS = 20000;
+const TITLE_POINTS = 2;
+const ARTIST_POINTS = 1;
+const CLIP_TAIL_S = 22;
+const MIN_TRACK_MS = 30000;
+// difficulty slices of the play-count-sorted pool
+const EASY_FRACTION = 0.25;
+const HARD_FRACTION = 0.5;
+// speed bonus for finishing a perfect round with this much clock left
+const SPEED_FAST_FRACTION = 0.75;
+const SPEED_MID_FRACTION = 0.5;
+const STREAK_BONUS_CAP = 2;
+const HISTORY_LIMIT = 50;
+const SHORT_CLIP_MS = 3000;
+const CHOICE_COUNT = 4;
+const MIN_INSIGHT_ROUNDS = 6;
+const INSIGHT_SHOWN = 3;
+
+const startScreen = document.getElementById('start-screen');
+const roundScreen = document.getElementById('round-screen');
+const endScreen = document.getElementById('end-screen');
+const startButton = document.getElementById('start-button');
+const againButton = document.getElementById('again-button');
+const setupButton = document.getElementById('setup-button');
+const decadeSelect = document.getElementById('decade-select');
+const genreFilter = document.getElementById('genre-filter');
+const artistFilter = document.getElementById('artist-filter');
+const genreOptions = document.getElementById('genre-options');
+const artistOptions = document.getElementById('artist-options');
+const matchCount = document.getElementById('match-count');
+const historyLine = document.getElementById('history-line');
+const bestLine = document.getElementById('best-line');
+const roundLabel = document.getElementById('round-label');
+const streakLabel = document.getElementById('streak-label');
+const scoreLabel = document.getElementById('score-label');
+const timerInner = document.getElementById('timer-inner');
+const titleInput = document.getElementById('guess-title');
+const artistInput = document.getElementById('guess-artist');
+const feedback = document.getElementById('feedback');
+const replayButton = document.getElementById('replay-button');
+const titleChoices = document.getElementById('title-choices');
+const artistChoices = document.getElementById('artist-choices');
+const insightsCard = document.getElementById('insights');
+const insightRows = document.getElementById('insight-rows');
+const scoreLine = document.getElementById('score-line');
+const answersDiv = document.getElementById('answers');
+const player = document.getElementById('player');
+
+let allTracks = [];
+let gameTracks = [];
+let spares = [];
+let round = 0;
+let score = 0;
+let results = [];
+let timerId = null;
+let deadline = 0;
+let roundOver = false;
+let titleDone = false;
+let artistDone = false;
+let streak = 0;
+let allScores = {};
+let currentMode = 'classic';
+let clipStart = 0;
+let shortStopId = null;
+let decoyPool = [];
+// in choices mode a wrong pick resolves the category without scoring it
+let titleResolved = false;
+let artistResolved = false;
+
+function showScreen(screen) {
+  [startScreen, roundScreen, endScreen].forEach((el) => el.classList.remove('active'));
+  screen.classList.add('active');
+}
+
+// punctuation- and case-insensitive compare; curly quotes count as straight
+function normalize(str) {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[‘’ʼ]/g, "'")
+    .replace(/[^a-z0-9]/g, '');
+}
+
+// "A, B" credits accept the full string or any single artist
+function artistMatches(guess, artist) {
+  if (guess === normalize(artist)) {
+    return true;
+  }
+  return artist.split(', ').some((name) => guess === normalize(name));
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function parseList(value) {
+  return value.split(',').map((part) => normalize(part)).filter(Boolean);
+}
+
+function selectedDifficulty() {
+  return document.querySelector('input[name="difficulty"]:checked').value;
+}
+
+function selectedMode() {
+  return document.querySelector('input[name="mode"]:checked').value;
+}
+
+/** History is keyed by the active settings so bests compare like with like. */
+function settingsKey() {
+  const genres = parseList(genreFilter.value).sort().join(',');
+  const artists = parseList(artistFilter.value).sort().join(',');
+  return `${selectedMode()}|${selectedDifficulty()}|${decadeSelect.value}|${genres}|${artists}`;
+}
+
+function updateHistoryLine() {
+  const entry = allScores[settingsKey()];
+  if (!entry || !entry.games.length) {
+    historyLine.textContent = 'No games yet with these settings';
+    return;
+  }
+  const total = entry.games.reduce((sum, game) => sum + game.score, 0);
+  const average = Math.round(total / entry.games.length);
+  historyLine.textContent =
+    `Best with these settings: ${entry.best} · ${entry.games.length} ` +
+    `game${entry.games.length === 1 ? '' : 's'} · avg ${average}`;
+}
+
+function saveGame(key, finalScore) {
+  const entry = allScores[key] || {best: 0, games: []};
+  const newBest = finalScore > entry.best;
+  entry.best = Math.max(entry.best, finalScore);
+  entry.games.push({date: new Date().toISOString(), score: finalScore});
+  entry.games = entry.games.slice(-HISTORY_LIMIT);
+  allScores[key] = entry;
+  electron.ipcRenderer.send('game-save-scores', allScores);
+  return newBest;
+}
+
+/** Applies the setup-screen filters and difficulty slice to the library. */
+function getCandidates() {
+  const decade = decadeSelect.value ? parseInt(decadeSelect.value, 10) : null;
+  const genres = parseList(genreFilter.value);
+  const artists = parseList(artistFilter.value);
+  let candidates = allTracks.filter((track) => {
+    if (decade !== null && !(track.year >= decade && track.year < decade + 10)) {
+      return false;
+    }
+    if (genres.length && !track.genres.some((genre) => {
+      return genres.some((wanted) => normalize(genre).includes(wanted));
+    })) {
+      return false;
+    }
+    if (artists.length && !track.artist.split(', ').some((name) => {
+      return artists.some((wanted) => normalize(name).includes(wanted));
+    })) {
+      return false;
+    }
+    return true;
+  });
+  const difficulty = selectedDifficulty();
+  // only slice by play count when there's enough pool to slice meaningfully
+  if (difficulty !== 'normal' && candidates.length > ROUNDS * 2) {
+    candidates = candidates.slice().sort((track1, track2) => track2.playCount - track1.playCount);
+    if (difficulty === 'easy') {
+      const keep = Math.max(ROUNDS * 2, Math.floor(candidates.length * EASY_FRACTION));
+      candidates = candidates.slice(0, keep);
+    } else {
+      const skip = Math.min(candidates.length - ROUNDS * 2, Math.floor(candidates.length * HARD_FRACTION));
+      candidates = candidates.slice(skip);
+    }
+  }
+  return candidates;
+}
+
+function updateMatchCount() {
+  if (!allTracks.length) {
+    return;
+  }
+  const count = getCandidates().length;
+  matchCount.textContent = count ?
+    `${count.toLocaleString()} song${count === 1 ? '' : 's'} in play` :
+    'No songs match these filters';
+  matchCount.classList.toggle('none', !count);
+  startButton.disabled = !count;
+}
+
+function populateOptions() {
+  const decades = new Set();
+  const genres = new Set();
+  const artistNames = new Set();
+  allTracks.forEach((track) => {
+    if (track.year > 1000) {
+      decades.add(Math.floor(track.year / 10) * 10);
+    }
+    track.genres.forEach((genre) => genres.add(genre));
+    track.artist.split(', ').forEach((name) => {
+      if (name) {
+        artistNames.add(name);
+      }
+    });
+  });
+  [...decades].sort().forEach((decade) => {
+    const option = document.createElement('option');
+    option.value = decade;
+    option.textContent = `${decade}s`;
+    decadeSelect.appendChild(option);
+  });
+  [...genres].sort().forEach((genre) => {
+    const option = document.createElement('option');
+    option.value = genre;
+    genreOptions.appendChild(option);
+  });
+  [...artistNames].sort().forEach((name) => {
+    const option = document.createElement('option');
+    option.value = name;
+    artistOptions.appendChild(option);
+  });
+}
+
+electron.ipcRenderer.on('game-tracks', (evt, tracks) => {
+  allTracks = (tracks || []).filter((track) => {
+    return track.name && track.filePath && track.duration > MIN_TRACK_MS;
+  });
+  if (allTracks.length) {
+    populateOptions();
+    updateMatchCount();
+  } else {
+    matchCount.textContent = 'No playable tracks found';
+    matchCount.classList.add('none');
+  }
+});
+electron.ipcRenderer.send('game-get-tracks');
+
+electron.ipcRenderer.on('game-scores', (evt, scores) => {
+  allScores = scores || {};
+  updateHistoryLine();
+});
+electron.ipcRenderer.send('game-get-scores');
+
+function onSettingsChange() {
+  updateMatchCount();
+  updateHistoryLine();
+}
+[decadeSelect, genreFilter, artistFilter].forEach((el) => {
+  el.addEventListener('input', onSettingsChange);
+});
+document.getElementById('difficulty').addEventListener('change', onSettingsChange);
+document.getElementById('mode').addEventListener('change', onSettingsChange);
+
+let gameKey = '';
+
+function startGame() {
+  const pool = shuffle(getCandidates().slice());
+  if (!pool.length) {
+    return;
+  }
+  gameKey = settingsKey();
+  currentMode = selectedMode();
+  document.body.className = `mode-${currentMode}`;
+  decoyPool = pool.slice();
+  const roundCount = Math.min(ROUNDS, pool.length);
+  gameTracks = pool.slice(0, roundCount);
+  spares = pool.slice(roundCount);
+  round = 0;
+  score = 0;
+  streak = 0;
+  results = [];
+  showScreen(roundScreen);
+  startRound();
+}
+
+/** Picks distinct decoy values for a choice group, correct answer included. */
+function buildChoiceButtons(container, correctValue, getValue, onPick) {
+  container.innerHTML = '';
+  const seen = new Set([normalize(correctValue)]);
+  const options = [correctValue];
+  const source = shuffle(decoyPool.concat(allTracks).slice());
+  for (const track of source) {
+    if (options.length >= CHOICE_COUNT) {
+      break;
+    }
+    const value = getValue(track);
+    if (value && !seen.has(normalize(value))) {
+      seen.add(normalize(value));
+      options.push(value);
+    }
+  }
+  shuffle(options).forEach((value) => {
+    const button = document.createElement('button');
+    button.className = 'choice-button';
+    button.type = 'button';
+    button.textContent = value;
+    button.title = value;
+    button.addEventListener('click', () => onPick(button, value));
+    container.appendChild(button);
+  });
+}
+
+function finishChoiceGroup(container, pickedButton, correct, correctValue) {
+  [...container.children].forEach((child) => {
+    child.disabled = true;
+    if (normalize(child.textContent) === normalize(correctValue)) {
+      child.classList.add('correct');
+    }
+  });
+  if (!correct) {
+    pickedButton.classList.add('wrong');
+  }
+}
+
+function pickTitle(button, value) {
+  if (roundOver || titleResolved) {
+    return;
+  }
+  const track = gameTracks[round];
+  titleResolved = true;
+  titleDone = normalize(value) === normalize(track.name);
+  finishChoiceGroup(titleChoices, button, titleDone, track.name);
+  afterChoicePick();
+}
+
+function pickArtist(button, value) {
+  if (roundOver || artistResolved) {
+    return;
+  }
+  const track = gameTracks[round];
+  artistResolved = true;
+  artistDone = normalize(value) === normalize(track.artist);
+  finishChoiceGroup(artistChoices, button, artistDone, track.artist);
+  afterChoicePick();
+}
+
+function afterChoicePick() {
+  if (titleResolved && artistResolved) {
+    endRound();
+    return;
+  }
+  feedback.textContent = titleResolved ? 'Now the artist…' : 'Now the title…';
+  feedback.className = 'dim';
+}
+
+function resetInput(input) {
+  input.value = '';
+  input.disabled = false;
+  input.classList.remove('locked');
+}
+
+function startRound() {
+  roundOver = false;
+  titleDone = false;
+  artistDone = false;
+  titleResolved = false;
+  artistResolved = false;
+  clearInterval(timerId);
+  clearTimeout(shortStopId);
+  roundLabel.textContent = `Round ${round + 1} / ${gameTracks.length}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  scoreLabel.textContent = `Score: ${score}`;
+  timerInner.style.width = '100%';
+  timerInner.classList.remove('low');
+  feedback.textContent = 'Listen…';
+  feedback.className = 'dim';
+  if (currentMode === 'choices') {
+    const track = gameTracks[round];
+    buildChoiceButtons(titleChoices, track.name, (decoy) => decoy.name, pickTitle);
+    buildChoiceButtons(artistChoices, track.artist, (decoy) => decoy.artist, pickArtist);
+  } else {
+    resetInput(titleInput);
+    resetInput(artistInput);
+    titleInput.focus();
+  }
+  playClip(gameTracks[round]);
+}
+
+function scheduleShortStop() {
+  if (currentMode !== 'short') {
+    return;
+  }
+  clearTimeout(shortStopId);
+  shortStopId = setTimeout(() => player.pause(), SHORT_CLIP_MS);
+}
+
+function playClip(track) {
+  player.src = track.filePath;
+  player.onloadedmetadata = () => {
+    const maxStart = Math.max(0, player.duration - CLIP_TAIL_S);
+    clipStart = currentMode === 'intro' ? 0 : Math.random() * maxStart;
+    player.currentTime = clipStart;
+    player.play();
+  };
+  player.onplaying = () => {
+    player.onplaying = null;
+    startTimer();
+    scheduleShortStop();
+  };
+  player.onerror = () => {
+    // unreadable file: swap in a spare and restart the round
+    const spare = spares.shift();
+    if (spare) {
+      gameTracks[round] = spare;
+      startRound();
+    } else {
+      endRound();
+    }
+  };
+}
+
+function startTimer() {
+  deadline = Date.now() + ROUND_MS;
+  clearInterval(timerId);
+  timerId = setInterval(() => {
+    const left = deadline - Date.now();
+    const fraction = Math.max(0, left / ROUND_MS);
+    timerInner.style.width = `${fraction * 100}%`;
+    timerInner.classList.toggle('low', left < 5000);
+    if (left <= 0) {
+      endRound();
+    }
+  }, 100);
+}
+
+function endRound() {
+  if (roundOver) {
+    return;
+  }
+  roundOver = true;
+  clearInterval(timerId);
+  clearTimeout(shortStopId);
+  const timeFraction = Math.max(0, (deadline - Date.now()) / ROUND_MS);
+  player.pause();
+  player.onerror = null;
+  const track = gameTracks[round];
+  const base = (titleDone ? TITLE_POINTS : 0) + (artistDone ? ARTIST_POINTS : 0);
+  const perfect = titleDone && artistDone;
+  let speedBonus = 0;
+  let streakBonus = 0;
+  if (perfect) {
+    speedBonus = timeFraction >= SPEED_FAST_FRACTION ? 2 :
+      timeFraction >= SPEED_MID_FRACTION ? 1 : 0;
+    streak++;
+    streakBonus = Math.min(streak - 1, STREAK_BONUS_CAP);
+  } else {
+    streak = 0;
+  }
+  const points = base + speedBonus + streakBonus;
+  score += points;
+  scoreLabel.textContent = `Score: ${score}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  if (perfect) {
+    const extras = [];
+    if (speedBonus) {
+      extras.push(`+${speedBonus} speed`);
+    }
+    if (streakBonus) {
+      extras.push(`+${streakBonus} streak`);
+    }
+    feedback.textContent = `✓ Nailed it! +${points}${extras.length ? ` (${extras.join(', ')})` : ''}`;
+    feedback.className = 'good';
+  } else {
+    feedback.textContent = `${points ? `+${points} — ` : ''}It was: ${track.name} — ${track.artist}`;
+    feedback.className = points ? 'dim' : 'bad';
+  }
+  results.push({
+    artist: track.artist,
+    artistDone,
+    basePoints: base,
+    genres: track.genres || [],
+    points,
+    speedBonus,
+    streakBonus,
+    title: track.name,
+    titleDone,
+    year: track.year,
+  });
+  round++;
+  setTimeout(() => {
+    if (round < gameTracks.length) {
+      startRound();
+    } else {
+      showResults();
+    }
+  }, perfect ? 1800 : 2800);
+}
+
+/** Folds this game's rounds into all-time per-genre/per-decade accuracy. */
+function updateInsights(gameResults) {
+  const insights = allScores.__insights || {};
+  gameResults.forEach((result) => {
+    const categories = [];
+    if (result.year > 1000) {
+      categories.push(`${Math.floor(result.year / 10) * 10}s`);
+    }
+    (result.genres || []).forEach((genre) => categories.push(genre));
+    categories.forEach((category) => {
+      const entry = insights[category] || {base: 0, rounds: 0};
+      entry.rounds++;
+      entry.base += result.basePoints;
+      insights[category] = entry;
+    });
+  });
+  allScores.__insights = insights;
+}
+
+function renderInsights() {
+  const insights = allScores.__insights || {};
+  const qualified = Object.keys(insights)
+    .map((category) => {
+      const entry = insights[category];
+      return {
+        category,
+        percent: Math.round((entry.base / (entry.rounds * (TITLE_POINTS + ARTIST_POINTS))) * 100),
+        rounds: entry.rounds,
+      };
+    })
+    .filter((entry) => entry.rounds >= MIN_INSIGHT_ROUNDS)
+    .sort((entry1, entry2) => entry2.percent - entry1.percent);
+  if (qualified.length < 2) {
+    insightsCard.style.display = 'none';
+    return;
+  }
+  const shown = qualified.length <= INSIGHT_SHOWN * 2 ?
+    qualified :
+    qualified.slice(0, INSIGHT_SHOWN).concat(qualified.slice(-INSIGHT_SHOWN));
+  insightRows.innerHTML = '';
+  shown.forEach((entry) => {
+    const row = document.createElement('div');
+    row.className = 'insight-row';
+    const label = document.createElement('span');
+    label.className = entry.percent >= 50 ? 'good' : 'bad';
+    label.textContent = entry.category;
+    const value = document.createElement('span');
+    value.className = 'insight-rounds';
+    value.textContent = `${entry.percent}% · ${entry.rounds} rounds`;
+    row.appendChild(label);
+    row.appendChild(value);
+    insightRows.appendChild(row);
+  });
+  insightsCard.style.display = 'block';
+}
+
+function showResults() {
+  updateInsights(results);
+  const newBest = saveGame(gameKey, score);
+  const entry = allScores[gameKey];
+  scoreLine.textContent = `Score: ${score}`;
+  if (newBest && entry.games.length > 1) {
+    bestLine.textContent = '★ New personal best for these settings!';
+    bestLine.className = 'good';
+  } else {
+    bestLine.textContent = `Best with these settings: ${entry.best}`;
+    bestLine.className = 'dim';
+  }
+  answersDiv.innerHTML = '';
+  results.forEach((result) => {
+    const row = document.createElement('div');
+    row.className = 'answer-row';
+    const title = document.createElement('span');
+    title.className = `answer-title ${result.titleDone ? 'good' : 'bad'}`;
+    title.textContent = `${result.titleDone ? '✓' : '✗'} ${result.title}`;
+    const artist = document.createElement('span');
+    artist.className = `answer-artist ${result.artistDone ? 'good' : 'bad'}`;
+    artist.textContent = `${result.artistDone ? '✓' : '✗'} ${result.artist}`;
+    const points = document.createElement('span');
+    points.className = 'answer-points';
+    const bonusMarks = `${result.speedBonus ? '⚡' : ''}${result.streakBonus ? '🔥' : ''}`;
+    points.textContent = `${bonusMarks}+${result.points}`;
+    row.appendChild(title);
+    row.appendChild(artist);
+    row.appendChild(points);
+    answersDiv.appendChild(row);
+  });
+  renderInsights();
+  showScreen(endScreen);
+}
+
+function lockInput(input) {
+  input.disabled = true;
+  input.classList.add('locked');
+}
+
+function checkGuesses() {
+  const track = gameTracks[round];
+  let hit = false;
+  if (!titleDone && normalize(titleInput.value) &&
+      normalize(titleInput.value) === normalize(track.name)) {
+    titleDone = true;
+    titleResolved = true;
+    lockInput(titleInput);
+    hit = true;
+  }
+  if (!artistDone && normalize(artistInput.value) &&
+      artistMatches(normalize(artistInput.value), track.artist)) {
+    artistDone = true;
+    artistResolved = true;
+    lockInput(artistInput);
+    hit = true;
+  }
+  if (titleDone && artistDone) {
+    endRound();
+    return;
+  }
+  if (hit) {
+    feedback.textContent = titleDone ? 'Title locked — who is it?' : 'Artist locked — what song?';
+    feedback.className = 'good';
+    (titleDone ? artistInput : titleInput).focus();
+  } else {
+    feedback.textContent = 'Not it — keep guessing!';
+    feedback.className = 'bad';
+  }
+}
+
+[titleInput, artistInput].forEach((input) => {
+  input.addEventListener('keydown', (evt) => {
+    if (evt.key !== 'Enter' || roundOver) {
+      return;
+    }
+    checkGuesses();
+  });
+});
+
+replayButton.addEventListener('click', () => {
+  if (roundOver) {
+    return;
+  }
+  player.currentTime = clipStart;
+  player.play();
+  scheduleShortStop();
+});
+
+startButton.addEventListener('click', startGame);
+againButton.addEventListener('click', startGame);
+setupButton.addEventListener('click', () => {
+  updateMatchCount();
+  updateHistoryLine();
+  showScreen(startScreen);
+});
+  </script>
+  </body>
+</html>

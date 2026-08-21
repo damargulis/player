@@ -138,6 +138,63 @@ function resetLibrary() {
   extEvt.reply("reset-library");
 }
 
+let gameWindow = null;
+
+/** Opens the Name That Tune game window. */
+function openNameThatTune() {
+  if (gameWindow) {
+    gameWindow.focus();
+    return;
+  }
+  gameWindow = new BrowserWindow({
+    height: 640,
+    webPreferences: {
+      contextIsolation: false,
+      nodeIntegration: true,
+      webSecurity: false,
+    },
+    width: 520,
+  });
+  gameWindow.loadURL(`file://${path.join(__dirname, "./name_that_tune.html")}`);
+  gameWindow.on("closed", () => gameWindow = null);
+}
+
+// The game window asks for playable tracks; proxy through the renderer,
+// which owns the library, like the mobile API endpoints do.
+ipcMain.on("game-get-tracks", () => {
+  ipcMain.once("game-tracks", (evt, data) => {
+    if (gameWindow) {
+      gameWindow.webContents.send("game-tracks", data);
+    }
+  });
+  extEvt.reply("get-game-tracks");
+});
+
+// mirrors DATA_DIR in src/constants.tsx
+function gameScoresFile() {
+  const dataDir = isDev ? path.resolve("data") : path.join(app.getPath("userData"), "data");
+  return path.join(dataDir, "tune_scores.json");
+}
+
+ipcMain.on("game-get-scores", (evt) => {
+  let scores = {};
+  try {
+    scores = JSON.parse(fs.readFileSync(gameScoresFile(), "utf8"));
+  } catch (err) {
+    // no scores saved yet
+  }
+  evt.reply("game-scores", scores);
+});
+
+ipcMain.on("game-save-scores", (evt, scores) => {
+  try {
+    fs.mkdirSync(path.dirname(gameScoresFile()), {recursive: true});
+    fs.writeFileSync(gameScoresFile(), JSON.stringify(scores));
+  } catch (err) {
+    // scores are best-effort; losing one save is fine
+  }
+});
+
 /**
  * Start running an extension.
  * @param {string} type The type of extension to run.
@@ -177,6 +234,8 @@ function createWindow() {
     {label: "Wikipedia", click: () => runExtension("wikipedia")},
     {label: "Genius", click: () => runExtension("genius")},
     {label: "MusicBrainz", click: () => runExtension("musicbrainz")},
+    {type: "separator"},
+    {label: "Name That Tune", click: () => openNameThatTune()},
   ],
   }));
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));

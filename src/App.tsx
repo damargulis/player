@@ -1,6 +1,6 @@
 import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist,
   updateLibrary, updateTime, updateTrack} from './redux/actions';
-import {Album, Artist, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
+import {Album, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import './App.css';
 import {BACKUP_TIME, DATA_DIR} from './constants';
 import {ipcRenderer} from 'electron';
@@ -22,6 +22,7 @@ import {
   getAllTrackIds,
   getArtistsByIds,
   getCurrentTrack,
+  getGenresByIds,
   getIsPlaying,
   getSetTime,
   getSyncedPlaylists,
@@ -37,6 +38,7 @@ interface StateProps {
   setTime?: number;
   getArtistsByIds(artistIds: string[]): Artist[];
   getAlbumsByIds(albumIds: string[]): Album[];
+  getGenresByIds(genreIds: string[]): Genre[];
   runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   runMusicBrainzExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
@@ -146,6 +148,25 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('get-track', (evt, trackId) => {
       const data = this.props.getTrackById(trackId);
       ipcRenderer.send('get-track-' + trackId, data);
+    });
+    ipcRenderer.on('get-game-tracks', () => {
+      const gameTracks = this.props.getAllTrackIds().map((trackId) => {
+        const track = this.props.getTrackById(trackId);
+        const artist = this.props.getArtistsByIds(track.artistIds)
+          .map((artistData) => artistData.name).join(', ');
+        const genres = this.props.getGenresByIds(track.genreIds)
+          .filter(Boolean).map((genre) => genre.name);
+        return {
+          artist,
+          duration: track.duration,
+          filePath: track.filePath,
+          genres,
+          name: track.name,
+          playCount: track.playCount,
+          year: track.year,
+        };
+      });
+      ipcRenderer.send('game-tracks', gameTracks);
     });
     ipcRenderer.on('get-artist', (evt, artistId) => {
       const artist = this.props.getArtistsByIds([artistId])[0];
@@ -313,6 +334,7 @@ function mapStateToProps(store: RootState): StateProps {
     getAllTrackIds: () => getAllTrackIds(store),
     getArtistsByIds: (artistIds) => getArtistsByIds(store, artistIds),
     getAlbumsByIds: (albumIds) => getAlbumsByIds(store, albumIds),
+    getGenresByIds: (genreIds) => getGenresByIds(store, genreIds),
     getTrackById: (trackId) => getTrackById(store, trackId),
   };
 }
