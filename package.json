@@ -23,7 +23,7 @@
     "invariant": "^2.2.4",
     "jsmediatags": "^3.9.2",
     "node-gyp": "^6.0.0",
-    "plist": "^3.0.4",
+    "plist": "^3.0.5",
     "react": "^16.9.0",
     "react-beautiful-dnd": "^12.2.0",
     "react-dom": "^16.9.0",
