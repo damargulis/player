@@ -221,6 +221,30 @@
         padding: 4px 2px;
       }
       .insight-rounds { color: var(--text-dim); }
+      #giveup-button {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-dim);
+        font-size: 12px;
+        font-weight: 400;
+        margin: 12px auto 0 auto;
+        padding: 6px 16px;
+      }
+      #giveup-button:hover:enabled {
+        background: var(--surface);
+        border-color: var(--danger);
+        color: var(--danger);
+      }
+      #reveal-art {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        display: none;
+        height: 140px;
+        margin: 12px auto 0 auto;
+        object-fit: cover;
+        width: 140px;
+      }
       #feedback {
         font-size: 14px;
         margin-top: 12px;
@@ -351,6 +375,8 @@
           <div class="choice-grid" id="artist-choices"></div>
         </div>
         <div id="feedback"></div>
+        <img id="reveal-art" alt="album art">
+        <button id="giveup-button" type="button">Give up on this one</button>
       </div>
     </div>
 
@@ -370,6 +396,7 @@
 
   <script>
 const electron = window.require('electron');
+const nodePath = window.require('path');
 
 const ROUNDS = 10;
 const ROUND_MS = 20000;
@@ -411,6 +438,8 @@ const timerInner = document.getElementById('timer-inner');
 const titleInput = document.getElementById('guess-title');
 const artistInput = document.getElementById('guess-artist');
 const feedback = document.getElementById('feedback');
+const revealArt = document.getElementById('reveal-art');
+const giveupButton = document.getElementById('giveup-button');
 const replayButton = document.getElementById('replay-button');
 const titleChoices = document.getElementById('title-choices');
 const artistChoices = document.getElementById('artist-choices');
@@ -447,11 +476,12 @@ function showScreen(screen) {
 }
 
 // punctuation- and case-insensitive compare; curly quotes count as straight
+// and the word "the" is optional ("Beatles" matches "The Beatles")
 function normalize(str) {
-  return (str || '')
-    .toLowerCase()
-    .replace(/[‘’ʼ]/g, "'")
-    .replace(/[^a-z0-9]/g, '');
+  const base = (str || '').toLowerCase().replace(/[‘’ʼ]/g, "'");
+  const stripped = base.replace(/\bthe\b/g, '').replace(/[^a-z0-9]/g, '');
+  // titles made entirely of "the" (hi, The The) fall back to the full form
+  return stripped || base.replace(/[^a-z0-9]/g, '');
 }
 
 // "A, B" credits accept the full string or any single artist
@@ -737,6 +767,8 @@ function startRound() {
   timerInner.classList.remove('low');
   feedback.textContent = 'Listen…';
   feedback.className = 'dim';
+  revealArt.style.display = 'none';
+  giveupButton.style.visibility = 'visible';
   if (currentMode === 'choices') {
     const track = gameTracks[round];
     buildChoiceButtons(titleChoices, track.name, (decoy) => decoy.name, pickTitle);
@@ -837,6 +869,11 @@ function endRound() {
     feedback.textContent = `${points ? `+${points} — ` : ''}It was: ${track.name} — ${track.artist}`;
     feedback.className = points ? 'dim' : 'bad';
   }
+  giveupButton.style.visibility = 'hidden';
+  if (track.artFile) {
+    revealArt.src = `file://${nodePath.resolve(track.artFile)}`;
+    revealArt.style.display = 'block';
+  }
   results.push({
     artist: track.artist,
     artistDone,
@@ -856,7 +893,7 @@ function endRound() {
     } else {
       showResults();
     }
-  }, perfect ? 1800 : 2800);
+  }, perfect ? 2200 : 3200);
 }
 
 /** Folds this game's rounds into all-time per-genre/per-decade accuracy. */
@@ -993,6 +1030,12 @@ function checkGuesses() {
     }
     checkGuesses();
   });
+});
+
+giveupButton.addEventListener('click', () => {
+  if (!roundOver) {
+    endRound();
+  }
 });
 
 replayButton.addEventListener('click', () => {

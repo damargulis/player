@@ -156,7 +156,9 @@ class App extends React.Component<AppProps, AppState> {
           .map((artistData) => artistData.name).join(', ');
         const genres = this.props.getGenresByIds(track.genreIds)
           .filter(Boolean).map((genre) => genre.name);
+        const album = this.props.getAlbumsByIds(track.albumIds)[0];
         return {
+          artFile: album && album.albumArtFile,
           artist,
           duration: track.duration,
           filePath: track.filePath,

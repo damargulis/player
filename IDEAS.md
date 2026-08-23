@@ -32,3 +32,23 @@ score history, and all-time per-genre/per-decade insights on the end screen.
 - **Remote library browsing** — desktop-side socket actions like `playAlbum`,
   `queueTrack`, and `search` so the phone can browse and queue on the desktop
   from the couch.
+
+## More games
+
+- **Timeline (Hitster-style)** — a clip plays and you place it chronologically
+  on a growing timeline of your previous cards; three misplacements ends the
+  run. Uses the release years the extensions already fetched.
+- **Heardle mode** — 1 second of the intro, each wrong guess/unlock buys more
+  (2s, 4s, 7s…) for fewer points. Pairs with the daily-challenge seed.
+- **Higher or Lower** — two songs: which have *you* played more? Chain to a
+  high score. Variant: which was released first?
+- **Guess the year** — clip plays, type a year, points scale with closeness.
+  Cheap: one new mode pill on the existing game.
+- **Cover reveal** — album art starts pixelated and sharpens over 20s; name
+  the album or artist before it's clear. No audio needed.
+- **Personal "Wrapped" quiz** — questions generated from playCount/playDate/
+  dateAdded/favorites: "your most-played track of 2019?", "which did you
+  favorite in 2021?" Only playable with your library, which is the charm.
+- **Pass-the-laptop party wrapper** — N players alternate rounds of any mode,
+  per-player scores, winner at the end. The cheap precursor to
+  phones-as-buzzers.
