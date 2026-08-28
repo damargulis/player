@@ -2,6 +2,7 @@ import {
   CHANGE_VOLUME,
   CurrentlyPlayingActionTypes,
   CurrentlyPlayingState,
+  DJ_QUEUE_UPDATED,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
@@ -17,6 +18,7 @@ import EmptyPlaylist from '../../playlist/EmptyPlaylist';
 const initialState: CurrentlyPlayingState = {
   isPlaying: false,
   playlist: new EmptyPlaylist(),
+  queueVersion: 0,
   time: 0,
   volume: DEFAULT_VOLUME,
 };
@@ -74,6 +76,11 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
       return Object.assign({}, state, {
         currentlyPlayingId: prevId,
         isPlaying: true,
+      });
+    }
+    case DJ_QUEUE_UPDATED: {
+      return Object.assign({}, state, {
+        queueVersion: state.queueVersion + 1,
       });
     }
     case PLAY_PAUSE: {

@@ -29,6 +29,7 @@ import {
   getTrackById,
   getVolume,
 } from './redux/selectors';
+import djSession, {MCP_TOOLS} from './dj/session';
 import {RootState} from './redux/store';
 
 interface StateProps {
@@ -144,6 +145,12 @@ class App extends React.Component<AppProps, AppState> {
         }
       });
       ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
+    });
+    ipcRenderer.on('dj-get-tools', () => {
+      ipcRenderer.send('dj-tools', MCP_TOOLS);
+    });
+    ipcRenderer.on('dj-run-tool', (evt, req: {id: number; name: string; input: Record<string, unknown>}) => {
+      ipcRenderer.send(`dj-tool-result-${req.id}`, djSession.runExternalTool(req.name, req.input));
     });
     ipcRenderer.on('get-track', (evt, trackId) => {
       const data = this.props.getTrackById(trackId);

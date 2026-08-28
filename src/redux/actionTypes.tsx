@@ -22,6 +22,7 @@ export const PREV_TRACK = 'PREV_TRACK';
 export const PREV_ALBUM = 'PREV_ALBUM';
 export const PLAY_PAUSE = 'PLAY_PAUSE';
 export const SET_TIME = 'SET_TIME';
+export const DJ_QUEUE_UPDATED = 'DJ_QUEUE_UPDATED';
 
 export interface Playlist {
   name: string;
@@ -145,6 +146,8 @@ export interface CurrentlyPlayingState {
   currentlyPlayingId?: string;
   isPlaying: boolean;
   setTime?: number;
+  /** Bumped whenever the DJ rewrites the queue in place, so queue views re-render. */
+  queueVersion: number;
 }
 
 export interface SettingsState {
@@ -202,6 +205,10 @@ interface SetPlaylistAction {
 
 interface PlayPauseAction {
   type: typeof PLAY_PAUSE;
+}
+
+interface DJQueueUpdatedAction {
+  type: typeof DJ_QUEUE_UPDATED;
 }
 
 interface SetTimeAction {
@@ -319,7 +326,7 @@ interface AddToPlaylist {
 }
 
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
-  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction;
+  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction | DJQueueUpdatedAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
   | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup | DeleteTrack;
 export type SettingsActionTypes = SetGenresAction;

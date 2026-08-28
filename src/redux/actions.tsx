@@ -7,6 +7,7 @@ import {
   DELETE_ALBUM,
   DELETE_ARTIST,
   DELETE_TRACK,
+  DJ_QUEUE_UPDATED,
   LibraryInfo,
   LibraryState,
   Metadata,
@@ -81,6 +82,10 @@ export const prevAlbum = () => ({
 
 export const playPause = () => ({
   type: PLAY_PAUSE,
+});
+
+export const djQueueUpdated = () => ({
+  type: DJ_QUEUE_UPDATED,
 });
 
 export const setTime = (time: number) => ({

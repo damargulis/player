@@ -315,3 +315,7 @@ export function getWarningsFromAlbum(store: RootState, album?: Album): TrackWarn
 export function getArtistByName(store: RootState, name: string): Artist | undefined {
   return Object.values(store.library.artists).find((artist) => artist.name === name);
 }
+
+export function getQueueVersion(store: RootState): number {
+  return store.currentlyPlaying.queueVersion;
+}

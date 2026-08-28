@@ -6,8 +6,8 @@ import {
 } from '../../redux/actionTypes';
 import {DATA_DIR} from '../../constants';
 import {ipcRenderer} from 'electron';
+import {readEnvValue} from '../../envFile';
 import PromisePool from 'es6-promise-pool';
-import fs from 'fs';
 import {
   getArtistById,
   getArtistsByIds,
@@ -23,25 +23,9 @@ const SEARCH_URL = `${BASE_URL}search?q=`;
 const TRACK_URL = `${BASE_URL}songs/`;
 const TOKEN_KEY = 'GENIUS_ACCESS_TOKEN';
 
-function readTokenFrom(filePath: string): string | undefined {
-  try {
-    const line = fs.readFileSync(filePath, 'utf8').split('\n')
-      .find((envLine) => envLine.startsWith(`${TOKEN_KEY}=`));
-    return line ? line.slice(TOKEN_KEY.length + 1).trim() : undefined;
-  } catch (err) {
-    return undefined;
-  }
-}
-
-let cachedToken: string | undefined;
-
 /** Reads the Genius API token from .env.local (dev) or DATA_DIR/.env (packaged). */
 function getAccessToken(): string | undefined {
-  if (cachedToken === undefined) {
-    cachedToken = readTokenFrom('.env.local') || readTokenFrom('.env') ||
-      readTokenFrom(`${DATA_DIR}/.env`) || '';
-  }
-  return cachedToken || undefined;
+  return readEnvValue(TOKEN_KEY);
 }
 
 interface Result {

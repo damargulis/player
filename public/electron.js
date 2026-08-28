@@ -291,6 +291,31 @@ ipcMain.on("controller-state", (evt, state) => {
   lastState = state;
 });
 
+// --- DJ bridge: lets dj-mcp/server.js (run by Claude Code over MCP) drive the queue.
+// Tools are defined and executed in the renderer (src/dj/tools.tsx); this just proxies.
+let djRequestId = 0;
+
+expressApp.get("/dj/tools", (req, res) => {
+  if (!extEvt) {
+    return res.status(503).json({error: "app not ready"});
+  }
+  ipcMain.once("dj-tools", (evt, tools) => {
+    res.json(tools);
+  });
+  extEvt.reply("dj-get-tools");
+});
+
+expressApp.post("/dj/tool", express.json(), (req, res) => {
+  if (!extEvt) {
+    return res.status(503).json({error: "app not ready"});
+  }
+  const id = ++djRequestId;
+  ipcMain.once("dj-tool-result-" + id, (evt, outcome) => {
+    res.json(outcome);
+  });
+  extEvt.reply("dj-run-tool", {id, name: req.body.name, input: req.body.input || {}});
+});
+
 expressApp.get("/start-sync", (req, res) => {
   ipcMain.once("synced-playlists", (evt, data) => {
     res.send(JSON.stringify(data));

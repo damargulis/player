@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mymusic-dj": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["dj-mcp/server.js"]
+    }
+  }
+}
