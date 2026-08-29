@@ -238,3 +238,65 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.dj-album-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 6px;
+  margin-top: 4px;
+  background: var(--surface-hover);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.dj-album-header.now {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  margin-top: 0;
+}
+
+.dj-album-art {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+
+.dj-album-header .meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.dj-album-header .title {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dj-album-header .artist {
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dj-album-header .detail {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dj-queue-row.in-album {
+  padding-left: 34px;
+}
+
+.dj-queue-row.in-album .index {
+  width: 14px;
+}

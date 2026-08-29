@@ -1,6 +1,6 @@
 import EmptyPlaylist from './EmptyPlaylist';
 
-interface QueueEntry {
+export interface QueueEntry {
   id: string;
   /** Set when the track was queued as part of a whole album; drives the skip/prev-album buttons. */
   albumId?: string;
@@ -94,6 +94,17 @@ export default class DJPlaylist extends EmptyPlaylist {
   /** Tracks that will play after the current one, in order. */
   public getUpcoming(): string[] {
     return this.forwardEntries().map((entry) => entry.id);
+  }
+
+  /** Like getUpcoming, but with album tags — lets the queue UI group whole-album runs. */
+  public getUpcomingEntries(): QueueEntry[] {
+    return this.forwardEntries().map((entry) => Object.assign({}, entry));
+  }
+
+  /** The entry for the current track, album tag included. */
+  public getCurrentEntry(): QueueEntry | undefined {
+    const entry = this.history[this.current];
+    return entry && Object.assign({}, entry);
   }
 
   /** Tracks played so far in this session, oldest first, including the current one. */

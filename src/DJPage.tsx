@@ -1,14 +1,16 @@
 import {djQueueUpdated} from './redux/actions';
-import {Track} from './redux/actionTypes';
+import {Album, Track} from './redux/actionTypes';
 import {apiKeyHelp, getApiKey} from './dj/api';
+import ArtImg from './ArtImg';
 import './DJPage.css';
-import DJPlaylist from './playlist/DJPlaylist';
+import DJPlaylist, {QueueEntry} from './playlist/DJPlaylist';
 import {shell} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import {getMemoryStore, MemoryFile} from './dj/memory';
+import defaultAlbum from './resources/missing_album.png';
 import React from 'react';
 import {connect} from 'react-redux';
-import {getArtistsByIds, getCurrentTrackId, getQueueVersion, getTrackById} from './redux/selectors';
+import {getAlbumById, getArtistsByIds, getCurrentTrackId, getQueueVersion, getTrackById} from './redux/selectors';
 import session, {DJSessionState} from './dj/session';
 import {RootState} from './redux/store';
 import {toTime} from './utils';
@@ -18,6 +20,7 @@ interface StateProps {
   currentTrackId?: string;
   queueVersion: number;
   getTrackById(id: string): Track;
+  getAlbumById(id: string): Album;
   getArtistNames(ids: string[]): string;
 }
 
@@ -123,21 +126,98 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
       );
     }
     const history = playlist.getHistory();
-    const currentId = history[history.length - 1];
     const earlier = history.slice(0, -1);
-    const upcoming = playlist.getUpcoming();
+    const current = playlist.getCurrentEntry();
+    const upcoming = playlist.getUpcomingEntries();
     return (
       <div className="dj-queue">
         <div className="dj-queue-list">
           {earlier.length > 0 && <div className="dj-queue-section">Played</div>}
           {earlier.map((id, i) => this.renderRow(id, `h${i}`, 'history'))}
           <div className="dj-queue-section">Now playing</div>
-          {currentId ? this.renderRow(currentId, 'now', 'now') :
-            <div className="dj-queue-empty">Nothing playing yet.</div>}
+          {current ? (
+            <>
+              {current.albumId !== undefined &&
+                this.renderAlbumHeader(current.albumId, 'now', this.albumProgress(current, earlier, upcoming))}
+              {this.renderRow(current.id, 'now', 'now', undefined, current.albumId !== undefined)}
+            </>
+          ) : <div className="dj-queue-empty">Nothing playing yet.</div>}
           <div className="dj-queue-section">Up next ({upcoming.length})</div>
-          {upcoming.length ? upcoming.map((id, i) => this.renderRow(id, `u${i}`, 'upcoming', i + 1)) :
+          {upcoming.length ? this.renderUpcoming(upcoming, current) :
             <div className="dj-queue-empty">Queue is empty.</div>}
         </div>
+      </div>
+    );
+  }
+
+  /** "track m of n" for the album run the current track belongs to. */
+  private albumProgress(current: QueueEntry, earlier: string[], upcoming: QueueEntry[]): string {
+    const playlist = this.props.playlist as DJPlaylist;
+    const played = playlist.getHistory();
+    let before = 0;
+    for (let i = played.length - 2; i >= 0; i--) {
+      // Count the current album's already-played run right behind us.
+      const track = this.props.getTrackById(played[i]);
+      if (!track || !current.albumId || !track.albumIds.includes(current.albumId)) {
+        break;
+      }
+      before++;
+    }
+    let after = 0;
+    while (after < upcoming.length && upcoming[after].albumId === current.albumId) {
+      after++;
+    }
+    return `track ${before + 1} of ${before + 1 + after}`;
+  }
+
+  /** Renders upcoming entries, folding consecutive same-album runs under an album header. */
+  private renderUpcoming(entries: QueueEntry[], current?: QueueEntry): JSX.Element[] {
+    const out: JSX.Element[] = [];
+    let i = 0;
+    while (i < entries.length) {
+      const entry = entries[i];
+      if (entry.albumId === undefined) {
+        out.push(this.renderRow(entry.id, `u${i}`, 'upcoming', i + 1));
+        i++;
+        continue;
+      }
+      let end = i;
+      while (end < entries.length && entries[end].albumId === entry.albumId) {
+        end++;
+      }
+      const run = entries.slice(i, end);
+      const continuing = i === 0 && current !== undefined && current.albumId === entry.albumId;
+      out.push(this.renderAlbumHeader(entry.albumId, `ua${i}`,
+        continuing ? `${run.length} more track${run.length === 1 ? '' : 's'}` : `${run.length} tracks`));
+      run.forEach((albumEntry, j) => {
+        out.push(this.renderRow(albumEntry.id, `u${i + j}`, 'upcoming', i + j + 1, true));
+      });
+      i = end;
+    }
+    return out;
+  }
+
+  private renderAlbumHeader(albumId: string, key: string, detail: string): JSX.Element {
+    const album = this.props.getAlbumById(albumId);
+    if (!album) {
+      return <div key={`ah-${key}`} className="dj-album-header">(unknown album)</div>;
+    }
+    const artist = this.props.getArtistNames(album.artistIds);
+    return (
+      <div key={`ah-${key}`} className={`dj-album-header ${key === 'now' ? 'now' : ''}`}>
+        <ArtImg
+          alt="album art"
+          className="dj-album-art"
+          fallback={defaultAlbum}
+          file={album.albumArtFile}
+          height="36"
+          width="36"
+        />
+        <span className="meta">
+          <div className="title">{album.name}</div>
+          <div className="artist">{artist}{album.year ? ` · ${album.year}` : ''}</div>
+        </span>
+        <span className="detail">{key === 'now' ? `Album · ${detail}` : detail}</span>
       </div>
     );
   }
@@ -174,13 +254,14 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
     this.setState({memoryFiles: readMemoryFiles(), showMemory: !this.state.showMemory});
   }
 
-  private renderRow(id: string, key: string, kind: 'history' | 'now' | 'upcoming', index?: number): JSX.Element {
+  private renderRow(id: string, key: string, kind: 'history' | 'now' | 'upcoming', index?: number,
+                    inAlbum?: boolean): JSX.Element {
     const track = this.props.getTrackById(id);
     if (!track) {
       return <div key={key} className="dj-queue-row">(missing track)</div>;
     }
     return (
-      <div key={key} className={`dj-queue-row ${kind}`}>
+      <div key={key} className={`dj-queue-row ${kind}${inAlbum ? ' in-album' : ''}`}>
         <span className="index">{kind === 'now' ? '▶' : index || ''}</span>
         <span className="meta">
           <div className="title">{track.name}</div>
@@ -237,6 +318,7 @@ function readMemoryFiles(): MemoryFile[] {
 function mapStateToProps(store: RootState): StateProps {
   return {
     currentTrackId: getCurrentTrackId(store),
+    getAlbumById: (id: string) => getAlbumById(store, id),
     getArtistNames: (ids: string[]) => getArtistsByIds(store, ids).filter(Boolean).map((a) => a.name).join(', '),
     getTrackById: (id: string) => getTrackById(store, id),
     playlist: store.currentlyPlaying.playlist,
