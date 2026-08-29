@@ -1,4 +1,4 @@
-import {Album, Artist, DJ_QUEUE_UPDATED, NEXT_TRACK, Track} from '../redux/actionTypes';
+import {Album, Artist, DJ_QUEUE_UPDATED, NEXT_TRACK, SET_PLAYLIST, Track} from '../redux/actionTypes';
 import {Tool} from './api';
 import DJPlaylist from '../playlist/DJPlaylist';
 import {
@@ -249,6 +249,34 @@ function getPlaylist(state: RootState): DJPlaylist | undefined {
   return playlist instanceof DJPlaylist ? playlist : undefined;
 }
 
+/**
+ * Hands the queue to the DJ, creating the DJPlaylist on first use. Every tool that mutates the
+ * queue calls this, so the DJ can start a set from a cold app with nothing playing — and so there
+ * is no list of "queue tools" to keep in sync when a new one is added.
+ */
+export function ensureDJPlaylist(): DJPlaylist {
+  const state = store.getState();
+  const existing = getPlaylist(state);
+  if (existing) {
+    return existing;
+  }
+  // Keep whatever is on right now as the first DJ track. Passing play=true re-selects the same
+  // track id, so the audio element keeps its position instead of reloading.
+  const currentId = state.currentlyPlaying.currentlyPlayingId;
+  const playlist = new DJPlaylist(currentId || undefined);
+  store.dispatch({payload: {playlist, play: Boolean(currentId)}, type: SET_PLAYLIST});
+  return playlist;
+}
+
+/** Starts playback when the DJ has queued something but nothing is playing (e.g. a cold start). */
+export function startIfIdle(): void {
+  const state = store.getState();
+  const playlist = getPlaylist(state);
+  if (playlist && !state.currentlyPlaying.currentlyPlayingId && playlist.getUpcoming().length) {
+    store.dispatch({type: NEXT_TRACK});
+  }
+}
+
 function searchLibrary(state: RootState, input: Record<string, unknown>): ToolOutcome {
   const query = str(input, 'query');
   if (!query) {
@@ -479,10 +507,7 @@ function queueAlbums(input: Record<string, unknown>): ToolOutcome {
   if (!valid.length) {
     return {content: `None of those album ids exist: ${invalid.join(', ') || '(none given)'}`, isError: true};
   }
-  const playlist = state.currentlyPlaying.playlist;
-  if (!(playlist instanceof DJPlaylist)) {
-    return {content: 'DJ queue is not active.', isError: true};
-  }
+  const playlist = ensureDJPlaylist();
   const position = str(input, 'position') === 'next' ? 'next' : 'end';
   // 'next' with several albums: insert in reverse so the first listed album plays first.
   const ordered = position === 'next' ? valid.slice().reverse() : valid;
@@ -491,6 +516,7 @@ function queueAlbums(input: Record<string, unknown>): ToolOutcome {
     playlist.addAlbum(album.trackIds.filter((trackId) => state.library.tracks[trackId]), albumId, position);
   });
   store.dispatch({type: DJ_QUEUE_UPDATED});
+  startIfIdle();
   const names = valid.map((id) => getAlbumById(state, id).name).join('; ');
   const warning = invalid.length ? `Ignored unknown album ids: ${invalid.join(', ')}\n` : '';
   const summary = `Queued ${valid.length} album(s), ${trackIds.length} tracks, in album order (${position}): ${names}.`;
@@ -530,16 +556,13 @@ type QueueMutation = (playlist: DJPlaylist, ids: string[]) => void;
 
 function mutateQueue(input: Record<string, unknown>, mutate: QueueMutation): ToolOutcome {
   const state = store.getState();
-  const playlist = getPlaylist(state);
-  if (!playlist) {
-    return {content: 'DJ queue is not active.', isError: true};
-  }
   const {valid, invalid} = validateIds(state, strList(input, 'track_ids'));
   if (!valid.length && invalid.length) {
     return {content: `None of those ids exist: ${invalid.join(', ')}`, isError: true};
   }
-  mutate(playlist, valid);
+  mutate(ensureDJPlaylist(), valid);
   store.dispatch({type: DJ_QUEUE_UPDATED});
+  startIfIdle();
   const warning = invalid.length ? `Ignored unknown ids: ${invalid.join(', ')}\n` : '';
   return {content: `${warning}${describeQueue(store.getState())}`, queueChanged: true};
 }

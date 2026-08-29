@@ -1,10 +1,9 @@
-import {NEXT_TRACK, SET_PLAYLIST} from '../redux/actionTypes';
 import {ContentBlock, createMessage, DJApiError, MessageParam, ToolDefinition, ToolResultBlock, ToolUseBlock} from './api';
 import DJPlaylist from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
 import {getTrackById} from '../redux/selectors';
 import store from '../redux/store';
-import {describeQueue, DJ_TOOLS, executeTool, formatTrack, ToolOutcome} from './tools';
+import {describeQueue, DJ_TOOLS, ensureDJPlaylist, executeTool, formatTrack, startIfIdle, ToolOutcome} from './tools';
 import {toTime} from '../utils';
 
 export type EntryRole = 'user' | 'dj' | 'status' | 'error';
@@ -26,7 +25,6 @@ const LOW_WATER_MARK = 2;
 /** Turns older than this get their tool results blanked to keep the context small. */
 const KEEP_TOOL_RESULT_TURNS = 2;
 const ELIDED = '[earlier tool output elided]';
-const QUEUE_TOOLS = ['set_queue', 'add_to_queue', 'remove_from_queue', 'skip_current'];
 const MEMORY_TOOL_NAME = 'memory';
 /** The API path gets Anthropic's native memory tool; the MCP path gets the same backend as a plain tool. */
 const NATIVE_MEMORY_TOOL: ToolDefinition = {type: 'memory_20250818', name: MEMORY_TOOL_NAME};
@@ -117,16 +115,10 @@ class DJSession {
     if (name === '_status') {
       return {content: JSON.stringify(this.getStatus())};
     }
-    if (QUEUE_TOOLS.includes(name)) {
-      this.ensurePlaylist();
-    }
     const outcome = runTool(name, input);
     if (name === 'get_queue' && this.playbackEvents.length) {
       outcome.content = `Since your last check (${formatClock()}):\n${this.playbackEvents.join('\n')}\n\n${outcome.content}`;
       this.playbackEvents = [];
-    }
-    if (outcome.queueChanged) {
-      this.startIfIdle();
     }
     if (name === MEMORY_TOOL_NAME) {
       this.emit(); // memory view in the DJ page re-reads the files
@@ -187,20 +179,6 @@ class DJSession {
     this.emit();
   }
 
-  private ensurePlaylist(): DJPlaylist {
-    const state = store.getState();
-    const existing = state.currentlyPlaying.playlist;
-    if (existing instanceof DJPlaylist) {
-      return existing;
-    }
-    // Take over the queue but keep whatever is on right now as the first DJ track. Passing play=true
-    // re-selects the same track id, so the audio element keeps its position instead of reloading.
-    const currentId = state.currentlyPlaying.currentlyPlayingId;
-    const playlist = new DJPlaylist(currentId || undefined);
-    store.dispatch({payload: {playlist, play: Boolean(currentId)}, type: SET_PLAYLIST});
-    return playlist;
-  }
-
   private buildUserText(text: string, automatic: boolean): string {
     const parts: string[] = [];
     if (this.playbackEvents.length) {
@@ -219,7 +197,7 @@ class DJSession {
   }
 
   private async runTurn(text: string, automatic: boolean): Promise<void> {
-    this.ensurePlaylist();
+    ensureDJPlaylist();
     this.addEntry(automatic ? 'status' : 'user', automatic ? 'Queue running low — asking the DJ for more…' : text);
     this.elideOldToolResults();
     this.messages.push({content: [{type: 'text', text: this.buildUserText(text, automatic)}], role: 'user'});
@@ -256,16 +234,7 @@ class DJSession {
       const message = err instanceof DJApiError ? `API error ${err.status}: ${err.message}` : String(err);
       this.addEntry('error', message);
     }
-    this.startIfIdle();
-  }
-
-  /** If nothing is playing but the DJ queued something, kick off playback. */
-  private startIfIdle(): void {
-    const state = store.getState();
-    const playlist = state.currentlyPlaying.playlist;
-    if (playlist instanceof DJPlaylist && !state.currentlyPlaying.currentlyPlayingId && playlist.getUpcoming().length) {
-      store.dispatch({type: NEXT_TRACK});
-    }
+    startIfIdle();
   }
 
   /** Blank out tool results from older turns; the queue state they described is stale anyway. */
