@@ -15,8 +15,24 @@ const inFlight = new Map<string, Promise<string | undefined>>();
 type CreateBitmapResized =
   (image: Blob, options: {resizeWidth: number; resizeQuality: string}) => Promise<ImageBitmap>;
 
-function thumbPath(file: string): string {
-  const hash = crypto.createHash('sha1').update(file).digest('hex');
+/**
+ * Thumbs are keyed by path AND mtime: extensions overwrite art files in place
+ * (same shortid path, new bytes), so a path-only key would serve stale art
+ * forever. A changed file simply hashes to a new thumb; the old one is left
+ * behind as a small orphan.
+ */
+function thumbKey(file: string): string {
+  let mtime = 0;
+  try {
+    mtime = fs.statSync(path.resolve(file)).mtimeMs;
+  } catch (err) {
+    // missing file: key on path alone; createThumb will fail and fall back
+  }
+  return `${file}:${mtime}`;
+}
+
+function thumbPath(key: string): string {
+  const hash = crypto.createHash('sha1').update(key).digest('hex');
   return path.join(THUMB_DIR, `${hash}.png`);
 }
 
@@ -25,11 +41,11 @@ function thumbPath(file: string): string {
  * grids while Chromium decodes them. Decode once off the main thread, save a
  * small thumbnail to disk, and serve that ever after.
  */
-async function createThumb(file: string): Promise<string | undefined> {
-  const dest = thumbPath(file);
+async function createThumb(file: string, key: string): Promise<string | undefined> {
+  const dest = thumbPath(key);
   try {
     await fs.promises.access(dest);
-    ready.set(file, dest);
+    ready.set(key, dest);
     return dest;
   } catch {
     // not cached yet; generate below
@@ -53,7 +69,7 @@ async function createThumb(file: string): Promise<string | undefined> {
       return undefined;
     }
     await fs.promises.writeFile(dest, Buffer.from(await blob.arrayBuffer()));
-    ready.set(file, dest);
+    ready.set(key, dest);
     return dest;
   } catch (err) {
     return undefined;
@@ -61,14 +77,15 @@ async function createThumb(file: string): Promise<string | undefined> {
 }
 
 function ensureThumb(file: string): Promise<string | undefined> {
-  const cached = ready.get(file);
+  const key = thumbKey(file);
+  const cached = ready.get(key);
   if (cached) {
     return Promise.resolve(cached);
   }
-  let promise = inFlight.get(file);
+  let promise = inFlight.get(key);
   if (!promise) {
-    promise = createThumb(file);
-    inFlight.set(file, promise);
+    promise = createThumb(file, key);
+    inFlight.set(key, promise);
   }
   return promise;
 }

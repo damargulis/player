@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 
 function capitalize(word: string): string {
@@ -14,7 +15,18 @@ export function formatGenre(genre: string): string {
 }
 
 export function getImgSrc(fileName: string): string {
-  return fileName ? new URL('file://' + path.resolve(fileName)).toString() : '';
+  if (!fileName) {
+    return '';
+  }
+  const url = new URL('file://' + path.resolve(fileName));
+  try {
+    // Cache-buster: extensions overwrite art files in place, and Chromium
+    // caches images by URL, so a bare file:// URL keeps showing the old bytes.
+    url.search = `m=${Math.round(fs.statSync(path.resolve(fileName)).mtimeMs)}`;
+  } catch (err) {
+    // file missing or fs unavailable; plain URL is fine
+  }
+  return url.toString();
 }
 
 interface Nameable {
