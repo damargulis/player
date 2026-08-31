@@ -118,7 +118,7 @@ class DJSession {
     const outcome = runTool(name, input);
     if (name === 'get_queue' && this.playbackEvents.length) {
       outcome.content = `Since your last check (${formatClock()}):\n${this.playbackEvents.join('\n')}\n\n${outcome.content}`;
-      this.playbackEvents = [];
+      this.consumeFeedback();
     }
     if (name === MEMORY_TOOL_NAME) {
       this.emit(); // memory view in the DJ page re-reads the files
@@ -161,6 +161,15 @@ class DJSession {
     this.enqueue(trimmed, false);
   }
 
+  /**
+   * Marks the pending play/skip feedback as delivered. Clearing the skip streak here (rather than on
+   * the next full play) is what stops a single bad patch from waking the DJ over and over.
+   */
+  private consumeFeedback(): void {
+    this.playbackEvents = [];
+    this.recentSkips = 0;
+  }
+
   private enqueue(text: string, automatic: boolean): void {
     this.pending.push({automatic, text});
     if (!this.busy) {
@@ -183,7 +192,7 @@ class DJSession {
     const parts: string[] = [];
     if (this.playbackEvents.length) {
       parts.push(`[Playback update — ${formatClock()}]\n${this.playbackEvents.join('\n')}`);
-      this.playbackEvents = [];
+      this.consumeFeedback();
     }
     if (automatic) {
       parts.push(`[Queue update — ${formatClock()}]\n${text}\n\n${describeQueue(store.getState())}`);

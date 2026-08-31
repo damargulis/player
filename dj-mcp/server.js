@@ -13,6 +13,7 @@ const APPS = {4443: "packaged app", 4444: "dev app"};
 const PINNED_PORT = process.env.MYMUSIC_DJ_PORT ? Number(process.env.MYMUSIC_DJ_PORT) : null;
 const PORTS = PINNED_PORT ? [PINNED_PORT] : [4443, 4444];
 const LOW_WATER_DEFAULT = 2;
+const SKIP_THRESHOLD_DEFAULT = 2;
 const POLL_MS = 5000;
 
 let baseUrl = null;
@@ -71,12 +72,21 @@ async function runAppTool(name, input) {
 }
 
 const WAIT_TOOL = {
-  description: "Block until the upcoming queue runs low, then return the queue (with play/skip feedback). " +
-    "Call this after you've set the queue so you can keep the set going; the listener can interrupt you at " +
-    "any time with a new message. Returns early with a note if the DJ queue stops being active.",
+  description: "Block until the set needs you, then return the queue (with play/skip feedback). Wakes when the " +
+    "upcoming queue runs low OR when the listener skips several tracks in a row, which means the vibe is wrong " +
+    "and you should change direction rather than just top up. Call this after you've set the queue so you can " +
+    "keep the set going; the listener can interrupt you at any time with a new message. Returns early with a " +
+    "note if the DJ queue stops being active.",
   inputSchema: {
     properties: {
-      low_water_mark: {type: "integer", description: `Return when this many or fewer tracks remain (default ${LOW_WATER_DEFAULT})`},
+      low_water_mark: {
+        description: `Wake when this many or fewer tracks remain (default ${LOW_WATER_DEFAULT})`,
+        type: "integer",
+      },
+      skip_threshold: {
+        description: `Wake after this many consecutive skips; 0 disables (default ${SKIP_THRESHOLD_DEFAULT})`,
+        type: "integer",
+      },
       timeout_seconds: {type: "integer", description: "Give up after this long (default 600, max 1500)"},
     },
     type: "object",
@@ -86,12 +96,21 @@ const WAIT_TOOL = {
 
 async function waitForQueueLow(input) {
   const lowWater = Number.isInteger(input.low_water_mark) ? input.low_water_mark : LOW_WATER_DEFAULT;
+  const skipThreshold = Number.isInteger(input.skip_threshold) ? input.skip_threshold : SKIP_THRESHOLD_DEFAULT;
   const timeout = Math.min(1500, Math.max(5, Number(input.timeout_seconds) || 600)) * 1000;
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     const status = JSON.parse((await runAppTool("_status", {})).content);
     if (!status.active) {
       return {content: "The DJ queue is no longer active (something else took over playback).", isError: false};
+    }
+    // get_queue carries the play/skip feedback and clears the skip streak, so each streak wakes you once.
+    if (skipThreshold > 0 && status.recentSkips >= skipThreshold) {
+      const queue = await runAppTool("get_queue", {});
+      queue.content = `Woke you early: ${status.recentSkips} tracks skipped in a row, so the current ` +
+        `direction is not landing. Change what is queued rather than topping it up in the same vein — ` +
+        `use the skipped tracks below as the clue.\n\n${queue.content}`;
+      return queue;
     }
     if (status.upcoming <= lowWater) {
       return runAppTool("get_queue", {});
