@@ -5,6 +5,8 @@ import React from 'react';
 interface OwnProps {
   mbid?: string;
   entityType: 'release-group' | 'artist';
+  /** When given, renders a small Run button inline with the field. */
+  onRun?(): void;
 }
 
 type MusicBrainzLabelProps = OwnProps;
@@ -12,9 +14,18 @@ type MusicBrainzLabelProps = OwnProps;
 export default class MusicBrainzLabel extends React.Component<MusicBrainzLabelProps> {
   render(): JSX.Element {
     return (
-      <div>
+      <div className="metaRow">
         <label>MusicBrainz: </label>
-        <span className="link" onClick={() => this.openMusicBrainz()}>{this.getUrl()}</span>
+        <span className="link metaValue" onClick={() => this.openMusicBrainz()}>{this.getUrl()}</span>
+        {this.props.onRun && (
+          <button
+            className="runExtension"
+            onClick={this.props.onRun}
+            title="Run the MusicBrainz extension for this item"
+          >
+            Run
+          </button>
+        )}
       </div>
     );
   }

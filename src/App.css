@@ -133,3 +133,32 @@ input[type="image"]:disabled {
   font-size: 12px;
   color: #f0a9a5;
 }
+
+/* A metadata field (Wiki / MusicBrainz) with its own small action button inline. */
+.metaRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.metaRow .metaValue {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaRow .runExtension {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 1px 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.metaRow .runExtension:hover:enabled {
+  color: var(--text);
+}

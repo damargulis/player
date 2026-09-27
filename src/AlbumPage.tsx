@@ -105,14 +105,12 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             <div>Total Time: {this.getTotalTime()}</div>
             <div>{this.props.album.year}</div>
             <div>{this.props.album.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ' )}</div>
-            <WikiLabel wikiPage={this.props.album.wikiPage} />
-            <MusicBrainzLabel mbid={this.props.album.mbid} entityType="release-group" />
-            <button onClick={() => this.runWiki()}>
-              Run Wiki Extension
-            </button>
-            <button onClick={() => this.runMusicBrainz()}>
-              Run MusicBrainz Extension
-            </button>
+            <WikiLabel wikiPage={this.props.album.wikiPage} onRun={() => this.runWiki()} />
+            <MusicBrainzLabel
+              mbid={this.props.album.mbid}
+              entityType="release-group"
+              onRun={() => this.runMusicBrainz()}
+            />
           </div>
           <div className="albumPageControls" >
             <button onClick={() => this.playAlbum()} className="playAlbum button-primary" >Play Album</button>

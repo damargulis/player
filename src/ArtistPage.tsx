@@ -85,10 +85,12 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <img alt="artist art" height="100" src={src} width="100" />
               <div>{this.props.artist.name}</div>
               <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
-              <WikiLabel wikiPage={this.props.artist.wikiPage} />
-              <MusicBrainzLabel mbid={this.props.artist.mbid} entityType="artist" />
-              <button onClick={() => this.runWiki()}>Run Wiki Extension</button>
-              <button onClick={() => this.runMusicBrainz()}>Run MusicBrainz Extension</button>
+              <WikiLabel wikiPage={this.props.artist.wikiPage} onRun={() => this.runWiki()} />
+              <MusicBrainzLabel
+                mbid={this.props.artist.mbid}
+                entityType="artist"
+                onRun={() => this.runMusicBrainz()}
+              />
             </div>
             <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
             <button onClick={() => this.deleteArtist()} className="deleteArtist button-danger">Delete Artist</button>
