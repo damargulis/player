@@ -7,7 +7,7 @@ import path from 'path';
 
 export const BACKUP_TIME = 1000 * 60 * 60 * 24;
 
-let isDev;
+let isDev: boolean;
 if (typeof electron === 'string') {
   isDev = true;
 } else {
