@@ -191,7 +191,8 @@ fun MainApp(modifier: Modifier = Modifier,
         Column {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             // the full player has its own controls; hide the mini bar there
-            if (navBackStackEntry?.destination?.route != "player") {
+            val barRoute = navBackStackEntry?.destination?.route
+            if (barRoute != "player" && barRoute != "dj") {
                 NowPlayingBar(onOpen = { navController.navigate("player") })
             }
         BottomNavigation(backgroundColor = com.example.musicnative.ui.theme.Surface) {
@@ -231,7 +232,15 @@ fun MainApp(modifier: Modifier = Modifier,
             modifier = modifier.padding(innerPadding)
         ) {
             composable(route = Screen.Remote.route) {
-                RemoteScreen(connected = isConnected, emit = emit, remoteState = mRemoteState)
+                RemoteScreen(
+                    connected = isConnected,
+                    emit = emit,
+                    remoteState = mRemoteState,
+                    onOpenDj = { navController.navigate("dj") },
+                )
+            }
+            composable(route = "dj") {
+                DJChatScreen(onClose = { navController.popBackStack() })
             }
             composable(route = "player") {
                 LocalPlayerScreen(onClose = { navController.popBackStack() })

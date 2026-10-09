@@ -287,13 +287,6 @@ io.on("connection", (socket) => {
   socket.on("action", (action) => {
     extEvt.reply(action.type, action.data);
   });
-
-  // The phone asks for the transcript when its DJ screen opens.
-  socket.on("dj-sync", () => {
-    if (extEvt) {
-      extEvt.reply("dj-sync");
-    }
-  });
 });
 
 ipcMain.on("controller-state", (evt, state) => {

@@ -172,6 +172,9 @@ object ServerConnection {
         newSocket.on("state") { args ->
             (args.getOrNull(0) as? JSONObject)?.let { remoteState.postValue(it) }
         }
+        newSocket.on("dj-state") { args ->
+            (args.getOrNull(0) as? JSONObject)?.let { DJChatState.update(it) }
+        }
         newSocket.connect()
     }
 

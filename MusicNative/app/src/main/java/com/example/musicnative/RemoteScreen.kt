@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.example.musicnative.components.PillButton
 import com.example.musicnative.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -55,12 +56,28 @@ fun CenteredMessage(text: String) {
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun RemoteScreen(connected: Boolean, emit: (action: String, data: Any?) -> Unit, remoteState: JSONObject) {
+fun RemoteScreen(
+    connected: Boolean,
+    emit: (action: String, data: Any?) -> Unit,
+    remoteState: JSONObject,
+    onOpenDj: () -> Unit,
+) {
     if (!connected) {
         return CenteredMessage("Not connected to the desktop")
     }
     if (!remoteState.has("track") || remoteState.isNull("track")) {
-        return CenteredMessage("Nothing playing")
+        // Nothing queued yet — asking the DJ for something is how you start from cold.
+        return Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+        ) {
+            Text("Nothing playing", color = TextSecondary, fontSize = 16.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            PillButton(text = "Ask the DJ", filled = true, onClick = onOpenDj)
+        }
     }
     val remoteTrack = Track(remoteState.get("track") as JSONObject)
     val remoteArtists = getArtists(remoteState.get("artists") as JSONArray)
@@ -92,13 +109,28 @@ fun RemoteScreen(connected: Boolean, emit: (action: String, data: Any?) -> Unit,
             .padding(horizontal = 20.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            "NOW PLAYING",
-            color = TextSecondary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 2.sp,
-        )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                "NOW PLAYING",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 2.sp,
+                modifier = Modifier.align(Alignment.Center),
+            )
+            Text(
+                "DJ",
+                color = Accent,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(onClick = onOpenDj)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            )
+        }
         Spacer(modifier = Modifier.weight(1f))
         Card(
             shape = RoundedCornerShape(16.dp),
