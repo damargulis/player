@@ -27,4 +27,13 @@ export default class EmptyPlaylist {
   public hasNextAlbum(): boolean {
     return false;
   }
+
+  /**
+   * Track ids already queued after the current one. Used when the DJ takes over so it can
+   * inherit the queue instead of silently discarding it; lazily-generated queues report
+   * only what they have actually committed to.
+   */
+  public getUpcoming(): string[] {
+    return [];
+  }
 }

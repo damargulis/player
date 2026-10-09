@@ -1,3 +1,4 @@
+import activity from './activity';
 import {
   ContentBlock,
   createMessage,
@@ -57,8 +58,10 @@ How it works
 - The library is the listener's own mp3 collection. You can only play tracks that exist in it, and you can only reference them by the ids the tools return. Never invent ids.
 - You know a lot about music: use artist, album, title, year and genre to judge energy, mood, tempo and era. Play counts, skip counts and ♥ favorites tell you what the listener loves. "unplayed" tracks are fair game for discovery but don't lean on them too hard.
 - The queue is live. The current track keeps playing while you rewrite what comes next. set_queue replaces everything after the current track; add_to_queue/remove_from_queue make smaller edits. Prefer editing over replacing when the listener makes a small refinement.
+- now_playing is read-only and safe before you have queued anything — call it first to see what is on, how long the room has been idle or paused, and what the app already had queued (your first edit inherits that rather than discarding it, and never interrupts the current track).
 - When the queue runs low you'll get an automatic "[Queue update]" notice. Top it up (another 6-10 tracks) in the same spirit as the current vibe, then reply in a few words.
-- Each listener message may start with a "[Playback update]" block saying what played fully or was skipped since your last turn. Treat skips as feedback.
+- Each listener message may start with a "[Playback update]" block saying what played fully, what was skipped, and what the listener removed from the queue by hand since your last turn. Skips and especially removals are the strongest feedback you get — react to them rather than re-queueing more of the same.
+- Watch the room line in get_queue/now_playing. A long pause with no input means nobody is listening: don't keep burning through good tracks into an empty room. Rapid skips mean you are wrong right now.
 
 Working style
 - Start by exploring: sample_tracks with a genre/era filter, list_artists for a genre, search_library for specific names. For long stretches (working, studying, a lazy afternoon) or when the listener asks for full albums, think in albums instead: search_albums to browse, then queue_albums — it queues every track in album order so nothing is missed. Two to four albums is a good work session. The library is a few thousand albums, so don't try to list everything. A few well-chosen calls are enough; then set the queue.
@@ -198,9 +201,26 @@ class DJSession {
       isPlaying: state.currentlyPlaying.isPlaying,
       pendingEvents: this.playbackEvents.length,
       recentSkips: this.recentSkips,
+      room: activity.getStatus(),
       remainingSeconds: Math.round(remainingMs / 1000),
       upcoming: upcoming.length,
     };
+  }
+
+  /**
+   * Records that the listener pruned tracks from the queue by hand. Removing a track is strong,
+   * explicit feedback, so the DJ hears about it the same way it hears about skips.
+   */
+  public noteListenerRemoval(trackIds: string[]): void {
+    const state = store.getState();
+    activity.noteListenerInput();
+    trackIds.forEach((id) => {
+      const track = getTrackById(state, id);
+      if (track) {
+        this.playbackEvents.push(`Removed from the queue by the listener: ${formatTrack(state, track)}`);
+      }
+    });
+    this.emit();
   }
 
   public send(text: string): void {
@@ -208,6 +228,7 @@ class DJSession {
     if (!trimmed) {
       return;
     }
+    activity.noteListenerInput();
     this.enqueue(trimmed, false);
   }
 
@@ -388,6 +409,7 @@ class DJSession {
         this.playbackEvents.push(`Played fully: ${formatTrack(state, prev)}`);
       } else {
         this.recentSkips++;
+        activity.noteListenerInput();
         this.playbackEvents.push(`Skipped after ${elapsed}: ${formatTrack(state, prev)}`);
       }
     }

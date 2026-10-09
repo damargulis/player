@@ -3,6 +3,7 @@ import {
   CurrentlyPlayingActionTypes,
   CurrentlyPlayingState,
   DJ_QUEUE_UPDATED,
+  DJ_TAKE_OVER,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
@@ -76,6 +77,14 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
       return Object.assign({}, state, {
         currentlyPlayingId: prevId,
         isPlaying: true,
+      });
+    }
+    case DJ_TAKE_OVER: {
+      // Deliberately leaves currentlyPlayingId, isPlaying and time untouched: the DJ adopts
+      // the track that is already playing rather than re-selecting (and restarting) it.
+      return Object.assign({}, state, {
+        playlist: action.payload.playlist,
+        queueVersion: state.queueVersion + 1,
       });
     }
     case DJ_QUEUE_UPDATED: {

@@ -305,6 +305,7 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
     const playlist = this.props.playlist;
     if (playlist instanceof DJPlaylist) {
       playlist.removeUpcoming([id]);
+      session.noteListenerRemoval([id]);
       this.props.djQueueUpdated();
     }
   }

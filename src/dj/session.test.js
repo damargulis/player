@@ -71,3 +71,23 @@ test('delivering the feedback clears the streak, so one bad patch wakes the DJ o
   playFor(5);
   expect(session.getStatus().recentSkips).toBe(1);
 });
+
+test('hand-pruned tracks are reported to the DJ as explicit feedback', () => {
+  const playlist = store.getState().currentlyPlaying.playlist;
+  playlist.removeUpcoming(['t3']);
+  session.noteListenerRemoval(['t3']);
+
+  const outcome = session.runExternalTool('get_queue', {});
+
+  expect(outcome.content).toContain('Removed from the queue by the listener');
+  expect(outcome.content).toContain('Three');
+});
+
+test('the room line reports idle and pause state', () => {
+  const outcome = session.runExternalTool('now_playing', {});
+
+  expect(outcome.content).toContain('Room:');
+  expect(JSON.parse(session.runExternalTool('_status', {}).content).room).toEqual(
+    expect.objectContaining({idleSeconds: expect.anything()}),
+  );
+});

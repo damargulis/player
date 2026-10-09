@@ -75,6 +75,15 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     return this.currentAlbum > 0 || this.currentTrack > 0;
   }
 
+  /** The rest of the album now playing; later albums are random, so they aren't committed yet. */
+  public getUpcoming(): string[] {
+    const album = this.getCurrentAlbum();
+    if (!album) {
+      return [];
+    }
+    return album.trackIds.slice(this.currentTrack + 1);
+  }
+
   public addAlbum(album: Album): void {
     this.playlist = this.playlist.slice(0, this.currentAlbum + 1);
     this.playlist.push(album);

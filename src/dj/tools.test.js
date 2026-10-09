@@ -2,7 +2,7 @@ import {executeTool} from './tools';
 import DJPlaylist from '../playlist/DJPlaylist';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import RandomAlbumPlaylist from '../playlist/RandomAlbumPlaylist';
-import {SET_PLAYLIST, UPDATE_LIBRARY} from '../redux/actionTypes';
+import {PLAY_PAUSE, SET_PLAYLIST, UPDATE_LIBRARY} from '../redux/actionTypes';
 import store from '../redux/store';
 
 function track(id, name, albumId, playCount = 0, daysSincePlay = 0) {
@@ -97,6 +97,54 @@ test('add_to_queue on an empty library reports unknown ids instead of activating
   expect(outcome.isError).toBe(true);
   expect(outcome.content).toContain('None of those ids exist');
   expect(store.getState().currentlyPlaying.playlist).not.toBeInstanceOf(DJPlaylist);
+});
+
+test('taking over inherits the app queue and leaves playback untouched', () => {
+  // SET_PLAYLIST with play:true advances the playlist itself, landing on al1's first track.
+  const appPlaylist = new RandomAlbumPlaylist([store.getState().library.albums.al1]);
+  store.dispatch({payload: {play: true, playlist: appPlaylist}, type: SET_PLAYLIST});
+  expect(store.getState().currentlyPlaying.currentlyPlayingId).toBe('t1');
+  expect(appPlaylist.getUpcoming()).toStrictEqual(['t2']);
+
+  executeTool('add_to_queue', {track_ids: ['t3'], position: 'end'});
+
+  const after = store.getState().currentlyPlaying;
+  expect(after.playlist).toBeInstanceOf(DJPlaylist);
+  // same track, still playing, nothing re-selected
+  expect(after.currentlyPlayingId).toBe('t1');
+  expect(after.isPlaying).toBe(true);
+  // t2 was the app's queue and survives the takeover, ahead of the DJ's addition
+  expect(after.playlist.getUpcoming()).toStrictEqual(['t2', 't3']);
+});
+
+test('a paused track is adopted without being resumed', () => {
+  const appPlaylist = new RandomAlbumPlaylist([store.getState().library.albums.al1]);
+  store.dispatch({payload: {play: true, playlist: appPlaylist}, type: SET_PLAYLIST});
+  store.dispatch({type: PLAY_PAUSE});
+  expect(store.getState().currentlyPlaying.isPlaying).toBe(false);
+
+  executeTool('add_to_queue', {track_ids: ['t3']});
+
+  expect(store.getState().currentlyPlaying.isPlaying).toBe(false);
+  expect(store.getState().currentlyPlaying.currentlyPlayingId).toBe('t1');
+});
+
+test('now_playing works before the DJ queue exists and names what it would inherit', () => {
+  const appPlaylist = new RandomAlbumPlaylist([store.getState().library.albums.al1]);
+  store.dispatch({payload: {play: true, playlist: appPlaylist}, type: SET_PLAYLIST});
+
+  const outcome = executeTool('now_playing', {});
+
+  expect(outcome.isError).toBeUndefined();
+  expect(outcome.content).toContain('The DJ queue is NOT active yet');
+  expect(outcome.content).toContain('1 track(s) queued that you would inherit');
+  expect(store.getState().currentlyPlaying.playlist).not.toBeInstanceOf(DJPlaylist);
+});
+
+test('track lines carry the album track number', () => {
+  const outcome = executeTool('search_library', {query: 'Two'});
+
+  expect(outcome.content).toContain('First Album #2/2');
 });
 
 test('album play stats come from the tracks, not the never-incremented album field', () => {

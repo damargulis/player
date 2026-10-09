@@ -1,4 +1,5 @@
-import {Album, Artist, DJ_QUEUE_UPDATED, NEXT_TRACK, SET_PLAYLIST, Track} from '../redux/actionTypes';
+import {Album, Artist, DJ_QUEUE_UPDATED, DJ_TAKE_OVER, NEXT_TRACK, SET_PLAYLIST, Track} from '../redux/actionTypes';
+import activity from './activity';
 import {Tool} from './api';
 import DJPlaylist from '../playlist/DJPlaylist';
 import {
@@ -122,9 +123,16 @@ export const DJ_TOOLS: Tool[] = [
   },
   {
     description: 'Show what is playing now (with elapsed time), what is queued next, and what has played ' +
-      'this session.',
+      'this session, plus how long the room has been idle or paused.',
     input_schema: {properties: {}, type: 'object'},
     name: 'get_queue',
+  },
+  {
+    description: 'Read-only: what is playing right now, how long the room has been idle or paused, and ' +
+      'whether the DJ queue is active yet. Safe to call at the start of a session before you have ' +
+      'queued anything — unlike get_queue it never implies a DJ queue exists.',
+    input_schema: {properties: {}, type: 'object'},
+    name: 'now_playing',
   },
   {
     description: 'Replace everything queued after the current track. The current track keeps playing. ' +
@@ -231,6 +239,19 @@ function albumName(state: RootState, track: Track): string {
   return album ? album.name : '';
 }
 
+/** Position of a track within its album — album trackIds are stored in track-number order. */
+function trackPosition(state: RootState, track: Track): string {
+  if (!track.albumIds.length) {
+    return '';
+  }
+  const album = getAlbumById(state, track.albumIds[0]);
+  if (!album) {
+    return '';
+  }
+  const index = album.trackIds.indexOf(track.id);
+  return index >= 0 ? ` #${index + 1}/${album.trackIds.length}` : '';
+}
+
 /** One compact line per track — this is what Claude reads, so keep it dense. */
 export function formatTrack(state: RootState, track: Track): string {
   const plays = track.playCount ? `plays:${track.playCount} last:${daysAgo(track.playDate)}` : 'unplayed';
@@ -238,10 +259,12 @@ export function formatTrack(state: RootState, track: Track): string {
   const skips = track.skipCount ? ` skips:${track.skipCount}` : '';
   const genres = genreNames(state, track.genreIds);
   return `${track.id} | ${track.name} — ${artistNames(state, track.artistIds)} | ${albumName(state, track)}` +
-    `${track.year ? ` (${track.year})` : ''} | ${toTime(track.duration)} | ${genres || 'no genre'} | ${plays}${skips}${fav}`;
+    `${trackPosition(state, track)}${track.year ? ` (${track.year})` : ''} | ${toTime(track.duration)} | ` +
+    `${genres || 'no genre'} | ${plays}${skips}${fav}`;
 }
 
-const TRACK_LINE_LEGEND = 'Format: id | title — artist | album (year) | length | genres | play stats';
+const TRACK_LINE_LEGEND = 'Format: id | title — artist | album #track/total (year) | length | genres | play stats. ' +
+  'Album track numbers come from the stored album order (no disc numbers in this library).';
 
 function formatTracks(state: RootState, tracks: Track[]): string {
   return tracks.map((t) => formatTrack(state, t)).join('\n');
@@ -263,11 +286,17 @@ export function ensureDJPlaylist(): DJPlaylist {
   if (existing) {
     return existing;
   }
-  // Keep whatever is on right now as the first DJ track. Passing play=true re-selects the same
-  // track id, so the audio element keeps its position instead of reloading.
   const currentId = state.currentlyPlaying.currentlyPlayingId;
-  const playlist = new DJPlaylist(currentId || undefined);
-  store.dispatch({payload: {playlist, play: Boolean(currentId)}, type: SET_PLAYLIST});
+  const playlist = new DJPlaylist();
+  if (currentId) {
+    // Adopt the track that is already playing, and inherit whatever the app's own playlist had
+    // queued rather than discarding it. DJ_TAKE_OVER leaves playback state alone, so the current
+    // track is neither restarted nor un-paused.
+    playlist.adopt(currentId, state.currentlyPlaying.playlist.getUpcoming());
+    store.dispatch({payload: {playlist}, type: DJ_TAKE_OVER});
+  } else {
+    store.dispatch({payload: {play: false, playlist}, type: SET_PLAYLIST});
+  }
   return playlist;
 }
 
@@ -569,10 +598,36 @@ function queueAlbums(input: Record<string, unknown>): ToolOutcome {
   return {content: `${warning}${summary}\n${note}\n\n${describeQueue(store.getState())}`, queueChanged: true};
 }
 
+/** Now playing, readable even when the DJ queue is not active. */
+export function describeNowPlaying(state: RootState): string {
+  const currentId = state.currentlyPlaying.currentlyPlayingId || undefined;
+  const current = currentId ? getTrackById(state, currentId) : undefined;
+  const playlist = state.currentlyPlaying.playlist;
+  const djActive = playlist instanceof DJPlaylist;
+  const lines = [
+    current
+      ? `Now playing: ${formatTrack(state, current)} [${toTime(getTime(state) * 1000)} elapsed, ` +
+        `${state.currentlyPlaying.isPlaying ? 'playing' : 'paused'}]`
+      : 'Now playing: nothing',
+    `Room: ${activity.describe()}`,
+    djActive
+      ? 'The DJ queue is active, so set_queue/add_to_queue edit what you already built.'
+      : 'The DJ queue is NOT active yet: the app is using its own shuffle. Your first queue edit ' +
+        'adopts the current track and inherits what it had queued, without interrupting playback.',
+  ];
+  if (!djActive) {
+    const inherited = playlist.getUpcoming().map((id) => getTrackById(state, id)).filter(Boolean);
+    const inheritedLines = formatTracks(state, inherited) || '(none)';
+    lines.push(`The app has ${inherited.length} track(s) queued that you would inherit:
+${inheritedLines}`);
+  }
+  return lines.join('\n\n');
+}
+
 export function describeQueue(state: RootState): string {
   const playlist = getPlaylist(state);
   if (!playlist) {
-    return 'DJ queue is not active.';
+    return describeNowPlaying(state);
   }
   const currentId = playlist.getCurrentTrack();
   const current = currentId ? getTrackById(state, currentId) : undefined;
@@ -582,6 +637,7 @@ export function describeQueue(state: RootState): string {
   const history = playlist.getHistory().slice(0, -1).map((id) => getTrackById(state, id)).filter(Boolean);
   const historyLines = history.map((t) => `${t.id} | ${t.name} — ${artistNames(state, t.artistIds)}`);
   return `Now playing: ${now}
+Room: ${activity.describe()}
 
 Up next (${upcoming.length}):
 ${formatTracks(state, upcoming) || '(empty)'}
@@ -631,6 +687,8 @@ export function executeTool(name: string, input: Record<string, unknown>): ToolO
     return queueAlbums(input);
   case 'get_queue':
     return {content: describeQueue(state)};
+  case 'now_playing':
+    return {content: describeNowPlaying(state)};
   case 'set_queue':
     return mutateQueue(input, (playlist, ids) => playlist.setUpcoming(ids));
   case 'add_to_queue':

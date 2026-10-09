@@ -23,6 +23,16 @@ export default class DJPlaylist extends EmptyPlaylist {
     this.current = -1;
   }
 
+  /**
+   * Starts the queue already positioned on `trackId`, inheriting `upcoming`. Used when the DJ
+   * takes over mid-playback: nothing is re-selected, so the audio element is never disturbed.
+   */
+  public adopt(trackId: string, upcoming: string[]): void {
+    this.history = [{id: trackId}];
+    this.current = 0;
+    this.upcoming = upcoming.map((id) => ({id}));
+  }
+
   public getCurrentTrack(): string | undefined {
     const entry = this.history[this.current];
     return entry && entry.id;

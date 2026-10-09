@@ -47,6 +47,11 @@ export default class RandomTrackPlaylist extends EmptyPlaylist {
     return this.currentTrack > 0;
   }
 
+  /** Only tracks already committed to the queue; the rest are generated on demand. */
+  public getUpcoming(): string[] {
+    return this.playlist.slice(this.currentTrack + 1).map((track) => track.id);
+  }
+
   public addTrack(track: Track): void {
     this.playlist = this.playlist.slice(0, this.currentTrack + 1);
     this.playlist.push(track);

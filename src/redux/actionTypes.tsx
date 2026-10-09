@@ -23,6 +23,7 @@ export const PREV_ALBUM = 'PREV_ALBUM';
 export const PLAY_PAUSE = 'PLAY_PAUSE';
 export const SET_TIME = 'SET_TIME';
 export const DJ_QUEUE_UPDATED = 'DJ_QUEUE_UPDATED';
+export const DJ_TAKE_OVER = 'DJ_TAKE_OVER';
 
 export interface Playlist {
   name: string;
@@ -211,6 +212,13 @@ interface DJQueueUpdatedAction {
   type: typeof DJ_QUEUE_UPDATED;
 }
 
+interface DJTakeOverAction {
+  type: typeof DJ_TAKE_OVER;
+  payload: {
+    playlist: EmptyPlaylist;
+  };
+}
+
 interface SetTimeAction {
   type: typeof SET_TIME;
   payload: {time: number};
@@ -326,7 +334,8 @@ interface AddToPlaylist {
 }
 
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
-  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction | DJQueueUpdatedAction;
+  | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction | DJQueueUpdatedAction
+  | DJTakeOverAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
   | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup | DeleteTrack;
 export type SettingsActionTypes = SetGenresAction;
