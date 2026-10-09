@@ -33,6 +33,19 @@ export interface ToolUseBlock {
   input: Record<string, unknown>;
 }
 
+export interface ServerToolUseBlock {
+  type: 'server_tool_use';
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+export interface ServerToolResultBlock {
+  type: 'web_search_tool_result' | 'web_fetch_tool_result';
+  tool_use_id: string;
+  content: unknown;
+}
+
 export interface ToolResultBlock {
   type: 'tool_result';
   tool_use_id: string;
@@ -45,7 +58,8 @@ export interface CacheControl {
   type: 'ephemeral';
 }
 
-export type ContentBlock = TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ToolResultBlock;
+export type ContentBlock = TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ToolResultBlock
+  | ServerToolUseBlock | ServerToolResultBlock;
 
 export interface MessageParam {
   role: 'user' | 'assistant';
@@ -69,10 +83,11 @@ export interface Tool {
   input_schema: JSONSchema;
 }
 
-/** An Anthropic-defined tool such as the memory tool: no schema, just type + name. */
+/** An Anthropic-defined tool such as the memory tool or web search: no schema, just type + name. */
 export interface AnthropicTool {
   type: string;
   name: string;
+  max_uses?: number;
 }
 
 export type ToolDefinition = Tool | AnthropicTool;
@@ -121,9 +136,42 @@ export function apiKeyHelp(): string {
 
 export class DJApiError extends Error {
   public status: number;
-  constructor(status: number, message: string) {
+  public errorType: string;
+  constructor(status: number, message: string, errorType: string = '') {
     super(message);
     this.status = status;
+    this.errorType = errorType;
+  }
+
+  /**
+   * True for failures the listener has to act on (bad key, spent credits, rate limits,
+   * Anthropic outages) as opposed to bugs in our own request.
+   */
+  public needsAttention(): boolean {
+    if (this.status === 401 || this.status === 403 || this.status === 402 || this.status === 429) {
+      return true;
+    }
+    if (this.status >= 500) {
+      return true;
+    }
+    return /credit balance|billing|quota|too low/i.test(this.message);
+  }
+
+  /** A short, plain-language headline for an alert box. */
+  public headline(): string {
+    if (this.status === 429) {
+      return 'The DJ is being rate limited by the Anthropic API.';
+    }
+    if (this.status === 401 || this.status === 403) {
+      return 'The Anthropic API rejected the API key.';
+    }
+    if (this.status === 402 || /credit balance|billing|quota|too low/i.test(this.message)) {
+      return 'The Anthropic API account is out of credits.';
+    }
+    if (this.status >= 500) {
+      return 'The Anthropic API is unavailable right now.';
+    }
+    return 'The DJ hit an API error.';
   }
 }
 
@@ -134,7 +182,7 @@ export class DJApiError extends Error {
 export async function createMessage(params: CreateMessageParams): Promise<MessageResponse> {
   const apiKey = getApiKey();
   if (!apiKey) {
-    throw new DJApiError(401, `No ${API_KEY_NAME} found. ${apiKeyHelp()}`);
+    throw new DJApiError(401, `No ${API_KEY_NAME} found. ${apiKeyHelp()}`, 'missing_api_key');
   }
   const messages = params.messages.map((msg, i) => {
     if (i !== params.messages.length - 1 || !msg.content.length) {
@@ -151,7 +199,7 @@ export async function createMessage(params: CreateMessageParams): Promise<Messag
     model: DJ_MODEL,
     output_config: {effort: params.effort || 'medium'},
     system: [{type: 'text', text: params.system, cache_control: {type: 'ephemeral'}}],
-    thinking: {type: 'adaptive'},
+    thinking: {display: 'summarized', type: 'adaptive'},
     tools: params.tools,
   };
   const res = await fetch(API_URL, {
@@ -166,13 +214,17 @@ export async function createMessage(params: CreateMessageParams): Promise<Messag
   const text = await res.text();
   if (!res.ok) {
     let message = text;
+    let errorType = '';
     try {
       const parsed = JSON.parse(text) as ErrorResponse;
-      message = parsed.error ? `${parsed.error.type}: ${parsed.error.message}` : text;
+      if (parsed.error) {
+        message = parsed.error.message;
+        errorType = parsed.error.type;
+      }
     } catch (err) {
       // keep raw text
     }
-    throw new DJApiError(res.status, message);
+    throw new DJApiError(res.status, message, errorType);
   }
   return JSON.parse(text) as MessageResponse;
 }

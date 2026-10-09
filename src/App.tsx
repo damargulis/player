@@ -146,6 +146,18 @@ class App extends React.Component<AppProps, AppState> {
       });
       ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
     });
+    ipcRenderer.on('dj-message', (evt, text: string) => {
+      djSession.send(text);
+    });
+    ipcRenderer.on('dj-new-session', () => {
+      djSession.reset();
+    });
+    ipcRenderer.on('dj-sync', () => {
+      ipcRenderer.send('dj-state', djSession.getChatState());
+    });
+    djSession.subscribe(() => {
+      ipcRenderer.send('dj-state', djSession.getChatState());
+    });
     ipcRenderer.on('dj-get-tools', () => {
       ipcRenderer.send('dj-tools', MCP_TOOLS);
     });

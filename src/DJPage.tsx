@@ -11,7 +11,7 @@ import defaultAlbum from './resources/missing_album.png';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumById, getArtistsByIds, getCurrentTrackId, getQueueVersion, getTrackById} from './redux/selectors';
-import session, {DJSessionState} from './dj/session';
+import session, {DJSessionState, TranscriptEntry, VERBOSE_ROLES} from './dj/session';
 import {RootState} from './redux/store';
 import {toTime} from './utils';
 
@@ -34,6 +34,7 @@ interface DJPageState extends DJSessionState {
   draft: string;
   memoryFiles: MemoryFile[];
   showMemory: boolean;
+  verbose: boolean;
 }
 
 class DJPage extends React.Component<DJPageProps, DJPageState> {
@@ -42,7 +43,8 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
 
   constructor(props: DJPageProps) {
     super(props);
-    this.state = Object.assign({draft: '', memoryFiles: [], showMemory: false}, session.getState());
+    this.state = Object.assign({draft: '', memoryFiles: [], showMemory: false, verbose: false},
+      session.getState());
   }
 
   public componentDidMount(): void {
@@ -74,6 +76,15 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
         <div className="dj-chat-header">
           <span>{session.isActive() ? 'DJ is controlling the queue' : 'DJ is idle'}</span>
           <span>
+            <label className="dj-verbose-toggle" title="Show the DJ's reasoning and every tool call">
+              <input
+                type="checkbox"
+                checked={this.state.verbose}
+                onChange={(evt) => this.setState({verbose: evt.target.checked}, () => this.scrollToBottom())}
+              />
+              Verbose
+            </label>
+            {' '}
             <button onClick={() => this.toggleMemory()}>
               {this.state.showMemory ? 'Show queue' : `Memory (${this.state.memoryFiles.length})`}
             </button>
@@ -84,9 +95,7 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
           </span>
         </div>
         <div className="dj-transcript" ref={this.transcriptRef}>
-          {this.state.entries.length ? this.state.entries.map((entry) => (
-            <div key={entry.id} className={`dj-entry ${entry.role}`}>{entry.text}</div>
-          )) : (
+          {this.visibleEntries().length ? this.visibleEntries().map((entry) => this.renderEntry(entry)) : (
             <div className="dj-empty">
               {hasKey ? (
                 <>
@@ -111,6 +120,23 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
           />
           <button onClick={() => this.submit()} disabled={!hasKey || !this.state.draft.trim()}>Send</button>
         </div>
+      </div>
+    );
+  }
+
+  private visibleEntries(): TranscriptEntry[] {
+    if (this.state.verbose) {
+      return this.state.entries;
+    }
+    return this.state.entries.filter((entry) => !VERBOSE_ROLES.includes(entry.role));
+  }
+
+  private renderEntry(entry: TranscriptEntry): JSX.Element {
+    return (
+      <div key={entry.id} className={`dj-entry ${entry.role}`}>
+        <div className="dj-entry-text">{entry.text}</div>
+        {entry.detail !== undefined && this.state.verbose &&
+          <pre className="dj-entry-detail">{entry.detail}</pre>}
       </div>
     );
   }

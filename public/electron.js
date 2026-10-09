@@ -274,21 +274,37 @@ const http = require("http").createServer(expressApp);
 const io = require("socket.io")(http);
 
 let lastState = null;
+let lastDjState = null;
 
 io.on("connection", (socket) => {
   if (lastState) {
     socket.emit("state", lastState);
+  }
+  if (lastDjState) {
+    socket.emit("dj-state", lastDjState);
   }
 
   socket.on("action", (action) => {
     extEvt.reply(action.type, action.data);
   });
 
+  // The phone asks for the transcript when its DJ screen opens.
+  socket.on("dj-sync", () => {
+    if (extEvt) {
+      extEvt.reply("dj-sync");
+    }
+  });
 });
 
 ipcMain.on("controller-state", (evt, state) => {
   io.emit("state", state);
   lastState = state;
+});
+
+// DJ chat transcript, pushed to the mobile app whenever the session changes.
+ipcMain.on("dj-state", (evt, state) => {
+  io.emit("dj-state", state);
+  lastDjState = state;
 });
 
 // --- DJ bridge: lets dj-mcp/server.js (run by Claude Code over MCP) drive the queue.

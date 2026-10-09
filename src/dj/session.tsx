@@ -1,4 +1,13 @@
-import {ContentBlock, createMessage, DJApiError, MessageParam, ToolDefinition, ToolResultBlock, ToolUseBlock} from './api';
+import {
+  ContentBlock,
+  createMessage,
+  DJApiError,
+  getApiKey,
+  MessageParam,
+  ToolDefinition,
+  ToolResultBlock,
+  ToolUseBlock,
+} from './api';
 import DJPlaylist from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
 import {getTrackById} from '../redux/selectors';
@@ -6,12 +15,17 @@ import store from '../redux/store';
 import {describeQueue, DJ_TOOLS, ensureDJPlaylist, executeTool, formatTrack, startIfIdle, ToolOutcome} from './tools';
 import {toTime} from '../utils';
 
-export type EntryRole = 'user' | 'dj' | 'status' | 'error';
+export type EntryRole = 'user' | 'dj' | 'status' | 'error' | 'tool' | 'thinking';
+
+/** Roles hidden unless the DJ page's verbose toggle is on. */
+export const VERBOSE_ROLES: EntryRole[] = ['tool', 'thinking'];
 
 export interface TranscriptEntry {
   id: number;
   role: EntryRole;
   text: string;
+  /** Secondary text shown under `text` in the verbose view (e.g. a tool's result). */
+  detail?: string;
 }
 
 export interface DJSessionState {
@@ -28,7 +42,9 @@ const ELIDED = '[earlier tool output elided]';
 const MEMORY_TOOL_NAME = 'memory';
 /** The API path gets Anthropic's native memory tool; the MCP path gets the same backend as a plain tool. */
 const NATIVE_MEMORY_TOOL: ToolDefinition = {type: 'memory_20250818', name: MEMORY_TOOL_NAME};
-const API_TOOLS: ToolDefinition[] = ([NATIVE_MEMORY_TOOL] as ToolDefinition[]).concat(DJ_TOOLS);
+/** Server-side web search: runs on Anthropic's side, so there is nothing for us to execute. */
+const WEB_SEARCH_TOOL: ToolDefinition = {max_uses: 5, name: 'web_search', type: 'web_search_20260209'};
+const API_TOOLS: ToolDefinition[] = ([NATIVE_MEMORY_TOOL, WEB_SEARCH_TOOL] as ToolDefinition[]).concat(DJ_TOOLS);
 export const MCP_TOOLS = DJ_TOOLS.concat([MCP_MEMORY_TOOL]);
 
 function runTool(name: string, input: Record<string, unknown>): ToolOutcome {
@@ -52,13 +68,33 @@ Working style
 - Keep replies short and conversational (one to three sentences). The panel already shows the queue, so don't list every track — mention the direction you took and maybe a highlight.
 
 Memory
-- Your memory directory persists across sessions and is shared with the listener (they can read it in the app). Check it before your first picks so you start from what you already know.
-- Record durable facts only: who the listener and the people they mention are (partner, kids, friends), artists and songs they love or can't stand, what works for recurring contexts (cooking, focus, parties, "songs we both like"). Don't record one-off requests, the current queue, or anything sensitive.
-- Suggested layout: /memories/people/<name>.md for each person, /memories/taste.md for general preferences, /memories/contexts.md for activity-specific notes, /memories/sets.md as a short log of past sets (date, vibe, a highlight or two; keep the last ten). Update existing notes rather than adding contradictory ones.
-- When you learn something worth keeping, save it in the same turn — the listener may close the app at any time.`;
+- Your memory directory persists across sessions and is shared with the listener (they can read and edit it on the DJ page). ALWAYS view it before your first picks of a session, so you start from everything you already know.
+- Be thorough. Anything that would make a future set better belongs in memory, and the listener would rather you over-record than lose something. As you learn them, write down:
+  - People: the listener and anyone they listen with (partner, friends, family) — what each one loves, tolerates and refuses, and what works when they listen together.
+  - Taste: favourite artists, albums and songs; genres and eras they lean on; artists they skip; textures they react to (harsh vocals, long instrumentals, live recordings, lo-fi, loudness).
+  - Contexts: what works for recurring situations — working, cooking, cleaning, winding down, parties, driving, hosting — including any tempo/vocal/volume constraints they've named.
+  - Reactions: specific tracks or albums that landed especially well or badly, with your read on why. A skip streak you diagnosed is worth a line.
+  - Vocabulary: what their words mean for this library ("mellow", "upbeat", "something new", "the usual"), so you interpret them the same way next time.
+  - Sets: a short log in sets.md — date, what they asked for, what you played, how it went. Keep roughly the last ten.
+- Suggested layout: /memories/people/<name>.md, /memories/taste.md, /memories/contexts.md, /memories/reactions.md, /memories/sets.md. Keep it tidy and each file to a few KB: use str_replace to update or correct an existing line rather than appending something contradictory, and delete notes that turned out to be wrong.
+- Don't record one-off requests ("play X right now"), the current queue, or anything sensitive.
+
+Looking things up
+- You also have web_search. Use it sparingly, when your own knowledge is thin and it would change your picks: checking what a specific album actually sounds like, what else came out of a scene, what a band's quieter record is. Never search for something the library tools can answer, and don't let a search delay the first tracks — queue something good, then refine.
+
+- Save in the same turn you learn something — the listener may close the app at any moment.`;
 
 function textOf(blocks: ContentBlock[]): string {
   return blocks.filter((b) => b.type === 'text').map((b) => (b.type === 'text' ? b.text : '')).join('\n').trim();
+}
+
+/** One-line rendering of a tool's input for the verbose transcript. */
+function compact(input: Record<string, unknown>): string {
+  const json = JSON.stringify(input);
+  if (json === '{}') {
+    return '';
+  }
+  return json.length > 160 ? `${json.slice(0, 160)}…` : json;
 }
 
 function formatClock(): string {
@@ -126,6 +162,20 @@ class DJSession {
     return outcome;
   }
 
+  /**
+   * Compact transcript for the mobile DJ screen: the conversation only (no tool noise),
+   * newest last, plus whether a turn is in flight and whether a key is configured.
+   */
+  public getChatState(limit: number = 40): Record<string, unknown> {
+    const entries = this.entries.filter((entry) => !VERBOSE_ROLES.includes(entry.role));
+    return {
+      busy: this.busy,
+      configured: Boolean(getApiKey()),
+      entries: entries.slice(-limit).map((entry) => ({id: entry.id, role: entry.role, text: entry.text})),
+      hasSession: this.messages.length > 0,
+    };
+  }
+
   /** Machine-readable queue state, used by the MCP bridge's wait tool and electron.js's auto-refill watcher. */
   public getStatus(): Record<string, unknown> {
     const state = store.getState();
@@ -159,6 +209,30 @@ class DJSession {
       return;
     }
     this.enqueue(trimmed, false);
+  }
+
+  /** Adds the thinking and web-search entries that the verbose view shows. */
+  private recordVerbose(content: ContentBlock[]): void {
+    content.forEach((block) => {
+      if (block.type === 'thinking' && block.thinking) {
+        this.addEntry('thinking', block.thinking);
+      } else if (block.type === 'server_tool_use') {
+        this.addEntry('tool', `${block.name} ${compact(block.input || {})}`, '(ran on Anthropic\'s servers)');
+      }
+    });
+  }
+
+  /** Puts an API failure in the transcript, and in front of the listener when they need to act. */
+  private reportFailure(err: unknown): void {
+    if (err instanceof DJApiError) {
+      this.addEntry('error', `${err.headline()} (HTTP ${err.status}${err.errorType ? ` ${err.errorType}` : ''})`,
+        err.message);
+      if (err.needsAttention()) {
+        alert(`${err.headline()}\n\n${err.message}`);
+      }
+      return;
+    }
+    this.addEntry('error', `The DJ hit an unexpected error: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   /**
@@ -211,13 +285,20 @@ class DJSession {
     this.elideOldToolResults();
     this.messages.push({content: [{type: 'text', text: this.buildUserText(text, automatic)}], role: 'user'});
     try {
-      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      let finished = false;
+      for (let round = 0; round < MAX_TOOL_ROUNDS && !finished; round++) {
         const response = await createMessage({messages: this.messages, system: SYSTEM_PROMPT, tools: API_TOOLS});
         this.messages.push({content: response.content, role: 'assistant'});
+        this.recordVerbose(response.content);
         const reply = textOf(response.content);
         if (response.stop_reason === 'refusal') {
-          this.addEntry('error', `The DJ declined: ${(response.stop_details && response.stop_details.explanation) || 'no reason given'}`);
+          const explanation = (response.stop_details && response.stop_details.explanation) || 'no reason given';
+          this.addEntry('error', `The DJ declined: ${explanation}`);
           break;
+        }
+        if (response.stop_reason === 'pause_turn') {
+          // A server-side tool (web search) ran long; send the turn back to continue it.
+          continue;
         }
         if (response.stop_reason === 'tool_use') {
           if (reply) {
@@ -225,14 +306,24 @@ class DJSession {
           }
           const toolUses = response.content.filter((b) => b.type === 'tool_use') as ToolUseBlock[];
           const results: ToolResultBlock[] = toolUses.map((use) => {
-            const outcome = runTool(use.name, use.input || {});
-            return {content: outcome.content, is_error: outcome.isError || undefined, tool_use_id: use.id, type: 'tool_result'};
+            const input = use.input || {};
+            const outcome = runTool(use.name, input);
+            this.addEntry(outcome.isError ? 'error' : 'tool', `${use.name} ${compact(input)}`, outcome.content);
+            return {
+              content: outcome.content,
+              is_error: outcome.isError || undefined,
+              tool_use_id: use.id,
+              type: 'tool_result',
+            };
           });
           this.messages.push({content: results, role: 'user'});
           continue;
         }
         this.addEntry('dj', reply || (response.stop_reason === 'max_tokens' ? '(reply cut off)' : '(no reply)'));
-        break;
+        finished = true;
+      }
+      if (!finished) {
+        this.addEntry('status', `The DJ stopped after ${MAX_TOOL_ROUNDS} tool rounds.`);
       }
     } catch (err) {
       // Drop the dangling user turn so the next message starts clean.
@@ -240,8 +331,7 @@ class DJSession {
       if (last && last.role === 'user') {
         this.messages.pop();
       }
-      const message = err instanceof DJApiError ? `API error ${err.status}: ${err.message}` : String(err);
-      this.addEntry('error', message);
+      this.reportFailure(err);
     }
     startIfIdle();
   }
@@ -314,8 +404,8 @@ class DJSession {
     }
   }
 
-  private addEntry(role: EntryRole, text: string): void {
-    this.entries = this.entries.concat([{id: this.nextId++, role, text}]);
+  private addEntry(role: EntryRole, text: string, detail?: string): void {
+    this.entries = this.entries.concat([{detail, id: this.nextId++, role, text}]);
     this.emit();
   }
 
