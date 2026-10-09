@@ -5,7 +5,7 @@ import RandomAlbumPlaylist from '../playlist/RandomAlbumPlaylist';
 import {SET_PLAYLIST, UPDATE_LIBRARY} from '../redux/actionTypes';
 import store from '../redux/store';
 
-function track(id, name, albumId) {
+function track(id, name, albumId, playCount = 0, daysSincePlay = 0) {
   return {
     albumIds: [albumId],
     artistIds: ['ar1'],
@@ -16,8 +16,8 @@ function track(id, name, albumId) {
     genreIds: [],
     id,
     name,
-    playCount: 0,
-    playDate: new Date(0),
+    playCount,
+    playDate: playCount ? new Date(Date.now() - daysSincePlay * 24 * 60 * 60 * 1000) : new Date(0),
     skipCount: 0,
     year: 2000,
   };
@@ -36,7 +36,11 @@ beforeEach(() => {
         ar1: {albumIds: ['al1', 'al2'], errors: [], genreIds: [], id: 'ar1', name: 'Some Artist',
           trackIds: ['t1', 't2', 't3']},
       },
-      tracks: {t1: track('t1', 'One', 'al1'), t2: track('t2', 'Two', 'al1'), t3: track('t3', 'Three', 'al2')},
+      tracks: {
+        t1: track('t1', 'One', 'al1', 9, 3),
+        t2: track('t2', 'Two', 'al1', 7, 10),
+        t3: track('t3', 'Three', 'al2'),
+      },
     }},
     type: UPDATE_LIBRARY,
   });
@@ -93,4 +97,32 @@ test('add_to_queue on an empty library reports unknown ids instead of activating
   expect(outcome.isError).toBe(true);
   expect(outcome.content).toContain('None of those ids exist');
   expect(store.getState().currentlyPlaying.playlist).not.toBeInstanceOf(DJPlaylist);
+});
+
+test('album play stats come from the tracks, not the never-incremented album field', () => {
+  // al1's own playCount stays 0 (playback only increments track.playCount), but its
+  // tracks have 9 and 7 plays, so it must not report as unplayed.
+  const played = executeTool('search_albums', {query: 'First'});
+
+  expect(played.content).toContain('plays:16 (~8/track)');
+  expect(played.content).toContain('last:3 days ago');
+  expect(played.content).not.toContain('unplayed');
+
+  const unplayed = executeTool('search_albums', {query: 'Second'});
+  expect(unplayed.content).toContain('unplayed');
+});
+
+test('album play filters use the derived stats', () => {
+  expect(executeTool('search_albums', {unplayed_only: true}).content).toContain('Second Album');
+  expect(executeTool('search_albums', {unplayed_only: true}).content).not.toContain('First Album');
+  expect(executeTool('search_albums', {min_play_count: 5}).content).toContain('First Album');
+  expect(executeTool('search_albums', {min_play_count: 5}).content).not.toContain('Second Album');
+  expect(executeTool('search_albums', {min_play_count: 20}).content).toBe('No albums match those filters.');
+});
+
+test('get_artist reports album plays from tracks too', () => {
+  const outcome = executeTool('get_artist', {name: 'Some Artist'});
+
+  expect(outcome.content).toContain('First Album (2000) — 2 tracks, 16 plays (~8/track)');
+  expect(outcome.content).toContain('Second Album (2001) — 1 tracks, unplayed');
 });

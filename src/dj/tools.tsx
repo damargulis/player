@@ -90,10 +90,13 @@ export const DJ_TOOLS: Tool[] = [
         genre: {type: 'string', description: 'Genre name substring'},
         limit: {type: 'integer', description: `Sample size (default ${DEFAULT_LIMIT}, max ${MAX_LIMIT})`},
         max_year: {type: 'integer', description: 'Latest release year'},
-        min_play_count: {type: 'integer', description: 'Only albums played at least this many times'},
+        min_play_count: {
+          description: 'Only albums whose tracks average at least this many plays',
+          type: 'integer',
+        },
         min_year: {type: 'integer', description: 'Earliest release year'},
         query: {type: 'string', description: 'Album title substring'},
-        unplayed_only: {type: 'boolean', description: 'Only albums never played'},
+        unplayed_only: {type: 'boolean', description: 'Only albums with no plays on any track'},
       },
       type: 'object',
     },
@@ -355,7 +358,8 @@ function getArtist(state: RootState, input: Record<string, unknown>): ToolOutcom
     .sort((a: Album, b: Album) => (a.year || 0) - (b.year || 0))
     .map((album: Album) => {
       const year = album.year ? ` (${album.year})` : '';
-      const plays = album.playCount ? `, played ${album.playCount}x` : '';
+      const stats = albumPlayStats(state, album);
+      const plays = stats.totalPlays ? `, ${stats.totalPlays} plays (~${stats.meanPlays}/track)` : ', unplayed';
       const fav = album.favorites && album.favorites.length ? ' ♥' : '';
       return `${album.id} | ${album.name}${year} — ${album.trackIds.length} tracks${plays}${fav}`;
     });
@@ -417,19 +421,57 @@ function sampleTracks(state: RootState, input: Record<string, unknown>): ToolOut
   return {content: `${matches.length} track(s) match; random sample of ${picks.length}:\n${TRACK_LINE_LEGEND}\n${formatTracks(state, picks)}`};
 }
 
+interface AlbumPlayStats {
+  totalPlays: number;
+  meanPlays: number;
+  skips: number;
+  lastPlayed?: Date;
+}
+
+/**
+ * Album-level play stats, summed from the album's tracks. `album.playCount`/`skipCount` are NOT
+ * maintained by playback — only `track.playCount` is incremented when a track finishes (and by
+ * mobile sync), so the album fields sit at 0 forever unless hand-edited in the album editor.
+ */
+function albumPlayStats(state: RootState, album: Album): AlbumPlayStats {
+  const tracks = album.trackIds.map((id) => getTrackById(state, id)).filter(Boolean);
+  let totalPlays = 0;
+  let skips = 0;
+  let lastPlayed: Date | undefined;
+  tracks.forEach((track) => {
+    totalPlays += track.playCount;
+    skips += track.skipCount;
+    if (track.playCount > 0 && track.playDate && track.playDate.getTime() > 0 &&
+        (!lastPlayed || track.playDate.getTime() > lastPlayed.getTime())) {
+      lastPlayed = track.playDate;
+    }
+  });
+  return {
+    lastPlayed,
+    meanPlays: tracks.length ? Math.round(totalPlays / tracks.length) : 0,
+    skips,
+    totalPlays,
+  };
+}
+
 function formatAlbum(state: RootState, album: Album): string {
   const artists = album.artistIds.map((id) => getArtistById(state, id)).filter(Boolean)
     .map((a) => a.name).join(', ') || 'Unknown';
   const tracks = album.trackIds.map((id) => getTrackById(state, id)).filter(Boolean);
   const length = toTime(tracks.reduce((total, t) => total + t.duration, 0));
   const genres = genreNames(state, album.genreIds);
-  const plays = album.playCount ? `plays:${album.playCount}` : 'unplayed';
+  const stats = albumPlayStats(state, album);
+  const plays = stats.totalPlays
+    ? `plays:${stats.totalPlays} (~${stats.meanPlays}/track) last:${daysAgo(stats.lastPlayed)}`
+    : 'unplayed';
   const fav = album.favorites && album.favorites.length ? ' ♥' : '';
   return `${album.id} | ${album.name} — ${artists}${album.year ? ` (${album.year})` : ''} | ` +
-    `${album.trackIds.length} tracks, ${length} | ${genres || 'no genre'} | ${plays}${album.skipCount ? ` skips:${album.skipCount}` : ''}${fav}`;
+    `${album.trackIds.length} tracks, ${length} | ${genres || 'no genre'} | ${plays}` +
+    `${stats.skips ? ` skips:${stats.skips}` : ''}${fav}`;
 }
 
-const ALBUM_LINE_LEGEND = 'Format: id | title — artist (year) | tracks, length | genres | play stats';
+const ALBUM_LINE_LEGEND = 'Format: id | title — artist (year) | tracks, length | genres | play stats. ' +
+  'Album play stats are summed from the album\'s tracks; ~N/track is the average plays per track.';
 
 function searchAlbums(state: RootState, input: Record<string, unknown>): ToolOutcome {
   const query = str(input, 'query');
@@ -463,13 +505,16 @@ function searchAlbums(state: RootState, input: Record<string, unknown>): ToolOut
     if (maxYear !== undefined && (!album.year || album.year > maxYear)) {
       return false;
     }
-    if (minPlays !== undefined && album.playCount < minPlays) {
-      return false;
+    if (minPlays !== undefined || unplayedOnly) {
+      const stats = albumPlayStats(state, album);
+      if (minPlays !== undefined && stats.meanPlays < minPlays) {
+        return false;
+      }
+      if (unplayedOnly && stats.totalPlays > 0) {
+        return false;
+      }
     }
     if (favoritesOnly && !(album.favorites && album.favorites.length)) {
-      return false;
-    }
-    if (unplayedOnly && album.playCount > 0) {
       return false;
     }
     return true;
