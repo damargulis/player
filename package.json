@@ -51,7 +51,8 @@
     "postinstall": "node_modules/.bin/rn-nodeify --install fs --hack && electron-builder install-app-deps",
     "preelectron-pack": "yarn build",
     "electron-pack": "electron-builder build -m",
-    "install-mac": "rm -rf /Applications/MyMusic.app && ditto dist/mac/MyMusic.app /Applications/MyMusic.app && echo 'Installed /Applications/MyMusic.app'",
+    "install-mac": "./scripts/install-mac.sh",
+    "predeploy-mac": "./scripts/install-mac.sh --check-only",
     "deploy-mac": "yarn electron-pack && yarn install-mac"
   },
   "eslintConfig": {
