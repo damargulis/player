@@ -15,6 +15,9 @@ object DJChatState {
     /** True while the DJ is working on a turn. */
     val busy = MutableLiveData(false)
 
+    /** What the DJ is doing right now, when it is busy. */
+    val note = MutableLiveData<String?>(null)
+
     /** False when the desktop has no Anthropic API key configured. */
     val configured = MutableLiveData(true)
 
@@ -38,6 +41,7 @@ object DJChatState {
         }
         entries.postValue(parsed)
         busy.postValue(state.optBoolean("busy", false))
+        note.postValue(if (state.isNull("note")) null else state.optString("note", "").ifEmpty { null })
         configured.postValue(state.optBoolean("configured", true))
         hasSession.postValue(state.optBoolean("hasSession", false))
     }

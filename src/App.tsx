@@ -1,6 +1,7 @@
 import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist,
   updateLibrary, updateTime, updateTrack} from './redux/actions';
 import {Album, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
+import djActivity from './dj/activity';
 import './App.css';
 import {BACKUP_TIME, DATA_DIR} from './constants';
 import {ipcRenderer} from 'electron';
@@ -329,10 +330,12 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private onMaximize(): void {
+    djActivity.noteWindowMode('full');
     this.setState({mini: false});
   }
 
   private onMinimize(): void {
+    djActivity.noteWindowMode('mini');
     this.setState({mini: true});
   }
 

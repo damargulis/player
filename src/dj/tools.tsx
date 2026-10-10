@@ -1,5 +1,5 @@
 import {Album, Artist, DJ_QUEUE_UPDATED, DJ_TAKE_OVER, NEXT_TRACK, SET_PLAYLIST, Track} from '../redux/actionTypes';
-import activity from './activity';
+import activity, {humanDuration} from './activity';
 import {Tool} from './api';
 import DJPlaylist from '../playlist/DJPlaylist';
 import {
@@ -7,6 +7,7 @@ import {
   getAllTracks,
   getArtistById,
   getGenreById,
+  getSelectedGenres,
   getTime,
   getTrackById,
 } from '../redux/selectors';
@@ -75,6 +76,7 @@ export const DJ_TOOLS: Tool[] = [
         max_year: {type: 'integer', description: 'Latest release year'},
         min_play_count: {type: 'integer', description: 'Only tracks played at least this many times'},
         min_year: {type: 'integer', description: 'Earliest release year'},
+        added_within_days: {type: 'integer', description: 'Only tracks added to the library this recently'},
         unplayed_only: {type: 'boolean', description: 'Only tracks the user has never played'},
       },
       type: 'object',
@@ -128,11 +130,32 @@ export const DJ_TOOLS: Tool[] = [
     name: 'get_queue',
   },
   {
-    description: 'Read-only: what is playing right now, how long the room has been idle or paused, and ' +
-      'whether the DJ queue is active yet. Safe to call at the start of a session before you have ' +
-      'queued anything — unlike get_queue it never implies a DJ queue exists.',
+    description: 'Read-only: what is playing right now, the listening context (local time, volume, whether ' +
+      'the app is in the mini player, any genre filter the listener set, how long the room has been idle ' +
+      'or paused, what this session has played so far) and whether the DJ queue is active yet. Safe to ' +
+      'call before you have queued anything — unlike get_queue it never implies a DJ queue exists.',
     input_schema: {properties: {}, type: 'object'},
     name: 'now_playing',
+  },
+  {
+    description: 'What the listener has actually been playing lately, newest first, from the whole library ' +
+      '(not just this session). Good for "more of what I have been into" and for avoiding what they just ' +
+      'heard yesterday.',
+    input_schema: {
+      properties: {
+        days: {type: 'integer', description: 'How far back to look (default 14)'},
+        limit: {type: 'integer', description: `Max results (default ${DEFAULT_LIMIT}, max ${MAX_LIMIT})`},
+      },
+      type: 'object',
+    },
+    name: 'recent_plays',
+  },
+  {
+    description: 'A compact profile of the library and listening history: size, total plays and playtime, ' +
+      'how much is unplayed, top genres and artists by plays, favorites per year, and how much was added ' +
+      'recently. Call this once early if you have no memory of this listener yet.',
+    input_schema: {properties: {}, type: 'object'},
+    name: 'library_stats',
   },
   {
     description: 'Replace everything queued after the current track. The current track keeps playing. ' +
@@ -411,8 +434,12 @@ function sampleTracks(state: RootState, input: Record<string, unknown>): ToolOut
   const minPlays = num(input, 'min_play_count');
   const favoritesOnly = bool(input, 'favorites_only');
   const unplayedOnly = bool(input, 'unplayed_only');
+  const addedWithin = num(input, 'added_within_days');
   const limit = limitOf(input);
   const matches = getAllTracks(state).filter((track) => {
+    if (addedWithin !== undefined && !withinDays(track.dateAdded, addedWithin)) {
+      return false;
+    }
     if (genre && !includes(genreNames(state, track.genreIds), genre)) {
       return false;
     }
@@ -598,7 +625,114 @@ function queueAlbums(input: Record<string, unknown>): ToolOutcome {
   return {content: `${warning}${summary}\n${note}\n\n${describeQueue(store.getState())}`, queueChanged: true};
 }
 
+/** Local time, volume, window mode, any UI genre filter, and what this session has played. */
+function describeContext(state: RootState): string {
+  const now = new Date();
+  const parts = [
+    now.toLocaleString(undefined, {hour: 'numeric', minute: '2-digit', weekday: 'long'}),
+    `volume ${Math.round(state.currentlyPlaying.volume * 100)}%`,
+    activity.getWindowMode() === 'mini' ? 'mini player (music is in the background)' : 'full window',
+  ];
+  const filter = getSelectedGenres(state).map((id) => getGenreById(state, id))
+    .filter(Boolean).map((genre) => genre.name);
+  if (filter.length) {
+    parts.push(`listener's genre filter: ${filter.join('/')}`);
+  }
+  const playlist = getPlaylist(state);
+  if (playlist) {
+    const played = playlist.getHistory().map((id) => getTrackById(state, id)).filter(Boolean);
+    const listened = played.reduce((total, track) => total + track.duration, 0);
+    parts.push(`${played.length} track(s) played this set (${humanDuration(listened)})`);
+  }
+  parts.push(`app open ${humanDuration(activity.getUptimeMs())}`);
+  return parts.join(' · ');
+}
+
 /** Now playing, readable even when the DJ queue is not active. */
+function withinDays(date: Date | undefined, days: number): boolean {
+  if (!date || isNaN(date.getTime()) || date.getTime() <= 0) {
+    return false;
+  }
+  return Date.now() - date.getTime() <= days * 24 * 60 * 60 * 1000;
+}
+
+function recentPlays(state: RootState, input: Record<string, unknown>): ToolOutcome {
+  const days = num(input, 'days') || 14;
+  const limit = limitOf(input);
+  const played = getAllTracks(state)
+    .filter((track) => track.playCount > 0 && withinDays(track.playDate, days))
+    .sort((a, b) => b.playDate.getTime() - a.playDate.getTime());
+  if (!played.length) {
+    return {content: `Nothing has been played in the last ${days} days.`};
+  }
+  const shown = played.slice(0, limit);
+  const header = `${played.length} track(s) played in the last ${days} days, newest first` +
+    `${played.length > limit ? `, showing ${limit}` : ''}:`;
+  return {content: `${header}\n${TRACK_LINE_LEGEND}\n${formatTracks(state, shown)}`};
+}
+
+function topBy(counts: Record<string, number>, names: (id: string) => string, take: number): string {
+  return Object.keys(counts)
+    .map((id) => ({count: counts[id], name: names(id)}))
+    .filter((entry) => Boolean(entry.name))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, take)
+    .map((entry) => `${entry.name} (${entry.count})`)
+    .join(', ');
+}
+
+function libraryStats(state: RootState): ToolOutcome {
+  const tracks = getAllTracks(state);
+  const genrePlays: Record<string, number> = {};
+  const artistPlays: Record<string, number> = {};
+  const favoritesByYear: Record<string, number> = {};
+  let totalPlays = 0;
+  let playtimeMs = 0;
+  let unplayed = 0;
+  let addedRecently = 0;
+  tracks.forEach((track) => {
+    totalPlays += track.playCount;
+    playtimeMs += track.duration * track.playCount;
+    if (!track.playCount) {
+      unplayed++;
+    }
+    if (withinDays(track.dateAdded, 90)) {
+      addedRecently++;
+    }
+    track.genreIds.forEach((id) => {
+      genrePlays[id] = (genrePlays[id] || 0) + track.playCount;
+    });
+    track.artistIds.forEach((id) => {
+      artistPlays[id] = (artistPlays[id] || 0) + track.playCount;
+    });
+    (track.favorites || []).forEach((year) => {
+      favoritesByYear[year] = (favoritesByYear[year] || 0) + 1;
+    });
+  });
+  const library = state.library;
+  const favorites = Object.keys(favoritesByYear).sort()
+    .map((year) => `${year}: ${favoritesByYear[year]}`).join(', ') || 'none';
+  const pctUnplayed = tracks.length ? Math.round((unplayed / tracks.length) * 100) : 0;
+  const genreNameOf = (id: string): string => {
+    const genre = getGenreById(state, id);
+    return genre ? genre.name : '';
+  };
+  const artistNameOf = (id: string): string => {
+    const artist = getArtistById(state, id);
+    return artist ? artist.name : '';
+  };
+  const size = `Library: ${tracks.length} tracks, ${Object.keys(library.albums).length} albums, ` +
+    `${Object.keys(library.artists).length} artists, ${Object.keys(library.playlists).length} playlists`;
+  const listening = `Listening: ${totalPlays} plays, ${humanDuration(playtimeMs)} of playtime, ` +
+    `${pctUnplayed}% of tracks never played`;
+  return {content: `${size}
+${listening}
+Top genres by plays: ${topBy(genrePlays, genreNameOf, 8) || 'none'}
+Top artists by plays: ${topBy(artistPlays, artistNameOf, 10) || 'none'}
+Favorites per year: ${favorites}
+Added in the last 90 days: ${addedRecently} tracks`};
+}
+
 export function describeNowPlaying(state: RootState): string {
   const currentId = state.currentlyPlaying.currentlyPlayingId || undefined;
   const current = currentId ? getTrackById(state, currentId) : undefined;
@@ -609,6 +743,7 @@ export function describeNowPlaying(state: RootState): string {
       ? `Now playing: ${formatTrack(state, current)} [${toTime(getTime(state) * 1000)} elapsed, ` +
         `${state.currentlyPlaying.isPlaying ? 'playing' : 'paused'}]`
       : 'Now playing: nothing',
+    `Context: ${describeContext(state)}`,
     `Room: ${activity.describe()}`,
     djActive
       ? 'The DJ queue is active, so set_queue/add_to_queue edit what you already built.'
@@ -689,6 +824,10 @@ export function executeTool(name: string, input: Record<string, unknown>): ToolO
     return {content: describeQueue(state)};
   case 'now_playing':
     return {content: describeNowPlaying(state)};
+  case 'recent_plays':
+    return recentPlays(state, input);
+  case 'library_stats':
+    return libraryStats(state);
   case 'set_queue':
     return mutateQueue(input, (playlist, ids) => playlist.setUpcoming(ids));
   case 'add_to_queue':
@@ -697,9 +836,11 @@ export function executeTool(name: string, input: Record<string, unknown>): ToolO
   case 'remove_from_queue':
     return mutateQueue(input, (playlist, ids) => playlist.removeUpcoming(ids));
   case 'skip_current': {
-    if (!getPlaylist(state)) {
+    const playlist = getPlaylist(state);
+    if (!playlist) {
       return {content: 'DJ queue is not active.', isError: true};
     }
+    playlist.noteDJAdvance();
     store.dispatch({type: NEXT_TRACK});
     return {content: describeQueue(store.getState()), queueChanged: true};
   }

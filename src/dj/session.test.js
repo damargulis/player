@@ -1,6 +1,6 @@
 import DJPlaylist from '../playlist/DJPlaylist';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
-import {NEXT_TRACK, SET_PLAYLIST, UPDATE_LIBRARY, UPDATE_TIME} from '../redux/actionTypes';
+import {NEXT_ALBUM, NEXT_TRACK, SET_PLAYLIST, UPDATE_LIBRARY, UPDATE_TIME, UPDATE_TRACK} from '../redux/actionTypes';
 import session from './session';
 import store from '../redux/store';
 
@@ -31,11 +31,15 @@ function playFor(seconds) {
 beforeEach(() => {
   store.dispatch({
     payload: {library: {
-      albums: {al1: {albumArtFile: undefined, artistIds: ['ar1'], errors: [], favorites: [], genreIds: [], id: 'al1',
-        name: 'Album', playCount: 0, skipCount: 0, trackIds: ['t1', 't2', 't3', 't4'], year: 2000}},
       artists: {ar1: {albumIds: ['al1'], errors: [], genreIds: [], id: 'ar1', name: 'Artist',
         trackIds: ['t1', 't2', 't3', 't4']}},
       tracks: {t1: track('t1', 'One'), t2: track('t2', 'Two'), t3: track('t3', 'Three'), t4: track('t4', 'Four')},
+      albums: {
+        al1: {albumArtFile: undefined, artistIds: ['ar1'], errors: [], favorites: [], genreIds: [], id: 'al1',
+          name: 'Album', playCount: 0, skipCount: 0, trackIds: ['t1', 't2', 't3'], year: 2000},
+        al2: {albumArtFile: undefined, artistIds: ['ar1'], errors: [], favorites: [], genreIds: [], id: 'al2',
+          name: 'Other', playCount: 0, skipCount: 0, trackIds: ['t4'], year: 2001},
+      },
     }},
     type: UPDATE_LIBRARY,
   });
@@ -90,4 +94,57 @@ test('the room line reports idle and pause state', () => {
   expect(JSON.parse(session.runExternalTool('_status', {}).content).room).toEqual(
     expect.objectContaining({idleSeconds: expect.anything()}),
   );
+});
+
+test('skipping a whole album reads differently from skipping one track', () => {
+  const playlist = new DJPlaylist();
+  playlist.addAlbum(['t1', 't2', 't3'], 'al1', 'end');
+  playlist.addAlbum(['t4'], 'al2', 'end');
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  expect(store.getState().currentlyPlaying.currentlyPlayingId).toBe('t1');
+
+  // one track skip
+  playFor(5);
+  let outcome = session.runExternalTool('get_queue', {});
+  expect(outcome.content).toContain('Skipped after');
+  expect(outcome.content).not.toContain('the rest of');
+
+  // now reject the remainder of the record
+  store.dispatch({payload: {time: 7}, type: UPDATE_TIME});
+  store.dispatch({type: NEXT_ALBUM});
+  expect(store.getState().currentlyPlaying.currentlyPlayingId).toBe('t4');
+
+  outcome = session.runExternalTool('get_queue', {});
+  expect(outcome.content).toContain('The listener skipped the rest of "Album"');
+  expect(outcome.content).toContain('1 queued track(s) dropped');
+});
+
+test("the DJ's own skip is not reported as listener feedback", () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1', 't2']);
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  session.runExternalTool('get_queue', {}); // drain
+  const before = session.getStatus().recentSkips;
+
+  store.dispatch({payload: {time: 4}, type: UPDATE_TIME});
+  session.runExternalTool('skip_current', {});
+
+  expect(session.getStatus().recentSkips).toBe(before);
+  const outcome = session.runExternalTool('get_queue', {});
+  expect(outcome.content).toContain('You (the DJ) skipped');
+});
+
+test('favoriting the playing track is reported as a positive signal', () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1', 't2']);
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  session.runExternalTool('get_queue', {}); // drain, and snapshot current favorites
+  playFor(5); // a skip, so there is a streak to clear
+  expect(session.getStatus().recentSkips).toBe(1);
+
+  store.dispatch({payload: {id: 't2', info: {favorites: [2026]}}, type: UPDATE_TRACK});
+
+  expect(session.getStatus().recentSkips).toBe(0);
+  const outcome = session.runExternalTool('get_queue', {});
+  expect(outcome.content).toContain('just favorited this');
 });

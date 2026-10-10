@@ -108,7 +108,12 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
               )}
             </div>
           )}
-          {this.state.busy && <div className="dj-thinking">DJ is digging through the crates…</div>}
+          {this.state.busy && (
+            <div className="dj-thinking">
+              <span className="dj-thinking-text">{this.state.note || 'Digging through the crates'}</span>
+              <span className="dj-dots" aria-hidden="true"><i /><i /><i /></span>
+            </div>
+          )}
         </div>
         <div className="dj-input">
           <textarea

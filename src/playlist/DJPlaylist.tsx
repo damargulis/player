@@ -1,5 +1,16 @@
 import EmptyPlaylist from './EmptyPlaylist';
 
+/** How the queue last moved, so the DJ can tell a track skip from a whole-album rejection. */
+export interface QueueTransition {
+  kind: 'next-track' | 'next-album' | 'prev-track' | 'prev-album';
+  /** Tracks dropped from the queue because the rest of an album was skipped. */
+  dropped: string[];
+  /** The album whose remainder was dropped. */
+  albumId?: string;
+  /** True when the DJ advanced the queue itself, rather than the listener pressing a button. */
+  byDJ: boolean;
+}
+
 export interface QueueEntry {
   id: string;
   /** Set when the track was queued as part of a whole album; drives the skip/prev-album buttons. */
@@ -15,6 +26,8 @@ export default class DJPlaylist extends EmptyPlaylist {
   private history: QueueEntry[];
   private upcoming: QueueEntry[];
   private current: number;
+  private transition?: QueueTransition;
+  private djAdvance = false;
 
   constructor(seedTrackId?: string) {
     super();
@@ -39,37 +52,34 @@ export default class DJPlaylist extends EmptyPlaylist {
   }
 
   public nextTrack(): string | undefined {
-    if (this.current < this.history.length - 1) {
-      // Navigating forward again after going back.
-      this.current++;
-      return this.getCurrentTrack();
-    }
-    const next = this.upcoming.shift();
-    if (next === undefined) {
-      // Queue is dry: playback stops until the DJ refills.
-      return undefined;
-    }
-    this.history.push(next);
-    this.current++;
-    return next.id;
+    const next = this.advance();
+    this.recordTransition({dropped: [], kind: 'next-track'});
+    return next;
   }
 
   public prevTrack(): string | undefined {
     if (this.current > 0) {
       this.current--;
     }
+    this.recordTransition({dropped: [], kind: 'prev-track'});
     return this.getCurrentTrack();
   }
 
   /** Skips the rest of the current queued album (or just this track if it wasn't queued as an album). */
   public nextAlbum(): string | undefined {
     const albumId = this.currentAlbumId();
+    const dropped: string[] = [];
     if (albumId !== undefined && this.current === this.history.length - 1) {
       while (this.upcoming.length && this.upcoming[0].albumId === albumId) {
-        this.upcoming.shift();
+        const entry = this.upcoming.shift();
+        if (entry) {
+          dropped.push(entry.id);
+        }
       }
     }
-    return this.nextTrack();
+    const next = this.advance();
+    this.recordTransition({albumId, dropped, kind: 'next-album'});
+    return next;
   }
 
   /** Jumps back to the first track of the current queued album. */
@@ -81,7 +91,23 @@ export default class DJPlaylist extends EmptyPlaylist {
     while (this.current > 0 && this.history[this.current - 1].albumId === albumId) {
       this.current--;
     }
+    this.recordTransition({albumId, dropped: [], kind: 'prev-album'});
     return this.getCurrentTrack();
+  }
+
+  /**
+   * Marks the next advance as the DJ's own (skip_current), so its feedback isn't misread as the
+   * listener rejecting the track.
+   */
+  public noteDJAdvance(): void {
+    this.djAdvance = true;
+  }
+
+  /** Reads and clears how the queue last moved. */
+  public consumeTransition(): QueueTransition | undefined {
+    const transition = this.transition;
+    this.transition = undefined;
+    return transition;
   }
 
   public hasNextTrack(): boolean {
@@ -142,6 +168,28 @@ export default class DJPlaylist extends EmptyPlaylist {
 
   public removeUpcoming(trackIds: string[]): void {
     this.setEntries(this.forwardEntries().filter((entry) => !trackIds.includes(entry.id)));
+  }
+
+  /** Moves to the next track without recording a transition; callers do that. */
+  private advance(): string | undefined {
+    if (this.current < this.history.length - 1) {
+      // Navigating forward again after going back.
+      this.current++;
+      return this.getCurrentTrack();
+    }
+    const next = this.upcoming.shift();
+    if (next === undefined) {
+      // Queue is dry: playback stops until the DJ refills.
+      return undefined;
+    }
+    this.history.push(next);
+    this.current++;
+    return next.id;
+  }
+
+  private recordTransition(transition: QueueTransition | Omit<QueueTransition, 'byDJ'>): void {
+    this.transition = Object.assign({byDJ: this.djAdvance}, transition) as QueueTransition;
+    this.djAdvance = false;
   }
 
   private currentAlbumId(): string | undefined {

@@ -57,6 +57,7 @@ import com.example.musicnative.ui.theme.Warning
 fun DJChatScreen(onClose: () -> Unit) {
     val entries by DJChatState.entries.observeAsState(emptyList())
     val busy by DJChatState.busy.observeAsState(false)
+    val note by DJChatState.note.observeAsState(null)
     val configured by DJChatState.configured.observeAsState(true)
     val connected by ServerConnection.connected.observeAsState(false)
     var draft by remember { mutableStateOf("") }
@@ -152,7 +153,7 @@ fun DJChatScreen(onClose: () -> Unit) {
                 if (busy) {
                     item {
                         Text(
-                            "DJ is digging through the crates…",
+                            "${note ?: "Digging through the crates"}…",
                             color = TextSecondary,
                             fontSize = 13.sp,
                             fontStyle = FontStyle.Italic,

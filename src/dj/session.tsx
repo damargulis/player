@@ -11,8 +11,8 @@ import {
 } from './api';
 import DJPlaylist from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
-import {getTrackById} from '../redux/selectors';
-import store from '../redux/store';
+import {getAlbumById, getTrackById} from '../redux/selectors';
+import store, {RootState} from '../redux/store';
 import {describeQueue, DJ_TOOLS, ensureDJPlaylist, executeTool, formatTrack, startIfIdle, ToolOutcome} from './tools';
 import {toTime} from '../utils';
 
@@ -32,6 +32,8 @@ export interface TranscriptEntry {
 export interface DJSessionState {
   entries: TranscriptEntry[];
   busy: boolean;
+  /** What the DJ is doing right now — its latest reasoning summary or the tool it is running. */
+  note?: string;
 }
 
 const MAX_TOOL_ROUNDS = 30;
@@ -58,10 +60,13 @@ How it works
 - The library is the listener's own mp3 collection. You can only play tracks that exist in it, and you can only reference them by the ids the tools return. Never invent ids.
 - You know a lot about music: use artist, album, title, year and genre to judge energy, mood, tempo and era. Play counts, skip counts and ♥ favorites tell you what the listener loves. "unplayed" tracks are fair game for discovery but don't lean on them too hard.
 - The queue is live. The current track keeps playing while you rewrite what comes next. set_queue replaces everything after the current track; add_to_queue/remove_from_queue make smaller edits. Prefer editing over replacing when the listener makes a small refinement.
-- now_playing is read-only and safe before you have queued anything — call it first to see what is on, how long the room has been idle or paused, and what the app already had queued (your first edit inherits that rather than discarding it, and never interrupts the current track).
+- now_playing is read-only and safe before you have queued anything — call it first. It gives the current track, the listening context (local time and day, volume, whether the app is in the mini player so the music is background, any genre filter the listener set in the UI, how much this set has played, how long the room has been idle or paused) and what the app already had queued (your first edit inherits that rather than discarding it, and never interrupts the current track).
+- recent_plays shows what they have been playing lately across the whole library, not just this set — useful for "more of what I've been into" and for not repeating yesterday. library_stats profiles the library (size, top genres and artists by plays, favorites per year, how much is unplayed, what was added recently); call it once early if you have no memory of this listener yet.
+- sample_tracks takes added_within_days, which is the honest way to answer "play me something new".
 - When the queue runs low you'll get an automatic "[Queue update]" notice. Top it up (another 6-10 tracks) in the same spirit as the current vibe, then reply in a few words.
-- Each listener message may start with a "[Playback update]" block saying what played fully, what was skipped, and what the listener removed from the queue by hand since your last turn. Skips and especially removals are the strongest feedback you get — react to them rather than re-queueing more of the same.
-- Watch the room line in get_queue/now_playing. A long pause with no input means nobody is listening: don't keep burning through good tracks into an empty room. Rapid skips mean you are wrong right now.
+- Each listener message may start with a "[Playback update]" block saying what played fully, what was skipped, and what the listener removed from the queue by hand since your last turn. It distinguishes skipping one track from skipping the rest of an album ("skipped the rest of X — N queued tracks dropped"), which in album mode is a rejection of the record rather than the song — react to it by changing the album, not the track. Skips and especially removals are the strongest feedback you get — react to them rather than re-queueing more of the same.
+- The listener hitting the like button on the playing track is the clearest "yes" you will get; it shows up in the playback update. Note what it was and why you think it landed.
+- Watch the context and room lines in get_queue/now_playing. Mini player means the music is background to something else — fewer surprises, less talk. A long pause with no input means nobody is listening: don't keep burning through good tracks into an empty room. Rapid skips mean you are wrong right now.
 
 Working style
 - Start by exploring: sample_tracks with a genre/era filter, list_artists for a genre, search_library for specific names. For long stretches (working, studying, a lazy afternoon) or when the listener asks for full albums, think in albums instead: search_albums to browse, then queue_albums — it queues every track in album order so nothing is missed. Two to four albums is a good work session. The library is a few thousand albums, so don't try to list everything. A few well-chosen calls are enough; then set the queue.
@@ -100,6 +105,44 @@ function compact(input: Record<string, unknown>): string {
   return json.length > 160 ? `${json.slice(0, 160)}…` : json;
 }
 
+const TOOL_PHRASES: Record<string, string> = {
+  add_to_queue: 'Adding to the queue',
+  get_artist: 'Reading up on an artist',
+  get_queue: 'Checking the queue',
+  library_stats: 'Sizing up the library',
+  list_artists: 'Looking through artists',
+  list_genres: 'Checking the genres',
+  memory: 'Checking its notes',
+  now_playing: 'Checking what is playing',
+  queue_albums: 'Queueing albums',
+  recent_plays: 'Reviewing recent plays',
+  remove_from_queue: 'Trimming the queue',
+  sample_tracks: 'Digging through the crates',
+  search_albums: 'Browsing albums',
+  search_library: 'Searching the library',
+  set_queue: 'Rebuilding the queue',
+  skip_current: 'Skipping ahead',
+  web_search: 'Looking it up online',
+};
+
+function describeToolRun(names: string[]): string {
+  const phrases = names.map((name) => TOOL_PHRASES[name] || `Running ${name}`);
+  const unique = phrases.filter((phrase, i) => phrases.indexOf(phrase) === i);
+  return unique.slice(0, 2).join(', ');
+}
+
+/** First sentence of the DJ's latest reasoning summary, for the live progress line. */
+function summarizeThinking(content: ContentBlock[]): string | undefined {
+  const thinking = content.filter((b) => b.type === 'thinking')
+    .map((b) => (b.type === 'thinking' ? b.thinking : '')).filter(Boolean);
+  if (!thinking.length) {
+    return undefined;
+  }
+  const text = thinking[thinking.length - 1].replace(/\s+/g, ' ').trim();
+  const sentence = text.split(/(?<=[.!?])\s/)[0] || text;
+  return sentence.length > 150 ? `${sentence.slice(0, 149)}…` : sentence;
+}
+
 function formatClock(): string {
   return new Date().toLocaleString(undefined, {hour: 'numeric', minute: '2-digit', weekday: 'short'});
 }
@@ -112,6 +155,9 @@ class DJSession {
   private listeners: Set<() => void> = new Set();
   private pending: Array<{text: string; automatic: boolean}> = [];
   private playbackEvents: string[] = [];
+  private busyNote?: string;
+  /** favorites count per track id, to notice the listener hitting the like button mid-set */
+  private favoriteCounts: Record<string, number> = {};
   /** Consecutive skips with no full play in between — the "wrong vibe" signal. */
   private recentSkips = 0;
   private lastTrackId: string | undefined;
@@ -128,7 +174,7 @@ class DJSession {
   }
 
   public getState(): DJSessionState {
-    return {busy: this.busy, entries: this.entries};
+    return {busy: this.busy, entries: this.entries, note: this.busyNote};
   }
 
   public isActive(): boolean {
@@ -174,6 +220,7 @@ class DJSession {
     return {
       busy: this.busy,
       configured: Boolean(getApiKey()),
+      note: this.busyNote || null,
       entries: entries.slice(-limit).map((entry) => ({id: entry.id, role: entry.role, text: entry.text})),
       hasSession: this.messages.length > 0,
     };
@@ -311,6 +358,7 @@ class DJSession {
         const response = await createMessage({messages: this.messages, system: SYSTEM_PROMPT, tools: API_TOOLS});
         this.messages.push({content: response.content, role: 'assistant'});
         this.recordVerbose(response.content);
+        this.setNote(summarizeThinking(response.content));
         const reply = textOf(response.content);
         if (response.stop_reason === 'refusal') {
           const explanation = (response.stop_details && response.stop_details.explanation) || 'no reason given';
@@ -326,6 +374,7 @@ class DJSession {
             this.addEntry('dj', reply);
           }
           const toolUses = response.content.filter((b) => b.type === 'tool_use') as ToolUseBlock[];
+          this.setNote(describeToolRun(toolUses.map((use) => use.name)));
           const results: ToolResultBlock[] = toolUses.map((use) => {
             const input = use.input || {};
             const outcome = runTool(use.name, input);
@@ -384,6 +433,7 @@ class DJSession {
       this.lastTrackId = undefined;
       return;
     }
+    this.checkFavorites(state);
     const currentId = state.currentlyPlaying.currentlyPlayingId || undefined;
     if (currentId !== this.lastTrackId) {
       this.recordTrackChange(this.lastTrackId, currentId, playlist);
@@ -395,18 +445,59 @@ class DJSession {
     }
   }
 
+  /** Favoriting the playing track is the clearest "yes" the listener can give without typing. */
+  private checkFavorites(state: RootState): void {
+    const currentId = state.currentlyPlaying.currentlyPlayingId;
+    if (!currentId) {
+      return;
+    }
+    const track = getTrackById(state, currentId);
+    if (!track) {
+      return;
+    }
+    const count = (track.favorites || []).length;
+    const previous = this.favoriteCounts[currentId];
+    if (previous !== undefined && count !== previous) {
+      activity.noteListenerInput();
+      if (count > previous) {
+        this.recentSkips = 0;
+        this.playbackEvents.push(`The listener just favorited this: ${formatTrack(state, track)}`);
+      } else {
+        this.playbackEvents.push(`The listener just un-favorited this: ${formatTrack(state, track)}`);
+      }
+    }
+    this.favoriteCounts[currentId] = count;
+  }
+
   private recordTrackChange(prevId: string | undefined, nextId: string | undefined, playlist: DJPlaylist): void {
     const state = store.getState();
     const prev = prevId ? getTrackById(state, prevId) : undefined;
     if (prev) {
+      const transition = playlist.consumeTransition();
+      const byDJ = transition !== undefined && transition.byDJ;
       const finished = this.lastTime * 1000 >= prev.duration - 5000;
       const elapsed = toTime(this.lastTime * 1000);
       const wentBack = nextId !== undefined && playlist.getHistory().slice(0, -1).includes(nextId);
+      const albumSkip = transition !== undefined && transition.kind === 'next-album' &&
+        transition.dropped.length > 0;
       if (wentBack) {
         this.playbackEvents.push(`Went back (after ${elapsed}): ${formatTrack(state, prev)}`);
+      } else if (albumSkip) {
+        const album = transition && transition.albumId ? getAlbumById(state, transition.albumId) : undefined;
+        const name = album ? `"${album.name}"` : 'the album';
+        const dropped = transition ? transition.dropped.length : 0;
+        const who = byDJ ? 'You (the DJ) skipped' : 'The listener skipped';
+        this.playbackEvents.push(`${who} the rest of ${name} after ${elapsed} — ${dropped} queued ` +
+          `track(s) dropped, during: ${formatTrack(state, prev)}`);
+        if (!byDJ) {
+          this.recentSkips++;
+          activity.noteListenerInput();
+        }
       } else if (finished) {
         this.recentSkips = 0;
         this.playbackEvents.push(`Played fully: ${formatTrack(state, prev)}`);
+      } else if (byDJ) {
+        this.playbackEvents.push(`You (the DJ) skipped after ${elapsed}: ${formatTrack(state, prev)}`);
       } else {
         this.recentSkips++;
         activity.noteListenerInput();
@@ -424,6 +515,11 @@ class DJSession {
       this.refillRequestedAt = currentId;
       this.enqueue(`Only ${remaining} track(s) left in the queue. Add more in the same spirit.`, true);
     }
+  }
+
+  private setNote(note?: string): void {
+    this.busyNote = note;
+    this.emit();
   }
 
   private addEntry(role: EntryRole, text: string, detail?: string): void {

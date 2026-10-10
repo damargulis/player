@@ -174,3 +174,34 @@ test('get_artist reports album plays from tracks too', () => {
   expect(outcome.content).toContain('First Album (2000) — 2 tracks, 16 plays (~8/track)');
   expect(outcome.content).toContain('Second Album (2001) — 1 tracks, unplayed');
 });
+
+test('recent_plays lists what was played lately, newest first', () => {
+  const outcome = executeTool('recent_plays', {days: 30});
+
+  expect(outcome.isError).toBeUndefined();
+  // t1 was played 3 days ago, t2 10 days ago, t3 never
+  expect(outcome.content).toContain('2 track(s) played in the last 30 days');
+  expect(outcome.content.indexOf('One')).toBeLessThan(outcome.content.indexOf('Two'));
+  expect(outcome.content).not.toContain('Three');
+});
+
+test('library_stats profiles the library without needing memory', () => {
+  const outcome = executeTool('library_stats', {});
+
+  expect(outcome.content).toContain('Library: 3 tracks, 2 albums, 1 artists');
+  expect(outcome.content).toContain('16 plays');
+  expect(outcome.content).toContain('Top artists by plays: Some Artist (16)');
+});
+
+test('now_playing reports the listening context', () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1']);
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+
+  const outcome = executeTool('now_playing', {});
+
+  expect(outcome.content).toContain('Context:');
+  expect(outcome.content).toContain('volume');
+  expect(outcome.content).toContain('full window');
+  expect(outcome.content).toContain('1 track(s) played this set');
+});
