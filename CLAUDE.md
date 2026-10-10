@@ -6,6 +6,7 @@
 
 - `yarn electron-dev` — run the app in development (starts the CRA dev server on :3000 and Electron pointed at it)
 - `yarn build` / `yarn electron-pack` — production build / package the mac app (electron-builder; zip target only — the DMG target needs Python 2, which modern macOS lacks). Never run these with `sudo`: a sudo'd run leaves `build/`/`dist/` root-owned and every later build fails with EACCES until they're `sudo rm -rf`'d.
+- `yarn deploy-mac` — package **and** install to `/Applications` (`yarn install-mac` does just the install). Use this rather than unzipping `dist/MyMusic-0.1.0-mac.zip` by hand: the zip itself stores correct Unix modes, but GUI extractors and mode-ignoring copies strip the executable bit off `Contents/MacOS/MyMusic`, which makes macOS report "The application MyMusic can't be opened". The scripts copy the already-correct bundle from `dist/mac/` with `ditto`, preserving modes and the 14 framework symlinks. Quit the app first — overwriting a running bundle is asking for trouble. If you ever do extract the zip manually, use `ditto -x -k <zip> <dest>`, not Finder.
 - `yarn test` — run tests with Jest. Tests run **inside Electron** (`jest-electron` runner), not plain Node
 - `yarn test src/extensions/wiki/albums.test.js` — run a single test file; `yarn test -t "name"` for a single test
 - `yarn lint` — tslint with `--fix` (this repo uses tslint, not eslint)
