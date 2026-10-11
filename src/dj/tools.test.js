@@ -202,6 +202,6 @@ test('now_playing reports the listening context', () => {
 
   expect(outcome.content).toContain('Context:');
   expect(outcome.content).toContain('volume');
-  expect(outcome.content).toContain('full window');
   expect(outcome.content).toContain('1 track(s) played this set');
+  expect(outcome.content).not.toContain('window');
 });

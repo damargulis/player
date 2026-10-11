@@ -7,7 +7,6 @@ import {
   getAllTracks,
   getArtistById,
   getGenreById,
-  getSelectedGenres,
   getTime,
   getTrackById,
 } from '../redux/selectors';
@@ -130,10 +129,10 @@ export const DJ_TOOLS: Tool[] = [
     name: 'get_queue',
   },
   {
-    description: 'Read-only: what is playing right now, the listening context (local time, volume, whether ' +
-      'the app is in the mini player, any genre filter the listener set, how long the room has been idle ' +
-      'or paused, what this session has played so far) and whether the DJ queue is active yet. Safe to ' +
-      'call before you have queued anything — unlike get_queue it never implies a DJ queue exists.',
+    description: 'Read-only: what is playing right now, the listening context (local time, volume, what ' +
+      'this session has played so far, how long the room has been idle or paused) and whether the DJ ' +
+      'queue is active yet. Safe to call before you have queued anything — unlike get_queue it never ' +
+      'implies a DJ queue exists.',
     input_schema: {properties: {}, type: 'object'},
     name: 'now_playing',
   },
@@ -625,19 +624,13 @@ function queueAlbums(input: Record<string, unknown>): ToolOutcome {
   return {content: `${warning}${summary}\n${note}\n\n${describeQueue(store.getState())}`, queueChanged: true};
 }
 
-/** Local time, volume, window mode, any UI genre filter, and what this session has played. */
+/** Local time, volume, and what this session has played. */
 function describeContext(state: RootState): string {
   const now = new Date();
   const parts = [
     now.toLocaleString(undefined, {hour: 'numeric', minute: '2-digit', weekday: 'long'}),
     `volume ${Math.round(state.currentlyPlaying.volume * 100)}%`,
-    activity.getWindowMode() === 'mini' ? 'mini player (music is in the background)' : 'full window',
   ];
-  const filter = getSelectedGenres(state).map((id) => getGenreById(state, id))
-    .filter(Boolean).map((genre) => genre.name);
-  if (filter.length) {
-    parts.push(`listener's genre filter: ${filter.join('/')}`);
-  }
   const playlist = getPlaylist(state);
   if (playlist) {
     const played = playlist.getHistory().map((id) => getTrackById(state, id)).filter(Boolean);

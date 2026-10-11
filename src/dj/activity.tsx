@@ -12,7 +12,6 @@ class DJActivity {
   private lastInputAt?: number;
   private pausedSince?: number;
   private wasPlaying = false;
-  private windowMode: 'mini' | 'full' = 'full';
   private startedAt = Date.now();
 
   constructor() {
@@ -24,21 +23,6 @@ class DJActivity {
     this.lastInputAt = Date.now();
   }
 
-  /**
-   * The app shrunk to the 240x120 mini player or went back to the full browser. Mini usually
-   * means the music is background to something else.
-   */
-  public noteWindowMode(mode: 'mini' | 'full'): void {
-    if (mode !== this.windowMode) {
-      this.windowMode = mode;
-      this.noteListenerInput();
-    }
-  }
-
-  public getWindowMode(): 'mini' | 'full' {
-    return this.windowMode;
-  }
-
   public getUptimeMs(): number {
     return Date.now() - this.startedAt;
   }
@@ -48,7 +32,6 @@ class DJActivity {
       appOpenSeconds: Math.round(this.getUptimeMs() / 1000),
       idleSeconds: this.lastInputAt === undefined ? null : Math.round((Date.now() - this.lastInputAt) / 1000),
       pausedSeconds: this.pausedSince === undefined ? null : Math.round((Date.now() - this.pausedSince) / 1000),
-      windowMode: this.windowMode,
     };
   }
 

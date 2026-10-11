@@ -330,12 +330,12 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private onMaximize(): void {
-    djActivity.noteWindowMode('full');
+    djActivity.noteListenerInput();
     this.setState({mini: false});
   }
 
   private onMinimize(): void {
-    djActivity.noteWindowMode('mini');
+    djActivity.noteListenerInput();
     this.setState({mini: true});
   }
 
