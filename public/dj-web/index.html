@@ -237,6 +237,12 @@
     padding: 10px 12px;
   }
   input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  input[type="text"]:disabled {
+    opacity: 0.5;
+  }
+  #nowplaying.stale {
+    opacity: 0.45;
+  }
   #send {
     background: var(--accent);
     border-color: var(--accent);
@@ -294,10 +300,12 @@
   var npartist = document.getElementById('npartist');
   var queue = document.getElementById('queue');
   var queuetoggle = document.getElementById('queuetoggle');
+  var sendButton = document.getElementById('send');
   var rendered = {};
   var queueOpen = false;
   var lastArt = '';
   var buildId = null;
+  var connected = false;
 
   // The keyboard shrinks the visual viewport but not the layout viewport, so track it
   // explicitly or the input ends up hidden underneath it.
@@ -418,13 +426,34 @@
     }
   });
 
+  // socket.io buffers emits while disconnected and flushes them on reconnect, so a message
+  // typed while the desktop is asleep would fire silently hours later. Gate the composer on
+  // the live connection instead, and say why.
+  function setConnected(ok) {
+    connected = ok;
+    draft.disabled = !ok;
+    sendButton.disabled = !ok;
+    nowplaying.classList.toggle('stale', !ok);
+    if (ok) {
+      banner.classList.remove('show');
+      draft.placeholder = 'What should we listen to?';
+    } else {
+      banner.textContent = 'Can\u2019t reach MyMusic \u2014 is the desktop awake? Reconnecting\u2026';
+      banner.classList.add('show');
+      draft.placeholder = 'Disconnected';
+      busy.classList.remove('show');
+    }
+  }
+
   socket.on('connect', function () {
-    banner.classList.remove('show');
+    setConnected(true);
     send('dj-sync');
   });
   socket.on('disconnect', function () {
-    banner.textContent = 'Not connected to MyMusic — trying…';
-    banner.classList.add('show');
+    setConnected(false);
+  });
+  socket.on('connect_error', function () {
+    setConnected(false);
   });
   socket.on('dj-state', function (state) {
     if (!state) {
@@ -450,7 +479,7 @@
   document.getElementById('composer').addEventListener('submit', function (evt) {
     evt.preventDefault();
     var text = draft.value.trim();
-    if (!text) {
+    if (!text || !connected) {
       return;
     }
     draft.value = '';
@@ -458,7 +487,9 @@
     scrollToBottom();
   });
   document.getElementById('newset').addEventListener('click', function () {
-    send('dj-new-session');
+    if (connected) {
+      send('dj-new-session');
+    }
   });
   queuetoggle.addEventListener('click', function () {
     queueOpen = !queueOpen;
@@ -469,6 +500,7 @@
   art.addEventListener('load', function () { art.style.visibility = 'visible'; });
   art.addEventListener('error', function () { art.style.visibility = 'hidden'; });
   draft.addEventListener('focus', function () { setTimeout(scrollToBottom, 300); });
+  setConnected(false);
 })();
 </script>
 </body>
