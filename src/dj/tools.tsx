@@ -2,6 +2,8 @@ import {Album, Artist, DJ_QUEUE_UPDATED, DJ_TAKE_OVER, NEXT_TRACK, SET_PLAYLIST,
 import activity, {humanDuration} from './activity';
 import {Tool} from './api';
 import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
+import {OWNER} from './owner';
+import {currentReaction, describeReactions, Reaction} from '../reactions';
 import {
   getAlbumById,
   getAllTracks,
@@ -278,15 +280,18 @@ function trackPosition(state: RootState, track: Track): string {
 export function formatTrack(state: RootState, track: Track): string {
   const plays = track.playCount ? `plays:${track.playCount} last:${daysAgo(track.playDate)}` : 'unplayed';
   const fav = track.favorites && track.favorites.length ? ' ♥' : '';
+  const reactions = describeReactions(track, new Date().getFullYear());
+  const others = reactions ? ` ${reactions}` : '';
   const skips = track.skipCount ? ` skips:${track.skipCount}` : '';
   const genres = genreNames(state, track.genreIds);
   return `${track.id} | ${track.name} — ${artistNames(state, track.artistIds)} | ${albumName(state, track)}` +
     `${trackPosition(state, track)}${track.year ? ` (${track.year})` : ''} | ${toTime(track.duration)} | ` +
-    `${genres || 'no genre'} | ${plays}${skips}${fav}`;
+    `${genres || 'no genre'} | ${plays}${skips}${fav}${others}`;
 }
 
 const TRACK_LINE_LEGEND = 'Format: id | title — artist | album #track/total (year) | length | genres | play stats. ' +
-  'Album track numbers come from the stored album order (no disc numbers in this library).';
+  'Album track numbers come from the stored album order (no disc numbers in this library). ' +
+  `A bare ♥ is ${OWNER}'s favourite; ♥name / ✗name is that person's own like or dislike this year.`;
 
 function formatTracks(state: RootState, tracks: Track[]): string {
   return tracks.map((t) => formatTrack(state, t)).join('\n');
@@ -793,6 +798,8 @@ export interface QueueTrackSnapshot {
   /** Set when the track was queued as part of a whole album, so clients can group and bulk-remove. */
   group?: string;
   groupName?: string;
+  /** This year's verdicts by person, so each client can show its own button state. */
+  reactions?: Record<string, Reaction>;
 }
 
 export interface QueueSnapshot {
@@ -815,13 +822,33 @@ function snapshotTrack(state: RootState, id: string): QueueTrackSnapshot | undef
   };
 }
 
+/** Attaches this year's verdicts, so a client can light up its own like/dislike button. */
+function withReactions(state: RootState, snapshot?: QueueTrackSnapshot): QueueTrackSnapshot | undefined {
+  if (!snapshot) {
+    return snapshot;
+  }
+  const track = getTrackById(state, snapshot.id);
+  if (!track || !track.reactions) {
+    return snapshot;
+  }
+  const year = new Date().getFullYear();
+  const reactions: Record<string, Reaction> = {};
+  Object.keys(track.reactions).forEach((person) => {
+    const verdict = currentReaction(track, person, year);
+    if (verdict !== 'none') {
+      reactions[person] = verdict;
+    }
+  });
+  return Object.assign({}, snapshot, {reactions});
+}
+
 /** Structured now-playing + queue for the mobile app and the web client. */
 export function queueSnapshot(state: RootState, limit: number = 25): QueueSnapshot {
   const playlist = getPlaylist(state);
   const currentId = state.currentlyPlaying.currentlyPlayingId || undefined;
   return {
     active: playlist !== undefined,
-    current: currentId ? snapshotTrack(state, currentId) : undefined,
+    current: currentId ? withReactions(state, snapshotTrack(state, currentId)) : undefined,
     isPlaying: state.currentlyPlaying.isPlaying,
     upcoming: playlist
       ? playlist.getUpcomingEntries().slice(0, limit)

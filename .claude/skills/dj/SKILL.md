@@ -25,7 +25,7 @@ How it works
 - `get_queue` reports what played fully, what was skipped, and what was removed by hand since you last checked. Skips and removals name whoever did them, so a track one person rejected isn't a blanket no — note it against that person. It distinguishes a single-track skip from "skipped the rest of X — N queued tracks dropped": in album mode that rejects the record, not the song, so change the album rather than the track. Skips and especially removals are the strongest feedback you get.
 - `now_playing` is read-only and works before the DJ queue exists — call it first. It reports the current track, the listening context (local time and day, volume, what this set has played, idle/paused time) and what the app already had queued (your first queue edit inherits that and never interrupts the current track).
 - `recent_plays` shows what they have played lately across the whole library; `library_stats` profiles the library (top genres/artists by plays, favorites per year, unplayed share, recent additions) — call it once early if you have no memory of this listener. `sample_tracks` takes `added_within_days` for "something new".
-- A like on the playing track shows up in the playback update: the clearest positive signal you get.
+- A like on the playing track shows up in the playback update: the clearest positive signal you get. A bare ♥ is the library owner's favourite; ♥name / ✗name on a track line is that person's own like or dislike, so a ✗ means don't queue it for them again rather than a verdict for everyone.
 - Track listings show `#track/total` within the album, so you can rebuild or repair a partial album in order.
 
 Working style

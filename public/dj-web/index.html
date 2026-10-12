@@ -126,6 +126,27 @@
     border-bottom: 1px solid var(--border);
   }
   #transport.show { display: flex; }
+  .rbtn {
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .rbtn.on.like {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent-strong);
+  }
+  .rbtn.on.dislike {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
   .tbtn {
     background: none;
     border: none;
@@ -382,6 +403,7 @@
     <button id="queuetoggle">Up next</button>
   </div>
   <div id="transport">
+    <button class="rbtn like" id="like" title="I like this" aria-label="Like">&#9829;</button>
     <button class="tbtn" id="prev" title="Previous track" aria-label="Previous track">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
         <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
@@ -401,6 +423,7 @@
         <path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/>
       </svg>
     </button>
+    <button class="rbtn dislike" id="dislike" title="Not for me" aria-label="Dislike">&#128078;</button>
   </div>
   <div id="queue"></div>
   <div id="transcript">
@@ -435,6 +458,8 @@
   var queuetoggle = document.getElementById('queuetoggle');
   var transport = document.getElementById('transport');
   var playicon = document.getElementById('playicon');
+  var likeBtn = document.getElementById('like');
+  var dislikeBtn = document.getElementById('dislike');
   var pauseicon = document.getElementById('pauseicon');
   var sendButton = document.getElementById('send');
   var rendered = {};
@@ -442,6 +467,11 @@
   var lastArt = '';
   var buildId = null;
   var connected = false;
+  var currentTrackId = null;
+
+  function queueCurrentId() {
+    return currentTrackId;
+  }
   var whois = document.getElementById('whois');
   var whoami = document.getElementById('whoami');
   var whoisname = document.getElementById('whoisname');
@@ -643,6 +673,7 @@
 
   function renderQueue(q) {
     if (!q || !q.active || !q.current) {
+      currentTrackId = null;
       nowplaying.classList.remove('show');
       transport.classList.remove('show');
       queue.classList.remove('show');
@@ -650,8 +681,13 @@
     }
     nowplaying.classList.add('show');
     transport.classList.add('show');
+    currentTrackId = q.current.id;
     playicon.style.display = q.isPlaying ? 'none' : '';
     pauseicon.style.display = q.isPlaying ? '' : 'none';
+    // my own verdict on what is playing, not anyone else's
+    var mine = (q.current.reactions || {})[speaker] || 'none';
+    likeBtn.classList.toggle('on', mine === 'like');
+    dislikeBtn.classList.toggle('on', mine === 'dislike');
     nptitle.textContent = q.current.name;
     npartist.textContent = q.current.artist + (q.isPlaying ? '' : ' · paused');
     var src = q.current.albumId ? '/get-album-art/' + encodeURIComponent(q.current.albumId) : '';
@@ -791,6 +827,17 @@
       }
     });
   }
+  function reactionAction(id, reaction) {
+    document.getElementById(id).addEventListener('click', function () {
+      var current = queueCurrentId();
+      if (connected && current) {
+        send('dj-react', {trackId: current, reaction: reaction, speaker: speaker || 'Guest'});
+      }
+    });
+  }
+  reactionAction('like', 'like');
+  reactionAction('dislike', 'dislike');
+
   transportAction('prev', 'prevTrack');
   transportAction('playpause', 'playTrack');
   transportAction('next', 'nextTrack');

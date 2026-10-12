@@ -19,6 +19,7 @@ import MiniWindow from './MiniWindow';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
+import {applyReaction, Reaction, toggleReaction} from './reactions';
 import {
   getAlbumsByIds,
   getAllAlbumIds,
@@ -176,6 +177,22 @@ class App extends React.Component<AppProps, AppState> {
       } else if (payload && payload.text) {
         djSession.send(payload.text, payload.speaker || OWNER);
       }
+    });
+    ipcRenderer.on('dj-react', (evt, payload: {trackId?: string; reaction?: Reaction; speaker?: string}) => {
+      const trackId = payload && payload.trackId;
+      if (!trackId) {
+        return;
+      }
+      const track = this.props.getTrackById(trackId);
+      if (!track) {
+        return;
+      }
+      const person = actorOf(payload);
+      const year = new Date().getFullYear();
+      // pressing the same verdict again clears it, so one button both sets and unsets
+      const next = toggleReaction(track, person, payload.reaction || 'none', year);
+      this.props.updateTrack(trackId, {reactions: applyReaction(track, person, next, year)});
+      djSession.noteReaction(trackId, person, next);
     });
     ipcRenderer.on('dj-remove', (evt, payload: {trackIds?: string[]; albumId?: string; speaker?: string}) => {
       if (payload) {

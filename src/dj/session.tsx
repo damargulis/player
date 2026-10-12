@@ -12,6 +12,8 @@ import {
 } from './api';
 import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
+import {OWNER} from './owner';
+import {Reaction} from '../reactions';
 import {getAlbumById, getTrackById} from '../redux/selectors';
 import store, {RootState} from '../redux/store';
 import {
@@ -31,6 +33,8 @@ export type EntryRole = 'user' | 'dj' | 'status' | 'error' | 'tool' | 'thinking'
 
 /** Roles hidden unless the DJ page's verbose toggle is on. */
 export const VERBOSE_ROLES: EntryRole[] = ['tool', 'thinking'];
+
+export {OWNER};
 
 export interface TranscriptEntry {
   id: number;
@@ -56,8 +60,6 @@ const LOW_WATER_MARK = 2;
 const KEEP_TOOL_RESULT_TURNS = 2;
 const ELIDED = '[earlier tool output elided]';
 const MEMORY_TOOL_NAME = 'memory';
-/** Whoever is at the desktop or on the Android app. Other clients name themselves. */
-export const OWNER = 'Daniel';
 /** The API path gets Anthropic's native memory tool; the MCP path gets the same backend as a plain tool. */
 const NATIVE_MEMORY_TOOL: ToolDefinition = {type: 'memory_20250818', name: MEMORY_TOOL_NAME};
 /** Server-side web search: runs on Anthropic's side, so there is nothing for us to execute. */
@@ -81,7 +83,7 @@ How it works
 - When the queue runs low you'll get an automatic "[Queue update]" notice. Top it up (another 6-10 tracks) in the same spirit as the current vibe, then reply in a few words.
 - More than one person uses this. Each message is labelled "[From <name>]" — ${OWNER} is at the desktop, others chat from their phones. Pay attention to who is asking: their tastes differ, and what works for one of them alone is not what works when they are listening together. Address whoever just spoke, and keep per-person notes in memory.
 - Each listener message may start with a "[Playback update]" block saying what played fully, what was skipped, and what was removed from the queue by hand since your last turn. Skips and removals name whoever did them, so you can tell a track ${OWNER} skipped from one someone else did — that is a per-person signal worth keeping in memory, not a blanket rejection. It distinguishes skipping one track from skipping the rest of an album ("skipped the rest of X — N queued tracks dropped"), which in album mode is a rejection of the record rather than the song — react to it by changing the album, not the track. Skips and especially removals are the strongest feedback you get — react to them rather than re-queueing more of the same.
-- The listener hitting the like button on the playing track is the clearest "yes" you will get; it shows up in the playback update. Note what it was and why you think it landed.
+- The like button is the clearest "yes" you will get; it shows up in the playback update. ${OWNER}'s is the library's own favourite (a bare ♥ on a track line). Anyone listening from a phone has their own like and dislike, shown as ♥name and ✗name — those are that person's verdict alone, so a ✗ means don't queue it for them again and read it as a hint about similar tracks, not a verdict for the household. Note what landed and why you think it did.
 - Watch the context and room lines in get_queue/now_playing. A long pause with no input means nobody is listening: don't keep burning through good tracks into an empty room. Rapid skips mean you are wrong right now.
 
 Working style
@@ -265,6 +267,29 @@ class DJSession {
       remainingSeconds: Math.round(remainingMs / 1000),
       upcoming: upcoming.length,
     };
+  }
+
+  /**
+   * Records someone's like or dislike of the playing track. This is their own verdict, kept
+   * apart from the owner's favourites, and it is the clearest signal a listener can give.
+   */
+  public noteReaction(trackId: string, person: string, reaction: Reaction): void {
+    const state = store.getState();
+    const track = getTrackById(state, trackId);
+    if (!track) {
+      return;
+    }
+    activity.noteListenerInput();
+    if (reaction === 'like') {
+      this.recentSkips = 0;
+      this.playbackEvents.push(`${person} liked this: ${formatTrack(state, track)}`);
+    } else if (reaction === 'dislike') {
+      this.playbackEvents.push(`${person} disliked this: ${formatTrack(state, track)} — ` +
+        `don't queue it for them again, and take the hint for similar tracks.`);
+    } else {
+      this.playbackEvents.push(`${person} took back their reaction to: ${formatTrack(state, track)}`);
+    }
+    this.emit();
   }
 
   /**

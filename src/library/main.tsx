@@ -65,6 +65,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             skipCount: trackData.skipCount,
             dateAdded: new Date(trackData.dateAdded),
             favorites: trackData.favorites,
+            reactions: trackData.reactions,
             genius: trackData.genius,
             warning: trackData.warning,
         };

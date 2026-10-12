@@ -63,6 +63,12 @@ export interface TrackWarning {
   featuring?: string[];
 }
 
+/** One person's verdict on a track, by year, mirroring how `favorites` records the owner's. */
+export interface TrackReaction {
+  liked: number[];
+  disliked: number[];
+}
+
 export interface Track {
   id: string;
   duration: number;
@@ -77,6 +83,11 @@ export interface Track {
   skipCount: number;
   dateAdded: Date;
   favorites: number[];
+  /**
+   * Per-person likes and dislikes, keyed by name. Separate from `favorites`, which belongs to
+   * whoever owns the library; this is how someone listening along records their own taste.
+   */
+  reactions?: Record<string, TrackReaction>;
   genius?: {
     id: string;
     page: string;
@@ -254,6 +265,7 @@ export interface TrackInfo {
   duration?: number;
   playCount?: number;
   playDate?: Date;
+  reactions?: Record<string, TrackReaction>;
   filePath?: string;
   artistIds?: string[];
   albumIds?: string[];

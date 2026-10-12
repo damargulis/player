@@ -22,6 +22,7 @@ Two Electron processes plus an embedded HTTP server, communicating over IPC:
 
 ### State & persistence
 
+- Separately from the owner's `favorites`, `Track.reactions` keys per-person likes/dislikes by year (`src/reactions.tsx`); the web app's ♥/👎 write them via a `dj-react` action, they show on DJ track lines as `♥name`/`✗name`, and `getAutoPlaylists` derives a "<name>'s Likes/Dislikes of <year>" playlist for each.
 - All Redux action types **and** domain interfaces (`Track`, `Album`, `Artist`, `Genre`, `Playlist`, `LibraryState`) live in `src/redux/actionTypes.tsx`. Each entity has a partial `*Info` twin (`AlbumInfo`, etc.) used for updates; `LibraryInfo` deltas are merged into state by `UPDATE_LIBRARY`.
 - Reducers: `library`, `currentlyPlaying` (playlist, time, volume), `settings` (genre filter). Entities reference each other by id string (`trackIds`, `albumIds`, `artistIds`, `genreIds`).
 - `save()` in `src/redux/reducers/library.tsx` refuses to overwrite a non-trivial `library.json` with an empty library (`wouldDestroyLibrary`), and `App.tsx` only auto-imports a fresh library when the file is genuinely missing (`ENOENT`) — any other read error alerts and changes nothing. Both exist because a single failed load used to silently replace the whole library with an empty one.

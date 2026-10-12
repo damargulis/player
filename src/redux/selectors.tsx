@@ -208,6 +208,49 @@ function getLikesByYear(store: RootState): Playlist[] {
 }
 
 /**
+ * Playlists for each person's own likes and dislikes, by year. These come from `reactions`
+ * rather than `favorites`, so someone listening along builds their own lists without touching
+ * the library owner's.
+ */
+function getReactionPlaylists(store: RootState): Playlist[] {
+  const tracks = getAllTracks(store);
+  // person -> year -> verdict -> track ids
+  const byPerson: Record<string, Record<number, {liked: string[]; disliked: string[]}>> = {};
+  const bucket = (person: string, year: number) => {
+    if (!byPerson[person]) {
+      byPerson[person] = {};
+    }
+    if (!byPerson[person][year]) {
+      byPerson[person][year] = {disliked: [], liked: []};
+    }
+    return byPerson[person][year];
+  };
+  tracks.forEach((track) => {
+    const reactions = track.reactions;
+    if (!reactions) {
+      return;
+    }
+    Object.keys(reactions).forEach((person) => {
+      (reactions[person].liked || []).forEach((year) => bucket(person, year).liked.push(track.id));
+      (reactions[person].disliked || []).forEach((year) => bucket(person, year).disliked.push(track.id));
+    });
+  });
+  const playlists: Playlist[] = [];
+  Object.keys(byPerson).sort().forEach((person) => {
+    Object.keys(byPerson[person]).map(Number).sort().forEach((year) => {
+      const {liked, disliked} = byPerson[person][year];
+      if (liked.length) {
+        playlists.push({name: `${person}'s Likes of ${year}`, trackIds: liked});
+      }
+      if (disliked.length) {
+        playlists.push({name: `${person}'s Dislikes of ${year}`, trackIds: disliked});
+      }
+    });
+  });
+  return playlists;
+}
+
+/**
  * Gets playlist for album likes in a given year.
  */
 function getAlbumLikesForYear(store: RootState, year: number): Playlist {
@@ -240,6 +283,7 @@ export function getAutoPlaylists(store: RootState): Playlist[] {
     getRecentlyPlayed(store),
     ...getLikesByYear(store),
     ...getAlbumLikesByYear(store),
+    ...getReactionPlaylists(store),
   ];
 }
 
