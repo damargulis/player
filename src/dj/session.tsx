@@ -131,18 +131,6 @@ function describeToolRun(names: string[]): string {
   return unique.slice(0, 2).join(', ');
 }
 
-/** First sentence of the DJ's latest reasoning summary, for the live progress line. */
-function summarizeThinking(content: ContentBlock[]): string | undefined {
-  const thinking = content.filter((b) => b.type === 'thinking')
-    .map((b) => (b.type === 'thinking' ? b.thinking : '')).filter(Boolean);
-  if (!thinking.length) {
-    return undefined;
-  }
-  const text = thinking[thinking.length - 1].replace(/\s+/g, ' ').trim();
-  const sentence = text.split(/(?<=[.!?])\s/)[0] || text;
-  return sentence.length > 150 ? `${sentence.slice(0, 149)}…` : sentence;
-}
-
 function formatClock(): string {
   return new Date().toLocaleString(undefined, {hour: 'numeric', minute: '2-digit', weekday: 'short'});
 }
@@ -156,6 +144,9 @@ class DJSession {
   private pending: Array<{text: string; automatic: boolean}> = [];
   private playbackEvents: string[] = [];
   private busyNote?: string;
+  /** Entry the current reply is streaming into, and the thinking text seen so far this round. */
+  private streamEntryId?: number;
+  private thinkingBuffer = '';
   /** favorites count per track id, to notice the listener hitting the like button mid-set */
   private favoriteCounts: Record<string, number> = {};
   /** Consecutive skips with no full play in between — the "wrong vibe" signal. */
@@ -355,10 +346,17 @@ class DJSession {
     try {
       let finished = false;
       for (let round = 0; round < MAX_TOOL_ROUNDS && !finished; round++) {
-        const response = await createMessage({messages: this.messages, system: SYSTEM_PROMPT, tools: API_TOOLS});
+        this.streamEntryId = undefined;
+        this.thinkingBuffer = '';
+        const response = await createMessage(
+          {messages: this.messages, system: SYSTEM_PROMPT, tools: API_TOOLS},
+          {
+            onText: (delta) => this.appendReply(delta),
+            onThinking: (delta) => this.appendThinking(delta),
+          },
+        );
         this.messages.push({content: response.content, role: 'assistant'});
         this.recordVerbose(response.content);
-        this.setNote(summarizeThinking(response.content));
         const reply = textOf(response.content);
         if (response.stop_reason === 'refusal') {
           const explanation = (response.stop_details && response.stop_details.explanation) || 'no reason given';
@@ -370,9 +368,6 @@ class DJSession {
           continue;
         }
         if (response.stop_reason === 'tool_use') {
-          if (reply) {
-            this.addEntry('dj', reply);
-          }
           const toolUses = response.content.filter((b) => b.type === 'tool_use') as ToolUseBlock[];
           this.setNote(describeToolRun(toolUses.map((use) => use.name)));
           const results: ToolResultBlock[] = toolUses.map((use) => {
@@ -389,7 +384,11 @@ class DJSession {
           this.messages.push({content: results, role: 'user'});
           continue;
         }
-        this.addEntry('dj', reply || (response.stop_reason === 'max_tokens' ? '(reply cut off)' : '(no reply)'));
+        if (this.streamEntryId === undefined) {
+          this.addEntry('dj', reply || (response.stop_reason === 'max_tokens' ? '(reply cut off)' : '(no reply)'));
+        } else if (response.stop_reason === 'max_tokens') {
+          this.appendReply(' …(cut off)');
+        }
         finished = true;
       }
       if (!finished) {
@@ -515,6 +514,28 @@ class DJSession {
       this.refillRequestedAt = currentId;
       this.enqueue(`Only ${remaining} track(s) left in the queue. Add more in the same spirit.`, true);
     }
+  }
+
+  /** Types the reply into the transcript as it arrives, creating its entry on the first delta. */
+  private appendReply(delta: string): void {
+    if (this.streamEntryId === undefined) {
+      this.streamEntryId = this.nextId;
+      this.addEntry('dj', delta);
+      return;
+    }
+    const id = this.streamEntryId;
+    this.entries = this.entries.map((entry) =>
+      (entry.id === id ? Object.assign({}, entry, {text: `${entry.text}${delta}`}) : entry));
+    this.emit();
+  }
+
+  /** Shows the tail of the DJ's reasoning as a live progress line. */
+  private appendThinking(delta: string): void {
+    this.thinkingBuffer = `${this.thinkingBuffer}${delta}`;
+    const flat = this.thinkingBuffer.replace(/\s+/g, ' ').trim();
+    const sentences = flat.split(/(?<=[.!?])\s/);
+    const tail = sentences[sentences.length - 1] || flat;
+    this.setNote(tail.length > 150 ? `…${tail.slice(tail.length - 149)}` : tail);
   }
 
   private setNote(note?: string): void {

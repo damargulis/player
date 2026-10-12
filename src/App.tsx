@@ -4,6 +4,9 @@ import {Album, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track, TrackI
 import djActivity from './dj/activity';
 import './App.css';
 import {BACKUP_TIME, DATA_DIR} from './constants';
+
+/** How often at most to push the DJ transcript to the mobile app while a reply streams. */
+const DJ_STATE_THROTTLE = 200;
 import {ipcRenderer} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import {createLibrary} from './library/itunes';
@@ -74,6 +77,7 @@ interface AppState {
 
 class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
+  private djStateTimer?: number;
   private backupTimer?: number;
 
   constructor(props: AppProps) {
@@ -156,9 +160,8 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('dj-sync', () => {
       ipcRenderer.send('dj-state', djSession.getChatState());
     });
-    djSession.subscribe(() => {
-      ipcRenderer.send('dj-state', djSession.getChatState());
-    });
+    // Streaming emits on every delta; coalesce so the phone gets smooth updates, not a flood.
+    djSession.subscribe(() => this.pushDJState());
     ipcRenderer.on('dj-get-tools', () => {
       ipcRenderer.send('dj-tools', MCP_TOOLS);
     });
@@ -332,6 +335,16 @@ class App extends React.Component<AppProps, AppState> {
   private onMaximize(): void {
     djActivity.noteListenerInput();
     this.setState({mini: false});
+  }
+
+  private pushDJState(): void {
+    if (this.djStateTimer !== undefined) {
+      return;
+    }
+    this.djStateTimer = window.setTimeout(() => {
+      this.djStateTimer = undefined;
+      ipcRenderer.send('dj-state', djSession.getChatState());
+    }, DJ_STATE_THROTTLE);
   }
 
   private onMinimize(): void {
