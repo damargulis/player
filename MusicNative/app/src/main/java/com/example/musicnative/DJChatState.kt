@@ -3,7 +3,7 @@ package com.example.musicnative
 import androidx.lifecycle.MutableLiveData
 import org.json.JSONObject
 
-data class ChatEntry(val id: Int, val role: String, val text: String)
+data class ChatEntry(val id: Int, val role: String, val text: String, val speaker: String? = null)
 
 /**
  * Mirror of the desktop DJ conversation, pushed over socket.io as "dj-state".
@@ -35,6 +35,7 @@ object DJChatState {
                         id = entry.optInt("id", i),
                         role = entry.optString("role", "dj"),
                         text = entry.optString("text", ""),
+                        speaker = if (entry.isNull("speaker")) null else entry.optString("speaker", "").ifEmpty { null },
                     )
                 )
             }

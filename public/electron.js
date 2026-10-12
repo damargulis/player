@@ -420,12 +420,16 @@ expressApp.get("/dj/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "dj-web/manifest.json"));
 });
 
+expressApp.get("/dj/icon-180.png", (req, res) => {
+  res.sendFile(path.join(__dirname, "dj-web/icon-180.png"));
+});
+
 expressApp.get("/dj/icon-192.png", (req, res) => {
-  res.sendFile(path.join(__dirname, "logo192.png"));
+  res.sendFile(path.join(__dirname, "dj-web/icon-192.png"));
 });
 
 expressApp.get("/dj/icon-512.png", (req, res) => {
-  res.sendFile(path.join(__dirname, "logo512.png"));
+  res.sendFile(path.join(__dirname, "dj-web/icon-512.png"));
 });
 
 expressApp.get("/ping", (req, res) => {

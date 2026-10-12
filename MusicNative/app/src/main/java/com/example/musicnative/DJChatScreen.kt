@@ -149,7 +149,9 @@ fun DJChatScreen(onClose: () -> Unit) {
                         )
                     }
                 }
-                items(entries, key = { it.id }) { entry -> ChatBubble(entry) }
+                // names appear only once a second person has joined the conversation
+                val multipleSpeakers = entries.mapNotNull { it.speaker }.distinct().size > 1
+                items(entries, key = { it.id }) { entry -> ChatBubble(entry, multipleSpeakers) }
                 if (busy) {
                     item {
                         Text(
@@ -191,7 +193,7 @@ fun DJChatScreen(onClose: () -> Unit) {
 }
 
 @Composable
-private fun ChatBubble(entry: ChatEntry) {
+private fun ChatBubble(entry: ChatEntry, showSpeaker: Boolean = false) {
     val isUser = entry.role == "user"
     val isNote = entry.role == "status"
     val isError = entry.role == "error"
@@ -215,6 +217,15 @@ private fun ChatBubble(entry: ChatEntry) {
                 .background(if (isUser) Accent else SurfaceLight)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
+            if (showSpeaker && entry.speaker != null) {
+                Text(
+                    entry.speaker.uppercase(),
+                    color = if (isUser) Color.White.copy(alpha = 0.75f) else TextSecondary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp,
+                )
+            }
             Text(
                 entry.text,
                 color = when {

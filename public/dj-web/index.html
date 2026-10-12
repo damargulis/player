@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MyMusic DJ</title>
 <link rel="manifest" href="/dj/manifest.json">
-<link rel="apple-touch-icon" href="/dj/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/dj/icon-180.png">
 <meta name="theme-color" content="#101014">
 <!-- iOS honours these for Add to Home Screen even over plain http, where a service worker can't run -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -243,6 +243,44 @@
   #nowplaying.stale {
     opacity: 0.45;
   }
+  .speaker {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 3px;
+  }
+  #whoami {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    padding: 3px 10px;
+    background: none;
+  }
+  #whois {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(8, 8, 12, 0.92);
+    z-index: 10;
+  }
+  #whois.show { display: flex; }
+  #whois .card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 22px;
+  }
+  #whois h1 { margin: 0 0 8px; font-size: 19px; }
+  #whois p { margin: 0 0 16px; font-size: 14px; color: var(--text-dim); line-height: 1.45; }
+  #whois form { display: flex; gap: 8px; }
   #send {
     background: var(--accent);
     border-color: var(--accent);
@@ -253,10 +291,23 @@
 </style>
 </head>
 <body>
+<div id="whois">
+  <div class="card">
+    <h1>Who&rsquo;s listening?</h1>
+    <p>The DJ uses your name to tell you apart from whoever else is listening, and to remember
+       what each of you likes.</p>
+    <form id="whoisform">
+      <input type="text" id="whoisname" placeholder="Your name" enterkeyhint="done"
+             autocapitalize="words" autocorrect="off" maxlength="24">
+      <button type="submit" id="whoisgo">Continue</button>
+    </form>
+  </div>
+</div>
 <div id="app">
   <header>
     <span class="brand">DJ</span>
     <span>
+      <button id="whoami" title="Change who is listening"></button>
       <button class="link" id="newset">New set</button>
     </span>
   </header>
@@ -306,6 +357,59 @@
   var lastArt = '';
   var buildId = null;
   var connected = false;
+  var whois = document.getElementById('whois');
+  var whoami = document.getElementById('whoami');
+  var whoisname = document.getElementById('whoisname');
+  var speaker = null;
+
+  function storedSpeaker() {
+    try {
+      return localStorage.getItem('dj-speaker') || null;
+    } catch (err) {
+      // private browsing or storage disabled
+      return null;
+    }
+  }
+
+  // ?who=Chloe in the URL wins, and is the durable option: a home screen icon keeps whatever
+  // URL it was added with, so the name survives anything that clears site storage. localStorage
+  // is the fallback for anyone who just opens the page and types their name.
+  function paramSpeaker() {
+    var match = /[?&]who=([^&]+)/.exec(location.search);
+    if (!match) {
+      return null;
+    }
+    try {
+      return decodeURIComponent(match[1].replace(/\+/g, ' ')).trim().slice(0, 24) || null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function setSpeaker(name, fromUrl) {
+    speaker = name;
+    whoami.textContent = name;
+    try {
+      localStorage.setItem('dj-speaker', name);
+    } catch (err) {
+      // not fatal - the url param or a re-prompt covers it
+    }
+    if (!fromUrl) {
+      // bake it into the address too, so adding to the home screen from here carries the name
+      try {
+        history.replaceState(null, '', '/dj?who=' + encodeURIComponent(name));
+      } catch (err) {
+        // replaceState can fail in odd contexts; harmless
+      }
+    }
+    whois.classList.remove('show');
+  }
+
+  function askWho() {
+    whoisname.value = speaker || '';
+    whois.classList.add('show');
+    setTimeout(function () { whoisname.focus(); }, 50);
+  }
 
   // The keyboard shrinks the visual viewport but not the layout viewport, so track it
   // explicitly or the input ends up hidden underneath it.
@@ -335,6 +439,14 @@
 
   function renderEntries(entries) {
     var stick = atBottom();
+    // names only appear once a second person has joined, so solo chats stay clean
+    var speakers = [];
+    entries.forEach(function (entry) {
+      if (entry.speaker && speakers.indexOf(entry.speaker) < 0) {
+        speakers.push(entry.speaker);
+      }
+    });
+    var showSpeaker = speakers.length > 1;
     var seen = {};
     entries.forEach(function (entry) {
       seen[entry.id] = true;
@@ -342,13 +454,22 @@
       if (!el) {
         el = document.createElement('div');
         el.className = 'entry ' + entry.role;
+        el.appendChild(document.createElement('div')).className = 'speaker';
+        el.appendChild(document.createElement('div')).className = 'body';
         // insert before the busy line so it always sits last
         transcript.insertBefore(el, busy);
         rendered[entry.id] = el;
       }
+      var nameEl = el.firstChild;
+      var bodyEl = el.lastChild;
+      var label = (showSpeaker && entry.speaker) ? entry.speaker : '';
+      if (nameEl.textContent !== label) {
+        nameEl.textContent = label;
+      }
+      nameEl.style.display = label ? '' : 'none';
       // textContent, never innerHTML: this is model and listener text
-      if (el.textContent !== entry.text) {
-        el.textContent = entry.text;
+      if (bodyEl.textContent !== entry.text) {
+        bodyEl.textContent = entry.text;
       }
     });
     Object.keys(rendered).forEach(function (id) {
@@ -483,7 +604,7 @@
       return;
     }
     draft.value = '';
-    send('dj-message', text);
+    send('dj-message', {text: text, speaker: speaker || 'Guest'});
     scrollToBottom();
   });
   document.getElementById('newset').addEventListener('click', function () {
@@ -500,6 +621,22 @@
   art.addEventListener('load', function () { art.style.visibility = 'visible'; });
   art.addEventListener('error', function () { art.style.visibility = 'hidden'; });
   draft.addEventListener('focus', function () { setTimeout(scrollToBottom, 300); });
+  whoami.addEventListener('click', askWho);
+  document.getElementById('whoisform').addEventListener('submit', function (evt) {
+    evt.preventDefault();
+    var name = whoisname.value.trim();
+    if (name) {
+      setSpeaker(name);
+    }
+  });
+  var fromUrl = paramSpeaker();
+  if (fromUrl) {
+    setSpeaker(fromUrl, true);
+  } else if (storedSpeaker()) {
+    setSpeaker(storedSpeaker(), true);
+  } else {
+    askWho();
+  }
   setConnected(false);
 })();
 </script>

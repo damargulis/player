@@ -34,7 +34,7 @@ import {
   getTrackById,
   getVolume,
 } from './redux/selectors';
-import djSession, {MCP_TOOLS} from './dj/session';
+import djSession, {MCP_TOOLS, OWNER} from './dj/session';
 import {RootState} from './redux/store';
 
 interface StateProps {
@@ -153,8 +153,13 @@ class App extends React.Component<AppProps, AppState> {
       });
       ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
     });
-    ipcRenderer.on('dj-message', (evt, text: string) => {
-      djSession.send(text);
+    ipcRenderer.on('dj-message', (evt, payload: string | {text: string; speaker?: string}) => {
+      // The Android app sends a bare string and is always the owner; the web app names itself.
+      if (typeof payload === 'string') {
+        djSession.send(payload);
+      } else if (payload && payload.text) {
+        djSession.send(payload.text, payload.speaker || OWNER);
+      }
     });
     ipcRenderer.on('dj-new-session', () => {
       djSession.reset();

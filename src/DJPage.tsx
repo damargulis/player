@@ -11,7 +11,7 @@ import defaultAlbum from './resources/missing_album.png';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumById, getArtistsByIds, getCurrentTrackId, getQueueVersion, getTrackById} from './redux/selectors';
-import session, {DJSessionState, TranscriptEntry, VERBOSE_ROLES} from './dj/session';
+import session, {DJSessionState, OWNER, TranscriptEntry, VERBOSE_ROLES} from './dj/session';
 import {RootState} from './redux/store';
 import {toTime} from './utils';
 
@@ -95,7 +95,7 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
           </span>
         </div>
         <div className="dj-transcript" ref={this.transcriptRef}>
-          {this.visibleEntries().length ? this.visibleEntries().map((entry) => this.renderEntry(entry)) : (
+          {this.visibleEntries().length ? this.renderTranscript() : (
             <div className="dj-empty">
               {hasKey ? (
                 <>
@@ -129,6 +129,19 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
     );
   }
 
+  /** Names go on messages only once a second person has joined the conversation. */
+  private renderTranscript(): JSX.Element[] {
+    const entries = this.visibleEntries();
+    const speakers: string[] = [];
+    entries.forEach((entry) => {
+      if (entry.speaker && speakers.indexOf(entry.speaker) < 0) {
+        speakers.push(entry.speaker);
+      }
+    });
+    const showSpeaker = speakers.length > 1;
+    return entries.map((entry) => this.renderEntry(entry, showSpeaker));
+  }
+
   private visibleEntries(): TranscriptEntry[] {
     if (this.state.verbose) {
       return this.state.entries;
@@ -136,9 +149,10 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
     return this.state.entries.filter((entry) => !VERBOSE_ROLES.includes(entry.role));
   }
 
-  private renderEntry(entry: TranscriptEntry): JSX.Element {
+  private renderEntry(entry: TranscriptEntry, showSpeaker: boolean): JSX.Element {
     return (
       <div key={entry.id} className={`dj-entry ${entry.role}`}>
+        {showSpeaker && entry.speaker && <div className="dj-entry-speaker">{entry.speaker}</div>}
         <div className="dj-entry-text">{entry.text}</div>
         {entry.detail !== undefined && this.state.verbose &&
           <pre className="dj-entry-detail">{entry.detail}</pre>}
@@ -328,7 +342,7 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
       return;
     }
     this.setState({draft: ''});
-    session.send(text);
+    session.send(text, OWNER);
   }
 
   private scrollToBottom(): void {

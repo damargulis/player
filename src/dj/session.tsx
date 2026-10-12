@@ -34,6 +34,8 @@ export interface TranscriptEntry {
   id: number;
   role: EntryRole;
   text: string;
+  /** Who sent a 'user' entry. Absent on the DJ's own entries. */
+  speaker?: string;
   /** Secondary text shown under `text` in the verbose view (e.g. a tool's result). */
   detail?: string;
 }
@@ -52,6 +54,8 @@ const LOW_WATER_MARK = 2;
 const KEEP_TOOL_RESULT_TURNS = 2;
 const ELIDED = '[earlier tool output elided]';
 const MEMORY_TOOL_NAME = 'memory';
+/** Whoever is at the desktop or on the Android app. Other clients name themselves. */
+export const OWNER = 'Daniel';
 /** The API path gets Anthropic's native memory tool; the MCP path gets the same backend as a plain tool. */
 const NATIVE_MEMORY_TOOL: ToolDefinition = {type: 'memory_20250818', name: MEMORY_TOOL_NAME};
 /** Server-side web search: runs on Anthropic's side, so there is nothing for us to execute. */
@@ -73,6 +77,7 @@ How it works
 - recent_plays shows what they have been playing lately across the whole library, not just this set — useful for "more of what I've been into" and for not repeating yesterday. library_stats profiles the library (size, top genres and artists by plays, favorites per year, how much is unplayed, what was added recently); call it once early if you have no memory of this listener yet.
 - sample_tracks takes added_within_days, which is the honest way to answer "play me something new".
 - When the queue runs low you'll get an automatic "[Queue update]" notice. Top it up (another 6-10 tracks) in the same spirit as the current vibe, then reply in a few words.
+- More than one person uses this. Each message is labelled "[From <name>]" — ${OWNER} is at the desktop, others chat from their phones. Pay attention to who is asking: their tastes differ, and what works for one of them alone is not what works when they are listening together. Address whoever just spoke, and keep per-person notes in memory.
 - Each listener message may start with a "[Playback update]" block saying what played fully, what was skipped, and what the listener removed from the queue by hand since your last turn. It distinguishes skipping one track from skipping the rest of an album ("skipped the rest of X — N queued tracks dropped"), which in album mode is a rejection of the record rather than the song — react to it by changing the album, not the track. Skips and especially removals are the strongest feedback you get — react to them rather than re-queueing more of the same.
 - The listener hitting the like button on the playing track is the clearest "yes" you will get; it shows up in the playback update. Note what it was and why you think it landed.
 - Watch the context and room lines in get_queue/now_playing. A long pause with no input means nobody is listening: don't keep burning through good tracks into an empty room. Rapid skips mean you are wrong right now.
@@ -150,7 +155,7 @@ class DJSession {
   private busy = false;
   private nextId = 1;
   private listeners: Set<() => void> = new Set();
-  private pending: Array<{text: string; automatic: boolean}> = [];
+  private pending: Array<{text: string; automatic: boolean; speaker?: string}> = [];
   private playbackEvents: string[] = [];
   private busyNote?: string;
   /** Entry the current reply is streaming into, and the thinking text seen so far this round. */
@@ -221,7 +226,12 @@ class DJSession {
       busy: this.busy,
       configured: Boolean(getApiKey()),
       note: this.busyNote || null,
-      entries: entries.slice(-limit).map((entry) => ({id: entry.id, role: entry.role, text: entry.text})),
+      entries: entries.slice(-limit).map((entry) => ({
+        id: entry.id,
+        role: entry.role,
+        speaker: entry.speaker || null,
+        text: entry.text,
+      })),
       hasSession: this.messages.length > 0,
       queue: queueSnapshot(store.getState()),
     };
@@ -271,13 +281,13 @@ class DJSession {
     this.emit();
   }
 
-  public send(text: string): void {
+  public send(text: string, speaker: string = OWNER): void {
     const trimmed = text.trim();
     if (!trimmed) {
       return;
     }
     activity.noteListenerInput();
-    this.enqueue(trimmed, false);
+    this.enqueue(trimmed, false, speaker.trim() || OWNER);
   }
 
   /** Adds the thinking and web-search entries that the verbose view shows. */
@@ -313,8 +323,8 @@ class DJSession {
     this.recentSkips = 0;
   }
 
-  private enqueue(text: string, automatic: boolean): void {
-    this.pending.push({automatic, text});
+  private enqueue(text: string, automatic: boolean, speaker?: string): void {
+    this.pending.push({automatic, speaker, text});
     if (!this.busy) {
       this.drain();
     }
@@ -324,14 +334,14 @@ class DJSession {
     this.busy = true;
     this.emit();
     while (this.pending.length) {
-      const next = this.pending.shift() as {text: string; automatic: boolean};
+      const next = this.pending.shift() as {text: string; automatic: boolean; speaker?: string};
       await this.runTurn(next.text, next.automatic);
     }
     this.busy = false;
     this.emit();
   }
 
-  private buildUserText(text: string, automatic: boolean): string {
+  private buildUserText(text: string, automatic: boolean, speaker?: string): string {
     const parts: string[] = [];
     if (this.playbackEvents.length) {
       parts.push(`[Playback update — ${formatClock()}]\n${this.playbackEvents.join('\n')}`);
@@ -343,16 +353,23 @@ class DJSession {
       if (!this.messages.length) {
         parts.push(`[It is ${formatClock()}]`);
       }
-      parts.push(text);
+      parts.push(speaker ? `[From ${speaker}]\n${text}` : text);
     }
     return parts.join('\n\n');
   }
 
-  private async runTurn(text: string, automatic: boolean): Promise<void> {
+  private async runTurn(text: string, automatic: boolean, speaker?: string): Promise<void> {
     ensureDJPlaylist();
-    this.addEntry(automatic ? 'status' : 'user', automatic ? 'Queue running low — asking the DJ for more…' : text);
+    if (automatic) {
+      this.addEntry('status', 'Queue running low — asking the DJ for more…');
+    } else {
+      this.addEntry('user', text, undefined, speaker);
+    }
     this.elideOldToolResults();
-    this.messages.push({content: [{type: 'text', text: this.buildUserText(text, automatic)}], role: 'user'});
+    this.messages.push({
+      content: [{type: 'text', text: this.buildUserText(text, automatic, speaker)}],
+      role: 'user',
+    });
     try {
       let finished = false;
       for (let round = 0; round < MAX_TOOL_ROUNDS && !finished; round++) {
@@ -553,8 +570,8 @@ class DJSession {
     this.emit();
   }
 
-  private addEntry(role: EntryRole, text: string, detail?: string): void {
-    this.entries = this.entries.concat([{detail, id: this.nextId++, role, text}]);
+  private addEntry(role: EntryRole, text: string, detail?: string, speaker?: string): void {
+    this.entries = this.entries.concat([{detail, id: this.nextId++, role, speaker, text}]);
     this.emit();
   }
 
