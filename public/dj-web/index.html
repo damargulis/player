@@ -297,6 +297,7 @@
   var rendered = {};
   var queueOpen = false;
   var lastArt = '';
+  var buildId = null;
 
   // The keyboard shrinks the visual viewport but not the layout viewport, so track it
   // explicitly or the input ends up hidden underneath it.
@@ -406,6 +407,16 @@
     });
     queue.classList.toggle('show', queueOpen);
   }
+
+  // The server names the deployed build on every connect. If it changes while this page is
+  // open — a new deploy — reload, so a home-screen app never keeps running old code.
+  socket.on('dj-build', function (id) {
+    if (buildId === null) {
+      buildId = id;
+    } else if (id !== buildId) {
+      location.reload();
+    }
+  });
 
   socket.on('connect', function () {
     banner.classList.remove('show');

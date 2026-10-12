@@ -277,6 +277,7 @@ let lastState = null;
 let lastDjState = null;
 
 io.on("connection", (socket) => {
+  socket.emit("dj-build", djBuildId());
   if (lastState) {
     socket.emit("state", lastState);
   }
@@ -400,8 +401,20 @@ const PROTOCOL_VERSION = 1;
 // so __dirname resolves these in dev and in the packaged app alike. socket.io serves its own
 // browser client at /socket.io/socket.io.js, so the page needs no internet access.
 expressApp.get("/dj", (req, res) => {
+  // Always revalidate: a phone that has the page on its home screen should pick up a new
+  // deploy on its next open, without anyone re-adding the bookmark.
+  res.set("Cache-Control", "no-cache");
   res.sendFile(path.join(__dirname, "dj-web/index.html"));
 });
+
+/** Identifies the deployed build, so an open page can tell when it has gone stale. */
+function djBuildId() {
+  try {
+    return String(fs.statSync(path.join(__dirname, "dj-web/index.html")).mtimeMs);
+  } catch (err) {
+    return "unknown";
+  }
+}
 
 expressApp.get("/dj/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "dj-web/manifest.json"));
