@@ -242,7 +242,16 @@ class App extends React.Component<AppProps, AppState> {
       const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
       this.props.updateLibrary(library);
       this.props.setPlaylist(playlist, /* play= */ false);
-    }).catch(() => {
+    }).catch((err: NodeJS.ErrnoException) => {
+      if (err && err.code !== 'ENOENT') {
+        // The library exists but could not be read - a locked file, a permissions problem, a
+        // half-written save. Importing a fresh one would overwrite it, so stop and say so.
+        const reason = err.code || err.message;
+        alert(`Could not read your library (${reason}).
+
+Nothing has been changed. Restart the app to try again; backups are in ${DATA_DIR}/backups.`);
+        return;
+      }
       createLibrary().then((library) => {
         const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
         this.props.resetLibrary(library);

@@ -110,8 +110,40 @@ function createBackup(library: LibraryState): Promise<void> {
   });
 }
 
+/** Below this, a library file on disk is a placeholder rather than real data. */
+const EMPTY_LIBRARY_BYTES = 1024;
+
+/**
+ * True when writing `library` would replace real data on disk with nothing. Every path that can
+ * produce an empty library — a transient read error at startup, a half-finished reset, a bug —
+ * ends up here, so this is the one place worth guarding.
+ */
+export function wouldDestroyLibrary(library: LibraryState, fileName: string): boolean {
+  if (Object.keys(library.tracks).length > 0) {
+    return false;
+  }
+  try {
+    return fs.statSync(fileName).size > EMPTY_LIBRARY_BYTES;
+  } catch (err) {
+    // nothing on disk to destroy
+    return false;
+  }
+}
+
 function save(library: LibraryState): Promise<void> {
   const fileName = `${DATA_DIR}/library.json`;
+  if (wouldDestroyLibrary(library, fileName)) {
+    // Deliberately not written: an empty library here means something upstream already failed,
+    // and overwriting is how a glitch becomes permanent loss. A real reset deletes the file
+    // first, so it never reaches this branch.
+    const message = `Refused to overwrite ${fileName} with an empty library — ` +
+      'the existing one is intact. Restart the app; if it still looks empty, restore from ' +
+      `${DATA_DIR}/backups.`;
+    // tslint:disable-next-line no-console
+    console.error(message);
+    alert(message);
+    return Promise.resolve();
+  }
   // TODO: maybe use sync if you want to do this on exit so it doesn't half write?
   // will have to see how exiting works on electron...
   return new Promise((resolve, reject) => {

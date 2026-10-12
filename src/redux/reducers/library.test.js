@@ -1,4 +1,7 @@
-import {selectBackupsToDelete} from './library';
+import {selectBackupsToDelete, wouldDestroyLibrary} from './library';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const DAY = 1000 * 60 * 60 * 24;
 const NOW = 1786000000000;
@@ -40,4 +43,40 @@ test('ignores files that are not timestamped backups', () => {
   const deleted = selectBackupsToDelete(files, NOW);
   expect(deleted).not.toContain('.DS_Store');
   expect(deleted).not.toContain('notes.txt');
+});
+
+describe('wouldDestroyLibrary', () => {
+  let dir;
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lib-guard-'));
+  });
+
+  afterEach(() => {
+    fs.readdirSync(dir).forEach((f) => fs.unlinkSync(path.join(dir, f)));
+    fs.rmdirSync(dir);
+  });
+
+  function write(file, bytes) {
+    const p = path.join(dir, file);
+    fs.writeFileSync(p, 'x'.repeat(bytes));
+    return p;
+  }
+
+  it('blocks an empty library from overwriting a real one', () => {
+    const file = write('library.json', 50000);
+    expect(wouldDestroyLibrary({tracks: {}}, file)).toBe(true);
+  });
+
+  it('allows a real library to be written', () => {
+    const file = write('library.json', 50000);
+    expect(wouldDestroyLibrary({tracks: {t1: {}}}, file)).toBe(false);
+  });
+
+  it('allows an empty library when there is nothing on disk to lose', () => {
+    // a genuine reset deletes the file first, so it must still be able to write
+    expect(wouldDestroyLibrary({tracks: {}}, path.join(dir, 'missing.json'))).toBe(false);
+    const placeholder = write('tiny.json', 80);
+    expect(wouldDestroyLibrary({tracks: {}}, placeholder)).toBe(false);
+  });
 });
