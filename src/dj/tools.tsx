@@ -779,6 +779,9 @@ export interface QueueTrackSnapshot {
   name: string;
   artist: string;
   albumId?: string;
+  /** Set when the track was queued as part of a whole album, so clients can group and bulk-remove. */
+  group?: string;
+  groupName?: string;
 }
 
 export interface QueueSnapshot {
@@ -810,8 +813,16 @@ export function queueSnapshot(state: RootState, limit: number = 25): QueueSnapsh
     current: currentId ? snapshotTrack(state, currentId) : undefined,
     isPlaying: state.currentlyPlaying.isPlaying,
     upcoming: playlist
-      ? playlist.getUpcoming().slice(0, limit)
-        .map((id) => snapshotTrack(state, id))
+      ? playlist.getUpcomingEntries().slice(0, limit)
+        .map((entry) => {
+          const track = snapshotTrack(state, entry.id);
+          if (track && entry.albumId) {
+            const album = getAlbumById(state, entry.albumId);
+            track.group = entry.albumId;
+            track.groupName = album ? album.name : undefined;
+          }
+          return track;
+        })
         .filter(Boolean) as QueueTrackSnapshot[]
       : [],
   };

@@ -1,3 +1,4 @@
+import {DJ_QUEUE_UPDATED} from '../redux/actionTypes';
 import activity from './activity';
 import {
   ContentBlock,
@@ -267,18 +268,46 @@ class DJSession {
   }
 
   /**
-   * Records that the listener pruned tracks from the queue by hand. Removing a track is strong,
-   * explicit feedback, so the DJ hears about it the same way it hears about skips.
+   * Drops tracks from the upcoming queue on the listener's behalf. Pass an albumId to remove
+   * whatever is left of that album; every client (DJ page, phone, web) goes through here so the
+   * DJ hears about it the same way regardless of where it was done.
    */
-  public noteListenerRemoval(trackIds: string[]): void {
+  public removeFromQueue(trackIds: string[], albumId?: string): void {
+    const playlist = store.getState().currentlyPlaying.playlist;
+    if (!(playlist instanceof DJPlaylist)) {
+      return;
+    }
+    const ids = albumId
+      ? playlist.getUpcomingEntries().filter((entry) => entry.albumId === albumId).map((entry) => entry.id)
+      : trackIds;
+    if (!ids.length) {
+      return;
+    }
+    playlist.removeUpcoming(ids);
+    store.dispatch({type: DJ_QUEUE_UPDATED});
+    this.noteListenerRemoval(ids, albumId);
+  }
+
+  /**
+   * Records that the listener pruned the queue by hand. Removing something is strong, explicit
+   * feedback, so the DJ hears about it the same way it hears about skips — and a whole album
+   * dropped is reported as one rejection rather than a wall of individual tracks.
+   */
+  public noteListenerRemoval(trackIds: string[], albumId?: string): void {
     const state = store.getState();
     activity.noteListenerInput();
-    trackIds.forEach((id) => {
-      const track = getTrackById(state, id);
-      if (track) {
-        this.playbackEvents.push(`Removed from the queue by the listener: ${formatTrack(state, track)}`);
-      }
-    });
+    const album = albumId ? getAlbumById(state, albumId) : undefined;
+    if (album) {
+      this.playbackEvents.push(`The listener dropped the rest of "${album.name}" from the queue ` +
+        `(${trackIds.length} track(s)) — they don't want that record right now.`);
+    } else {
+      trackIds.forEach((id) => {
+        const track = getTrackById(state, id);
+        if (track) {
+          this.playbackEvents.push(`Removed from the queue by the listener: ${formatTrack(state, track)}`);
+        }
+      });
+    }
     this.emit();
   }
 

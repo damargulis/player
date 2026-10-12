@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,6 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +49,8 @@ import com.example.musicnative.ui.theme.SurfaceLight
 import com.example.musicnative.ui.theme.TextPrimary
 import com.example.musicnative.ui.theme.TextSecondary
 import com.example.musicnative.ui.theme.Warning
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Chat with the desktop DJ. Messages go out as the "dj-message" remote action and the
@@ -58,6 +63,8 @@ fun DJChatScreen(onClose: () -> Unit) {
     val entries by DJChatState.entries.observeAsState(emptyList())
     val busy by DJChatState.busy.observeAsState(false)
     val note by DJChatState.note.observeAsState(null)
+    val queue by DJChatState.queue.observeAsState(null)
+    var queueOpen by remember { mutableStateOf(false) }
     val configured by DJChatState.configured.observeAsState(true)
     val connected by ServerConnection.connected.observeAsState(false)
     var draft by remember { mutableStateOf("") }
@@ -123,6 +130,50 @@ fun DJChatScreen(onClose: () -> Unit) {
             )
         }
         Divider(color = Border, thickness = 0.5.dp)
+
+        val upcoming = queue?.upcoming ?: emptyList()
+        if (connected && queue?.active == true && queue?.current != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(SurfaceLight)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        queue?.current?.name ?: "",
+                        color = TextPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        (queue?.current?.artist ?: "") + if (queue?.isPlaying == false) " · paused" else "",
+                        color = TextSecondary,
+                        fontSize = 12.5.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Text(
+                    if (queueOpen) "Hide" else "Up next (${upcoming.size})",
+                    color = Accent,
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { queueOpen = !queueOpen }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
+            Divider(color = Border, thickness = 0.5.dp)
+            if (queueOpen) {
+                QueueList(upcoming, modifier = Modifier.heightIn(max = 260.dp))
+                Divider(color = Border, thickness = 0.5.dp)
+            }
+        }
 
         if (!connected) {
             CenteredMessage("Not connected to the desktop")
@@ -215,6 +266,105 @@ private fun speakerColor(name: String?): Color {
     }
     val size = SPEAKER_COLORS.size
     return SPEAKER_COLORS[((hash % size) + size) % size]
+}
+
+/** Up next, with whole albums folded into one row so they can be dropped together. */
+@Composable
+private fun QueueList(upcoming: List<QueueTrack>, modifier: Modifier = Modifier) {
+    if (upcoming.isEmpty()) {
+        Text(
+            "Queue is empty.",
+            color = TextSecondary,
+            fontSize = 13.sp,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+        )
+        return
+    }
+    // consecutive tracks from the same album share one header
+    val rows = mutableListOf<Pair<QueueTrack?, QueueTrack>>()
+    val headers = mutableMapOf<String, Int>()
+    upcoming.forEach { track ->
+        if (track.group != null) {
+            headers[track.group] = (headers[track.group] ?: 0) + 1
+        }
+    }
+    val seen = mutableSetOf<String>()
+    upcoming.forEach { track ->
+        val isFirstOfAlbum = track.group != null && seen.add(track.group)
+        rows.add(Pair(if (isFirstOfAlbum) track else null, track))
+    }
+
+    LazyColumn(modifier = modifier.fillMaxWidth()) {
+        items(rows.size) { i ->
+            val (header, track) = rows[i]
+            if (header?.group != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(SurfaceLight)
+                        .padding(start = 14.dp, end = 8.dp, top = 7.dp, bottom = 5.dp),
+                ) {
+                    Text(
+                        header.groupName ?: "Album",
+                        color = TextPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        "${headers[header.group]} tracks",
+                        color = TextSecondary,
+                        fontSize = 11.sp,
+                    )
+                    DropButton("Remove this album") {
+                        ServerConnection.emit("dj-remove", JSONObject().put("albumId", header.group))
+                    }
+                }
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = if (track.group != null) 26.dp else 14.dp,
+                        top = 5.dp,
+                        end = 8.dp,
+                        bottom = 5.dp,
+                    ),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(track.name, color = TextPrimary, fontSize = 13.5.sp, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                    Text(track.artist, color = TextSecondary, fontSize = 12.sp, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                }
+                DropButton("Remove this track") {
+                    ServerConnection.emit(
+                        "dj-remove",
+                        JSONObject().put("trackIds", JSONArray().put(track.id)),
+                    )
+                }
+            }
+            Divider(color = Border, thickness = 0.5.dp)
+        }
+    }
+}
+
+@Composable
+private fun DropButton(description: String, onClick: () -> Unit) {
+    Text(
+        "✕",
+        color = TextSecondary,
+        fontSize = 14.sp,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable

@@ -238,8 +238,10 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
       }
       const run = entries.slice(i, end);
       const continuing = i === 0 && current !== undefined && current.albumId === entry.albumId;
-      out.push(this.renderAlbumHeader(entry.albumId, `ua${i}`,
-        continuing ? `${run.length} more track${run.length === 1 ? '' : 's'}` : `${run.length} tracks`));
+      const albumId = entry.albumId;
+      out.push(this.renderAlbumHeader(albumId, `ua${i}`,
+        continuing ? `${run.length} more track${run.length === 1 ? '' : 's'}` : `${run.length} tracks`,
+        () => this.removeAlbum(albumId)));
       run.forEach((albumEntry, j) => {
         out.push(this.renderRow(albumEntry.id, `u${i + j}`, 'upcoming', i + j + 1, true));
       });
@@ -248,7 +250,7 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
     return out;
   }
 
-  private renderAlbumHeader(albumId: string, key: string, detail: string): JSX.Element {
+  private renderAlbumHeader(albumId: string, key: string, detail: string, onRemove?: () => void): JSX.Element {
     const album = this.props.getAlbumById(albumId);
     if (!album) {
       return <div key={`ah-${key}`} className="dj-album-header">(unknown album)</div>;
@@ -269,8 +271,16 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
           <div className="artist">{artist}{album.year ? ` · ${album.year}` : ''}</div>
         </span>
         <span className="detail">{key === 'now' ? `Album · ${detail}` : detail}</span>
+        {onRemove && (
+          <button className="remove" title="Remove the rest of this album" onClick={onRemove}>✕</button>
+        )}
       </div>
     );
+  }
+
+  private removeAlbum(albumId: string): void {
+    session.removeFromQueue([], albumId);
+    this.props.djQueueUpdated();
   }
 
   private renderMemory(): JSX.Element {
@@ -327,12 +337,8 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
   }
 
   private removeUpcoming(id: string): void {
-    const playlist = this.props.playlist;
-    if (playlist instanceof DJPlaylist) {
-      playlist.removeUpcoming([id]);
-      session.noteListenerRemoval([id]);
-      this.props.djQueueUpdated();
-    }
+    session.removeFromQueue([id]);
+    this.props.djQueueUpdated();
   }
 
   private onKeyDown(evt: React.KeyboardEvent<HTMLTextAreaElement>): void {

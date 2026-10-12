@@ -148,3 +148,38 @@ test('favoriting the playing track is reported as a positive signal', () => {
   const outcome = session.runExternalTool('get_queue', {});
   expect(outcome.content).toContain('just favorited this');
 });
+
+test('removing a whole album is reported as one rejection, not a wall of tracks', () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1']);
+  playlist.addAlbum(['t2', 't3'], 'al1', 'end');
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  session.runExternalTool('get_queue', {}); // drain
+  expect(playlist.getUpcoming()).toStrictEqual(['t2', 't3']);
+
+  session.removeFromQueue([], 'al1');
+
+  expect(playlist.getUpcoming()).toStrictEqual([]);
+  const outcome = session.runExternalTool('get_queue', {});
+  expect(outcome.content).toContain('dropped the rest of "Album"');
+  expect(outcome.content).toContain('2 track(s)');
+  // not one line per track
+  expect(outcome.content).not.toContain('Removed from the queue by the listener');
+});
+
+test('removing single tracks still reports them individually', () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1', 't2', 't3']);
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  session.runExternalTool('get_queue', {});
+
+  session.removeFromQueue(['t3']);
+
+  expect(playlist.getUpcoming()).toStrictEqual(['t2']);
+  expect(session.runExternalTool('get_queue', {}).content).toContain('Removed from the queue by the listener');
+});
+
+test('removing does nothing when the DJ queue is not active', () => {
+  store.dispatch({payload: {play: false, playlist: new EmptyPlaylist()}, type: SET_PLAYLIST});
+  expect(() => session.removeFromQueue(['t1'])).not.toThrow();
+});

@@ -116,6 +116,31 @@
   #nptitle { font-size: 14px; font-weight: 600; }
   #npartist { font-size: 12.5px; color: var(--text-dim); }
   #queuetoggle { flex: 0 0 auto; font-size: 12px; }
+  #transport {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    padding: 4px 0 9px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  #transport.show { display: flex; }
+  .tbtn {
+    background: none;
+    border: none;
+    padding: 7px;
+    border-radius: 50%;
+    color: var(--text);
+    line-height: 0;
+  }
+  .tbtn:active { background: var(--surface-active); }
+  .tbtn svg { display: block; }
+  #playpause {
+    background: var(--accent);
+    color: #fff;
+    padding: 11px;
+  }
   #queue {
     flex: 0 0 auto;
     display: none;
@@ -137,6 +162,42 @@
   .qrow .m { flex: 1; min-width: 0; }
   .qrow .t, .qrow .a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .qrow .a { font-size: 12px; color: var(--text-dim); }
+  .qgroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px 5px;
+    background: var(--surface-hover);
+    border-bottom: 1px solid var(--border);
+  }
+  .qgroup .qname {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .qgroup .qcount {
+    flex: 0 0 auto;
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .qdrop {
+    flex: 0 0 auto;
+    padding: 4px 10px;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text-dim);
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+  }
+  .qdrop:active { background: var(--danger-soft); color: var(--danger); }
+  .qrow.in-album { padding-left: 26px; }
   #transcript {
     flex: 1;
     min-height: 0;
@@ -320,6 +381,27 @@
     </span>
     <button id="queuetoggle">Up next</button>
   </div>
+  <div id="transport">
+    <button class="tbtn" id="prev" title="Previous track" aria-label="Previous track">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
+      </svg>
+    </button>
+    <button class="tbtn" id="playpause" title="Play or pause" aria-label="Play or pause">
+      <svg id="playicon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+      <svg id="pauseicon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"
+           style="display:none">
+        <path d="M6 5h4v14H6zm8 0h4v14h-4z"/>
+      </svg>
+    </button>
+    <button class="tbtn" id="next" title="Next track" aria-label="Next track">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/>
+      </svg>
+    </button>
+  </div>
   <div id="queue"></div>
   <div id="transcript">
     <div id="empty">
@@ -351,6 +433,9 @@
   var npartist = document.getElementById('npartist');
   var queue = document.getElementById('queue');
   var queuetoggle = document.getElementById('queuetoggle');
+  var transport = document.getElementById('transport');
+  var playicon = document.getElementById('playicon');
+  var pauseicon = document.getElementById('pauseicon');
   var sendButton = document.getElementById('send');
   var rendered = {};
   var queueOpen = false;
@@ -502,13 +587,71 @@
     }
   }
 
+  function dropButton(title, onClick) {
+    var b = document.createElement('button');
+    b.className = 'qdrop';
+    b.title = title;
+    b.textContent = '✕';
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function albumGroupRow(track, count) {
+    var row = document.createElement('div');
+    row.className = 'qgroup';
+    var name = document.createElement('span');
+    name.className = 'qname';
+    name.textContent = track.groupName || 'Album';
+    var count$ = document.createElement('span');
+    count$.className = 'qcount';
+    count$.textContent = count + (count === 1 ? ' track' : ' tracks');
+    row.appendChild(name);
+    row.appendChild(count$);
+    row.appendChild(dropButton('Remove this album from the queue', function () {
+      if (connected) {
+        send('dj-remove', {albumId: track.group});
+      }
+    }));
+    return row;
+  }
+
+  function queueRow(track, index, inAlbum) {
+    var row = document.createElement('div');
+    row.className = 'qrow' + (inAlbum ? ' in-album' : '');
+    var n = document.createElement('span');
+    n.className = 'n';
+    n.textContent = String(index);
+    var m = document.createElement('span');
+    m.className = 'm';
+    var t = document.createElement('div');
+    t.className = 't';
+    t.textContent = track.name;
+    var a = document.createElement('div');
+    a.className = 'a';
+    a.textContent = track.artist;
+    m.appendChild(t);
+    m.appendChild(a);
+    row.appendChild(n);
+    row.appendChild(m);
+    row.appendChild(dropButton('Remove this track from the queue', function () {
+      if (connected) {
+        send('dj-remove', {trackIds: [track.id]});
+      }
+    }));
+    return row;
+  }
+
   function renderQueue(q) {
     if (!q || !q.active || !q.current) {
       nowplaying.classList.remove('show');
+      transport.classList.remove('show');
       queue.classList.remove('show');
       return;
     }
     nowplaying.classList.add('show');
+    transport.classList.add('show');
+    playicon.style.display = q.isPlaying ? 'none' : '';
+    pauseicon.style.display = q.isPlaying ? '' : 'none';
     nptitle.textContent = q.current.name;
     npartist.textContent = q.current.artist + (q.isPlaying ? '' : ' · paused');
     var src = q.current.albumId ? '/get-album-art/' + encodeURIComponent(q.current.albumId) : '';
@@ -532,26 +675,25 @@
       none.textContent = 'Queue is empty.';
       queue.appendChild(none);
     }
-    upcoming.forEach(function (track, i) {
-      var row = document.createElement('div');
-      row.className = 'qrow';
-      var n = document.createElement('span');
-      n.className = 'n';
-      n.textContent = String(i + 1);
-      var m = document.createElement('span');
-      m.className = 'm';
-      var t = document.createElement('div');
-      t.className = 't';
-      t.textContent = track.name;
-      var a = document.createElement('div');
-      a.className = 'a';
-      a.textContent = track.artist;
-      m.appendChild(t);
-      m.appendChild(a);
-      row.appendChild(n);
-      row.appendChild(m);
-      queue.appendChild(row);
-    });
+    var i = 0;
+    while (i < upcoming.length) {
+      var track = upcoming[i];
+      // consecutive tracks queued from the same album are shown and removed as one record
+      if (track.group) {
+        var end = i;
+        while (end < upcoming.length && upcoming[end].group === track.group) {
+          end++;
+        }
+        queue.appendChild(albumGroupRow(track, end - i));
+        for (var j = i; j < end; j++) {
+          queue.appendChild(queueRow(upcoming[j], j + 1, true));
+        }
+        i = end;
+      } else {
+        queue.appendChild(queueRow(track, i + 1, false));
+        i++;
+      }
+    }
     queue.classList.toggle('show', queueOpen);
   }
 
@@ -573,6 +715,7 @@
     draft.disabled = !ok;
     sendButton.disabled = !ok;
     nowplaying.classList.toggle('stale', !ok);
+    transport.classList.toggle('stale', !ok);
     if (ok) {
       banner.classList.remove('show');
       draft.placeholder = 'What should we listen to?';
@@ -639,6 +782,18 @@
   art.addEventListener('load', function () { art.style.visibility = 'visible'; });
   art.addEventListener('error', function () { art.style.visibility = 'hidden'; });
   draft.addEventListener('focus', function () { setTimeout(scrollToBottom, 300); });
+  // these are the same remote actions the android app sends, already handled by App.tsx
+  function transportAction(id, type) {
+    document.getElementById(id).addEventListener('click', function () {
+      if (connected) {
+        send(type);
+      }
+    });
+  }
+  transportAction('prev', 'prevTrack');
+  transportAction('playpause', 'playTrack');
+  transportAction('next', 'nextTrack');
+
   whoami.addEventListener('click', askWho);
   document.getElementById('whoisform').addEventListener('submit', function (evt) {
     evt.preventDefault();

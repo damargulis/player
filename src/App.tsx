@@ -161,6 +161,11 @@ class App extends React.Component<AppProps, AppState> {
         djSession.send(payload.text, payload.speaker || OWNER);
       }
     });
+    ipcRenderer.on('dj-remove', (evt, payload: {trackIds?: string[]; albumId?: string}) => {
+      if (payload) {
+        djSession.removeFromQueue(payload.trackIds || [], payload.albumId);
+      }
+    });
     ipcRenderer.on('dj-new-session', () => {
       djSession.reset();
     });
