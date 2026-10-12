@@ -192,6 +192,31 @@ fun DJChatScreen(onClose: () -> Unit) {
     }
 }
 
+/**
+ * Stable colour per speaker, matching src/dj/speakerColor.tsx and the web app so the same
+ * person looks the same on every client. Kotlin Int overflow matches JS's |0, so the hashes agree.
+ */
+private val SPEAKER_COLORS = listOf(
+    Color(0xFF8B7CF6), // violet (the app accent)
+    Color(0xFF12A594), // teal
+    Color(0xFFE0557A), // rose
+    Color(0xFFB9740F), // amber
+    Color(0xFF3FA45C), // green
+    Color(0xFF4A86F0), // blue
+)
+
+private fun speakerColor(name: String?): Color {
+    if (name == null) {
+        return SPEAKER_COLORS[0]
+    }
+    var hash = 0
+    for (c in name.trim().lowercase()) {
+        hash = hash * 31 + c.code
+    }
+    val size = SPEAKER_COLORS.size
+    return SPEAKER_COLORS[((hash % size) + size) % size]
+}
+
 @Composable
 private fun ChatBubble(entry: ChatEntry, showSpeaker: Boolean = false) {
     val isUser = entry.role == "user"
@@ -214,7 +239,7 @@ private fun ChatBubble(entry: ChatEntry, showSpeaker: Boolean = false) {
             modifier = Modifier
                 .align(if (isUser) Alignment.CenterEnd else Alignment.CenterStart)
                 .clip(RoundedCornerShape(14.dp))
-                .background(if (isUser) Accent else SurfaceLight)
+                .background(if (isUser) speakerColor(entry.speaker) else SurfaceLight)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             if (showSpeaker && entry.speaker != null) {

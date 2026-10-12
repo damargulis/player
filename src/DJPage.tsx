@@ -12,6 +12,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumById, getArtistsByIds, getCurrentTrackId, getQueueVersion, getTrackById} from './redux/selectors';
 import session, {DJSessionState, OWNER, TranscriptEntry, VERBOSE_ROLES} from './dj/session';
+import {speakerColor, speakerTint} from './dj/speakerColor';
 import {RootState} from './redux/store';
 import {toTime} from './utils';
 
@@ -150,9 +151,14 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
   }
 
   private renderEntry(entry: TranscriptEntry, showSpeaker: boolean): JSX.Element {
+    // Each person keeps the same colour everywhere, derived from their name.
+    const tinted = entry.role === 'user' && entry.speaker
+      ? {background: speakerTint(entry.speaker), borderColor: speakerColor(entry.speaker)}
+      : undefined;
     return (
-      <div key={entry.id} className={`dj-entry ${entry.role}`}>
-        {showSpeaker && entry.speaker && <div className="dj-entry-speaker">{entry.speaker}</div>}
+      <div key={entry.id} className={`dj-entry ${entry.role}`} style={tinted}>
+        {showSpeaker && entry.speaker &&
+          <div className="dj-entry-speaker" style={{color: speakerColor(entry.speaker)}}>{entry.speaker}</div>}
         <div className="dj-entry-text">{entry.text}</div>
         {entry.detail !== undefined && this.state.verbose &&
           <pre className="dj-entry-detail">{entry.detail}</pre>}
