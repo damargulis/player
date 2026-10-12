@@ -649,6 +649,28 @@ function withinDays(date: Date | undefined, days: number): boolean {
   return Date.now() - date.getTime() <= days * 24 * 60 * 60 * 1000;
 }
 
+/**
+ * Short list of what was played most recently, for the opening message of a session. The DJ
+ * gets this without asking, so "don't replay what we just heard" doesn't depend on it choosing
+ * to call recent_plays — which matters when a session is only one turn long.
+ */
+export function recentlyPlayedBrief(state: RootState, days: number = 3, limit: number = 30): string {
+  const played = getAllTracks(state)
+    .filter((track) => track.playCount > 0 && withinDays(track.playDate, days))
+    .sort((a, b) => b.playDate.getTime() - a.playDate.getTime());
+  if (!played.length) {
+    return `[Recently played — nothing in the last ${days} days, so the field is wide open]`;
+  }
+  const shown = played.slice(0, limit);
+  const lines = shown.map((track) => `${track.name} — ${artistNames(state, track.artistIds)}`);
+  const more = played.length > limit
+    ? `\n(${played.length} tracks in total; the ${limit} most recent are listed. recent_plays has the rest.)`
+    : '';
+  const header = `[Recently played — the last ${days} days. Don't serve these back unless asked for by name]`;
+  return `${header}
+${lines.join('\n')}${more}`;
+}
+
 function recentPlays(state: RootState, input: Record<string, unknown>): ToolOutcome {
   const days = num(input, 'days') || 14;
   const limit = limitOf(input);

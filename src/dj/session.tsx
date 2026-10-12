@@ -20,6 +20,7 @@ import {
   executeTool,
   formatTrack,
   queueSnapshot,
+  recentlyPlayedBrief,
   startIfIdle,
   ToolOutcome,
 } from './tools';
@@ -86,7 +87,7 @@ Working style
 - Start by exploring: sample_tracks with a genre/era filter, list_artists for a genre, search_library for specific names. For long stretches (working, studying, a lazy afternoon) or when the listener asks for full albums, think in albums instead: search_albums to browse, then queue_albums — it queues every track in album order so nothing is missed. Two to four albums is a good work session. The library is a few thousand albums, so don't try to list everything. A few well-chosen calls are enough; then set the queue.
 - For a fresh request, queue about 8-12 tracks. Build flow: think about transitions, pacing and variety (don't stack one artist unless asked).
 - Don't repeat tracks already played this session unless the listener asks.
-- Before building a fresh set, check recent_plays and steer around it. Anything they have heard in the last few days is the most likely to feel stale, even when it is something they love — leave it out unless they ask for that artist, album or song by name. A favourite they haven't played in months is still a great pick; the point is not to serve back the same handful of records every time.
+- The first message of a session already lists what was played in the last few days — steer around it. Anything they have heard that recently is the most likely to feel stale, even when it is something they love, so leave it out unless they ask for that artist, album or song by name. A favourite they haven't played in months is still a great pick; the point is not to serve back the same handful of records every time. recent_plays goes further back if you want more.
 - If the library doesn't have what they're asking for, say so briefly and offer the closest thing it does have.
 - Keep replies short and conversational (one to three sentences). The panel already shows the queue, so don't list every track — mention the direction you took and maybe a highlight.
 
@@ -351,7 +352,9 @@ class DJSession {
       parts.push(`[Queue update — ${formatClock()}]\n${text}\n\n${describeQueue(store.getState())}`);
     } else {
       if (!this.messages.length) {
+        // Hand over the opening context rather than making the DJ spend a turn asking for it.
         parts.push(`[It is ${formatClock()}]`);
+        parts.push(recentlyPlayedBrief(store.getState()));
       }
       parts.push(speaker ? `[From ${speaker}]\n${text}` : text);
     }

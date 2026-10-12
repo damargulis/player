@@ -1,4 +1,4 @@
-import {executeTool} from './tools';
+import {executeTool, recentlyPlayedBrief} from './tools';
 import DJPlaylist from '../playlist/DJPlaylist';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import RandomAlbumPlaylist from '../playlist/RandomAlbumPlaylist';
@@ -204,4 +204,29 @@ test('now_playing reports the listening context', () => {
   expect(outcome.content).toContain('volume');
   expect(outcome.content).toContain('1 track(s) played this set');
   expect(outcome.content).not.toContain('window');
+});
+
+test('the opening brief lists what was just played, newest first', () => {
+  const brief = recentlyPlayedBrief(store.getState(), 30);
+
+  expect(brief).toContain('Recently played');
+  expect(brief).toContain('One — Some Artist');
+  expect(brief).toContain('Two — Some Artist');
+  // t3 has never been played, so it must not appear
+  expect(brief).not.toContain('Three —');
+  // t1 was played 3 days ago, t2 ten days ago
+  expect(brief.indexOf('One —')).toBeLessThan(brief.indexOf('Two —'));
+});
+
+test('the opening brief says so plainly when nothing is recent', () => {
+  const brief = recentlyPlayedBrief(store.getState(), 1);
+
+  expect(brief).toContain('nothing in the last 1 days');
+});
+
+test('the opening brief caps how much it lists', () => {
+  const brief = recentlyPlayedBrief(store.getState(), 30, 1);
+
+  expect(brief).toContain('2 tracks in total');
+  expect(brief).toContain('the 1 most recent are listed');
 });
