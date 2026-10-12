@@ -1,5 +1,7 @@
 const {
   app,
+  clipboard,
+  dialog,
   globalShortcut,
   BrowserWindow,
   Menu,
@@ -14,6 +16,7 @@ const isDev = require("electron-is-dev");
 const path = require("path");
 const defaultMenu = require("electron-default-menu");
 const fs = require("fs");
+const os = require("os");
 
 app.whenReady().then(() => {
   protocol.registerFileProtocol("file", (req, callback) => {
@@ -229,6 +232,10 @@ function createWindow() {
     submenu: [{label: "Reset from itunes", click: () => resetLibrary()}],
   }));
   menu.push(new MenuItem({
+    label: "DJ",
+    submenu: [{label: "Copy link for phone", click: () => copyPhoneLink()}],
+  }));
+  menu.push(new MenuItem({
     label: "Extensions",
     submenu: [
     {label: "Wikipedia", click: () => runExtension("wikipedia")},
@@ -239,6 +246,50 @@ function createWindow() {
   ],
   }));
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
+}
+
+/**
+ * LAN addresses this machine can be reached on. A phone needs a real address rather than
+ * localhost, so internal interfaces are skipped; private ranges are preferred because a VPN
+ * interface can otherwise sort first and hand out an address the phone can't reach.
+ */
+function lanAddresses() {
+  const addresses = [];
+  const interfaces = os.networkInterfaces();
+  Object.keys(interfaces).forEach((name) => {
+    (interfaces[name] || []).forEach((entry) => {
+      if (entry.family === "IPv4" && !entry.internal) {
+        addresses.push({address: entry.address, name});
+      }
+    });
+  });
+  const isPrivate = (a) => /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(a.address);
+  return addresses.sort((a, b) => Number(isPrivate(b)) - Number(isPrivate(a)));
+}
+
+/** Copies the address a phone uses to reach the DJ, and shows what was copied. */
+function copyPhoneLink() {
+  const addresses = lanAddresses();
+  if (!addresses.length) {
+    dialog.showMessageBox({
+      buttons: ["OK"],
+      detail: "This machine has no network address a phone could reach. Check that wifi is on.",
+      message: "No network connection",
+      type: "warning",
+    });
+    return;
+  }
+  const url = `http://${addresses[0].address}:${expressPort}/dj`;
+  clipboard.writeText(url);
+  const others = addresses.slice(1)
+    .map((a) => `\n\nAlso reachable at http://${a.address}:${expressPort}/dj (${a.name})`).join("");
+  dialog.showMessageBox({
+    buttons: ["OK"],
+    detail: `${url}\n\nOpen it in Safari on the phone, then Share -> Add to Home Screen. ` +
+      `Add ?who=Name to the end to skip being asked who is listening.${others}`,
+    message: "Copied the DJ link",
+    type: "info",
+  });
 }
 
 app.on("ready", () => {
