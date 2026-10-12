@@ -1,4 +1,4 @@
-import DJPlaylist from '../playlist/DJPlaylist';
+import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import {NEXT_ALBUM, NEXT_TRACK, SET_PLAYLIST, UPDATE_LIBRARY, UPDATE_TIME, UPDATE_TRACK} from '../redux/actionTypes';
 import session from './session';
@@ -69,7 +69,7 @@ test('delivering the feedback clears the streak, so one bad patch wakes the DJ o
 
   const outcome = session.runExternalTool('get_queue', {});
 
-  expect(outcome.content).toContain('Skipped after');
+  expect(outcome.content).toContain('skipped after');
   expect(session.getStatus().recentSkips).toBe(0);
   // A later skip starts a fresh streak rather than re-firing immediately.
   playFor(5);
@@ -83,7 +83,7 @@ test('hand-pruned tracks are reported to the DJ as explicit feedback', () => {
 
   const outcome = session.runExternalTool('get_queue', {});
 
-  expect(outcome.content).toContain('Removed from the queue by the listener');
+  expect(outcome.content).toContain('Daniel removed from the queue');
   expect(outcome.content).toContain('Three');
 });
 
@@ -96,6 +96,49 @@ test('the room line reports idle and pause state', () => {
   );
 });
 
+test('a skip names whoever did it', () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1', 't2', 't3']);
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  session.runExternalTool('get_queue', {}); // drain
+
+  // the desktop and android don't announce themselves, so they are the owner
+  playFor(6);
+  expect(session.runExternalTool('get_queue', {}).content).toContain('Daniel skipped after');
+
+  // the web app names the person who pressed the button
+  playlist.noteActor('Chloe');
+  playFor(4);
+  const outcome = session.runExternalTool('get_queue', {});
+  expect(outcome.content).toContain('Chloe skipped after');
+  expect(outcome.content).not.toContain('Daniel skipped after');
+});
+
+test("the DJ's own skip is still told apart from a person's", () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1', 't2']);
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  session.runExternalTool('get_queue', {});
+
+  playlist.noteActor(DJ_ACTOR);
+  playFor(4);
+
+  const outcome = session.runExternalTool('get_queue', {});
+  expect(outcome.content).toContain('You (the DJ) skipped');
+  expect(outcome.content).not.toContain('Daniel skipped');
+});
+
+test('a removal names whoever did it', () => {
+  const playlist = new DJPlaylist();
+  playlist.setUpcoming(['t1', 't2', 't3']);
+  store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+  session.runExternalTool('get_queue', {});
+
+  session.removeFromQueue(['t3'], undefined, 'Chloe');
+
+  expect(session.runExternalTool('get_queue', {}).content).toContain('Chloe removed from the queue');
+});
+
 test('skipping a whole album reads differently from skipping one track', () => {
   const playlist = new DJPlaylist();
   playlist.addAlbum(['t1', 't2', 't3'], 'al1', 'end');
@@ -106,7 +149,7 @@ test('skipping a whole album reads differently from skipping one track', () => {
   // one track skip
   playFor(5);
   let outcome = session.runExternalTool('get_queue', {});
-  expect(outcome.content).toContain('Skipped after');
+  expect(outcome.content).toContain('skipped after');
   expect(outcome.content).not.toContain('the rest of');
 
   // now reject the remainder of the record
@@ -115,7 +158,7 @@ test('skipping a whole album reads differently from skipping one track', () => {
   expect(store.getState().currentlyPlaying.currentlyPlayingId).toBe('t4');
 
   outcome = session.runExternalTool('get_queue', {});
-  expect(outcome.content).toContain('The listener skipped the rest of "Album"');
+  expect(outcome.content).toContain('Daniel skipped the rest of "Album"');
   expect(outcome.content).toContain('1 queued track(s) dropped');
 });
 
@@ -146,7 +189,7 @@ test('favoriting the playing track is reported as a positive signal', () => {
 
   expect(session.getStatus().recentSkips).toBe(0);
   const outcome = session.runExternalTool('get_queue', {});
-  expect(outcome.content).toContain('just favorited this');
+  expect(outcome.content).toContain('Just favorited:');
 });
 
 test('removing a whole album is reported as one rejection, not a wall of tracks', () => {
@@ -164,7 +207,7 @@ test('removing a whole album is reported as one rejection, not a wall of tracks'
   expect(outcome.content).toContain('dropped the rest of "Album"');
   expect(outcome.content).toContain('2 track(s)');
   // not one line per track
-  expect(outcome.content).not.toContain('Removed from the queue by the listener');
+  expect(outcome.content).not.toContain('removed from the queue');
 });
 
 test('removing single tracks still reports them individually', () => {
@@ -176,7 +219,7 @@ test('removing single tracks still reports them individually', () => {
   session.removeFromQueue(['t3']);
 
   expect(playlist.getUpcoming()).toStrictEqual(['t2']);
-  expect(session.runExternalTool('get_queue', {}).content).toContain('Removed from the queue by the listener');
+  expect(session.runExternalTool('get_queue', {}).content).toContain('Daniel removed from the queue');
 });
 
 test('removing does nothing when the DJ queue is not active', () => {

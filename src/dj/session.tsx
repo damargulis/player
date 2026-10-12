@@ -10,7 +10,7 @@ import {
   ToolResultBlock,
   ToolUseBlock,
 } from './api';
-import DJPlaylist from '../playlist/DJPlaylist';
+import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
 import {getAlbumById, getTrackById} from '../redux/selectors';
 import store, {RootState} from '../redux/store';
@@ -80,7 +80,7 @@ How it works
 - sample_tracks takes added_within_days, which is the honest way to answer "play me something new".
 - When the queue runs low you'll get an automatic "[Queue update]" notice. Top it up (another 6-10 tracks) in the same spirit as the current vibe, then reply in a few words.
 - More than one person uses this. Each message is labelled "[From <name>]" — ${OWNER} is at the desktop, others chat from their phones. Pay attention to who is asking: their tastes differ, and what works for one of them alone is not what works when they are listening together. Address whoever just spoke, and keep per-person notes in memory.
-- Each listener message may start with a "[Playback update]" block saying what played fully, what was skipped, and what the listener removed from the queue by hand since your last turn. It distinguishes skipping one track from skipping the rest of an album ("skipped the rest of X — N queued tracks dropped"), which in album mode is a rejection of the record rather than the song — react to it by changing the album, not the track. Skips and especially removals are the strongest feedback you get — react to them rather than re-queueing more of the same.
+- Each listener message may start with a "[Playback update]" block saying what played fully, what was skipped, and what was removed from the queue by hand since your last turn. Skips and removals name whoever did them, so you can tell a track ${OWNER} skipped from one someone else did — that is a per-person signal worth keeping in memory, not a blanket rejection. It distinguishes skipping one track from skipping the rest of an album ("skipped the rest of X — N queued tracks dropped"), which in album mode is a rejection of the record rather than the song — react to it by changing the album, not the track. Skips and especially removals are the strongest feedback you get — react to them rather than re-queueing more of the same.
 - The listener hitting the like button on the playing track is the clearest "yes" you will get; it shows up in the playback update. Note what it was and why you think it landed.
 - Watch the context and room lines in get_queue/now_playing. A long pause with no input means nobody is listening: don't keep burning through good tracks into an empty room. Rapid skips mean you are wrong right now.
 
@@ -272,7 +272,7 @@ class DJSession {
    * whatever is left of that album; every client (DJ page, phone, web) goes through here so the
    * DJ hears about it the same way regardless of where it was done.
    */
-  public removeFromQueue(trackIds: string[], albumId?: string): void {
+  public removeFromQueue(trackIds: string[], albumId?: string, actor: string = OWNER): void {
     const playlist = store.getState().currentlyPlaying.playlist;
     if (!(playlist instanceof DJPlaylist)) {
       return;
@@ -285,7 +285,7 @@ class DJSession {
     }
     playlist.removeUpcoming(ids);
     store.dispatch({type: DJ_QUEUE_UPDATED});
-    this.noteListenerRemoval(ids, albumId);
+    this.noteListenerRemoval(ids, albumId, actor);
   }
 
   /**
@@ -293,18 +293,18 @@ class DJSession {
    * feedback, so the DJ hears about it the same way it hears about skips — and a whole album
    * dropped is reported as one rejection rather than a wall of individual tracks.
    */
-  public noteListenerRemoval(trackIds: string[], albumId?: string): void {
+  public noteListenerRemoval(trackIds: string[], albumId?: string, actor: string = OWNER): void {
     const state = store.getState();
     activity.noteListenerInput();
     const album = albumId ? getAlbumById(state, albumId) : undefined;
     if (album) {
-      this.playbackEvents.push(`The listener dropped the rest of "${album.name}" from the queue ` +
+      this.playbackEvents.push(`${actor} dropped the rest of "${album.name}" from the queue ` +
         `(${trackIds.length} track(s)) — they don't want that record right now.`);
     } else {
       trackIds.forEach((id) => {
         const track = getTrackById(state, id);
         if (track) {
-          this.playbackEvents.push(`Removed from the queue by the listener: ${formatTrack(state, track)}`);
+          this.playbackEvents.push(`${actor} removed from the queue: ${formatTrack(state, track)}`);
         }
       });
     }
@@ -519,9 +519,9 @@ class DJSession {
       activity.noteListenerInput();
       if (count > previous) {
         this.recentSkips = 0;
-        this.playbackEvents.push(`The listener just favorited this: ${formatTrack(state, track)}`);
+        this.playbackEvents.push(`Just favorited: ${formatTrack(state, track)}`);
       } else {
-        this.playbackEvents.push(`The listener just un-favorited this: ${formatTrack(state, track)}`);
+        this.playbackEvents.push(`Just un-favorited: ${formatTrack(state, track)}`);
       }
     }
     this.favoriteCounts[currentId] = count;
@@ -532,19 +532,20 @@ class DJSession {
     const prev = prevId ? getTrackById(state, prevId) : undefined;
     if (prev) {
       const transition = playlist.consumeTransition();
-      const byDJ = transition !== undefined && transition.byDJ;
+      const actor = (transition && transition.actor) || OWNER;
+      const byDJ = actor === DJ_ACTOR;
       const finished = this.lastTime * 1000 >= prev.duration - 5000;
       const elapsed = toTime(this.lastTime * 1000);
       const wentBack = nextId !== undefined && playlist.getHistory().slice(0, -1).includes(nextId);
       const albumSkip = transition !== undefined && transition.kind === 'next-album' &&
         transition.dropped.length > 0;
       if (wentBack) {
-        this.playbackEvents.push(`Went back (after ${elapsed}): ${formatTrack(state, prev)}`);
+        this.playbackEvents.push(`${actor} went back (after ${elapsed}): ${formatTrack(state, prev)}`);
       } else if (albumSkip) {
         const album = transition && transition.albumId ? getAlbumById(state, transition.albumId) : undefined;
         const name = album ? `"${album.name}"` : 'the album';
         const dropped = transition ? transition.dropped.length : 0;
-        const who = byDJ ? 'You (the DJ) skipped' : 'The listener skipped';
+        const who = byDJ ? 'You (the DJ) skipped' : `${actor} skipped`;
         this.playbackEvents.push(`${who} the rest of ${name} after ${elapsed} — ${dropped} queued ` +
           `track(s) dropped, during: ${formatTrack(state, prev)}`);
         if (!byDJ) {
@@ -559,7 +560,7 @@ class DJSession {
       } else {
         this.recentSkips++;
         activity.noteListenerInput();
-        this.playbackEvents.push(`Skipped after ${elapsed}: ${formatTrack(state, prev)}`);
+        this.playbackEvents.push(`${actor} skipped after ${elapsed}: ${formatTrack(state, prev)}`);
       }
     }
   }

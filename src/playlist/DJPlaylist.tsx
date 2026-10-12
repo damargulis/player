@@ -1,14 +1,20 @@
 import EmptyPlaylist from './EmptyPlaylist';
 
 /** How the queue last moved, so the DJ can tell a track skip from a whole-album rejection. */
+/** Marks a queue move as the DJ's own rather than a listener's. */
+export const DJ_ACTOR = 'dj';
+
 export interface QueueTransition {
   kind: 'next-track' | 'next-album' | 'prev-track' | 'prev-album';
   /** Tracks dropped from the queue because the rest of an album was skipped. */
   dropped: string[];
   /** The album whose remainder was dropped. */
   albumId?: string;
-  /** True when the DJ advanced the queue itself, rather than the listener pressing a button. */
-  byDJ: boolean;
+  /**
+   * Who caused it: DJ_ACTOR when the DJ advanced the queue itself, otherwise the listener's
+   * name. Undefined when nothing announced itself, which means whoever is at the desktop.
+   */
+  actor?: string;
 }
 
 export interface QueueEntry {
@@ -27,7 +33,7 @@ export default class DJPlaylist extends EmptyPlaylist {
   private upcoming: QueueEntry[];
   private current: number;
   private transition?: QueueTransition;
-  private djAdvance = false;
+  private pendingActor?: string;
 
   constructor(seedTrackId?: string) {
     super();
@@ -96,11 +102,12 @@ export default class DJPlaylist extends EmptyPlaylist {
   }
 
   /**
-   * Marks the next advance as the DJ's own (skip_current), so its feedback isn't misread as the
-   * listener rejecting the track.
+   * Names whoever is about to move the queue, so the feedback can say who skipped rather than
+   * just that someone did. Pass DJ_ACTOR for the DJ's own skip_current, so it isn't misread as
+   * the listener rejecting the track.
    */
-  public noteDJAdvance(): void {
-    this.djAdvance = true;
+  public noteActor(actor: string): void {
+    this.pendingActor = actor;
   }
 
   /** Reads and clears how the queue last moved. */
@@ -187,9 +194,9 @@ export default class DJPlaylist extends EmptyPlaylist {
     return next.id;
   }
 
-  private recordTransition(transition: QueueTransition | Omit<QueueTransition, 'byDJ'>): void {
-    this.transition = Object.assign({byDJ: this.djAdvance}, transition) as QueueTransition;
-    this.djAdvance = false;
+  private recordTransition(transition: QueueTransition): void {
+    this.transition = Object.assign({}, transition, {actor: this.pendingActor});
+    this.pendingActor = undefined;
   }
 
   private currentAlbumId(): string | undefined {

@@ -36,6 +36,16 @@ import {
 } from './redux/selectors';
 import djSession, {MCP_TOOLS, OWNER} from './dj/session';
 import {RootState} from './redux/store';
+import {noteQueueActor} from './dj/tools';
+
+/** Remote clients may name the person who pressed the button; the desktop and Android don't. */
+interface RemoteActor {
+  speaker?: string;
+}
+
+function actorOf(data?: RemoteActor): string {
+  return (data && data.speaker) || OWNER;
+}
 
 interface StateProps {
   queueVersion: number;
@@ -105,19 +115,25 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('toTrack', () => {
       this.onMaximize();
     });
-    ipcRenderer.on('nextTrack', () => {
+    // Remote transport can come from either phone; name the sender so a skip is attributed to
+    // them rather than to whoever happens to be at the desktop.
+    ipcRenderer.on('nextTrack', (evt, data?: RemoteActor) => {
+      noteQueueActor(actorOf(data));
       this.props.nextTrack();
     });
-    ipcRenderer.on('prevAlbum', () => {
+    ipcRenderer.on('prevAlbum', (evt, data?: RemoteActor) => {
+      noteQueueActor(actorOf(data));
       this.props.prevAlbum();
     });
-    ipcRenderer.on('prevTrack', () => {
+    ipcRenderer.on('prevTrack', (evt, data?: RemoteActor) => {
+      noteQueueActor(actorOf(data));
       this.props.prevTrack();
     });
     ipcRenderer.on('playTrack', () => {
       this.props.playPause();
     });
-    ipcRenderer.on('nextAlbum', () => {
+    ipcRenderer.on('nextAlbum', (evt, data?: RemoteActor) => {
+      noteQueueActor(actorOf(data));
       this.props.nextAlbum();
     });
     ipcRenderer.on('favoriteTrack', () => {
@@ -161,9 +177,9 @@ class App extends React.Component<AppProps, AppState> {
         djSession.send(payload.text, payload.speaker || OWNER);
       }
     });
-    ipcRenderer.on('dj-remove', (evt, payload: {trackIds?: string[]; albumId?: string}) => {
+    ipcRenderer.on('dj-remove', (evt, payload: {trackIds?: string[]; albumId?: string; speaker?: string}) => {
       if (payload) {
-        djSession.removeFromQueue(payload.trackIds || [], payload.albumId);
+        djSession.removeFromQueue(payload.trackIds || [], payload.albumId, actorOf(payload));
       }
     });
     ipcRenderer.on('dj-new-session', () => {

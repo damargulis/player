@@ -609,7 +609,7 @@
     row.appendChild(count$);
     row.appendChild(dropButton('Remove this album from the queue', function () {
       if (connected) {
-        send('dj-remove', {albumId: track.group});
+        send('dj-remove', {albumId: track.group, speaker: speaker || 'Guest'});
       }
     }));
     return row;
@@ -635,7 +635,7 @@
     row.appendChild(m);
     row.appendChild(dropButton('Remove this track from the queue', function () {
       if (connected) {
-        send('dj-remove', {trackIds: [track.id]});
+        send('dj-remove', {trackIds: [track.id], speaker: speaker || 'Guest'});
       }
     }));
     return row;
@@ -786,7 +786,8 @@
   function transportAction(id, type) {
     document.getElementById(id).addEventListener('click', function () {
       if (connected) {
-        send(type);
+        // name the sender so the DJ knows whose skip it was
+        send(type, {speaker: speaker || 'Guest'});
       }
     });
   }

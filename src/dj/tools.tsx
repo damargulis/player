@@ -1,7 +1,7 @@
 import {Album, Artist, DJ_QUEUE_UPDATED, DJ_TAKE_OVER, NEXT_TRACK, SET_PLAYLIST, Track} from '../redux/actionTypes';
 import activity, {humanDuration} from './activity';
 import {Tool} from './api';
-import DJPlaylist from '../playlist/DJPlaylist';
+import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {
   getAlbumById,
   getAllTracks,
@@ -320,6 +320,17 @@ export function ensureDJPlaylist(): DJPlaylist {
     store.dispatch({payload: {play: false, playlist}, type: SET_PLAYLIST});
   }
   return playlist;
+}
+
+/**
+ * Names whoever is about to move the queue, so the resulting skip is attributed to them.
+ * No-op when the DJ queue isn't active.
+ */
+export function noteQueueActor(actor: string): void {
+  const playlist = getPlaylist(store.getState());
+  if (playlist) {
+    playlist.noteActor(actor);
+  }
 }
 
 /** Starts playback when the DJ has queued something but nothing is playing (e.g. a cold start). */
@@ -909,7 +920,7 @@ export function executeTool(name: string, input: Record<string, unknown>): ToolO
     if (!playlist) {
       return {content: 'DJ queue is not active.', isError: true};
     }
-    playlist.noteDJAdvance();
+    playlist.noteActor(DJ_ACTOR);
     store.dispatch({type: NEXT_TRACK});
     return {content: describeQueue(store.getState()), queueChanged: true};
   }
