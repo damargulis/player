@@ -752,6 +752,49 @@ ${inheritedLines}`);
   return lines.join('\n\n');
 }
 
+export interface QueueTrackSnapshot {
+  id: string;
+  name: string;
+  artist: string;
+  albumId?: string;
+}
+
+export interface QueueSnapshot {
+  active: boolean;
+  isPlaying: boolean;
+  current?: QueueTrackSnapshot;
+  upcoming: QueueTrackSnapshot[];
+}
+
+function snapshotTrack(state: RootState, id: string): QueueTrackSnapshot | undefined {
+  const track = getTrackById(state, id);
+  if (!track) {
+    return undefined;
+  }
+  return {
+    albumId: track.albumIds.length ? track.albumIds[0] : undefined,
+    artist: artistNames(state, track.artistIds),
+    id: track.id,
+    name: track.name,
+  };
+}
+
+/** Structured now-playing + queue for the mobile app and the web client. */
+export function queueSnapshot(state: RootState, limit: number = 25): QueueSnapshot {
+  const playlist = getPlaylist(state);
+  const currentId = state.currentlyPlaying.currentlyPlayingId || undefined;
+  return {
+    active: playlist !== undefined,
+    current: currentId ? snapshotTrack(state, currentId) : undefined,
+    isPlaying: state.currentlyPlaying.isPlaying,
+    upcoming: playlist
+      ? playlist.getUpcoming().slice(0, limit)
+        .map((id) => snapshotTrack(state, id))
+        .filter(Boolean) as QueueTrackSnapshot[]
+      : [],
+  };
+}
+
 export function describeQueue(state: RootState): string {
   const playlist = getPlaylist(state);
   if (!playlist) {

@@ -28,6 +28,7 @@ import {
   getCurrentTrack,
   getGenresByIds,
   getIsPlaying,
+  getQueueVersion,
   getSetTime,
   getSyncedPlaylists,
   getTrackById,
@@ -37,6 +38,7 @@ import djSession, {MCP_TOOLS} from './dj/session';
 import {RootState} from './redux/store';
 
 interface StateProps {
+  queueVersion: number;
   volume: number;
   track?: Track;
   playing: boolean;
@@ -293,6 +295,11 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   public componentDidUpdate(prevProps: AppProps): void {
+    if (prevProps.queueVersion !== this.props.queueVersion || prevProps.track !== this.props.track ||
+        prevProps.playing !== this.props.playing) {
+      // Keeps the phone's now-playing and queue in step; pushDJState is throttled.
+      this.pushDJState();
+    }
     if (this.audio.volume !== this.props.volume) {
       this.audio.volume = this.props.volume;
     }
@@ -362,6 +369,7 @@ function mapStateToProps(store: RootState): StateProps {
     runGeniusExtension: (trackIds: string[]) => runGeniusExtension(store, trackIds),
     runMusicBrainzExtension: (albumIds: string[], artistIds: string[]) =>
       runMusicBrainzExtension(albumIds, artistIds, store),
+    queueVersion: getQueueVersion(store),
     setTime: getSetTime(store),
     track,
     volume: getVolume(store),

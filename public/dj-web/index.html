@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MyMusic DJ</title>
+<link rel="manifest" href="/dj/manifest.json">
+<link rel="apple-touch-icon" href="/dj/icon-192.png">
+<meta name="theme-color" content="#101014">
+<!-- iOS honours these for Add to Home Screen even over plain http, where a service worker can't run -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DJ">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #101014;
+    --bg-deep: #0c0c10;
+    --surface: #1a1a21;
+    --surface-hover: #23232c;
+    --border: #2a2a33;
+    --border-strong: #3a3a46;
+    --text: #e7e7ec;
+    --text-dim: #9a9aa6;
+    --text-faint: #6b6b78;
+    --accent: #8b7cf6;
+    --accent-strong: #a89bff;
+    --accent-soft: rgba(139, 124, 246, 0.16);
+    --danger: #f85149;
+    --danger-soft: rgba(248, 81, 73, 0.12);
+    --warning: #d29922;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #app {
+    display: flex;
+    flex-direction: column;
+    /* js keeps this in step with visualViewport so the keyboard never covers the input */
+    height: var(--app-height, 100%);
+  }
+  header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: calc(env(safe-area-inset-top) + 10px) 14px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-deep);
+  }
+  .brand {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+  }
+  button {
+    font: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.4; }
+  button.link {
+    background: none;
+    border: none;
+    color: var(--accent-strong);
+    font-weight: 600;
+    padding: 6px 4px;
+  }
+  #banner {
+    flex: 0 0 auto;
+    display: none;
+    padding: 8px 14px;
+    font-size: 13px;
+    background: var(--danger-soft);
+    border-bottom: 1px solid var(--danger);
+  }
+  #banner.show { display: block; }
+  #nowplaying {
+    flex: 0 0 auto;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  #nowplaying.show { display: flex; }
+  #art {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border-radius: 5px;
+    object-fit: cover;
+    background: var(--surface-hover);
+  }
+  #npmeta { flex: 1; min-width: 0; }
+  #nptitle, #npartist {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #nptitle { font-size: 14px; font-weight: 600; }
+  #npartist { font-size: 12.5px; color: var(--text-dim); }
+  #queuetoggle { flex: 0 0 auto; font-size: 12px; }
+  #queue {
+    flex: 0 0 auto;
+    display: none;
+    max-height: 40%;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-deep);
+  }
+  #queue.show { display: block; }
+  .qrow {
+    display: flex;
+    gap: 10px;
+    padding: 7px 14px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .qrow:last-child { border-bottom: none; }
+  .qrow .n { width: 18px; color: var(--text-faint); font-size: 11px; text-align: right; flex: 0 0 auto; }
+  .qrow .m { flex: 1; min-width: 0; }
+  .qrow .t, .qrow .a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .qrow .a { font-size: 12px; color: var(--text-dim); }
+  #transcript {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .entry {
+    max-width: 85%;
+    padding: 9px 13px;
+    border-radius: 14px;
+    font-size: 15px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+  }
+  .entry.user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #fff;
+  }
+  .entry.dj {
+    align-self: flex-start;
+    background: var(--surface-hover);
+    border: 1px solid var(--border-strong);
+  }
+  .entry.status {
+    align-self: center;
+    max-width: 100%;
+    padding: 2px 8px;
+    background: none;
+    color: var(--text-faint);
+    font-size: 12.5px;
+    font-style: italic;
+    text-align: center;
+  }
+  .entry.error {
+    align-self: stretch;
+    max-width: 100%;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger);
+    font-size: 13.5px;
+  }
+  #empty {
+    margin: auto;
+    max-width: 320px;
+    color: var(--text-faint);
+    font-size: 14.5px;
+    text-align: center;
+  }
+  #busy {
+    display: none;
+    align-items: baseline;
+    gap: 3px;
+    align-self: flex-start;
+    padding: 2px 4px;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-style: italic;
+  }
+  #busy.show { display: flex; }
+  #busytext { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dots { display: inline-flex; gap: 3px; padding-left: 2px; flex: 0 0 auto; }
+  .dots i {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-strong);
+    animation: dot 1.2s ease-in-out infinite;
+  }
+  .dots i:nth-child(2) { animation-delay: 0.16s; }
+  .dots i:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes dot {
+    0%, 70%, 100% { opacity: 0.2; transform: translateY(0); }
+    35% { opacity: 1; transform: translateY(-2px); }
+  }
+  form {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+    padding: 9px 12px calc(env(safe-area-inset-bottom) + 9px);
+    border-top: 1px solid var(--border);
+    background: var(--bg-deep);
+  }
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    /* 16px keeps iOS from zooming the page when the field is focused */
+    font-size: 16px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  #send {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 16px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="brand">DJ</span>
+    <span>
+      <button class="link" id="newset">New set</button>
+    </span>
+  </header>
+  <div id="banner">Not connected to MyMusic — trying…</div>
+  <div id="nowplaying">
+    <img id="art" alt="">
+    <span id="npmeta">
+      <div id="nptitle"></div>
+      <div id="npartist"></div>
+    </span>
+    <button id="queuetoggle">Up next</button>
+  </div>
+  <div id="queue"></div>
+  <div id="transcript">
+    <div id="empty">
+      Tell the DJ what you're doing or how you feel — "rainy Sunday morning", "focus music, no vocals",
+      "full albums while I cook". Keep chatting to steer it; the current song keeps playing while the
+      queue changes.
+    </div>
+    <div id="busy"><span id="busytext"></span><span class="dots"><i></i><i></i><i></i></span></div>
+  </div>
+  <form id="composer" autocomplete="off">
+    <input type="text" id="draft" placeholder="What should we listen to?" enterkeyhint="send"
+           autocapitalize="sentences" autocorrect="on">
+    <button type="submit" id="send">Send</button>
+  </form>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+(function () {
+  var socket = io();
+  var transcript = document.getElementById('transcript');
+  var empty = document.getElementById('empty');
+  var busy = document.getElementById('busy');
+  var busytext = document.getElementById('busytext');
+  var banner = document.getElementById('banner');
+  var draft = document.getElementById('draft');
+  var nowplaying = document.getElementById('nowplaying');
+  var art = document.getElementById('art');
+  var nptitle = document.getElementById('nptitle');
+  var npartist = document.getElementById('npartist');
+  var queue = document.getElementById('queue');
+  var queuetoggle = document.getElementById('queuetoggle');
+  var rendered = {};
+  var queueOpen = false;
+  var lastArt = '';
+
+  // The keyboard shrinks the visual viewport but not the layout viewport, so track it
+  // explicitly or the input ends up hidden underneath it.
+  function fitViewport() {
+    var vv = window.visualViewport;
+    var height = vv ? vv.height : window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', height + 'px');
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitViewport);
+    window.visualViewport.addEventListener('scroll', fitViewport);
+  }
+  window.addEventListener('orientationchange', function () { setTimeout(fitViewport, 200); });
+  fitViewport();
+
+  function atBottom() {
+    return transcript.scrollHeight - transcript.scrollTop - transcript.clientHeight < 60;
+  }
+
+  function scrollToBottom() {
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
+  function send(type, data) {
+    socket.emit('action', data === undefined ? {type: type} : {type: type, data: data});
+  }
+
+  function renderEntries(entries) {
+    var stick = atBottom();
+    var seen = {};
+    entries.forEach(function (entry) {
+      seen[entry.id] = true;
+      var el = rendered[entry.id];
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'entry ' + entry.role;
+        // insert before the busy line so it always sits last
+        transcript.insertBefore(el, busy);
+        rendered[entry.id] = el;
+      }
+      // textContent, never innerHTML: this is model and listener text
+      if (el.textContent !== entry.text) {
+        el.textContent = entry.text;
+      }
+    });
+    Object.keys(rendered).forEach(function (id) {
+      if (!seen[id]) {
+        transcript.removeChild(rendered[id]);
+        delete rendered[id];
+      }
+    });
+    empty.style.display = entries.length ? 'none' : '';
+    if (stick) {
+      scrollToBottom();
+    }
+  }
+
+  function renderQueue(q) {
+    if (!q || !q.active || !q.current) {
+      nowplaying.classList.remove('show');
+      queue.classList.remove('show');
+      return;
+    }
+    nowplaying.classList.add('show');
+    nptitle.textContent = q.current.name;
+    npartist.textContent = q.current.artist + (q.isPlaying ? '' : ' · paused');
+    var src = q.current.albumId ? '/get-album-art/' + encodeURIComponent(q.current.albumId) : '';
+    if (src !== lastArt) {
+      lastArt = src;
+      // hide until it actually loads, so a missing art file shows the empty tile
+      // rather than a broken-image glyph
+      art.style.visibility = 'hidden';
+      if (src) {
+        art.src = src;
+      } else {
+        art.removeAttribute('src');
+      }
+    }
+    var upcoming = q.upcoming || [];
+    queuetoggle.textContent = queueOpen ? 'Hide' : 'Up next (' + upcoming.length + ')';
+    queue.textContent = '';
+    if (!upcoming.length) {
+      var none = document.createElement('div');
+      none.className = 'qrow';
+      none.textContent = 'Queue is empty.';
+      queue.appendChild(none);
+    }
+    upcoming.forEach(function (track, i) {
+      var row = document.createElement('div');
+      row.className = 'qrow';
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = String(i + 1);
+      var m = document.createElement('span');
+      m.className = 'm';
+      var t = document.createElement('div');
+      t.className = 't';
+      t.textContent = track.name;
+      var a = document.createElement('div');
+      a.className = 'a';
+      a.textContent = track.artist;
+      m.appendChild(t);
+      m.appendChild(a);
+      row.appendChild(n);
+      row.appendChild(m);
+      queue.appendChild(row);
+    });
+    queue.classList.toggle('show', queueOpen);
+  }
+
+  socket.on('connect', function () {
+    banner.classList.remove('show');
+    send('dj-sync');
+  });
+  socket.on('disconnect', function () {
+    banner.textContent = 'Not connected to MyMusic — trying…';
+    banner.classList.add('show');
+  });
+  socket.on('dj-state', function (state) {
+    if (!state) {
+      return;
+    }
+    renderEntries(state.entries || []);
+    renderQueue(state.queue);
+    if (state.busy) {
+      busytext.textContent = state.note || 'Digging through the crates';
+      busy.classList.add('show');
+      if (atBottom()) {
+        scrollToBottom();
+      }
+    } else {
+      busy.classList.remove('show');
+    }
+    if (state.configured === false) {
+      banner.textContent = 'The desktop has no Anthropic API key configured.';
+      banner.classList.add('show');
+    }
+  });
+
+  document.getElementById('composer').addEventListener('submit', function (evt) {
+    evt.preventDefault();
+    var text = draft.value.trim();
+    if (!text) {
+      return;
+    }
+    draft.value = '';
+    send('dj-message', text);
+    scrollToBottom();
+  });
+  document.getElementById('newset').addEventListener('click', function () {
+    send('dj-new-session');
+  });
+  queuetoggle.addEventListener('click', function () {
+    queueOpen = !queueOpen;
+    queue.classList.toggle('show', queueOpen);
+    queuetoggle.textContent = queueOpen ? 'Hide' : 'Up next';
+    send('dj-sync');
+  });
+  art.addEventListener('load', function () { art.style.visibility = 'visible'; });
+  art.addEventListener('error', function () { art.style.visibility = 'hidden'; });
+  draft.addEventListener('focus', function () { setTimeout(scrollToBottom, 300); });
+})();
+</script>
+</body>
+</html>

@@ -395,6 +395,26 @@ expressApp.get("/get-album-art/:albumId", (req, res) => {
 // Identity endpoint so clients can verify a discovered address actually
 // belongs to this app (and check protocol compatibility) before trusting it.
 const PROTOCOL_VERSION = 1;
+// --- DJ web app: a phone-friendly chat page served straight off the LAN, so any phone
+// (iPhone included) can talk to the DJ with no app install. CRA copies public/ into build/,
+// so __dirname resolves these in dev and in the packaged app alike. socket.io serves its own
+// browser client at /socket.io/socket.io.js, so the page needs no internet access.
+expressApp.get("/dj", (req, res) => {
+  res.sendFile(path.join(__dirname, "dj-web/index.html"));
+});
+
+expressApp.get("/dj/manifest.json", (req, res) => {
+  res.sendFile(path.join(__dirname, "dj-web/manifest.json"));
+});
+
+expressApp.get("/dj/icon-192.png", (req, res) => {
+  res.sendFile(path.join(__dirname, "logo192.png"));
+});
+
+expressApp.get("/dj/icon-512.png", (req, res) => {
+  res.sendFile(path.join(__dirname, "logo512.png"));
+});
+
 expressApp.get("/ping", (req, res) => {
   res.json({app: "MyMusic", protocol: PROTOCOL_VERSION});
 });

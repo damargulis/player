@@ -13,7 +13,16 @@ import DJPlaylist from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
 import {getAlbumById, getTrackById} from '../redux/selectors';
 import store, {RootState} from '../redux/store';
-import {describeQueue, DJ_TOOLS, ensureDJPlaylist, executeTool, formatTrack, startIfIdle, ToolOutcome} from './tools';
+import {
+  describeQueue,
+  DJ_TOOLS,
+  ensureDJPlaylist,
+  executeTool,
+  formatTrack,
+  queueSnapshot,
+  startIfIdle,
+  ToolOutcome,
+} from './tools';
 import {toTime} from '../utils';
 
 export type EntryRole = 'user' | 'dj' | 'status' | 'error' | 'tool' | 'thinking';
@@ -214,6 +223,7 @@ class DJSession {
       note: this.busyNote || null,
       entries: entries.slice(-limit).map((entry) => ({id: entry.id, role: entry.role, text: entry.text})),
       hasSession: this.messages.length > 0,
+      queue: queueSnapshot(store.getState()),
     };
   }
 
