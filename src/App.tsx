@@ -3,6 +3,7 @@ import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, 
 import {Album, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import djActivity from './dj/activity';
 import './App.css';
+import {runCloudBackup} from './backup/cloudBackup';
 import {BACKUP_TIME, DATA_DIR} from './constants';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
@@ -339,7 +340,11 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
   componentDidMount(): void {
     this.backupTimer = window.setInterval(() => {
       this.props.createBackup();
+      this.cloudBackup();
     }, BACKUP_TIME);
+    // the local backups only protect against this app; an offsite copy is what survives the
+    // laptop, so try once at launch rather than waiting a full day for the first tick
+    this.cloudBackup();
   }
 
   componentWillUnmount(): void {
@@ -385,6 +390,19 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
         </div>
       </div>
     );
+  }
+
+  /** Offsite copy of the irreplaceable files. Silent unless something actually went wrong. */
+  private cloudBackup(): void {
+    runCloudBackup().then((outcome) => {
+      if (outcome.error) {
+        // tslint:disable-next-line no-console
+        console.error(`Cloud backup failed: ${outcome.error}`);
+      } else if (outcome.uploaded && outcome.uploaded.length) {
+        // tslint:disable-next-line no-console
+        console.log(`Cloud backup uploaded ${outcome.uploaded.join(', ')}`);
+      }
+    });
   }
 
   private setTime(time: number): void {

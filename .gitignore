@@ -27,3 +27,7 @@ yarn-error.log*
 
 # Claude Code local permissions
 .claude/settings.local.json
+
+# Service account key for GCS backups
+gcs-backup-key.json
+data/gcs-backup-key.json
