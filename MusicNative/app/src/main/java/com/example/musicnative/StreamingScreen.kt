@@ -118,7 +118,7 @@ fun StreamingScreen(playPlaylist: (tracks: List<TrackData>) -> Unit) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             Text(
-                "Streaming",
+                "Cloud Library",
                 color = TextPrimary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -133,7 +133,7 @@ fun StreamingScreen(playPlaylist: (tracks: List<TrackData>) -> Unit) {
             modifier = Modifier.padding(horizontal = 16.dp),
         )
         Spacer(modifier = Modifier.height(8.dp))
-        SearchField(query = query, placeholder = "Search streaming", onQueryChange = { query = it })
+        SearchField(query = query, placeholder = "Search cloud library", onQueryChange = { query = it })
         Spacer(modifier = Modifier.height(4.dp))
 
         // Never early-return out of a composable scope: Compose emits group markers around
@@ -143,8 +143,8 @@ fun StreamingScreen(playPlaylist: (tracks: List<TrackData>) -> Unit) {
         if (filtered.isEmpty()) {
             CenteredMessage(
                 when {
-                    !configured -> "Streaming is not set up. Add the service URL and token in " +
-                        "Streaming settings."
+                    !configured -> "Cloud Library is not set up. Add the service URL and " +
+                        "token in Cloud Library settings."
                     refreshing -> "Loading catalog…"
                     catalog.isEmpty() -> "Nothing in the catalog yet"
                     else -> "No matches"
@@ -210,10 +210,10 @@ fun StreamingSettingsScreen() {
             .fillMaxSize()
             .padding(20.dp)
     ) {
-        Text("Streaming", color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Text("Cloud Library", color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            if (online) "Online" else "Offline — streaming is hidden",
+            if (online) "Online" else "Offline — Cloud Library is hidden",
             color = if (online) Success else Warning,
             fontSize = 13.sp,
         )
@@ -283,8 +283,8 @@ fun StreamingSettingsScreen() {
         }
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            "Synced tracks always play from the phone. Streaming is only used for tracks you " +
-                "have not synced, and only while online. Clearing a field above removes the " +
+            "Synced tracks always play from the phone. The Cloud Library is only used for " +
+                "tracks you have not synced, and only while online. Clearing a field above removes the " +
                 "override and goes back to the built-in values.",
             color = TextSecondary,
             fontSize = 12.sp,

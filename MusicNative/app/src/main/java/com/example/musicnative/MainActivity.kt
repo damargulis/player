@@ -53,13 +53,19 @@ enum class DownloadScreens {
     Main,
     Artists,
     Tracks,
-    Streaming,
+    CloudLibrary,
     StreamingSettings
+}
+
+/** Menu label. Enum names are route keys, so they cannot carry a space. */
+fun DownloadScreens.label(): String = when (this) {
+    DownloadScreens.CloudLibrary -> "Cloud Library"
+    DownloadScreens.StreamingSettings -> "Cloud Library settings"
+    else -> name
 }
 
 // Intent keys
 const val TRACK_ID = "track_id"
-const val PLAYLIST = "playlist"
 
 // Intent actions
 const val PLAY_TRACK = "play_track"
@@ -97,12 +103,16 @@ class MainActivity : AppCompatActivity() {
 
         val playPlaylist = {
             playlist: List<TrackData> ->
+            // the queue is handed over in memory; the intent only carries the action. Passing
+            // it as an extra overflowed the Binder buffer for any large selection.
+            PendingQueue.offer(playlist.toTypedArray())
             Intent(this, MediaPlaybackService::class.java).apply {
-                putExtra(PLAYLIST, playlist.toTypedArray())
                 action = PLAY_PLAYLIST
                 try {
                     startService(this)
-                } catch (_: Exception) {
+                } catch (err: Exception) {
+                    // never silently: this used to hide every failed start
+                    println("could not start playback: $err")
                 }
             }
             Unit
@@ -332,7 +342,7 @@ fun MainApp(modifier: Modifier = Modifier,
                         )
                     }
                 }
-                composable(route = DownloadScreens.Streaming.name) {
+                composable(route = DownloadScreens.CloudLibrary.name) {
                     StreamingScreen(playPlaylist = playPlaylist)
                 }
                 composable(route = DownloadScreens.StreamingSettings.name) {
@@ -411,7 +421,7 @@ fun MainOptions(
                     DownloadScreens.Albums,
                     DownloadScreens.Artists,
                     DownloadScreens.Tracks,
-                    DownloadScreens.Streaming.takeIf { online },
+                    DownloadScreens.CloudLibrary.takeIf { online },
                 )
                 sections.forEachIndexed { index, screen ->
                     if (index > 0) {
@@ -425,12 +435,12 @@ fun MainOptions(
                             .padding(horizontal = 20.dp, vertical = 14.dp)
                     ) {
                         Text(
-                            screen.name,
+                            screen.label(),
                             color = TextPrimary,
                             fontSize = 17.sp,
                             modifier = Modifier.weight(1f),
                         )
-                        if (screen == DownloadScreens.Streaming) {
+                        if (screen == DownloadScreens.CloudLibrary) {
                             Text(
                                 "online",
                                 color = Success,
@@ -453,7 +463,7 @@ fun MainOptions(
                     .padding(horizontal = 20.dp, vertical = 14.dp)
             ) {
                 Text(
-                    "Streaming settings",
+                    "Cloud Library settings",
                     color = TextPrimary,
                     fontSize = 17.sp,
                     modifier = Modifier.weight(1f),

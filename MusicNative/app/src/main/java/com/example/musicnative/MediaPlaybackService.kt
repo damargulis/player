@@ -125,7 +125,14 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     }
 
     private fun playPlaylist(intent: Intent) {
-        curPlaylist = intent.getSerializableExtra(PLAYLIST) as Array<TrackData>
+        // the queue comes via PendingQueue rather than the intent: an Array<TrackData> for the
+        // whole library overflows the Binder transaction buffer and the start is dropped
+        val queue = PendingQueue.take()
+        if (queue.isEmpty()) {
+            println("play-playlist with an empty queue; ignoring")
+            return
+        }
+        curPlaylist = queue
         setTrack(0)
     }
 
