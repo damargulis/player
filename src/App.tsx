@@ -5,6 +5,7 @@ import djActivity from './dj/activity';
 import './App.css';
 import {runCloudBackup} from './backup/cloudBackup';
 import {BACKUP_TIME, DATA_DIR} from './constants';
+import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
 const DJ_STATE_THROTTLE = 200;
@@ -341,10 +342,14 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
     this.backupTimer = window.setInterval(() => {
       this.props.createBackup();
       this.cloudBackup();
+      this.musicBackup();
     }, BACKUP_TIME);
     // the local backups only protect against this app; an offsite copy is what survives the
     // laptop, so try once at launch rather than waiting a full day for the first tick
     this.cloudBackup();
+    // the music sweep is cheap when it is not due and expensive when it is, so hold it back
+    // until the window has settled rather than competing with first paint
+    window.setTimeout(() => this.musicBackup(), MUSIC_BACKUP_START_DELAY);
   }
 
   componentWillUnmount(): void {
@@ -401,6 +406,34 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
       } else if (outcome.uploaded && outcome.uploaded.length) {
         // tslint:disable-next-line no-console
         console.log(`Cloud backup uploaded ${outcome.uploaded.join(', ')}`);
+      }
+    });
+  }
+
+  /**
+   * Offsite copy of the audio itself, fortnightly.
+   *
+   * Bounded per run, so this is a top-up for albums added since last time rather than a bulk
+   * sync - the first ~163GB belongs to `scripts/backup-music.js`. A run that leaves files
+   * behind is worth saying out loud: it is the only signal that the library is outgrowing what
+   * the background job can keep up with.
+   */
+  private musicBackup(): void {
+    runMusicBackup().then((outcome) => {
+      if (outcome.error) {
+        // tslint:disable-next-line no-console
+        console.error(`Music backup failed: ${outcome.error}`);
+        return;
+      }
+      if (outcome.uploaded) {
+        // tslint:disable-next-line no-console
+        console.log(`Music backup uploaded ${outcome.uploaded} file(s), ` +
+          `${(outcome.bytes / 1048576).toFixed(0)}MB`);
+      }
+      if (outcome.pending) {
+        // tslint:disable-next-line no-console
+        console.log(`Music backup: ${outcome.pending} file(s) still to upload; ` +
+          'it will continue tomorrow, or run scripts/backup-music.js to catch up in one go.');
       }
     });
   }

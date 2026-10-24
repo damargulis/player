@@ -111,7 +111,7 @@ export interface UploadResult {
  * object, so a repeated name fails with 403 rather than quietly overwriting a good backup.
  */
 export async function uploadObject(
-  objectName: string, contents: string, contentType: string = 'application/json',
+  objectName: string, contents: string | Buffer, contentType: string = 'application/json',
 ): Promise<UploadResult> {
   const bucket = bucketName();
   const key = loadKey();
