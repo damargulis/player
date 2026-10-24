@@ -1,7 +1,7 @@
 import {shell} from 'electron';
 import React from 'react';
 import {loadCache} from './concerts/store';
-import {Concert} from './concerts/types';
+import {Concert, localDate} from './concerts/types';
 
 interface OwnProps {
   artistId: string;
@@ -47,12 +47,15 @@ export default class ArtistConcerts extends React.Component<OwnProps, ArtistConc
         {concerts.slice(0, MAX_SHOWN).map((concert) => (
           <div className="artistConcertRow" key={concert.id}>
             <span className="when">{this.when(concert)}</span>
-            <span
-              className={concert.url ? 'link where' : 'where'}
-              onClick={() => concert.url && shell.openExternal(concert.url)}
-            >
-              {[concert.venue, concert.city].filter(Boolean).join(', ')}
-            </span>
+            <span className="where">{[concert.venue, concert.city].filter(Boolean).join(', ')}</span>
+            {concert.url && (
+              <button
+                className="artistConcertTickets"
+                onClick={() => shell.openExternal(concert.url as string)}
+              >
+                Tickets
+              </button>
+            )}
           </div>
         ))}
         {concerts.length > MAX_SHOWN && (
@@ -65,7 +68,7 @@ export default class ArtistConcerts extends React.Component<OwnProps, ArtistConc
   }
 
   private when(concert: Concert): string {
-    const date = new Date(concert.date);
+    const date = localDate(concert.date);
     return `${DAYS[date.getDay()]} ${MONTHS[date.getMonth()]} ${date.getDate()}`;
   }
 

@@ -52,9 +52,16 @@
 
 .artistConcertRow {
   display: flex;
+  align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  padding: 1px 0;
+  padding: 2px 0;
+}
+
+.artistConcertTickets {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  font-size: 11px;
 }
 
 .artistConcertRow .when {
