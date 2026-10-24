@@ -2,7 +2,7 @@ import {DATA_DIR} from '../constants';
 import crypto from 'crypto';
 import fs from 'fs';
 import {isConfigured, uploadObject} from './gcs';
-import {loadManifest, normalizeTrackPath, objectNameForTrack} from './musicBackup';
+import {loadManifest, Manifest, normalizeTrackPath, objectNameForTrack} from './musicBackup';
 
 /**
  * Publishes the index the streaming service reads.
