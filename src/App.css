@@ -68,7 +68,8 @@
 }
 
 #playlist-picker {
-  height: 228px;
+  /* sized by the select's own row count, so adding a tab can't reintroduce a scrollbar */
+  height: auto;
   flex: 0 0 auto;
 }
 

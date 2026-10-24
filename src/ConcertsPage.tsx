@@ -6,9 +6,25 @@ import {connect} from 'react-redux';
 import {getAllTracks, getArtistById} from './redux/selectors';
 import {budgetRemaining, isStale, loadCache, refreshConcerts} from './concerts/store';
 import {RootState} from './redux/store';
-import {Concert, ConcertCache, emptyCache, milesBetween} from './concerts/types';
+import {Concert, ConcertCache, dayKey, emptyCache, localDate, milesBetween} from './concerts/types';
 
 type Filter = 'all' | 'favorites' | 'recent';
+type Sort = 'date' | 'plays';
+type View = 'list' | 'calendar';
+
+/** Dot size scales with how much the listener plays the acts on the bill. */
+function dotSize(plays: number): number {
+  if (plays >= 1000) {
+    return 11;
+  }
+  if (plays >= 100) {
+    return 9;
+  }
+  if (plays >= 10) {
+    return 7;
+  }
+  return 5;
+}
 
 interface StateProps {
   artists: Artist[];
@@ -33,6 +49,11 @@ interface ConcertsPageState {
   filter: Filter;
   editing: boolean;
   locating: boolean;
+  sort: Sort;
+  view: View;
+  /** First of the month the calendar is showing. */
+  monthCursor: number;
+  selectedDay?: string;
   cityQuery: string;
   cityResults: CityResult[];
   searching: boolean;
@@ -54,6 +75,9 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       editing: false,
       filter: 'all',
       locating: false,
+      monthCursor: startOfMonth(new Date()).getTime(),
+      sort: 'date',
+      view: 'list',
       loading: false,
       searching: false,
     };
@@ -78,7 +102,9 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       <div className="main concerts-page">
         {this.renderHeader()}
         {this.state.editing && this.renderLocationEditor()}
-        <div className="concerts-list">{this.renderBody()}</div>
+        {this.state.view === 'calendar'
+          ? <div className="concerts-cal">{this.renderCalendar()}</div>
+          : <div className="concerts-list">{this.renderBody()}</div>}
         <div className="concerts-footer">
           Concert data by <span className="link" onClick={() => this.openUrl('https://www.jambase.com/')}>JamBase</span>
           {this.state.cache.fetchedAt ? ` · updated ${this.ago(this.state.cache.fetchedAt)}` : ''}
@@ -102,6 +128,15 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
           {this.renderChip('favorites', 'Favorites')}
           {this.renderChip('recent', 'Recently played')}
         </span>
+        {this.state.view === 'list' && (
+          <span className="concerts-filters">
+            {this.renderSort('date', 'By date')}
+            {this.renderSort('plays', 'By plays')}
+          </span>
+        )}
+        <button onClick={() => this.toggleView()}>
+          {this.state.view === 'list' ? 'Calendar' : 'List'}
+        </button>
         <button onClick={() => this.setState({editing: !this.state.editing})}>Where</button>
         <button onClick={() => this.refresh(true)} disabled={loading || !getApiKey()}>
           {loading ? (this.state.progress || 'Refreshing…') : 'Refresh'}
@@ -214,6 +249,27 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     this.setState({cache: Object.assign({}, this.state.cache, {location})});
   }
 
+  private renderSort(sort: Sort, label: string): JSX.Element {
+    return (
+      <button
+        className={`concerts-chip ${this.state.sort === sort ? 'on' : ''}`}
+        onClick={() => this.setState({sort})}
+      >
+        {label}
+      </button>
+    );
+  }
+
+  private toggleView(): void {
+    const view: View = this.state.view === 'list' ? 'calendar' : 'list';
+    // open the calendar on the first month that actually has something in it
+    const first = this.visibleConcerts()[0];
+    const monthCursor = view === 'calendar' && first
+      ? startOfMonth(localDate(first.date)).getTime()
+      : this.state.monthCursor;
+    this.setState({monthCursor, selectedDay: undefined, view});
+  }
+
   private renderChip(filter: Filter, label: string): JSX.Element {
     return (
       <button
@@ -234,7 +290,7 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
         </div>
       );
     }
-    const concerts = this.visibleConcerts();
+    const concerts = this.sortedConcerts();
     if (!concerts.length) {
       return (
         <div className="concerts-empty">
@@ -251,20 +307,146 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     const out: JSX.Element[] = [];
     let month = '';
     concerts.forEach((concert) => {
-      const date = new Date(concert.date);
-      const label = `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
-      if (label !== month) {
-        month = label;
-        out.push(<div className="concerts-month" key={`m-${label}`}>{label}</div>);
+      const date = localDate(concert.date);
+      // grouping by month only makes sense while the list is in date order
+      if (this.state.sort === 'date') {
+        const label = `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+        if (label !== month) {
+          month = label;
+          out.push(<div className="concerts-month" key={`m-${label}`}>{label}</div>);
+        }
       }
       out.push(this.renderConcert(concert, date));
     });
     return out;
   }
 
+  private renderCalendar(): JSX.Element {
+    if (!getApiKey()) {
+      return <div className="concerts-empty">No JamBase API key found. {apiKeyHelp()}</div>;
+    }
+    const cursor = new Date(this.state.monthCursor);
+    const byDay = this.concertsByDay();
+    const first = startOfMonth(cursor);
+    const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+    const cells: JSX.Element[] = [];
+    DAYS.forEach((dow) => cells.push(<div className="cal-dow" key={`dow-${dow}`}>{dow}</div>));
+    for (let i = 0; i < first.getDay(); i++) {
+      cells.push(<div className="cal-day blank" key={`b${i}`} />);
+    }
+    const todayKey = dayKey(new Date().toISOString());
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = `${cursor.getFullYear()}-${pad(cursor.getMonth() + 1)}-${pad(day)}`;
+      cells.push(this.renderDay(key, day, byDay[key] || [], key === todayKey));
+    }
+    return (
+      <>
+        <div className="cal-nav">
+          <button onClick={() => this.stepMonth(-1)}>‹</button>
+          <span className="cal-month">{`${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`}</span>
+          <button onClick={() => this.stepMonth(1)}>›</button>
+        </div>
+        <div className="cal-grid">{cells}</div>
+        <div className="cal-legend">
+          <span>
+            <span className="cal-dot loved" style={{height: 9, width: 9}} />
+            an artist you’ve favourited
+          </span>
+          <span>
+            <span className="cal-dot" style={{height: 5, width: 5}} />
+            <span className="cal-dot" style={{height: 7, width: 7}} />
+            <span className="cal-dot" style={{height: 9, width: 9}} />
+            <span className="cal-dot" style={{height: 11, width: 11}} />
+            bigger means you play them more
+          </span>
+        </div>
+        {this.renderSelectedDay(byDay)}
+      </>
+    );
+  }
+
+  private renderDay(key: string, day: number, concerts: Concert[], isToday: boolean): JSX.Element {
+    const shown = concerts.slice(0, 6);
+    const classes = ['cal-day'];
+    if (concerts.length) {
+      classes.push('has');
+    }
+    if (isToday) {
+      classes.push('today');
+    }
+    if (this.state.selectedDay === key) {
+      classes.push('selected');
+    }
+    return (
+      <div
+        className={classes.join(' ')}
+        key={key}
+        title={concerts.map((c) => this.concertArtistNames(c)).join('\n')}
+        onClick={() => concerts.length && this.setState({selectedDay: key})}
+      >
+        <span className="cal-num">{day}</span>
+        <span className="cal-dots">
+          {shown.map((concert) => {
+            const size = dotSize(this.concertPlays(concert));
+            const loved = this.isLoved(concert);
+            return (
+              <span
+                className={`cal-dot ${loved ? 'loved' : ''}`}
+                key={concert.id}
+                style={{height: size, width: size}}
+              />
+            );
+          })}
+          {concerts.length > shown.length &&
+            <span className="cal-more">{`+${concerts.length - shown.length}`}</span>}
+        </span>
+      </div>
+    );
+  }
+
+  private renderSelectedDay(byDay: Record<string, Concert[]>): JSX.Element {
+    const key = this.state.selectedDay;
+    const concerts = key ? byDay[key] || [] : [];
+    if (!key || !concerts.length) {
+      return <div className="cal-legend">Pick a day with dots to see what’s on.</div>;
+    }
+    const date = localDate(key);
+    return (
+      <div className="cal-selected-list">
+        <div className="cal-selected-head">
+          {`${DAYS[date.getDay()]} ${MONTHS[date.getMonth()]} ${date.getDate()}`}
+        </div>
+        {concerts.map((concert) => this.renderConcert(concert, localDate(concert.date)))}
+      </div>
+    );
+  }
+
+  private stepMonth(delta: number): void {
+    const cursor = new Date(this.state.monthCursor);
+    cursor.setMonth(cursor.getMonth() + delta);
+    this.setState({monthCursor: startOfMonth(cursor).getTime(), selectedDay: undefined});
+  }
+
+  private concertsByDay(): Record<string, Concert[]> {
+    const byDay: Record<string, Concert[]> = {};
+    this.visibleConcerts().forEach((concert) => {
+      const key = dayKey(concert.date);
+      byDay[key] = (byDay[key] || []).concat([concert]);
+    });
+    return byDay;
+  }
+
+  private concertArtistNames(concert: Concert): string {
+    return concert.artistIds.map((id) => this.props.getArtistName(id)).join(', ');
+  }
+
+  private isLoved(concert: Concert): boolean {
+    return concert.artistIds.some((id) => this.props.favoriteArtistIds.indexOf(id) >= 0);
+  }
+
   private renderConcert(concert: Concert, date: Date): JSX.Element {
     const plays = this.concertPlays(concert);
-    const loved = concert.artistIds.some((id) => this.props.favoriteArtistIds.indexOf(id) >= 0);
+    const loved = this.isLoved(concert);
     const where = [concert.venue, [concert.city, concert.region].filter(Boolean).join(', ')]
       .filter(Boolean).join(' · ');
     const distance = this.distanceLabel(concert);
@@ -319,8 +501,19 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       }
       return true;
     });
-    // already date-ordered; keep that, since a gig list is only useful chronologically
     return concerts;
+  }
+
+  /** Date order by default; by plays when the listener would rather see what they care about. */
+  private sortedConcerts(): Concert[] {
+    const concerts = this.visibleConcerts();
+    if (this.state.sort !== 'plays') {
+      return concerts;
+    }
+    return concerts.slice().sort((a, b) => {
+      const diff = this.concertPlays(b) - this.concertPlays(a);
+      return diff !== 0 ? diff : a.date.localeCompare(b.date);
+    });
   }
 
   private async refresh(force: boolean): Promise<void> {
@@ -351,6 +544,14 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     const {shell} = require('electron');
     shell.openExternal(url);
   }
+}
+
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function pad(n: number): string {
+  return String(n).padStart(2, '0');
 }
 
 const RECENT_DAYS = 90;
