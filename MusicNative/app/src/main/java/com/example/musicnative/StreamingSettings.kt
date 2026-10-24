@@ -91,6 +91,33 @@ fun StreamingSettingsScreen() {
                 }
             }
         }
+        // What MergedLibrary computes, built right here. If this disagrees with what the
+        // Albums and All Tracks screens show, the merge is reaching those screens stale rather
+        // than being wrong - which is a different bug in a different place.
+        val onlineNow = Connectivity.isOnlineNow()
+        val probe = remember(builtIn, status, online) {
+            MergedLibrary(context, emptyMap(), emptyMap(), emptyMap(), onlineNow)
+        }
+        Spacer(modifier = Modifier.height(14.dp))
+        Card(
+            shape = RoundedCornerShape(10.dp),
+            backgroundColor = com.example.musicnative.ui.theme.Surface,
+            elevation = 0.dp,
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Text("Merge check", color = TextPrimary, fontSize = 13.sp)
+                Text(
+                    "isOnlineNow=$onlineNow  observed=$online\n" +
+                        "client: ${StreamingClient.albums().size} albums, " +
+                        "${StreamingClient.artists().size} artists\n" +
+                        "merge would add: ${probe.albums().size} albums, " +
+                        "${probe.allTracks().size} tracks",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                )
+            }
+        }
+
         if (status.isNotEmpty()) {
             Spacer(modifier = Modifier.height(14.dp))
             Card(
