@@ -41,4 +41,7 @@ terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/terraform.tfvars
 terraform/backend.hcl
+# saved plans embed variable values
+terraform/tfplan
+terraform/*.tfplan
 # note: .terraform.lock.hcl is deliberately NOT ignored - it pins provider versions

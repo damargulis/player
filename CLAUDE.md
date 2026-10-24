@@ -87,11 +87,12 @@ and `_policy` are authoritative and would strip the backup writer's `objectCreat
 Neither `terraform` nor `gcloud` is installed on this machine (Homebrew here is an Intel prefix
 on Apple Silicon and has no `terraform` formula) — see `terraform/README.md`.
 
-### Streaming (designed, not built)
+### Streaming
 
-Agreed shape for letting the phone play tracks it has not synced, settled on 2026-10-24. The
-laptop must **not** be in the playback path — it is a publisher only, and everything works with
-it asleep.
+Lets the phone play tracks it has not synced. **Live since 2026-10-24** — deployed on Cloud Run
+and verified end to end (real audio fetched through a minted signed URL, `206` on a Range
+request). The laptop is **not** in the playback path — it is a publisher only, and everything
+works with it asleep.
 
 Laptop uploads `music/` plus a slim `catalog/latest.json` (id, title, artist, album, duration,
 object name) built from `library.json` intersected with the **music backup manifest**, so a
@@ -104,6 +105,13 @@ Minting on demand is the point: an earlier design pre-minted URLs during LAN syn
 validity at the 7-day signed-URL maximum and put the laptop back in the loop. Cloud Run should
 sign via IAM `signBlob` using its own attached service account, so **no key material exists**
 anywhere — no reader key on the laptop, no secret in the APK.
+
+`streaming/` is the service (zero-dep Node, deployed from `streaming/Dockerfile`); `terraform/`
+manages its infrastructure. `src/backup/catalog.tsx` publishes the catalog on the app's daily
+timer — it runs even when the music backup itself is skipped, so the index stays fresh — and
+`scripts/publish-catalog.js` does it immediately, which matters while the bulk upload is still
+adding thousands of tracks a day. That script **duplicates** `buildCatalog()` because the TS
+module pulls in Electron and cannot be required from plain node; keep the two in step.
 
 Auth is a long random **per-device token** held in app prefs, with the service keeping token
 hashes; revocable per device, no OAuth plumbing, and enrollment needs no laptop. Google Sign-In
