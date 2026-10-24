@@ -96,12 +96,8 @@ fun StreamingScreen(playPlaylist: (tracks: List<TrackData>) -> Unit) {
         }
     }
 
-    if (!StreamingClient.isConfigured(context)) {
-        return CenteredMessage(
-            "Streaming is not set up.\nBuild with streaming.url and streaming.token in " +
-                "local.properties, or enter them in Streaming settings."
-        )
-    }
+
+    val configured = StreamingClient.isConfigured(context)
 
     val filtered = remember(query, catalog) {
         if (query.isBlank()) {
@@ -140,47 +136,57 @@ fun StreamingScreen(playPlaylist: (tracks: List<TrackData>) -> Unit) {
         SearchField(query = query, placeholder = "Search streaming", onQueryChange = { query = it })
         Spacer(modifier = Modifier.height(4.dp))
 
+        // Never early-return out of a composable scope: Compose emits group markers around
+        // these calls, and returning mid-Column leaves them unbalanced and throws at runtime.
+        // This screen opens with an empty catalog every time - the fetch is still in flight -
+        // so that path was hit immediately on first open.
         if (filtered.isEmpty()) {
-            return@Column CenteredMessage(
-                if (catalog.isEmpty()) "Nothing in the catalog yet" else "No matches"
-            )
-        }
-
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(filtered.size) { index ->
-                val stream = filtered[index]
-                if (index > 0) {
-                    Divider(color = Border, thickness = 0.5.dp, startIndent = 16.dp)
+            CenteredMessage(
+                when {
+                    !configured -> "Streaming is not set up. Add the service URL and token in " +
+                        "Streaming settings."
+                    refreshing -> "Loading catalog…"
+                    catalog.isEmpty() -> "Nothing in the catalog yet"
+                    else -> "No matches"
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            // play from here, so the rest of the filtered list queues up
-                            playPlaylist(filtered.drop(index).map { streamTrackToData(it) })
+            )
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(filtered.size) { index ->
+                    val stream = filtered[index]
+                    if (index > 0) {
+                        Divider(color = Border, thickness = 0.5.dp, startIndent = 16.dp)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                // play from here, so the rest of the filtered list queues up
+                                playPlaylist(filtered.drop(index).map { streamTrackToData(it) })
+                            }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stream.name,
+                                color = TextPrimary,
+                                fontSize = 15.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                listOf(stream.artist, stream.album).filter { it.isNotBlank() }
+                                    .joinToString(" — "),
+                                color = TextSecondary,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stream.name,
-                            color = TextPrimary,
-                            fontSize = 15.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            listOf(stream.artist, stream.album).filter { it.isNotBlank() }
-                                .joinToString(" — "),
-                            color = TextSecondary,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
                     }
                 }
-            }
+                }
         }
     }
 }
