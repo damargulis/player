@@ -45,15 +45,73 @@ Two Electron processes plus an embedded HTTP server, communicating over IPC:
 
 `src/backup/` copies the irreplaceable files to Google Cloud Storage once a day (and once at launch): `library.json` and the DJ memory notes. Art and thumbnails are deliberately excluded — the extensions refetch those and they are ~200x the bytes — and music is not handled here at all. `gcs.tsx` is a hand-rolled uploader (service-account JWT → OAuth token → `POST /upload/storage/v1/b/<bucket>/o`) rather than `@google-cloud/storage`, which is large and assumes a Node server.
 
-The service account is **objectCreator only**, so it can create but not read, replace or delete — verified: overwrite, delete and read all return 403. Combined with timestamped object names the backup set is append-only, and neither a bug here nor ransomware on the laptop can destroy it. Restore is therefore a deliberate human act via the console or `gcloud`, not something the app can do.
+The service account is **objectCreator only**, so it can create but not read, replace or delete — verified: overwrite, delete and read all return 403. Combined with timestamped object names the backup set is append-only, and neither a bug here nor ransomware on the laptop can destroy it. Restore is therefore a deliberate human act via the console, not something the app can do — and note it has **never actually been exercised**, so the first real restore will also be the first test of it.
 
 `readLibraryForBackup` refuses to upload an empty, corrupt or missing library. That guard exists because this app once wrote an 80-byte empty `library.json` over a good one after a failed read; faithfully copying that offsite would turn a recoverable glitch into a destroyed backup set.
 
-`scripts/backup-music.js` pushes the ~163GB music library to the same bucket as `music/<path relative to home>`, mirroring the filesystem so it can be restored by hand without this app or `library.json`. It lives outside the app on purpose — roughly a day of wall-clock at ~18Mbps — and is restartable via a manifest in `DATA_DIR`; a 403 means the object is already there (the key cannot replace), so it records it and moves on. Run it with `--limit`/`--concurrency`/`--dry-run`. `src/backup/musicBackup.tsx` then keeps it current from inside the app on a 14-day cadence, hanging off the same daily `BACKUP_TIME` timer as the library backup: it shares the script's manifest and object naming (a test pins that contract, and it was checked against the live manifest), so the two are interchangeable. Runs are bounded (`MAX_FILES_PER_RUN`/`MAX_BYTES_PER_RUN`) and a run that hits a ceiling deliberately does *not* advance `lastSuccessAt`, so the daily timer keeps chipping away until the backlog clears and only then drops back to fortnightly. Its fs calls are async on purpose — the renderer is the thread playing audio, and 21k synchronous `stat`s froze it. **Any lifecycle rule must be prefix-scoped**: expiring `library/` and `dj-memories/` snapshots is right, but the same rule over `music/` would delete the only copy. Bucket must be **regional** in `us-central1`/`us-east1`/`us-west1` for the GCS free tier (the multi-region default is pricier *and* ineligible) and **Standard** class, so per-track streaming later carries no retrieval fee. Config is `GCS_BACKUP_BUCKET` in the usual env files plus a key at `DATA_DIR/gcs-backup-key.json`.
+`scripts/backup-music.js` pushes the ~163GB music library to the same bucket as `music/<path relative to home>`, mirroring the filesystem so it can be restored by hand without this app or `library.json`. It lives outside the app on purpose — roughly a day of wall-clock at ~18Mbps — and is restartable via a manifest in `DATA_DIR`; a 403 means the object is already there (the key cannot replace), so it records it and moves on. Run it with `--limit`/`--concurrency`/`--dry-run`. `src/backup/musicBackup.tsx` then keeps it current from inside the app on a 14-day cadence, hanging off the same daily `BACKUP_TIME` timer as the library backup: it shares the script's manifest and object naming (a test pins that contract, and it was checked against the live manifest), so the two are interchangeable. Runs are bounded (`MAX_FILES_PER_RUN`/`MAX_BYTES_PER_RUN`) and a run that hits a ceiling deliberately does *not* advance `lastSuccessAt`, so the daily timer keeps chipping away until the backlog clears and only then drops back to fortnightly. Its fs calls are async on purpose — the renderer is the thread playing audio, and 21k synchronous `stat`s froze it. Bookkeeping lives in `DATA_DIR`: `cloud-backup.json` (library/memories), `music-backup-manifest.json` (what is in the bucket, shared with the script) and `music-backup-state.json` (the fortnightly clock). None of it is precious — losing the manifest costs re-POSTing files to collect 403s, not data. Bucket settings, the service account and the lifecycle rules are in **Cloud infrastructure** below.
+
+### Cloud infrastructure (GCP)
+
+Created by hand in the console. **This repo is public, so no identifiers live here**: the
+project id, billing account, bucket name and service-account email are in
+`infrastructure.local.md` at the repo root, which is gitignored. Keep it that way — what follows
+is the reasoning, which is the part worth version-controlling.
+
+- **The bucket** is `us-central1`, **Standard**, regional, not public, with Soft Delete and
+  Object versioning on. Regional/Standard is not incidental: the multi-region default is pricier
+  *and* free-tier ineligible, and Standard means a future streaming reader pays no retrieval fee.
+  It holds `library/`, `dj-memories/` and `music/`.
+- **The service account** has **`roles/storage.objectCreator` only**, verified empirically:
+  upload 200, overwrite 403, delete 403, read 403. That is the whole safety model, so do not
+  widen it. Streaming will need a *separate* reader identity rather than read added here.
+- **Three lifecycle rules.** Two are stock versioning cleanup (delete noncurrent with 2+ newer
+  versions; delete 7+ days after becoming noncurrent). The third deletes objects 180+ days after
+  creation, **scoped to prefixes `library/` and `dj-memories/`**. `music/` is deliberately
+  matched by nothing — those are not snapshots, they are the only copy. Any rule added later
+  must be prefix-scoped for the same reason.
+- **Config** is `GCS_BACKUP_BUCKET` in the usual env files, plus a key at
+  `DATA_DIR/gcs-backup-key.json` (gitignored twice over). The script reads the same key.
+
+`gcloud` is **not installed** on this machine, so verify bucket state through the console
+(Bucket details → Lifecycle / Permissions) rather than reaching for `gsutil`.
+
+**IaC policy:** Terraform is for resources that are cheap to recreate — the streaming stack
+(Cloud Run, its service account, IAM bindings) should be managed that way from the start, with
+state in its own bucket, so nothing new is ever click-ops. The music bucket stays out of
+Terraform: importing existing resources is the error-prone part, an `apply` on a botched import
+can propose *replacing* a bucket, and this one holds the only offsite copy of 163GB.
+
+### Streaming (designed, not built)
+
+Agreed shape for letting the phone play tracks it has not synced, settled on 2026-10-24. The
+laptop must **not** be in the playback path — it is a publisher only, and everything works with
+it asleep.
+
+Laptop uploads `music/` plus a slim `catalog/latest.json` (id, title, artist, album, duration,
+object name) built from `library.json` intersected with the **music backup manifest**, so a
+track only appears as streamable once its bytes are confirmed uploaded. A small always-on
+**Cloud Run** service authenticates the phone, serves that catalog, and mints a **~1h V4 signed
+URL** per track; the phone then streams **directly from GCS**, which keeps Cloud Run free (it
+never touches audio bytes) and gives HTTP Range seeking for free in Media3/ExoPlayer.
+
+Minting on demand is the point: an earlier design pre-minted URLs during LAN sync, which capped
+validity at the 7-day signed-URL maximum and put the laptop back in the loop. Cloud Run should
+sign via IAM `signBlob` using its own attached service account, so **no key material exists**
+anywhere — no reader key on the laptop, no secret in the APK.
+
+Auth is a long random **per-device token** held in app prefs, with the service keeping token
+hashes; revocable per device, no OAuth plumbing, and enrollment needs no laptop. Google Sign-In
+with a two-account allowlist is the upgrade if that chafes. Play counts need **no new protocol**:
+`PlayTracker` keys by track id and never asks whether the file was local, so a streamed play
+syncs on the next LAN `/start-sync` like any other — just lagged until the phone is next home.
+Do not transcode; originals are ~8MB and 2h/day of listening is ~$1/month of egress.
+
 
 ## Gotchas
 
 - The toolchain is old: React 16, TypeScript 3.7, Electron 13, react-scripts 2 patched through `@rescripts`. Don't modernize syntax or bump deps incidentally. The `start`/`build` scripts need `NODE_OPTIONS=--openssl-legacy-provider` (webpack 4's md4 hash vs Node 17+), and the BrowserWindows need `contextIsolation: false` + `enableRemoteModule: true` (Electron 12+ changed both defaults; the renderer uses `require` and `electron.remote` freely).
 - All TypeScript files use the `.tsx` extension, including non-component modules (redux, library, extensions).
 - `new Date(someString)` reads a date-only value (`2027-01-14`) as UTC midnight, so it lands on the previous day in any negative-offset timezone. Use `localDate`/`dayKey` from `src/utils.tsx` for dates that are already local to whatever they describe. Full timestamps rehydrated from the library JSON are unaffected.
+- `readEnvValue` (`src/envFile.tsx`) caches a **miss** for the lifetime of the process, so adding a key to an env file always needs an app restart — with no hint that that is why it is still "not found". This has already cost one round of confusion with `JAMBASE_API_KEY`.
 - `postinstall` runs `rn-nodeify` and `electron-builder install-app-deps`; `fs` is aliased to `react-native-level-fs` in the `browser`/`react-native` fields of package.json.

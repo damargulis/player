@@ -31,3 +31,6 @@ yarn-error.log*
 # Service account key for GCS backups
 gcs-backup-key.json
 data/gcs-backup-key.json
+
+# infra identifiers; this repo is public
+infrastructure.local.md
