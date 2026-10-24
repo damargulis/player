@@ -41,6 +41,16 @@ const CONCURRENCY = 3;
 /** Long enough that a launch-time sweep never competes with first paint. */
 export const MUSIC_BACKUP_START_DELAY = 60 * 1000;
 
+/**
+ * How often the manifest is written while a run is in progress.
+ *
+ * A run takes ~20 minutes, and the app gets quit mid-run sooner or later. Without a checkpoint
+ * the whole run's bookkeeping is lost: the bytes are safely in the bucket, but the next run
+ * re-reads and re-uploads them just to be told 403. Checkpointing turns that into at most a
+ * handful of wasted files.
+ */
+const CHECKPOINT_EVERY = 25;
+
 const CONTENT_TYPES: Record<string, string> = {
   '.aac': 'audio/aac',
   '.aiff': 'audio/aiff',
@@ -237,6 +247,15 @@ export async function runMusicBackup(
   let bytes = 0;
   let failed = 0;
   let cursor = 0;
+  let sinceCheckpoint = 0;
+
+  const checkpoint = (): void => {
+    sinceCheckpoint += 1;
+    if (sinceCheckpoint >= CHECKPOINT_EVERY) {
+      sinceCheckpoint = 0;
+      saveManifest(manifest);
+    }
+  };
 
   const worker = async (): Promise<void> => {
     while (cursor < batch.length) {
@@ -249,12 +268,14 @@ export async function runMusicBackup(
         manifest[file.name] = {size: file.size};
         uploaded += 1;
         bytes += file.size;
+        checkpoint();
       } catch (err) {
         if (err instanceof GcsError && err.status === 403) {
           // already in the bucket from a run whose manifest entry was lost; the key cannot
           // replace an object, so a 403 here means the bytes are safe, not that we failed
           manifest[file.name] = {already: true, size: file.size};
           uploaded += 1;
+          checkpoint();
         } else {
           failed += 1;
         }
