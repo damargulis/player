@@ -1,6 +1,11 @@
 package com.example.musicnative
 
 import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
@@ -188,5 +193,32 @@ class MergedLibrary(
         json.put("id", cloud.id)
         json.put("trackIds", JSONArray())
         return Artist(json)
+    }
+}
+
+/**
+ * Builds the merged library from inside whatever composable needs it.
+ *
+ * This has to be called within the screen rather than once up in the app root and handed down.
+ * A NavHost graph is built from a plain (non-composable) builder lambda that `remember`s its
+ * destinations; a value captured in that lambda is frozen at the composition that created the
+ * graph. Hoisting the merged library meant every screen kept the instance from launch - built
+ * before the catalog had been fetched - so the cloud half never appeared no matter how many
+ * times the catalog refreshed.
+ *
+ * Observing the state here instead subscribes the screen itself, so it recomposes when
+ * connectivity flips or a catalog lands, which is what the stale version never did.
+ */
+@Composable
+fun rememberMergedLibrary(
+    tracks: Map<String, Track>,
+    albums: Map<String, Album>,
+    artists: Map<String, Artist>,
+): MergedLibrary {
+    val context = LocalContext.current
+    val online by Connectivity.isOnline.observeAsState(false)
+    val version by StreamingClient.version.observeAsState(0)
+    return remember(online, version, tracks.size, albums.size) {
+        MergedLibrary(context, tracks, albums, artists, online)
     }
 }

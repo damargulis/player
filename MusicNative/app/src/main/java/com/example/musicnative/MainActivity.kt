@@ -193,13 +193,7 @@ fun MainApp(modifier: Modifier = Modifier,
     val goToArtist: (artist: Artist) -> Unit = {
         artist -> navController.navigate(DownloadScreens.ArtistDetail.name + "/${artist.id}")
     }
-    // One library over both sources. Rebuilt when connectivity flips or a new catalog lands;
-    // offline it collapses to exactly the synced library the app has always shown.
     val context = LocalContext.current
-    val catalogVersion by StreamingClient.version.observeAsState(0)
-    val merged = remember(isOnline, catalogVersion, tracks.size, albums.size) {
-        MergedLibrary(context, tracks, albums, artists, isOnline)
-    }
 
     // The catalog refresh used to sit on the separate browse screen. With cloud tracks folded
     // into the normal lists there is no such screen to open, so it has to happen when the app
@@ -208,9 +202,6 @@ fun MainApp(modifier: Modifier = Modifier,
         if (isOnline && StreamingClient.isConfigured(context)) {
             withContext(Dispatchers.IO) { StreamingClient.refreshCatalog(context) }
         }
-    }
-    val getTrackData: (trackIds: Array<String>) -> List<TrackData> = { trackIds ->
-        merged.tracksForIds(trackIds)
     }
     val items = listOf(Screen.Downloads, Screen.Remote)
     val labels = listOf("Library", "Remote")
@@ -298,13 +289,16 @@ fun MainApp(modifier: Modifier = Modifier,
                 composable(route = DownloadScreens.PlaylistDetail.name + "/{playlistId}") {
                     val playlistId = it.arguments?.getString("playlistId")?.toInt() ?: 0
                     val playlist = playlists[playlistId]
+                    val merged = rememberMergedLibrary(tracks, albums, artists)
                     TrackPicker(
-                        tracks = getTrackData(playlist.trackIds),
+                        tracks = merged.tracksForIds(playlist.trackIds),
+                        isCloud = { data -> merged.isCloudOnly(data.track.id) },
                         title = playlist.name,
                         playPlaylist = playPlaylist
                     )
                 }
                 composable(route = DownloadScreens.Albums.name) {
+                    val merged = rememberMergedLibrary(tracks, albums, artists)
                     ListScreen(
                         title = "Albums",
                         listItems = merged.albums(),
@@ -320,6 +314,7 @@ fun MainApp(modifier: Modifier = Modifier,
                 }
                 composable(route = DownloadScreens.AlbumDetail.name + "/{albumId}") {
                     val albumId = it.arguments?.getString("albumId") as String
+                    val merged = rememberMergedLibrary(tracks, albums, artists)
                     val album = merged.album(albumId)
                     if (album != null) {
                         TrackPicker(
@@ -331,6 +326,7 @@ fun MainApp(modifier: Modifier = Modifier,
                     }
                 }
                 composable(route = DownloadScreens.Artists.name) {
+                    val merged = rememberMergedLibrary(tracks, albums, artists)
                     ListScreen(
                         title = "Artists",
                         listItems = merged.artists(),
@@ -348,7 +344,8 @@ fun MainApp(modifier: Modifier = Modifier,
                 }
                 composable(route = DownloadScreens.ArtistDetail.name + "/{artistId}") {
                     val artistId = it.arguments?.getString("artistId") as String
-                    val artist = artists[artistId]
+                    val merged = rememberMergedLibrary(tracks, albums, artists)
+                    val artist = merged.artist(artistId)
                     if (artist != null) {
                         TrackPicker(
                             tracks = merged.tracksForArtist(artist.id),
@@ -362,6 +359,7 @@ fun MainApp(modifier: Modifier = Modifier,
                     StreamingSettingsScreen()
                 }
                 composable(route = DownloadScreens.Tracks.name) {
+                    val merged = rememberMergedLibrary(tracks, albums, artists)
                     TrackPicker(
                         tracks = merged.allTracks().sortedBy { it.track.name.lowercase() },
                         title = "All Tracks",
