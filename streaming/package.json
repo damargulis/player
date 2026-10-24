@@ -1,0 +1,13 @@
+{
+  "name": "mymusic-streaming",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Signed-URL streaming service for MyMusic. Zero dependencies.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

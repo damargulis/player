@@ -3,6 +3,7 @@ import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, 
 import {Album, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import djActivity from './dj/activity';
 import './App.css';
+import {publishCatalog} from './backup/catalog';
 import {runCloudBackup} from './backup/cloudBackup';
 import {BACKUP_TIME, DATA_DIR} from './constants';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
@@ -434,6 +435,26 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
         // tslint:disable-next-line no-console
         console.log(`Music backup: ${outcome.pending} file(s) still to upload; ` +
           'it will continue tomorrow, or run scripts/backup-music.js to catch up in one go.');
+      }
+      // the manifest has just changed, which is exactly what the catalog is derived from
+      this.publishStreamCatalog();
+    });
+  }
+
+  /**
+   * Publishes the index the streaming service reads.
+   *
+   * Runs after the music backup because it lists only what the manifest confirms is uploaded,
+   * so publishing before would understate what the phone can play by a day.
+   */
+  private publishStreamCatalog(): void {
+    publishCatalog().then((outcome) => {
+      if (outcome.error) {
+        // tslint:disable-next-line no-console
+        console.error(`Catalog publish failed: ${outcome.error}`);
+      } else if (outcome.object) {
+        // tslint:disable-next-line no-console
+        console.log(`Published stream catalog: ${outcome.count} track(s)`);
       }
     });
   }
