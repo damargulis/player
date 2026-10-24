@@ -9,7 +9,18 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** One track the streaming service says it can serve. Flat by design - no ids to resolve. */
+private fun JSONObject.stringList(key: String): List<String> {
+    val array = optJSONArray(key) ?: return emptyList()
+    return (0 until array.length()).map { array.getString(it) }
+}
+
+/**
+ * One track the service can serve.
+ *
+ * Carries the desktop's own album and artist ids, which is what lets these fold into the
+ * synced library rather than sitting in a separate list: a part-synced album merges into one
+ * album instead of appearing twice.
+ */
 class StreamTrack(data: JSONObject) {
     val id: String = data.getString("id")
     val name: String = data.optString("name")
@@ -17,6 +28,21 @@ class StreamTrack(data: JSONObject) {
     val album: String = data.optString("album")
     val year: Int = data.optInt("year")
     val duration: Int = data.optInt("duration")
+    val albumIds: List<String> = data.stringList("albumIds")
+    val artistIds: List<String> = data.stringList("artistIds")
+}
+
+/** An album in the cloud. `trackIds` is the full running order, uploaded or not. */
+class StreamAlbum(data: JSONObject) {
+    val id: String = data.getString("id")
+    val name: String = data.optString("name")
+    val artistIds: List<String> = data.stringList("artistIds")
+    val trackIds: List<String> = data.stringList("trackIds")
+}
+
+class StreamArtist(data: JSONObject) {
+    val id: String = data.getString("id")
+    val name: String = data.optString("name")
 }
 
 /**
@@ -46,6 +72,27 @@ object StreamingClient {
     val status: LiveData<String> = statusState
 
     private var byId: Map<String, StreamTrack> = emptyMap()
+    private var albumsById: Map<String, StreamAlbum> = emptyMap()
+    private var artistsById: Map<String, StreamArtist> = emptyMap()
+    private var trackIdsByArtist: Map<String, List<String>> = emptyMap()
+
+    fun trackById(id: String): StreamTrack? = byId[id]
+
+    fun album(id: String): StreamAlbum? = albumsById[id]
+
+    fun albums(): Collection<StreamAlbum> = albumsById.values
+
+    fun artist(id: String): StreamArtist? = artistsById[id]
+
+    fun artists(): Collection<StreamArtist> = artistsById.values
+
+    /** Derived from the tracks, since the catalog does not ship artist track lists. */
+    fun trackIdsForArtist(id: String): List<String> = trackIdsByArtist[id].orEmpty()
+
+    /** Bumped on every successful parse, so Compose can key off a changed catalog. */
+    private val versionState = MutableLiveData(0)
+
+    val version: LiveData<Int> = versionState
 
     /**
      * Where the service lives, and how we prove who we are.
@@ -119,8 +166,9 @@ object StreamingClient {
         }
         return try {
             val body = get(context, "/catalog")
-            val tracks = parse(JSONObject(body))
-            publish(tracks)
+            val parsed = parse(JSONObject(body))
+            publish(parsed)
+            val tracks = parsed.tracks
             try {
                 File(context.filesDir, CACHE_FILE).writeText(body)
             } catch (err: Exception) {
@@ -155,14 +203,32 @@ object StreamingClient {
 
     fun isStreamable(trackId: String): Boolean = byId.containsKey(trackId)
 
-    private fun publish(tracks: List<StreamTrack>) {
-        byId = tracks.associateBy { it.id }
-        catalogState.postValue(tracks)
+    private fun publish(parsed: ParsedCatalog) {
+        byId = parsed.tracks.associateBy { it.id }
+        albumsById = parsed.albums.associateBy { it.id }
+        artistsById = parsed.artists.associateBy { it.id }
+        trackIdsByArtist = parsed.tracks
+            .flatMap { track -> track.artistIds.map { it to track.id } }
+            .groupBy({ it.first }, { it.second })
+        catalogState.postValue(parsed.tracks)
+        versionState.postValue((versionState.value ?: 0) + 1)
     }
 
-    private fun parse(body: JSONObject): List<StreamTrack> {
-        val array: JSONArray = body.optJSONArray("tracks") ?: JSONArray()
-        return (0 until array.length()).map { StreamTrack(array.getJSONObject(it)) }
+    private class ParsedCatalog(
+        val tracks: List<StreamTrack>,
+        val albums: List<StreamAlbum>,
+        val artists: List<StreamArtist>,
+    )
+
+    private fun parse(body: JSONObject): ParsedCatalog {
+        val trackArray: JSONArray = body.optJSONArray("tracks") ?: JSONArray()
+        val albumArray: JSONArray = body.optJSONArray("albums") ?: JSONArray()
+        val artistArray: JSONArray = body.optJSONArray("artists") ?: JSONArray()
+        return ParsedCatalog(
+            (0 until trackArray.length()).map { StreamTrack(trackArray.getJSONObject(it)) },
+            (0 until albumArray.length()).map { StreamAlbum(albumArray.getJSONObject(it)) },
+            (0 until artistArray.length()).map { StreamArtist(artistArray.getJSONObject(it)) },
+        )
     }
 
     private fun get(context: Context, path: String): String {

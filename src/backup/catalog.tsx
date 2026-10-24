@@ -19,6 +19,13 @@ import {loadManifest, normalizeTrackPath, objectNameForTrack} from './musicBacku
  * Objects are timestamped rather than written to a fixed `catalog/latest.json` because the
  * backup service account cannot replace an object - the same append-only constraint that
  * shapes `library/`. The service reads whichever is newest.
+ *
+ * Tracks carry the desktop's `albumIds`/`artistIds`, and albums and artists ship alongside
+ * them. That is what lets the phone fold cloud tracks into the library it already has rather
+ * than showing them in a separate list: the ids are the same id space, so a part-synced album
+ * merges into one album instead of appearing twice. Album `trackIds` keep their full running
+ * order even for tracks that are not uploaded, so the phone can order a mixed album correctly
+ * and simply omit what it cannot play.
  */
 
 const STATE_FILE = () => `${DATA_DIR}/catalog-state.json`;
@@ -32,14 +39,31 @@ export interface CatalogTrack {
   year: number;
   /** Milliseconds, as stored on the track. */
   duration: number;
+  albumIds: string[];
+  artistIds: string[];
   /** Where the bytes are. Server-side only; the service strips this before serving the phone. */
   object: string;
+}
+
+export interface CatalogAlbum {
+  id: string;
+  name: string;
+  artistIds: string[];
+  /** Full running order, including tracks that are not uploaded. */
+  trackIds: string[];
+}
+
+export interface CatalogArtist {
+  id: string;
+  name: string;
 }
 
 export interface Catalog {
   generatedAt: string;
   count: number;
   tracks: CatalogTrack[];
+  albums: CatalogAlbum[];
+  artists: CatalogArtist[];
 }
 
 interface CatalogState {
@@ -76,7 +100,7 @@ interface RawLibrary {
     albumIds?: string[];
   }>;
   artists?: Record<string, {name?: string}>;
-  albums?: Record<string, {name?: string}>;
+  albums?: Record<string, {name?: string; artistIds?: string[]; trackIds?: string[]}>;
 }
 
 /** Joins the names a listener actually browses by; ids are meaningless on the phone. */
@@ -103,6 +127,8 @@ export function buildCatalog(
   const albums = library.albums || {};
   const tracks: CatalogTrack[] = [];
   const seen: Record<string, boolean> = {};
+  const albumIdsUsed: Record<string, boolean> = {};
+  const artistIdsUsed: Record<string, boolean> = {};
 
   Object.keys(library.tracks || {}).forEach((id) => {
     const track = (library.tracks || {})[id];
@@ -115,9 +141,19 @@ export function buildCatalog(
       return;
     }
     seen[object] = true;
+    const trackAlbumIds = track.albumIds || [];
+    const trackArtistIds = track.artistIds || [];
+    trackAlbumIds.forEach((albumId) => {
+      albumIdsUsed[albumId] = true;
+    });
+    trackArtistIds.forEach((artistId) => {
+      artistIdsUsed[artistId] = true;
+    });
     tracks.push({
-      album: firstName(track.albumIds, albums),
-      artist: firstName(track.artistIds, artists),
+      album: firstName(trackAlbumIds, albums),
+      albumIds: trackAlbumIds,
+      artist: firstName(trackArtistIds, artists),
+      artistIds: trackArtistIds,
       duration: track.duration || 0,
       id: track.id || id,
       name: track.name || '',
@@ -126,7 +162,29 @@ export function buildCatalog(
     });
   });
 
-  return {count: tracks.length, generatedAt: now.toISOString(), tracks};
+  // only the albums and artists these tracks actually belong to; the phone unions them with
+  // whatever it already has synced
+  const catalogAlbums: CatalogAlbum[] = Object.keys(albumIdsUsed).map((albumId) => {
+    const album = albums[albumId] || {};
+    return {
+      artistIds: album.artistIds || [],
+      id: albumId,
+      name: album.name || '',
+      trackIds: album.trackIds || [],
+    };
+  });
+  const catalogArtists: CatalogArtist[] = Object.keys(artistIdsUsed).map((artistId) => ({
+    id: artistId,
+    name: (artists[artistId] || {}).name || '',
+  }));
+
+  return {
+    albums: catalogAlbums,
+    artists: catalogArtists,
+    count: tracks.length,
+    generatedAt: now.toISOString(),
+    tracks,
+  };
 }
 
 export interface CatalogOutcome {
@@ -159,7 +217,7 @@ export async function publishCatalog(options: {force?: boolean} = {}): Promise<C
     const body = JSON.stringify(catalog);
     // the timestamp changes every run, so hash the tracks rather than the whole document
     const hash = crypto.createHash('sha256')
-      .update(JSON.stringify(catalog.tracks)).digest('hex');
+      .update(JSON.stringify([catalog.tracks, catalog.albums, catalog.artists])).digest('hex');
     if (!options.force && hash === state.lastHash) {
       return {count: catalog.count, ok: true, skipped: 'Catalog unchanged.'};
     }

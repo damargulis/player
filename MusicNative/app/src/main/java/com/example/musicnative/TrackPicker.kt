@@ -68,9 +68,11 @@ fun TestTrackPicker() {
     val tracks = mutableListOf<TrackData>()
     tracks.add(createTrack("track 1"))
     tracks.add(createTrack("track 2"))
-    TrackPicker(tracks = tracks, title = "Test Title") {
-        println("play stuff")
-    }
+    TrackPicker(
+        tracks = tracks,
+        title = "Test Title",
+        playPlaylist = { println("play stuff") },
+    )
 }
 
 interface NamedItem {
@@ -82,7 +84,13 @@ fun combineNames(items: List<NamedItem>): String {
 }
 
 @Composable
-fun TrackPicker(tracks: List<TrackData>, title: String, playPlaylist: (tracks: List<TrackData>) -> Unit) {
+fun TrackPicker(
+    tracks: List<TrackData>,
+    title: String,
+    playPlaylist: (tracks: List<TrackData>) -> Unit,
+    /** Marks rows that will stream rather than play from disk, so data use is not a surprise. */
+    isCloud: (track: TrackData) -> Boolean = { false },
+) {
     var query by remember { mutableStateOf("") }
     val playingTrack by PlaybackState.currentTrack.observeAsState(null)
     val visible = if (query.isBlank()) {
@@ -134,6 +142,14 @@ fun TrackPicker(tracks: List<TrackData>, title: String, playPlaylist: (tracks: L
                             .padding(horizontal = 20.dp, vertical = 8.dp)
                     ) {
                         ImageBox(filePath = trackData.albums.firstOrNull()?.artFile)
+                        if (isCloud(trackData)) {
+                            Text(
+                                "☁",
+                                color = TextSecondary,
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
                         Spacer(modifier = Modifier.width(12.dp))
                         val isCurrent = playingTrack?.track?.id == trackData.track.id
                         Column(modifier = Modifier.weight(1f)) {

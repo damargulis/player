@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +36,9 @@ import com.example.musicnative.components.NowPlayingBar
 import com.example.musicnative.components.PillButton
 import com.example.musicnative.components.SearchField
 import com.example.musicnative.ui.theme.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 
@@ -53,13 +56,11 @@ enum class DownloadScreens {
     Main,
     Artists,
     Tracks,
-    CloudLibrary,
     StreamingSettings
 }
 
 /** Menu label. Enum names are route keys, so they cannot carry a space. */
 fun DownloadScreens.label(): String = when (this) {
-    DownloadScreens.CloudLibrary -> "Cloud Library"
     DownloadScreens.StreamingSettings -> "Cloud Library settings"
     else -> name
 }
@@ -192,13 +193,24 @@ fun MainApp(modifier: Modifier = Modifier,
     val goToArtist: (artist: Artist) -> Unit = {
         artist -> navController.navigate(DownloadScreens.ArtistDetail.name + "/${artist.id}")
     }
-    val getTrackData: (trackIds: Array<String>) -> List<TrackData> = {
-        trackIds -> trackIds.mapNotNull { track ->
-        if (tracks[track] != null) {
-            return@mapNotNull TrackData(tracks[track] as Track, artists, albums)
-        }
-        return@mapNotNull null
+    // One library over both sources. Rebuilt when connectivity flips or a new catalog lands;
+    // offline it collapses to exactly the synced library the app has always shown.
+    val context = LocalContext.current
+    val catalogVersion by StreamingClient.version.observeAsState(0)
+    val merged = remember(isOnline, catalogVersion, tracks.size, albums.size) {
+        MergedLibrary(context, tracks, albums, artists, isOnline)
     }
+
+    // The catalog refresh used to sit on the separate browse screen. With cloud tracks folded
+    // into the normal lists there is no such screen to open, so it has to happen when the app
+    // has internet - otherwise the merged library would only ever show the synced half.
+    LaunchedEffect(isOnline) {
+        if (isOnline && StreamingClient.isConfigured(context)) {
+            withContext(Dispatchers.IO) { StreamingClient.refreshCatalog(context) }
+        }
+    }
+    val getTrackData: (trackIds: Array<String>) -> List<TrackData> = { trackIds ->
+        merged.tracksForIds(trackIds)
     }
     val items = listOf(Screen.Downloads, Screen.Remote)
     val labels = listOf("Library", "Remote")
@@ -295,21 +307,24 @@ fun MainApp(modifier: Modifier = Modifier,
                 composable(route = DownloadScreens.Albums.name) {
                     ListScreen(
                         title = "Albums",
-                        listItems = albums.values.toList().sortedBy { album -> album.name },
+                        listItems = merged.albums(),
                         onClick = goToAlbum,
                         thumb = { album -> ImageBox(filePath = album.artFile) },
                         subtitle = { album ->
-                            combineNames(album.artistIds.mapNotNull { artistId -> artists[artistId] })
+                            combineNames(album.artistIds.mapNotNull { id -> merged.artist(id) })
                         },
-                        action = { visible -> RandomAlbumButton(visible, getTrackData, playPlaylist) },
+                        action = { visible ->
+                            RandomAlbumButton(visible, { id -> merged.tracksForAlbum(id) }, playPlaylist)
+                        },
                     )
                 }
                 composable(route = DownloadScreens.AlbumDetail.name + "/{albumId}") {
                     val albumId = it.arguments?.getString("albumId") as String
-                    val album = albums[albumId]
+                    val album = merged.album(albumId)
                     if (album != null) {
                         TrackPicker(
-                            tracks = getTrackData(album.trackIds),
+                            tracks = merged.tracksForAlbum(albumId),
+                            isCloud = { data -> merged.isCloudOnly(data.track.id) },
                             title = album.name,
                             playPlaylist = playPlaylist
                         )
@@ -318,7 +333,7 @@ fun MainApp(modifier: Modifier = Modifier,
                 composable(route = DownloadScreens.Artists.name) {
                     ListScreen(
                         title = "Artists",
-                        listItems = artists.values.toList().sortedBy { artist -> artist.name},
+                        listItems = merged.artists(),
                         onClick = goToArtist,
                         thumb = { artist ->
                             ImageBox(
@@ -327,8 +342,8 @@ fun MainApp(modifier: Modifier = Modifier,
                                 placeholder = R.drawable.missing_artist,
                             )
                         },
-                        // trackIds spans the whole desktop library; only count what's synced
-                        subtitle = { artist -> "${artist.trackIds.count { id -> tracks.containsKey(id) }} tracks" },
+                        // count what can actually be played now - synced, plus cloud while online
+                        subtitle = { artist -> "${merged.playableTrackCountForArtist(artist.id)} tracks" },
                     )
                 }
                 composable(route = DownloadScreens.ArtistDetail.name + "/{artistId}") {
@@ -336,21 +351,23 @@ fun MainApp(modifier: Modifier = Modifier,
                     val artist = artists[artistId]
                     if (artist != null) {
                         TrackPicker(
-                            tracks = getTrackData(artist.trackIds),
+                            tracks = merged.tracksForArtist(artist.id),
+                        isCloud = { data -> merged.isCloudOnly(data.track.id) },
                             title = artist.name,
                             playPlaylist = playPlaylist
                         )
                     }
                 }
-                composable(route = DownloadScreens.CloudLibrary.name) {
-                    StreamingScreen(playPlaylist = playPlaylist)
-                }
                 composable(route = DownloadScreens.StreamingSettings.name) {
                     StreamingSettingsScreen()
                 }
                 composable(route = DownloadScreens.Tracks.name) {
-                    TrackPicker(tracks = getTrackData(tracks.values.map { track -> track.id }
-                        .toTypedArray()).sortedBy { track -> track.track.name }, title = "All Tracks", playPlaylist = playPlaylist)
+                    TrackPicker(
+                        tracks = merged.allTracks().sortedBy { it.track.name.lowercase() },
+                        title = "All Tracks",
+                        playPlaylist = playPlaylist,
+                        isCloud = { data -> merged.isCloudOnly(data.track.id) },
+                    )
                 }
             }
         }
@@ -414,14 +431,11 @@ fun MainOptions(
         )
         Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
             Column {
-                // Streaming appears only with real internet: everything behind it is a
-                // network fetch, so offering it offline would be offering a dead end.
-                val sections = listOfNotNull(
+                val sections = listOf(
                     DownloadScreens.Playlists,
                     DownloadScreens.Albums,
                     DownloadScreens.Artists,
                     DownloadScreens.Tracks,
-                    DownloadScreens.CloudLibrary.takeIf { online },
                 )
                 sections.forEachIndexed { index, screen ->
                     if (index > 0) {
@@ -440,14 +454,6 @@ fun MainOptions(
                             fontSize = 17.sp,
                             modifier = Modifier.weight(1f),
                         )
-                        if (screen == DownloadScreens.CloudLibrary) {
-                            Text(
-                                "online",
-                                color = Success,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(end = 8.dp),
-                            )
-                        }
                         Text("›", color = TextSecondary, fontSize = 22.sp)
                     }
                 }
@@ -639,7 +645,7 @@ fun <T> ListScreen(
 @Composable
 fun RandomAlbumButton(
     albums: List<Album>,
-    getTrackData: (trackIds: Array<String>) -> List<TrackData>,
+    tracksForAlbum: (albumId: String) -> List<TrackData>,
     playPlaylist: (tracks: List<TrackData>) -> Unit,
 ) {
     if (albums.isEmpty()) {
@@ -650,7 +656,7 @@ fun RandomAlbumButton(
         // so keep drawing until one actually has something to play
         val candidates = albums.shuffled()
         val playable = candidates.firstNotNullOfOrNull { album ->
-            val tracks = getTrackData(album.trackIds)
+            val tracks = tracksForAlbum(album.id)
             if (tracks.isEmpty()) null else tracks
         }
         if (playable != null) {

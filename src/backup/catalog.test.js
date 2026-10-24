@@ -7,7 +7,7 @@ const pathFor = (name) => `${HOME}/Music/${name}`;
 const objFor = (name) => objectNameForTrack(pathFor(name));
 
 const library = {
-  albums: {al1: {name: 'Stadium Arcadium'}},
+  albums: {al1: {artistIds: ['ar1'], name: 'Stadium Arcadium', trackIds: ['t1', 't2']}},
   artists: {ar1: {name: 'Red Hot Chili Peppers'}},
   tracks: {
     t1: {
@@ -73,6 +73,40 @@ describe('buildCatalog', () => {
       },
     };
     expect(buildCatalog(dupe, {[objFor('a.mp3')]: {size: 5}}).count).toEqual(1);
+  });
+
+  // The ids are what let the phone fold cloud tracks into the library it already has, instead
+  // of listing them separately. Without them a part-synced album would appear twice.
+  it('carries the desktop album and artist ids on each track', () => {
+    const [track] = buildCatalog(library, {[objFor('a.mp3')]: {size: 5}}).tracks;
+    expect(track.albumIds).toEqual(['al1']);
+    expect(track.artistIds).toEqual(['ar1']);
+  });
+
+  it('ships the albums its tracks belong to, with full running order', () => {
+    const catalog = buildCatalog(library, {[objFor('a.mp3')]: {size: 5}});
+    expect(catalog.albums).toEqual([
+      {artistIds: ['ar1'], id: 'al1', name: 'Stadium Arcadium', trackIds: ['t1', 't2']},
+    ]);
+  });
+
+  // t2 is not uploaded, but keeping it in trackIds is what lets the phone order a mixed album
+  // correctly - it plays the local copy and simply omits anything it can reach no other way.
+  it('keeps unuploaded tracks in the album running order', () => {
+    const catalog = buildCatalog(library, {[objFor('a.mp3')]: {size: 5}});
+    expect(catalog.tracks.map((t) => t.id)).toEqual(['t1']);
+    expect(catalog.albums[0].trackIds).toEqual(['t1', 't2']);
+  });
+
+  it('ships the artists too, so names resolve without the desktop', () => {
+    const catalog = buildCatalog(library, {[objFor('a.mp3')]: {size: 5}});
+    expect(catalog.artists).toEqual([{id: 'ar1', name: 'Red Hot Chili Peppers'}]);
+  });
+
+  it('lists no albums or artists when nothing is uploaded', () => {
+    const catalog = buildCatalog(library, {});
+    expect(catalog.albums).toEqual([]);
+    expect(catalog.artists).toEqual([]);
   });
 
   it('stamps a generation time so the service can tell staleness', () => {

@@ -60,9 +60,19 @@ async function catalog() {
   }
   const parsed = JSON.parse(await getObject(BUCKET, name, accessToken));
   const byId = new Map(parsed.tracks.map((t) => [t.id, t]));
-  // the phone never needs object names, and not sending them keeps the bucket layout private
+  // the phone never needs object names, and not sending them keeps the bucket layout private.
+  // Album and artist ids DO go out: they are the desktop's own id space, which is what lets
+  // the phone merge cloud tracks into the library it already has rather than listing them
+  // separately. They name nothing in storage.
   const listing = parsed.tracks.map(({object, ...rest}) => rest);
-  const value = {byId, generatedAt: parsed.generatedAt, listing, source: name};
+  const value = {
+    albums: parsed.albums || [],
+    artists: parsed.artists || [],
+    byId,
+    generatedAt: parsed.generatedAt,
+    listing,
+    source: name,
+  };
   catalogCache = {expires: Date.now() + CATALOG_TTL, value};
   return value;
 }
@@ -92,8 +102,14 @@ async function handle(req, res) {
   }
 
   if (path === '/catalog') {
-    const {generatedAt, listing} = await catalog();
-    return send(res, 200, {count: listing.length, generatedAt, tracks: listing});
+    const {albums, artists, generatedAt, listing} = await catalog();
+    return send(res, 200, {
+      albums,
+      artists,
+      count: listing.length,
+      generatedAt,
+      tracks: listing,
+    });
   }
 
   const track = /^\/track\/(.+)$/.exec(path);

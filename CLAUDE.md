@@ -113,6 +113,15 @@ timer — it runs even when the music backup itself is skipped, so the index sta
 adding thousands of tracks a day. That script **duplicates** `buildCatalog()` because the TS
 module pulls in Electron and cannot be required from plain node; keep the two in step.
 
+Cloud tracks are **inline, not a separate screen**: the catalog carries the desktop's own
+album/artist ids plus slim `albums`/`artists` sections, so `MergedLibrary.kt` folds them into the
+synced library by id — a part-synced album is one album in running order, not two. Album
+`trackIds` ship in full running order including unuploaded tracks, which is the only way to order
+a mixed album correctly; unplayable entries are then dropped rather than shown as dead rows.
+Offline the merge collapses to exactly the synced library. `MergedLibrary` lists the tracks
+directory **once** rather than stat-ing per track — All Tracks asks about every id, and 21k stats
+during composition stalls the UI.
+
 On the phone (`MusicNative/`), `Connectivity.kt` tracks real internet — `NET_CAPABILITY_VALIDATED`,
 not merely "a network is attached", so a captive portal reads as offline rather than hanging every
 request — and `StreamingClient.kt` talks to the service. **Everything streaming-related is gated on

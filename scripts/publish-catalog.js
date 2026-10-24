@@ -45,20 +45,31 @@ async function token() {
   const man = JSON.parse(fs.readFileSync(`${D}/music-backup-manifest.json`, 'utf8'));
   const first = (ids, look) => (ids && ids.length && look[ids[0]] && look[ids[0]].name) || '';
   const seen = new Set(), tracks = [];
+  const albumIdsUsed = new Set(), artistIdsUsed = new Set();
   for (const [id, t] of Object.entries(lib.tracks)) {
     const fp = norm(t.filePath || ''); if (!fp) continue;
     const object = objName(fp);
     if (!man[object] || seen.has(object)) continue;
     seen.add(object);
-    tracks.push({album: first(t.albumIds, lib.albums), artist: first(t.artistIds, lib.artists),
+    const albumIds = t.albumIds || [], artistIds = t.artistIds || [];
+    albumIds.forEach((a) => albumIdsUsed.add(a));
+    artistIds.forEach((a) => artistIdsUsed.add(a));
+    tracks.push({album: first(albumIds, lib.albums), albumIds,
+      artist: first(artistIds, lib.artists), artistIds,
       duration: t.duration || 0, id: t.id || id, name: t.name || '', object, year: t.year || 0});
   }
-  const catalog = {count: tracks.length, generatedAt: new Date().toISOString(), tracks};
+  const albums = [...albumIdsUsed].map((id) => ({
+    artistIds: (lib.albums[id] || {}).artistIds || [], id,
+    name: (lib.albums[id] || {}).name || '', trackIds: (lib.albums[id] || {}).trackIds || [],
+  }));
+  const artists = [...artistIdsUsed].map((id) => ({id, name: (lib.artists[id] || {}).name || ''}));
+  const catalog = {albums, artists, count: tracks.length,
+    generatedAt: new Date().toISOString(), tracks};
   const name = `catalog/${catalog.generatedAt.replace(/[:.]/g, '-')}.json`;
   const url = `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(BUCKET)}` +
     `/o?uploadType=media&name=${encodeURIComponent(name)}`;
   const res = await fetch(url, {method: 'POST', body: JSON.stringify(catalog),
     headers: {Authorization: `Bearer ${await token()}`, 'Content-Type': 'application/json'}});
-  console.log(res.ok ? `published ${name} with ${catalog.count} tracks`
+  console.log(res.ok ? `published ${name}: ${catalog.count} tracks, ${albums.length} albums, ${artists.length} artists`
     : `FAILED ${res.status}: ${(await res.text()).slice(0, 200)}`);
 })();
