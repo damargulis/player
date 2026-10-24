@@ -148,7 +148,11 @@ object StreamingClient {
             if (!file.exists()) {
                 return
             }
-            publish(parse(JSONObject(file.readText())))
+            val parsed = parse(JSONObject(file.readText()))
+            publish(parsed)
+            statusState.postValue(
+                "cached: ${parsed.tracks.size} tracks, ${parsed.albums.size} albums"
+            )
         } catch (err: Exception) {
             println("stream catalog cache unreadable: $err")
         }
@@ -168,13 +172,15 @@ object StreamingClient {
             val body = get(context, "/catalog")
             val parsed = parse(JSONObject(body))
             publish(parsed)
-            val tracks = parsed.tracks
             try {
                 File(context.filesDir, CACHE_FILE).writeText(body)
             } catch (err: Exception) {
                 // a cache miss next launch is not worth failing the refresh over
             }
-            statusState.postValue("${tracks.size} tracks available")
+            statusState.postValue(
+                "${parsed.tracks.size} tracks, ${parsed.albums.size} albums, " +
+                    "${parsed.artists.size} artists"
+            )
             true
         } catch (err: Exception) {
             statusState.postValue("Failed: ${err.message}")
