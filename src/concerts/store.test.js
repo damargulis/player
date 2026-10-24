@@ -1,4 +1,4 @@
-import {artistsByMbid, budgetRemaining, isStale, matchConcerts, REFRESH_INTERVAL_MS} from './store';
+import {artistsByMbid, budgetRemaining, findUnseen, isStale, matchConcerts, REFRESH_INTERVAL_MS} from './store';
 import {DEFAULT_LOCATION, emptyCache, milesBetween, MONTHLY_CALL_BUDGET} from './types';
 
 function ev(id, date, mbids, venue = 'Venue') {
@@ -100,3 +100,41 @@ test('the default radius reaches the venues that matter from the upper east side
   });
 });
 
+
+describe('findUnseen', () => {
+  function cache(fetched, concerts, unseen = []) {
+    return Object.assign(emptyCache(), {
+      concerts: concerts.map((id) => ({id, date: '2026-11-01', artistIds: ['ar1']})),
+      fetchedAt: fetched,
+      unseen,
+    });
+  }
+  function shows(...ids) {
+    return ids.map((id) => ({id, date: '2026-11-01', artistIds: ['ar1']}));
+  }
+
+  it('flags nothing on the very first sweep', () => {
+    // everything is technically new then, so marking it all would just be noise
+    expect(findUnseen(emptyCache(), shows('a', 'b'))).toStrictEqual([]);
+  });
+
+  it('flags only shows that were not there before', () => {
+    expect(findUnseen(cache(1000, ['a']), shows('a', 'b'))).toStrictEqual(['b']);
+  });
+
+  it('carries forward shows still unseen from an earlier refresh', () => {
+    // two refreshes with no visit in between must not lose the first batch
+    const previous = cache(1000, ['a', 'b'], ['b']);
+    expect(findUnseen(previous, shows('a', 'b', 'c')).sort()).toStrictEqual(['b', 'c']);
+  });
+
+  it('drops carried shows once they fall out of the window', () => {
+    const previous = cache(1000, ['a', 'b'], ['b']);
+    expect(findUnseen(previous, shows('a'))).toStrictEqual([]);
+  });
+
+  it('does not flag a show twice', () => {
+    const previous = cache(1000, [], ['a']);
+    expect(findUnseen(previous, shows('a'))).toStrictEqual(['a']);
+  });
+});

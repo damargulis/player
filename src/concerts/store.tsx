@@ -90,6 +90,42 @@ export function matchConcerts(events: FetchedEvent[], byMbid: Record<string, str
   return Object.values(matched).sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * Which shows are newly announced. Carries forward anything still unseen from an earlier
+ * refresh, so shows aren't lost when several refreshes happen between visits, and stays empty
+ * on the very first sweep — when everything is technically new, flagging it all is just noise.
+ */
+export function findUnseen(previous: ConcertCache, concerts: Concert[]): string[] {
+  if (!previous.fetchedAt) {
+    return [];
+  }
+  const previousIds: Record<string, boolean> = {};
+  previous.concerts.forEach((concert) => {
+    previousIds[concert.id] = true;
+  });
+  const carried = previous.unseen || [];
+  const unseen: string[] = [];
+  concerts.forEach((concert) => {
+    const isNew = !previousIds[concert.id];
+    const stillUnseen = carried.indexOf(concert.id) >= 0;
+    if ((isNew || stillUnseen) && unseen.indexOf(concert.id) < 0) {
+      unseen.push(concert.id);
+    }
+  });
+  return unseen;
+}
+
+/** Clears the badge once the listener has actually looked. */
+export function markSeen(): ConcertCache {
+  const cache = loadCache();
+  if (!cache.unseen.length) {
+    return cache;
+  }
+  const next = Object.assign({}, cache, {unseen: []});
+  saveCache(next);
+  return next;
+}
+
 export function isStale(cache: ConcertCache): boolean {
   return !cache.fetchedAt || Date.now() - cache.fetchedAt > REFRESH_INTERVAL_MS;
 }
@@ -127,11 +163,13 @@ export async function refreshConcerts(artists: Artist[], options: RefreshOptions
   }
   try {
     const result = await sweep(location, options.onProgress);
+    const concerts = matchConcerts(result.events, artistsByMbid(artists));
     const next: ConcertCache = {
-      concerts: matchConcerts(result.events, artistsByMbid(artists)),
+      concerts,
       error: undefined,
       fetchedAt: Date.now(),
       location,
+      unseen: findUnseen(cache, concerts),
       usage: {calls: cache.usage.calls + result.calls, month: currentMonth()},
     };
     saveCache(next);

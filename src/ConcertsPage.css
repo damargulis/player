@@ -334,3 +334,31 @@
   text-transform: uppercase;
   color: var(--text-faint);
 }
+
+.concert-new {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+.concerts-newcount {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  color: var(--accent-strong);
+  font-size: 11.5px;
+}
+
+.cal-day.fresh {
+  border-color: var(--accent);
+}

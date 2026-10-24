@@ -1,10 +1,11 @@
 import {Artist, Track} from './redux/actionTypes';
+import {setUnseenCount} from './concerts/alerts';
 import {apiKeyHelp, CityResult, getApiKey, locateByDevice, locateByIp, searchCities} from './concerts/api';
 import './ConcertsPage.css';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAllTracks, getArtistById} from './redux/selectors';
-import {budgetRemaining, isStale, loadCache, refreshConcerts} from './concerts/store';
+import {budgetRemaining, isStale, loadCache, markSeen, refreshConcerts} from './concerts/store';
 import {RootState} from './redux/store';
 import {Concert, ConcertCache, emptyCache, milesBetween} from './concerts/types';
 import {dayKey, localDate} from './utils';
@@ -52,6 +53,11 @@ interface ConcertsPageState {
   locating: boolean;
   sort: Sort;
   view: View;
+  /**
+   * Shows that were new when the tab was opened. Held separately from the cache so the NEW
+   * markers stay visible for this visit even though the badge clears immediately.
+   */
+  highlighted: string[];
   /** First of the month the calendar is showing. */
   monthCursor: number;
   selectedDay?: string;
@@ -76,6 +82,7 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       editing: false,
       filter: 'all',
       locating: false,
+      highlighted: [],
       monthCursor: startOfMonth(new Date()).getTime(),
       sort: 'date',
       view: 'list',
@@ -87,7 +94,10 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
   public componentDidMount(): void {
     this.mounted = true;
     const cache = loadCache();
-    this.setState({cache});
+    // opening the tab counts as having looked: drop the badge but keep the markers on screen
+    this.setState({cache, highlighted: cache.unseen});
+    markSeen();
+    setUnseenCount(0);
     // only reaches the network when the cache has aged out, so opening the tab is usually free
     if (getApiKey() && isStale(cache)) {
       this.refresh(false);
@@ -123,6 +133,11 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
         <span className="concerts-title">Concerts</span>
         <span className="concerts-where">
           {`within ${location.radiusMiles} mi of ${location.label} · next ${location.windowDays} days`}
+          {this.state.highlighted.length > 0 && (
+            <span className="concerts-newcount">
+              {`${this.state.highlighted.length} newly announced`}
+            </span>
+          )}
         </span>
         <span className="concerts-filters">
           {this.renderChip('all', 'All')}
@@ -375,6 +390,9 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     if (isToday) {
       classes.push('today');
     }
+    if (concerts.some((concert) => this.isNew(concert))) {
+      classes.push('fresh');
+    }
     if (this.state.selectedDay === key) {
       classes.push('selected');
     }
@@ -441,6 +459,10 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     return concert.artistIds.map((id) => this.props.getArtistName(id)).join(', ');
   }
 
+  private isNew(concert: Concert): boolean {
+    return this.state.highlighted.indexOf(concert.id) >= 0;
+  }
+
   private isLoved(concert: Concert): boolean {
     return concert.artistIds.some((id) => this.props.favoriteArtistIds.indexOf(id) >= 0);
   }
@@ -459,6 +481,7 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
         </span>
         <span className="concert-main">
           <div className="concert-artists">
+            {this.isNew(concert) && <span className="concert-new">New</span>}
             {concert.artistIds.map((id, i) => (
               <React.Fragment key={id}>
                 {i > 0 && ', '}
@@ -529,7 +552,13 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       },
     });
     if (this.mounted) {
-      this.setState({cache, loading: false, progress: undefined});
+      const highlighted = this.state.highlighted
+        .concat(cache.unseen.filter((id) => this.state.highlighted.indexOf(id) < 0));
+      this.setState({cache, highlighted, loading: false, progress: undefined});
+      markSeen();
+      setUnseenCount(0);
+    } else {
+      setUnseenCount(cache.unseen.length);
     }
   }
 

@@ -34,6 +34,8 @@ export interface ConcertCache {
   usage: {month: string; calls: number};
   /** Set when the last refresh failed, so the UI can say why. */
   error?: string;
+  /** Shows that have appeared since the listener last opened the tab. */
+  unseen: string[];
 }
 
 /**
@@ -57,6 +59,7 @@ export function emptyCache(): ConcertCache {
   return {
     concerts: [],
     location: DEFAULT_LOCATION,
+    unseen: [],
     usage: {calls: 0, month: currentMonth()},
   };
 }
