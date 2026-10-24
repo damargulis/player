@@ -58,6 +58,23 @@ boundary, and `/health` is all an unauthenticated probe can see.
 
 ## Status
 
-**Not yet applied, and `terraform validate` has not been run** — Terraform is not installed here
-and the Docker daemon was not running. The HCL has only had a structural check (balanced blocks,
-plausible schema). Validate before the first apply.
+`terraform validate` **passes** and `terraform fmt -check` is clean, against provider
+`hashicorp/google` 6.50.0 (pinned in `.terraform.lock.hcl`). Not yet applied — that needs
+credentials, which are an interactive login.
+
+## Tooling note
+
+Homebrew on this machine is an Intel prefix running under Rosetta and reports
+*"Homebrew no longer builds bottles for this configuration"*, with source builds needing full
+Xcode. So neither tool came from brew:
+
+- `~/.local/bin/terraform` — official release, SHA256-verified against HashiCorp's sums file.
+- `~/.local/google-cloud-sdk/bin/gcloud` — official tarball over TLS from `dl.google.com`.
+  Google publishes no checksum sidecar for it, so that one is trust-on-TLS.
+
+Neither is on `PATH` by default; `install.sh` was deliberately not run with `--path-update`, so
+nothing edited `.zshrc`. Prefix commands, or add:
+
+```
+export PATH="$HOME/.local/bin:$HOME/.local/google-cloud-sdk/bin:$PATH"
+```
