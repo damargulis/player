@@ -76,11 +76,16 @@ is the reasoning, which is the part worth version-controlling.
 `gcloud` is **not installed** on this machine, so verify bucket state through the console
 (Bucket details → Lifecycle / Permissions) rather than reaching for `gsutil`.
 
-**IaC policy:** Terraform is for resources that are cheap to recreate — the streaming stack
-(Cloud Run, its service account, IAM bindings) should be managed that way from the start, with
-state in its own bucket, so nothing new is ever click-ops. The music bucket stays out of
-Terraform: importing existing resources is the error-prone part, an `apply` on a botched import
-can propose *replacing* a bucket, and this one holds the only offsite copy of 163GB.
+**IaC policy:** Terraform is for resources that are cheap to recreate. `terraform/` manages the
+streaming stack (Cloud Run, its service account, IAM, Artifact Registry) with state in its own
+bucket, so nothing new is ever click-ops. The music bucket stays out: importing existing
+resources is the error-prone part, an `apply` on a botched import can propose *replacing* a
+bucket, and this one holds the only offsite copy of 163GB. It is referenced as a `data` source
+instead, so the config itself denies Terraform the power to touch it. The single grant it does
+make on the bucket uses `google_storage_bucket_iam_member` — the **additive** form; `_binding`
+and `_policy` are authoritative and would strip the backup writer's `objectCreator` grant.
+Neither `terraform` nor `gcloud` is installed on this machine (Homebrew here is an Intel prefix
+on Apple Silicon and has no `terraform` formula) — see `terraform/README.md`.
 
 ### Streaming (designed, not built)
 

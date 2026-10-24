@@ -34,3 +34,11 @@ data/gcs-backup-key.json
 
 # infra identifiers; this repo is public
 infrastructure.local.md
+
+# terraform: state and real variable values
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/terraform.tfvars
+terraform/backend.hcl
+# note: .terraform.lock.hcl is deliberately NOT ignored - it pins provider versions

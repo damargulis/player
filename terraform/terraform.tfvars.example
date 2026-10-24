@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars (gitignored) and fill in. Real values are in
+# infrastructure.local.md at the repo root; this repo is public, so they do not live here.
+
+project_id  = "your-project-id"
+bucket_name = "your-backup-bucket"
+
+# Mint with: node streaming/mint-token.js <device-label>
+# Hashes, not tokens - a hash cannot be used to authenticate.
+device_tokens = "<sha256hex>:daniel-phone,<sha256hex>:chloe-phone"
+
+# Printed by scripts/deploy-streaming.sh after it pushes.
+image = "us-central1-docker.pkg.dev/your-project-id/mymusic/streaming:latest"
