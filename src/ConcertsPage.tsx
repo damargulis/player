@@ -6,7 +6,8 @@ import {connect} from 'react-redux';
 import {getAllTracks, getArtistById} from './redux/selectors';
 import {budgetRemaining, isStale, loadCache, refreshConcerts} from './concerts/store';
 import {RootState} from './redux/store';
-import {Concert, ConcertCache, dayKey, emptyCache, localDate, milesBetween} from './concerts/types';
+import {Concert, ConcertCache, emptyCache, milesBetween} from './concerts/types';
+import {dayKey, localDate} from './utils';
 
 type Filter = 'all' | 'favorites' | 'recent';
 type Sort = 'date' | 'plays';

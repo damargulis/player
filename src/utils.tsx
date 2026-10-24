@@ -58,3 +58,24 @@ export function toTime(ms: number): string {
   const minutesString = (hours && minutes < 10) ? `0${minutes}` : minutes;
   return `${hours ? hours + ':' : ''}${minutesString}:${secondsString}`;
 }
+
+/** The calendar day an ISO date falls on, as YYYY-MM-DD. */
+export function dayKey(isoDate: string): string {
+  return isoDate.slice(0, 10);
+}
+
+/**
+ * Parses an ISO date in local time.
+ *
+ * Reach for this instead of `new Date(string)` whenever the value might be date-only. The
+ * built-in parser reads "2027-01-14" as UTC midnight, which is the 13th anywhere west of
+ * Greenwich, so a date with no time silently lands on the wrong day. Building from the parts
+ * avoids the conversion entirely, which is what you want for dates that are already local to
+ * wherever they describe — a venue's listing, a release date — rather than instants in time.
+ */
+export function localDate(isoDate: string): Date {
+  const [year, month, day] = dayKey(isoDate).split('-').map(Number);
+  const time = isoDate.slice(11, 16);
+  const [hours, minutes] = time ? time.split(':').map(Number) : [0, 0];
+  return new Date(year, (month || 1) - 1, day || 1, hours || 0, minutes || 0);
+}

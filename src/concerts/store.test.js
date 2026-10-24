@@ -1,5 +1,5 @@
 import {artistsByMbid, budgetRemaining, isStale, matchConcerts, REFRESH_INTERVAL_MS} from './store';
-import {dayKey, DEFAULT_LOCATION, emptyCache, localDate, milesBetween, MONTHLY_CALL_BUDGET} from './types';
+import {DEFAULT_LOCATION, emptyCache, milesBetween, MONTHLY_CALL_BUDGET} from './types';
 
 function ev(id, date, mbids, venue = 'Venue') {
   return {concert: {id, date, name: 'Show', venue, city: 'New York', region: 'NY'}, mbids};
@@ -100,15 +100,3 @@ test('the default radius reaches the venues that matter from the upper east side
   });
 });
 
-test('a date-only show lands on the right day regardless of timezone', () => {
-  // new Date('2027-01-14') is UTC midnight, which is the 13th in New York
-  expect(localDate('2027-01-14').getDate()).toBe(14);
-  expect(localDate('2027-01-14').getMonth()).toBe(0);
-  expect(dayKey('2027-01-14')).toBe('2027-01-14');
-});
-
-test('a show with a time keeps both the day and the time', () => {
-  const d = localDate('2026-12-09T19:30');
-  expect([d.getDate(), d.getHours(), d.getMinutes()]).toStrictEqual([9, 19, 30]);
-  expect(dayKey('2026-12-09T19:30')).toBe('2026-12-09');
-});

@@ -1,7 +1,8 @@
 import {shell} from 'electron';
 import React from 'react';
 import {loadCache} from './concerts/store';
-import {Concert, localDate} from './concerts/types';
+import {Concert} from './concerts/types';
+import {localDate} from './utils';
 
 interface OwnProps {
   artistId: string;
