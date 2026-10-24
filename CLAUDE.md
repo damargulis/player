@@ -49,7 +49,7 @@ The service account is **objectCreator only**, so it can create but not read, re
 
 `readLibraryForBackup` refuses to upload an empty, corrupt or missing library. That guard exists because this app once wrote an 80-byte empty `library.json` over a good one after a failed read; faithfully copying that offsite would turn a recoverable glitch into a destroyed backup set.
 
-Bucket must be **regional** in `us-central1`/`us-east1`/`us-west1` for the GCS free tier (the multi-region default is pricier *and* ineligible) and **Standard** class, so per-track streaming later carries no retrieval fee. Config is `GCS_BACKUP_BUCKET` in the usual env files plus a key at `DATA_DIR/gcs-backup-key.json`.
+`scripts/backup-music.js` pushes the ~163GB music library to the same bucket as `music/<path relative to home>`, mirroring the filesystem so it can be restored by hand without this app or `library.json`. It lives outside the app on purpose — roughly a day of wall-clock at ~18Mbps — and is restartable via a manifest in `DATA_DIR`; a 403 means the object is already there (the key cannot replace), so it records it and moves on. Run it with `--limit`/`--concurrency`/`--dry-run`. **Any lifecycle rule must be prefix-scoped**: expiring `library/` and `dj-memories/` snapshots is right, but the same rule over `music/` would delete the only copy. Bucket must be **regional** in `us-central1`/`us-east1`/`us-west1` for the GCS free tier (the multi-region default is pricier *and* ineligible) and **Standard** class, so per-track streaming later carries no retrieval fee. Config is `GCS_BACKUP_BUCKET` in the usual env files plus a key at `DATA_DIR/gcs-backup-key.json`.
 
 ## Gotchas
 
