@@ -18,8 +18,12 @@ import {
  */
 const CACHE_FILE = () => `${DATA_DIR}/concerts.json`;
 
-/** Refresh at most this often, so reopening the app doesn't spend the monthly budget. */
-export const REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000;
+/**
+ * Refresh at most once a day. A sweep is roughly 25 pages in a dense metro, so twice-daily
+ * would cost ~1500 calls a month against a 1000 budget; daily lands near 750 and leaves room
+ * for manual refreshes and city lookups.
+ */
+export const REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 export function loadCache(): ConcertCache {
   try {

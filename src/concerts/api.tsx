@@ -133,6 +133,50 @@ async function getPage(url: string, key: string): Promise<EventsResponse> {
   return JSON.parse(text) as EventsResponse;
 }
 
+/**
+ * Approximate location from the connection's IP. JamBase's own geoIp parameter reports its
+ * servers rather than the caller, so this asks a geolocation service directly. Accuracy is
+ * ISP-level — a few miles — which is fine for centring a 25-mile radius, and the city picker
+ * is there for anyone who wants it exact.
+ */
+export async function locateByIp(): Promise<CityResult> {
+  const providers = [
+    {
+      parse: (d: Record<string, unknown>) => ({
+        label: `${d.city || 'Here'}, ${d.region_code || d.region || ''}`.replace(/, $/, ''),
+        lat: Number(d.latitude),
+        lon: Number(d.longitude),
+      }),
+      url: 'https://ipapi.co/json/',
+    },
+    {
+      parse: (d: Record<string, unknown>) => ({
+        label: `${d.city || 'Here'}, ${d.region || ''}`.replace(/, $/, ''),
+        lat: Number(d.lat),
+        lon: Number(d.lon),
+      }),
+      url: 'http://ip-api.com/json/?fields=status,city,region,lat,lon',
+    },
+  ];
+  let lastError = 'Could not work out where you are.';
+  for (const provider of providers) {
+    try {
+      const res = await fetch(provider.url);
+      if (!res.ok) {
+        lastError = `Location lookup failed (${res.status})`;
+        continue;
+      }
+      const parsed = provider.parse(JSON.parse(await res.text()) as Record<string, unknown>);
+      if (isFinite(parsed.lat) && isFinite(parsed.lon) && (parsed.lat !== 0 || parsed.lon !== 0)) {
+        return parsed;
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+    }
+  }
+  throw new ConcertApiError(0, lastError);
+}
+
 export interface CityResult {
   label: string;
   lat: number;

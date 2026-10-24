@@ -36,11 +36,17 @@ export interface ConcertCache {
   error?: string;
 }
 
+/**
+ * Centred on the Upper East Side. 25 miles reaches every venue that matters from there —
+ * Brooklyn and Hoboken are under 5, MetLife and Jersey City under 8, Newark 12, Coney Island 14
+ * — and radius barely affects cost (15mi is 23 pages, 40mi is 26), so there's no reason to be
+ * stingy.
+ */
 export const DEFAULT_LOCATION: ConcertLocation = {
   label: 'New York, NY',
-  lat: 40.7128,
-  lon: -74.006,
-  radiusMiles: 40,
+  lat: 40.7736,
+  lon: -73.9566,
+  radiusMiles: 25,
   windowDays: 120,
 };
 

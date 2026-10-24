@@ -1,5 +1,5 @@
 import {Artist, Track} from './redux/actionTypes';
-import {apiKeyHelp, CityResult, getApiKey, searchCities} from './concerts/api';
+import {apiKeyHelp, CityResult, getApiKey, locateByIp, searchCities} from './concerts/api';
 import './ConcertsPage.css';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -32,6 +32,7 @@ interface ConcertsPageState {
   progress?: string;
   filter: Filter;
   editing: boolean;
+  locating: boolean;
   cityQuery: string;
   cityResults: CityResult[];
   searching: boolean;
@@ -52,6 +53,7 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       cityResults: [],
       editing: false,
       filter: 'all',
+      locating: false,
       loading: false,
       searching: false,
     };
@@ -123,6 +125,9 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
           <button onClick={() => this.findCities()} disabled={this.state.searching}>
             {this.state.searching ? 'Searching…' : 'Search'}
           </button>
+          <button onClick={() => this.useMyLocation()} disabled={this.state.locating}>
+            {this.state.locating ? 'Locating…' : 'Use my location'}
+          </button>
           <label>Radius</label>
           <input
             type="number"
@@ -168,6 +173,24 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       this.setState({cityResults, searching: false});
     } catch (err) {
       this.setState({searching: false});
+    }
+  }
+
+  private async useMyLocation(): Promise<void> {
+    this.setState({locating: true});
+    try {
+      const here = await locateByIp();
+      this.pickCity({label: `${here.label} (approx.)`, lat: here.lat, lon: here.lon});
+    } catch (err) {
+      this.setState({
+        cache: Object.assign({}, this.state.cache, {
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      });
+    } finally {
+      if (this.mounted) {
+        this.setState({locating: false});
+      }
     }
   }
 
