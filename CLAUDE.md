@@ -120,7 +120,11 @@ synced library by id — a part-synced album is one album in running order, not 
 a mixed album correctly; unplayable entries are then dropped rather than shown as dead rows.
 Offline the merge collapses to exactly the synced library. `MergedLibrary` lists the tracks
 directory **once** rather than stat-ing per track — All Tracks asks about every id, and 21k stats
-during composition stalls the UI.
+during composition stalls the UI. Build it with `rememberMergedLibrary` **inside each screen**,
+never hoisted and passed down: a NavHost graph comes from a plain non-composable builder lambda
+whose destinations are remembered, so a captured value is frozen at the composition that built
+the graph. Hoisting it meant every screen kept the launch-time copy — made before any catalog
+had been fetched — and the cloud half never appeared no matter how often the catalog refreshed.
 
 On the phone (`MusicNative/`), `Connectivity.kt` tracks real internet — `NET_CAPABILITY_VALIDATED`,
 not merely "a network is attached", so a captive portal reads as offline rather than hanging every
