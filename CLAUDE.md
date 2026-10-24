@@ -113,6 +113,17 @@ timer — it runs even when the music backup itself is skipped, so the index sta
 adding thousands of tracks a day. That script **duplicates** `buildCatalog()` because the TS
 module pulls in Electron and cannot be required from plain node; keep the two in step.
 
+On the phone (`MusicNative/`), `Connectivity.kt` tracks real internet — `NET_CAPABILITY_VALIDATED`,
+not merely "a network is attached", so a captive portal reads as offline rather than hanging every
+request — and `StreamingClient.kt` talks to the service. **Everything streaming-related is gated on
+it**: the Streaming browse screen only appears while online, and offline the app behaves exactly as
+before. `MediaPlaybackService.setTrack` is local-first and falls back to a signed URL, which also
+means a synced track whose file went missing now recovers instead of failing silently. Note the
+player is `android.media.MediaPlayer`, **not** ExoPlayer/Media3 — it handles HTTP range and seeking
+for streamed URLs itself. Catalog entries become `TrackData` via `streamTrackToData`, synthesising
+`stream-artist:`/`stream-album:` ids that are never written to the library, so they cannot collide
+with synced entities.
+
 Auth is a long random **per-device token** held in app prefs, with the service keeping token
 hashes; revocable per device, no OAuth plumbing, and enrollment needs no laptop. Google Sign-In
 with a two-account allowlist is the upgrade if that chafes. Play counts need **no new protocol**:

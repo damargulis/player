@@ -52,7 +52,9 @@ enum class DownloadScreens {
     ArtistDetail,
     Main,
     Artists,
-    Tracks
+    Tracks,
+    Streaming,
+    StreamingSettings
 }
 
 // Intent keys
@@ -78,6 +80,9 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
 
         ServerConnection.start(applicationContext)
+        // streaming is gated on real internet, not on the desktop being reachable
+        Connectivity.start(applicationContext)
+        StreamingClient.loadCached(applicationContext)
 
         val emit = { type: String, data: Any? ->
             ServerConnection.emit(type, data)
@@ -155,6 +160,7 @@ fun MainApp(modifier: Modifier = Modifier,
             remoteState: LiveData<org.json.JSONObject>) {
     val navController = rememberNavController()
     val isConnected by connected.observeAsState(initial = false)
+    val isOnline by Connectivity.isOnline.observeAsState(initial = false)
     val mRemoteState by remoteState.observeAsState(initial = org.json.JSONObject())
     val playlists = remember { playlistsMutable }
     val tracks = remember {tracksMutable}
@@ -253,6 +259,7 @@ fun MainApp(modifier: Modifier = Modifier,
                     MainOptions(
                         onNavigate = onNavigate,
                         connected = isConnected,
+                        online = isOnline,
                         onSync = onSync,
                         syncStatus = syncStatus,
                         percent = percentage
@@ -324,6 +331,12 @@ fun MainApp(modifier: Modifier = Modifier,
                         )
                     }
                 }
+                composable(route = DownloadScreens.Streaming.name) {
+                    StreamingScreen(playPlaylist = playPlaylist)
+                }
+                composable(route = DownloadScreens.StreamingSettings.name) {
+                    StreamingSettingsScreen()
+                }
                 composable(route = DownloadScreens.Tracks.name) {
                     TrackPicker(tracks = getTrackData(tracks.values.map { track -> track.id }
                         .toTypedArray()).sortedBy { track -> track.track.name }, title = "All Tracks", playPlaylist = playPlaylist)
@@ -345,7 +358,8 @@ private fun stepLabel(step: Steps): String {
 
 @Composable
 fun MainOptions(
-    onNavigate: (screen: DownloadScreens) -> Unit, connected: Boolean, onSync: () -> Unit,
+    onNavigate: (screen: DownloadScreens) -> Unit, connected: Boolean, online: Boolean,
+    onSync: () -> Unit,
     syncStatus: Steps,
     percent: Double
 ) {
@@ -389,11 +403,14 @@ fun MainOptions(
         )
         Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
             Column {
-                val sections = listOf(
+                // Streaming appears only with real internet: everything behind it is a
+                // network fetch, so offering it offline would be offering a dead end.
+                val sections = listOfNotNull(
                     DownloadScreens.Playlists,
                     DownloadScreens.Albums,
                     DownloadScreens.Artists,
                     DownloadScreens.Tracks,
+                    DownloadScreens.Streaming.takeIf { online },
                 )
                 sections.forEachIndexed { index, screen ->
                     if (index > 0) {
@@ -412,9 +429,41 @@ fun MainOptions(
                             fontSize = 17.sp,
                             modifier = Modifier.weight(1f),
                         )
+                        if (screen == DownloadScreens.Streaming) {
+                            Text(
+                                "online",
+                                color = Success,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
+                        }
                         Text("›", color = TextSecondary, fontSize = 22.sp)
                     }
                 }
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate(DownloadScreens.StreamingSettings) }
+                    .padding(horizontal = 20.dp, vertical = 14.dp)
+            ) {
+                Text(
+                    "Streaming settings",
+                    color = TextPrimary,
+                    fontSize = 17.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    if (online) "online" else "offline",
+                    color = if (online) Success else Warning,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(end = 8.dp),
+                )
+                Text("›", color = TextSecondary, fontSize = 22.sp)
             }
         }
         Spacer(modifier = Modifier.height(24.dp))

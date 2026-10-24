@@ -20,6 +20,8 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
 import androidx.media.session.MediaButtonReceiver
+import java.io.File
+import kotlin.concurrent.thread
 
 const val NOTIFICATION_ID = 1
 
@@ -139,6 +141,20 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
         }
     }
 
+    private fun localFileFor(trackId: String): File =
+        File(baseContext.getExternalFilesDir(null)?.absolutePath + "/tracks/" + trackId + ".mp3")
+
+    /**
+     * Starts a track, preferring the synced copy and falling back to streaming.
+     *
+     * Local first always: it is faster, works offline, and costs no egress. Streaming is only
+     * reached for a track that was never synced - or whose file has gone missing, which this
+     * now recovers from rather than failing silently as it used to.
+     *
+     * The signed URL has to be fetched over the network, so that path hops to a background
+     * thread and comes back to the player. A track started that way is a few hundred ms slower
+     * to begin, which is the cost of not having synced it.
+     */
     private fun setTrack(trackIndex: Int) {
         initMediaPlayerIfNeeded()
         mPlayer?.reset() ?: return
@@ -147,13 +163,57 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
         mCurrTrack = track
         mCurrIndex = trackIndex
 
-        try {
-            val uri = Uri.parse(baseContext.getExternalFilesDir(null)?.absolutePath + "/tracks/" + track.track.id + ".mp3")
-            mPlayer!!.setDataSource(applicationContext, uri)
-            mPlayer!!.prepareAsync()
+        val local = localFileFor(track.track.id)
+        if (local.exists()) {
+            try {
+                mPlayer!!.setDataSource(applicationContext, Uri.fromFile(local))
+                mPlayer!!.prepareAsync()
+                trackChanged()
+            } catch (err: Exception) {
+                println("setTrack failed for local ${track.track.id}: $err")
+            }
+            return
+        }
+
+        if (!Connectivity.isOnlineNow()) {
+            // no copy and no way to get one; skipping beats sitting on a track that cannot play
+            println("no local copy of ${track.track.id} and offline; skipping")
+            onTrackUnplayable(trackIndex)
+            return
+        }
+
+        val requestedIndex = trackIndex
+        thread {
+            val url = StreamingClient.trackUrl(applicationContext, track.track.id)
+            progressHandler.post {
+                // the user may have skipped on while the URL was in flight
+                if (mCurrIndex != requestedIndex) {
+                    return@post
+                }
+                if (url == null) {
+                    println("no stream url for ${track.track.id}")
+                    onTrackUnplayable(requestedIndex)
+                    return@post
+                }
+                try {
+                    mPlayer?.reset()
+                    mPlayer?.setDataSource(url)
+                    mPlayer?.prepareAsync()
+                    trackChanged()
+                } catch (err: Exception) {
+                    println("streaming ${track.track.id} failed: $err")
+                    onTrackUnplayable(requestedIndex)
+                }
+            }
+        }
+    }
+
+    /** Moves past a track that cannot be played, without running off the end of the queue. */
+    private fun onTrackUnplayable(trackIndex: Int) {
+        if (trackIndex + 1 < curPlaylist.size) {
+            setTrack(trackIndex + 1)
+        } else {
             trackChanged()
-        } catch (err: Exception) {
-            println("setTrack failed: $err")
         }
     }
 
