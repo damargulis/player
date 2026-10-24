@@ -1,6 +1,7 @@
 import {Album, Artist, DJ_QUEUE_UPDATED, DJ_TAKE_OVER, NEXT_TRACK, SET_PLAYLIST, Track} from '../redux/actionTypes';
 import activity, {humanDuration} from './activity';
 import {Tool} from './api';
+import {artistShowMarker, describeShow, showsForArtist, showsForArtists} from './concertInfo';
 import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {OWNER} from './owner';
 import {currentReaction, describeReactions, Reaction} from '../reactions';
@@ -123,6 +124,20 @@ export const DJ_TOOLS: Tool[] = [
       type: 'object',
     },
     name: 'queue_albums',
+  },
+  {
+    description: 'Upcoming shows near the listener by artists in their library. For answering a ' +
+      'question about what is coming up, or building a set around a gig they are going to — not ' +
+      'for deciding what to play otherwise. Nothing here should change which tracks you pick.',
+    input_schema: {
+      properties: {
+        artist: {type: 'string', description: 'Only this artist (name substring)'},
+        days: {type: 'integer', description: 'Only shows within this many days'},
+        favorites_only: {type: 'boolean', description: 'Only artists the listener has favorited'},
+      },
+      type: 'object',
+    },
+    name: 'concerts',
   },
   {
     description: 'Show what is playing now (with elapsed time), what is queued next, and what has played ' +
@@ -392,7 +407,9 @@ function listArtists(state: RootState, input: Record<string, unknown>): ToolOutc
   const page = artists.slice(offset, offset + limit);
   const lines = page.map((artist) => {
     const genres = genreNames(state, artist.genreIds);
-    return `${artist.name} (${artist.trackIds.length} tracks, ${artist.albumIds.length} albums)${genres ? ` — ${genres}` : ''}`;
+    const genreTail = genres ? ` — ${genres}` : '';
+    return `${artist.name} (${artist.trackIds.length} tracks, ${artist.albumIds.length} albums)` +
+      `${genreTail}${artistShowMarker(artist.id)}`;
   });
   const more = offset + limit < artists.length ? ` Use offset=${offset + limit} for more.` : '';
   return {content: `${artists.length} artist(s); showing ${offset + 1}-${offset + page.length}.${more}\n${lines.join('\n')}`};
@@ -432,7 +449,11 @@ function getArtist(state: RootState, input: Record<string, unknown>): ToolOutcom
     });
   const tracks = artist.trackIds.map((id) => getTrackById(state, id)).filter(Boolean);
   const genres = artist.genreIds.length ? ` — ${genreNames(state, artist.genreIds)}` : '';
-  return {content: `${artist.name}${genres}
+  const shows = showsForArtist(artist.id);
+  const showLines = shows.length
+    ? `\nUpcoming shows near the listener:\n${shows.map((s) => `  ${describeShow(s)}`).join('\n')}\n`
+    : '';
+  return {content: `${artist.name}${genres}${showLines}
 Albums:
 ${albums.join('\n') || '(none)'}
 
@@ -764,11 +785,54 @@ Favorites per year: ${favorites}
 Added in the last 90 days: ${addedRecently} tracks`};
 }
 
+function upcomingConcerts(state: RootState, input: Record<string, unknown>): ToolOutcome {
+  const artistQuery = str(input, 'artist');
+  const days = num(input, 'days');
+  const favoritesOnly = bool(input, 'favorites_only');
+  const cutoff = days === undefined
+    ? undefined
+    : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const all = showsForArtists(Object.keys(state.library.artists));
+  const shows = all.filter((concert) => {
+    if (cutoff !== undefined && concert.date.slice(0, 10) > cutoff) {
+      return false;
+    }
+    const artists = concert.artistIds.map((id) => getArtistById(state, id)).filter(Boolean);
+    if (artistQuery && !artists.some((artist) => includes(artist.name, artistQuery))) {
+      return false;
+    }
+    if (favoritesOnly && !artists.some((artist) => artistIsFavorited(state, artist))) {
+      return false;
+    }
+    return true;
+  });
+  if (!shows.length) {
+    return {content: 'No upcoming shows near the listener match that.'};
+  }
+  const lines = shows.map((concert) => {
+    const who = concert.artistIds.map((id) => {
+      const artist = getArtistById(state, id);
+      return artist ? artist.name : '';
+    }).filter(Boolean).join(', ');
+    return `${who} — ${describeShow(concert)}`;
+  });
+  return {content: `${shows.length} upcoming show(s) near the listener:\n${lines.join('\n')}`};
+}
+
+/** True when any of the artist's tracks carry a favourite year. */
+function artistIsFavorited(state: RootState, artist: Artist): boolean {
+  return artist.trackIds.some((trackId) => {
+    const track = getTrackById(state, trackId);
+    return Boolean(track && track.favorites && track.favorites.length);
+  });
+}
+
 export function describeNowPlaying(state: RootState): string {
   const currentId = state.currentlyPlaying.currentlyPlayingId || undefined;
   const current = currentId ? getTrackById(state, currentId) : undefined;
   const playlist = state.currentlyPlaying.playlist;
   const djActive = playlist instanceof DJPlaylist;
+  const currentShows = current ? showsForArtists(current.artistIds) : [];
   const lines = [
     current
       ? `Now playing: ${formatTrack(state, current)} [${toTime(getTime(state) * 1000)} elapsed, ` +
@@ -776,6 +840,9 @@ export function describeNowPlaying(state: RootState): string {
       : 'Now playing: nothing',
     `Context: ${describeContext(state)}`,
     `Room: ${activity.describe()}`,
+    ...(currentShows.length
+      ? [`This artist is playing nearby: ${currentShows.map(describeShow).join('; ')}`]
+      : []),
     djActive
       ? 'The DJ queue is active, so set_queue/add_to_queue edit what you already built.'
       : 'The DJ queue is NOT active yet: the app is using its own shuffle. Your first queue edit ' +
@@ -788,6 +855,36 @@ export function describeNowPlaying(state: RootState): string {
 ${inheritedLines}`);
   }
   return lines.join('\n\n');
+}
+
+/**
+ * Shows by artists already playing or queued. Only ever describes music the DJ has already
+ * committed to, so a tour date can colour a remark without ever steering a pick.
+ */
+function describeQueueShows(state: RootState, playlist: DJPlaylist): string {
+  const ids: string[] = [];
+  playlist.getHistory().concat(playlist.getUpcoming()).forEach((trackId) => {
+    const track = getTrackById(state, trackId);
+    if (track) {
+      track.artistIds.forEach((artistId) => {
+        if (ids.indexOf(artistId) < 0) {
+          ids.push(artistId);
+        }
+      });
+    }
+  });
+  const shows = showsForArtists(ids);
+  if (!shows.length) {
+    return '';
+  }
+  const lines = shows.slice(0, 5).map((concert) => {
+    const who = concert.artistIds.map((id) => {
+      const artist = getArtistById(state, id);
+      return artist ? artist.name : '';
+    }).filter(Boolean).join(', ');
+    return `  ${who} — ${describeShow(concert)}`;
+  });
+  return `\nPlaying near the listener soon (artists in this set):\n${lines.join('\n')}`;
 }
 
 export interface QueueTrackSnapshot {
@@ -879,7 +976,7 @@ export function describeQueue(state: RootState): string {
   const history = playlist.getHistory().slice(0, -1).map((id) => getTrackById(state, id)).filter(Boolean);
   const historyLines = history.map((t) => `${t.id} | ${t.name} — ${artistNames(state, t.artistIds)}`);
   return `Now playing: ${now}
-Room: ${activity.describe()}
+Room: ${activity.describe()}${describeQueueShows(state, playlist)}
 
 Up next (${upcoming.length}):
 ${formatTracks(state, upcoming) || '(empty)'}
@@ -931,6 +1028,8 @@ export function executeTool(name: string, input: Record<string, unknown>): ToolO
     return {content: describeQueue(state)};
   case 'now_playing':
     return {content: describeNowPlaying(state)};
+  case 'concerts':
+    return upcomingConcerts(state, input);
   case 'recent_plays':
     return recentPlays(state, input);
   case 'library_stats':

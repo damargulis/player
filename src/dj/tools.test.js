@@ -230,3 +230,57 @@ test('the opening brief caps how much it lists', () => {
   expect(brief).toContain('2 tracks in total');
   expect(brief).toContain('the 1 most recent are listed');
 });
+
+describe('concert info reaches only the right tools', () => {
+  const CACHE = `${require('../constants').DATA_DIR}/concerts.json`;
+
+  beforeEach(() => {
+    const fs = require('fs');
+    fs.writeFileSync(CACHE, JSON.stringify({
+      concerts: [{
+        artistIds: ['ar1'], city: 'New York', date: '2026-11-14',
+        id: 'ev1', name: 'Show', region: 'NY', url: 'https://tix', venue: 'Webster Hall',
+      }],
+      fetchedAt: Date.now(),
+      location: {label: 'New York, NY', lat: 40.77, lon: -73.95, radiusMiles: 25, windowDays: 120},
+      unseen: [],
+      usage: {calls: 0, month: '2026-10'},
+    }));
+    require('./concertInfo').resetConcertInfo();
+  });
+
+  afterEach(() => {
+    const fs = require('fs');
+    if (fs.existsSync(CACHE)) {
+      fs.unlinkSync(CACHE);
+    }
+    require('./concertInfo').resetConcertInfo();
+  });
+
+  it('shows up when looking an artist up', () => {
+    const out = executeTool('get_artist', {name: 'Some Artist'});
+    expect(out.content).toContain('Upcoming shows near the listener');
+    expect(out.content).toContain('Nov 14 at Webster Hall, New York');
+  });
+
+  it('shows up on the artist browse list', () => {
+    expect(executeTool('list_artists', {}).content).toContain('playing Nov 14');
+  });
+
+  it('stays out of the tools used to pick tracks', () => {
+    // this is the whole point: a tour date next to a candidate skews selection
+    expect(executeTool('search_library', {query: 'One'}).content).not.toContain('Nov 14');
+    expect(executeTool('sample_tracks', {}).content).not.toContain('Nov 14');
+    expect(executeTool('search_albums', {}).content).not.toContain('Nov 14');
+  });
+
+  it('is answerable on request', () => {
+    const out = executeTool('concerts', {});
+    expect(out.content).toContain('Some Artist — Nov 14 at Webster Hall');
+  });
+
+  it('filters by artist and window on request', () => {
+    expect(executeTool('concerts', {artist: 'Nobody'}).content).toContain('No upcoming shows');
+    expect(executeTool('concerts', {days: 1}).content).toContain('No upcoming shows');
+  });
+});
