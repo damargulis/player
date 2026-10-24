@@ -291,6 +291,7 @@ fun MainApp(modifier: Modifier = Modifier,
                         subtitle = { album ->
                             combineNames(album.artistIds.mapNotNull { artistId -> artists[artistId] })
                         },
+                        action = { visible -> RandomAlbumButton(visible, getTrackData, playPlaylist) },
                     )
                 }
                 composable(route = DownloadScreens.AlbumDetail.name + "/{albumId}") {
@@ -540,6 +541,12 @@ fun <T> ListScreen(
     onClick: (item: T) -> Unit,
     thumb: (@Composable (item: T) -> Unit)? = null,
     subtitle: ((item: T) -> String)? = null,
+    /**
+     * Optional control beside the title. Handed the *filtered* list rather than everything, so
+     * an action stays consistent with what the user can currently see - searching "Radiohead"
+     * and picking at random should pick a Radiohead album.
+     */
+    action: (@Composable (visible: List<T>) -> Unit)? = null,
 ) where T : ListItem {
     var query by remember { mutableStateOf("") }
     val filtered = if (query.isBlank()) {
@@ -548,13 +555,21 @@ fun <T> ListScreen(
         listItems.filter { it.name.contains(query.trim(), ignoreCase = true) }
     }
     Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            title,
-            color = TextPrimary,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 6.dp),
-        )
+        ) {
+            Text(
+                title,
+                color = TextPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+            )
+            if (action != null) {
+                action(filtered)
+            }
+        }
         SearchField(query, "Search ${title.lowercase()}") { query = it }
         LazyColumn {
             items(filtered.size) { i ->
@@ -597,6 +612,39 @@ fun <T> ListScreen(
                     Divider(color = Border, thickness = 0.5.dp, startIndent = 20.dp)
                 }
             }
+        }
+    }
+}
+
+/**
+ * Picks an album at random and plays it start to finish.
+ *
+ * Deliberately plays rather than navigating: the whole appeal is not deciding, and bouncing to
+ * the album page would mean a trip back before you could roll again. The now-playing bar names
+ * what came up, which is all the feedback the gesture needs.
+ *
+ * Tracks are queued in `album.trackIds` order - the order the desktop stored, which is the
+ * album's own running order. Shuffling here would defeat the point of picking an album at all.
+ */
+@Composable
+fun RandomAlbumButton(
+    albums: List<Album>,
+    getTrackData: (trackIds: Array<String>) -> List<TrackData>,
+    playPlaylist: (tracks: List<TrackData>) -> Unit,
+) {
+    if (albums.isEmpty()) {
+        return
+    }
+    PillButton("Random", filled = false) {
+        // an album whose tracks never synced would queue nothing and look like a dead button,
+        // so keep drawing until one actually has something to play
+        val candidates = albums.shuffled()
+        val playable = candidates.firstNotNullOfOrNull { album ->
+            val tracks = getTrackData(album.trackIds)
+            if (tracks.isEmpty()) null else tracks
+        }
+        if (playable != null) {
+            playPlaylist(playable)
         }
     }
 }
