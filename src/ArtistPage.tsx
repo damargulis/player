@@ -1,6 +1,7 @@
 import {deleteArtist, updateArtist, updateLibrary} from './redux/actions';
 import {Album, Artist, ArtistInfo, Genre, LibraryInfo, Track} from './redux/actionTypes';
 import AlbumPicker from './AlbumPicker';
+import ArtistConcerts from './ArtistConcerts';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
 import runWikiExtension from './extensions/wiki/main';
@@ -91,6 +92,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
                 entityType="artist"
                 onRun={() => this.runMusicBrainz()}
               />
+              <ArtistConcerts artistId={this.props.artist.id} />
             </div>
             <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
             <button onClick={() => this.deleteArtist()} className="deleteArtist button-danger">Delete Artist</button>

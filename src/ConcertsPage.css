@@ -1,0 +1,210 @@
+.concerts-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 14px 18px;
+  box-sizing: border-box;
+}
+
+.concerts-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.concerts-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.concerts-where {
+  font-size: 13px;
+  color: var(--text-dim);
+  flex: 1;
+  min-width: 140px;
+}
+
+.concerts-filters {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+}
+
+.concerts-chip {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  color: var(--text-dim);
+  background: none;
+  border: 1px solid var(--border-strong);
+}
+
+.concerts-chip.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.concerts-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 6px;
+}
+
+.concerts-month {
+  position: sticky;
+  top: 0;
+  padding: 10px 2px 6px;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.concert-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.concert-row:hover {
+  background: var(--surface);
+}
+
+.concert-date {
+  flex: 0 0 auto;
+  width: 52px;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.concert-date .dow {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.concert-date .day {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.concert-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.concert-artists {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.concert-artists .link {
+  cursor: pointer;
+}
+
+.concert-artists .link:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+.concert-venue {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.concert-plays {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  text-align: right;
+  min-width: 74px;
+}
+
+.concert-row.loved .concert-plays {
+  color: var(--accent-strong);
+}
+
+.concerts-empty {
+  padding: 26px 4px;
+  color: var(--text-faint);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 540px;
+}
+
+.concerts-empty code {
+  color: var(--text-dim);
+}
+
+.concerts-footer {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.concerts-error {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+
+.concerts-editor {
+  flex: 0 0 auto;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.concerts-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.concerts-editor-row label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.concerts-editor-row input[type="text"] {
+  flex: 1;
+  min-width: 160px;
+}
+
+.concerts-editor-row input[type="number"] {
+  width: 68px;
+}
+
+.concerts-cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.concerts-cities .concerts-chip {
+  cursor: pointer;
+}

@@ -4,6 +4,7 @@ import AlbumPage from './AlbumPage';
 import AlbumPicker from './AlbumPicker';
 import ArtistPage from './ArtistPage';
 import ArtistPicker from './ArtistPicker';
+import ConcertsPage from './ConcertsPage';
 import DJPage from './DJPage';
 import {ipcRenderer} from 'electron';
 import GenrePicker from './GenrePicker';
@@ -134,6 +135,8 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
       return <NewTracksPage />;
     case 'dj':
       return <DJPage />;
+    case 'concerts':
+      return <ConcertsPage goToArtist={(artistId) => this.goToArtist(artistId)} />;
     case 'stats':
       return (
         <StatsPage

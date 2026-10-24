@@ -11,7 +11,7 @@ export default class PlaylistTypePicker extends React.Component<PlaylistTypePick
   public render(): JSX.Element {
     return (
       <div id="playlist-picker">
-        <select size={7} className="playlist-type-container">
+        <select size={8} className="playlist-type-container">
           <option onClick={() => this.props.setType('album')} className="playlist-type-option" >Albums</option>
           <option onClick={() => this.props.setType('artist')} className="playlist-type-option" >Artists</option>
           <option onClick={() => this.props.setType('track')} className="playlist-type-option" >Tracks</option>
@@ -19,6 +19,7 @@ export default class PlaylistTypePicker extends React.Component<PlaylistTypePick
           <option onClick={() => this.props.setType('new')} className="playlist-type-option">New Tracks</option>
           <option onClick={() => this.props.setType('stats')} className="playlist-type-option">Stats</option>
           <option onClick={() => this.props.setType('dj')} className="playlist-type-option">DJ</option>
+          <option onClick={() => this.props.setType('concerts')} className="playlist-type-option">Concerts</option>
         </select>
       </div>
     );

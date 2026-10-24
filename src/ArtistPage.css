@@ -45,3 +45,33 @@
 .artistPageContainer {
   height: 50%;
 }
+
+.artistConcerts {
+  margin-top: 2px;
+}
+
+.artistConcertRow {
+  display: flex;
+  gap: 8px;
+  font-size: 12.5px;
+  padding: 1px 0;
+}
+
+.artistConcertRow .when {
+  flex: 0 0 auto;
+  width: 74px;
+  color: var(--text-dim);
+}
+
+.artistConcertRow .where {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artistConcertRow.more {
+  color: var(--text-faint);
+  padding-left: 82px;
+}
