@@ -124,7 +124,10 @@
     "copyright": "Copyright © 2019 ${author}",
     "mac": {
       "category": "public.app-categories.utilities",
-      "target": "zip"
+      "target": "zip",
+      "extendInfo": {
+        "NSLocationWhenInUseUsageDescription": "MyMusic uses your location to find concerts near you."
+      }
     },
     "files": [
       "build/**/*",

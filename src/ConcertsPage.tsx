@@ -1,5 +1,5 @@
 import {Artist, Track} from './redux/actionTypes';
-import {apiKeyHelp, CityResult, getApiKey, locateByIp, searchCities} from './concerts/api';
+import {apiKeyHelp, CityResult, getApiKey, locateByDevice, locateByIp, searchCities} from './concerts/api';
 import './ConcertsPage.css';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -179,8 +179,15 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
   private async useMyLocation(): Promise<void> {
     this.setState({locating: true});
     try {
-      const here = await locateByIp();
-      this.pickCity({label: `${here.label} (approx.)`, lat: here.lat, lon: here.lon});
+      let here: CityResult;
+      try {
+        // the OS knows best; it only answers once Location Services has been granted
+        here = await locateByDevice();
+      } catch (deviceErr) {
+        const approx = await locateByIp();
+        here = {label: `${approx.label} (approx.)`, lat: approx.lat, lon: approx.lon};
+      }
+      this.pickCity(here);
     } catch (err) {
       this.setState({
         cache: Object.assign({}, this.state.cache, {

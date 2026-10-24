@@ -134,6 +134,30 @@ async function getPage(url: string, key: string): Promise<EventsResponse> {
 }
 
 /**
+ * Precise location from the OS. On macOS this reaches CoreLocation, which resolves nearby wifi
+ * through Apple rather than Google — but only once the bundle declares
+ * NSLocationWhenInUseUsageDescription (see the mac build config) and the user has granted
+ * Location Services. It fails cleanly everywhere else, so callers fall back to IP.
+ */
+export function locateByDevice(timeoutMs: number = 9000): Promise<CityResult> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new ConcertApiError(0, 'This build has no geolocation support.'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve({
+        label: 'Current location',
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+      }),
+      (error) => reject(new ConcertApiError(0, error.message || 'Location unavailable')),
+      {enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: timeoutMs},
+    );
+  });
+}
+
+/**
  * Approximate location from the connection's IP. JamBase's own geoIp parameter reports its
  * servers rather than the caller, so this asks a geolocation service directly. Accuracy is
  * ISP-level — a few miles — which is fine for centring a 25-mile radius, and the city picker

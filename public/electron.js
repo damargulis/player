@@ -7,6 +7,7 @@ const {
   Menu,
   MenuItem,
   ipcMain,
+  session,
   shell,
   protocol,
 } = require("electron");
@@ -19,6 +20,12 @@ const fs = require("fs");
 const os = require("os");
 
 app.whenReady().then(() => {
+  // This app only ever loads its own content (localhost in dev, file:// when packaged), so
+  // there is no third-party page to guard against. Without a handler Electron denies
+  // geolocation outright, which is what the concerts tab asks for.
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    callback(true);
+  });
   protocol.registerFileProtocol("file", (req, callback) => {
     const pathname = req.url.replace("file:///", "");
     callback(pathname);
