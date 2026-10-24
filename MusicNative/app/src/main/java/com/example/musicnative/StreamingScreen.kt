@@ -97,7 +97,10 @@ fun StreamingScreen(playPlaylist: (tracks: List<TrackData>) -> Unit) {
     }
 
     if (!StreamingClient.isConfigured(context)) {
-        return CenteredMessage("Streaming is not set up.\nAdd the service URL and device token in Settings.")
+        return CenteredMessage(
+            "Streaming is not set up.\nBuild with streaming.url and streaming.token in " +
+                "local.properties, or enter them in Streaming settings."
+        )
     }
 
     val filtered = remember(query, catalog) {
@@ -186,8 +189,11 @@ fun StreamingScreen(playPlaylist: (tracks: List<TrackData>) -> Unit) {
 @Composable
 fun StreamingSettingsScreen() {
     val context = LocalContext.current
-    var url by remember { mutableStateOf(StreamingClient.baseUrl(context)) }
-    var token by remember { mutableStateOf(StreamingClient.deviceToken(context)) }
+    // show the override if there is one, otherwise leave the fields blank so the built-in
+    // values are visibly the source rather than looking like something that was typed
+    val builtIn = StreamingClient.isUsingBuiltInConfig(context)
+    var url by remember { mutableStateOf(if (builtIn) "" else StreamingClient.baseUrl(context)) }
+    var token by remember { mutableStateOf(if (builtIn) "" else StreamingClient.deviceToken(context)) }
     var saved by remember { mutableStateOf(false) }
     val status by StreamingClient.status.observeAsState("")
     val online by Connectivity.isOnline.observeAsState(false)
@@ -205,12 +211,28 @@ fun StreamingSettingsScreen() {
             color = if (online) Success else Warning,
             fontSize = 13.sp,
         )
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        if (builtIn && StreamingClient.isConfigured(context)) {
+            Card(
+                shape = RoundedCornerShape(10.dp),
+                backgroundColor = com.example.musicnative.ui.theme.Surface,
+                elevation = 0.dp,
+            ) {
+                Text(
+                    "Using the configuration built into this APK. Nothing to enter — leave " +
+                        "these blank unless you want to point this device somewhere else.",
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(14.dp),
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = url,
             onValueChange = { url = it; saved = false },
-            label = { Text("Service URL") },
+            label = { Text(if (builtIn) "Service URL (override)" else "Service URL") },
             placeholder = { Text("https://…run.app") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -219,7 +241,7 @@ fun StreamingSettingsScreen() {
         OutlinedTextField(
             value = token,
             onValueChange = { token = it; saved = false },
-            label = { Text("Device token") },
+            label = { Text(if (builtIn) "Device token (override)" else "Device token") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -256,7 +278,8 @@ fun StreamingSettingsScreen() {
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             "Synced tracks always play from the phone. Streaming is only used for tracks you " +
-                "have not synced, and only while online.",
+                "have not synced, and only while online. Clearing a field above removes the " +
+                "override and goes back to the built-in values.",
             color = TextSecondary,
             fontSize = 12.sp,
         )

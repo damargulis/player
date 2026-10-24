@@ -1,0 +1,14 @@
+# Copy to local.properties (gitignored) to bake the streaming config into the APK, so a fresh
+# install needs no typing on the phone. Both are optional — without them the app falls back to
+# the in-app Streaming settings screen.
+#
+# The token is a credential. Mint one per device with:
+#   node streaming/mint-token.js <device-label>
+# then add its hash to device_tokens in terraform/terraform.tfvars and re-apply, so a lost
+# phone can be revoked without affecting the others.
+#
+# An environment variable of the same name takes precedence, for one-off or CI builds:
+#   STREAMING_URL=... STREAMING_TOKEN=... ./gradlew assembleRelease
+
+streaming.url=https://your-service.run.app
+streaming.token=your-device-token

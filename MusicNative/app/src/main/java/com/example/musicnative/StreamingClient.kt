@@ -47,20 +47,42 @@ object StreamingClient {
 
     private var byId: Map<String, StreamTrack> = emptyMap()
 
-    fun baseUrl(context: Context): String =
-        prefs(context).getString(KEY_URL, "").orEmpty().trimEnd('/')
+    /**
+     * Where the service lives, and how we prove who we are.
+     *
+     * Both default to values baked in at build time (see `streaming.url` / `streaming.token` in
+     * local.properties), so a fresh install is already configured. The stored values are an
+     * override, used only if someone has actually typed something in settings - which is what
+     * makes it possible to point one build at a different service, or re-token a device,
+     * without a rebuild.
+     */
+    fun baseUrl(context: Context): String {
+        val stored = prefs(context).getString(KEY_URL, "").orEmpty().trim()
+        return (if (stored.isNotEmpty()) stored else BuildConfig.STREAMING_URL).trimEnd('/')
+    }
 
-    fun deviceToken(context: Context): String =
-        prefs(context).getString(KEY_TOKEN, "").orEmpty()
+    fun deviceToken(context: Context): String {
+        val stored = prefs(context).getString(KEY_TOKEN, "").orEmpty().trim()
+        return if (stored.isNotEmpty()) stored else BuildConfig.STREAMING_TOKEN
+    }
+
+    /** True when the current values came from the build rather than from settings. */
+    fun isUsingBuiltInConfig(context: Context): Boolean =
+        prefs(context).getString(KEY_URL, "").orEmpty().isBlank()
 
     fun isConfigured(context: Context): Boolean =
         baseUrl(context).isNotEmpty() && deviceToken(context).isNotEmpty()
 
+    /**
+     * Stores an override. Clearing a field removes the override rather than persisting an
+     * empty string, so blanking the form falls back to the built-in values instead of
+     * silently breaking streaming with no way back short of reinstalling.
+     */
     fun save(context: Context, url: String, token: String) {
-        prefs(context).edit()
-            .putString(KEY_URL, url.trim().trimEnd('/'))
-            .putString(KEY_TOKEN, token.trim())
-            .apply()
+        val editor = prefs(context).edit()
+        if (url.isBlank()) editor.remove(KEY_URL) else editor.putString(KEY_URL, url.trim().trimEnd('/'))
+        if (token.isBlank()) editor.remove(KEY_TOKEN) else editor.putString(KEY_TOKEN, token.trim())
+        editor.apply()
     }
 
     private fun prefs(context: Context) =

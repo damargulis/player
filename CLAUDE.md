@@ -124,6 +124,13 @@ for streamed URLs itself. Catalog entries become `TrackData` via `streamTrackToD
 `stream-artist:`/`stream-album:` ids that are never written to the library, so they cannot collide
 with synced entities.
 
+The phone's service URL and token are baked in at build time from `streaming.url` /
+`streaming.token` in `MusicNative/local.properties` (gitignored; `local.properties.example`
+documents it), or same-named env vars for a one-off build — so a fresh install needs no typing.
+The in-app settings screen is an **override**: clearing a field removes it and falls back to the
+built-in values rather than persisting an empty string, which would otherwise break streaming
+with no way back short of reinstalling.
+
 Auth is a long random **per-device token** held in app prefs, with the service keeping token
 hashes; revocable per device, no OAuth plumbing, and enrollment needs no laptop. Google Sign-In
 with a two-account allowlist is the upgrade if that chafes. Play counts need **no new protocol**:
