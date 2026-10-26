@@ -10,6 +10,7 @@ import {
   emptyCache,
   MONTHLY_CALL_BUDGET,
 } from './types';
+import {localDate} from '../utils';
 
 /**
  * Concerts live in their own file rather than in library.json. They expire, they churn on every
@@ -40,11 +41,68 @@ export function loadCache(): ConcertCache {
 }
 
 export function saveCache(cache: ConcertCache): void {
+  byArtist = undefined;
   try {
     fs.writeFileSync(CACHE_FILE(), JSON.stringify(cache), 'utf8');
   } catch (err) {
     // a cache we cannot persist is still usable in memory for this session
   }
+}
+
+/**
+ * Shows keyed by library artist id, built once and dropped whenever the cache is rewritten.
+ *
+ * The now-playing badge asks this on every track change, and reading and re-scanning a JSON
+ * file that many times would be silly for data that changes once a day. Every write goes
+ * through `saveCache`, so that is the only place the index can go stale.
+ */
+let byArtist: Record<string, Concert[]> | undefined;
+
+function concertIndex(): Record<string, Concert[]> {
+  if (byArtist) {
+    return byArtist;
+  }
+  const built: Record<string, Concert[]> = {};
+  // midnight today: a show earlier today has probably not happened yet, and one yesterday
+  // certainly has. The cache only holds future shows when fresh, but it is only refreshed
+  // daily, so without this a stale cache would badge a gig that is already over.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  loadCache().concerts.forEach((concert) => {
+    if (localDate(concert.date).getTime() < today.getTime()) {
+      return;
+    }
+    concert.artistIds.forEach((artistId) => {
+      built[artistId] = built[artistId] || [];
+      built[artistId].push(concert);
+    });
+  });
+  Object.keys(built).forEach((artistId) => {
+    built[artistId].sort((a, b) => localDate(a.date).getTime() - localDate(b.date).getTime());
+  });
+  byArtist = built;
+  return built;
+}
+
+/**
+ * Upcoming shows for any of these artists, soonest first.
+ *
+ * Takes a list because a track can credit several artists, and a show by any of them is worth
+ * flagging. De-duplicated by event id, since a collaboration lists both performers.
+ */
+export function concertsForArtists(artistIds: string[]): Concert[] {
+  const index = concertIndex();
+  const seen: Record<string, boolean> = {};
+  const out: Concert[] = [];
+  artistIds.forEach((artistId) => {
+    (index[artistId] || []).forEach((concert) => {
+      if (!seen[concert.id]) {
+        seen[concert.id] = true;
+        out.push(concert);
+      }
+    });
+  });
+  return out.sort((a, b) => localDate(a.date).getTime() - localDate(b.date).getTime());
 }
 
 /** Artists keyed by MusicBrainz id, which is how JamBase performers are matched. */

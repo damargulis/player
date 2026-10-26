@@ -1,4 +1,5 @@
 import {Album, Artist, Track} from './redux/actionTypes';
+import ConcertBadge from './ConcertBadge';
 import {ipcRenderer} from 'electron';
 import Links from './Links';
 import defaultAlbum from './resources/missing_album.png';
@@ -47,6 +48,7 @@ class InfoPanel extends React.Component<InfoPanelProps> {
           </div>
           <div className="track-label" id="author">
             <Links items={this.props.artists} goToItem={this.props.goToArtist} name="Artists" />
+            <ConcertBadge artistIds={this.props.artists.map((artist) => artist.id)} />
           </div>
           <div className="track-label" id="album">
             <Links items={this.props.albums} goToItem={this.props.goToAlbum} name="Albums" />

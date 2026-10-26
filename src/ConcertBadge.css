@@ -1,0 +1,17 @@
+/*
+ * Sits inline with the artist name. The mini player gives the whole info panel about 180px of
+ * width, so this has to cost almost nothing - hence an emoji rather than a labelled button.
+ */
+.concertBadge {
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  margin-left: 5px;
+  /* emoji sit high in the line box next to text this small */
+  vertical-align: 1px;
+}
+
+.concertBadge:hover {
+  filter: brightness(1.25);
+}

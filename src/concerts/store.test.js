@@ -1,4 +1,4 @@
-import {artistsByMbid, budgetRemaining, findUnseen, isStale, matchConcerts, REFRESH_INTERVAL_MS} from './store';
+import {artistsByMbid, budgetRemaining, concertsForArtists, findUnseen, isStale, matchConcerts, REFRESH_INTERVAL_MS, saveCache} from './store';
 import {DEFAULT_LOCATION, emptyCache, milesBetween, MONTHLY_CALL_BUDGET} from './types';
 
 function ev(id, date, mbids, venue = 'Venue') {
@@ -136,5 +136,67 @@ describe('findUnseen', () => {
   it('does not flag a show twice', () => {
     const previous = cache(1000, [], ['a']);
     expect(findUnseen(previous, shows('a'))).toStrictEqual(['a']);
+  });
+});
+
+describe('concertsForArtists', () => {
+  function show(id, date, artistIds, venue = 'Bowery Ballroom') {
+    return {artistIds, city: 'New York', date, id, name: 'Show', region: 'NY', venue};
+  }
+
+  function dayOffset(days) {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() + days);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-` +
+      `${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  function seed(concerts) {
+    // saveCache is the only writer, so it is also what drops the memoised index
+    saveCache(Object.assign(emptyCache(), {concerts}));
+  }
+
+  it('returns an artist\'s upcoming shows', () => {
+    seed([show('e1', dayOffset(5), ['ar1'])]);
+    expect(concertsForArtists(['ar1']).map((c) => c.id)).toStrictEqual(['e1']);
+  });
+
+  it('is empty for an artist with nothing coming up', () => {
+    seed([show('e1', dayOffset(5), ['ar1'])]);
+    expect(concertsForArtists(['ar2'])).toStrictEqual([]);
+  });
+
+  it('orders soonest first, so the badge names the next show', () => {
+    seed([show('e2', dayOffset(20), ['ar1']), show('e1', dayOffset(3), ['ar1'])]);
+    expect(concertsForArtists(['ar1']).map((c) => c.id)).toStrictEqual(['e1', 'e2']);
+  });
+
+  // A track crediting both halves of a collaboration must not badge the same gig twice.
+  it('de-duplicates a show shared by two credited artists', () => {
+    seed([show('e1', dayOffset(5), ['ar1', 'ar2'])]);
+    expect(concertsForArtists(['ar1', 'ar2']).map((c) => c.id)).toStrictEqual(['e1']);
+  });
+
+  it('merges shows across the artists on one track', () => {
+    seed([show('e1', dayOffset(3), ['ar1']), show('e2', dayOffset(9), ['ar2'])]);
+    expect(concertsForArtists(['ar1', 'ar2']).map((c) => c.id)).toStrictEqual(['e1', 'e2']);
+  });
+
+  // The cache is only refreshed daily, so without a date filter a stale one would keep
+  // badging a gig that has already happened.
+  it('ignores shows that have already happened', () => {
+    seed([show('past', dayOffset(-2), ['ar1']), show('soon', dayOffset(2), ['ar1'])]);
+    expect(concertsForArtists(['ar1']).map((c) => c.id)).toStrictEqual(['soon']);
+  });
+
+  it('still counts a show later today', () => {
+    seed([show('tonight', dayOffset(0), ['ar1'])]);
+    expect(concertsForArtists(['ar1']).map((c) => c.id)).toStrictEqual(['tonight']);
+  });
+
+  it('is empty when nothing is cached at all', () => {
+    seed([]);
+    expect(concertsForArtists(['ar1'])).toStrictEqual([]);
   });
 });
