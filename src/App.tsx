@@ -6,6 +6,7 @@ import './App.css';
 import {publishCatalog} from './backup/catalog';
 import {runCloudBackup} from './backup/cloudBackup';
 import {BACKUP_TIME, DATA_DIR} from './constants';
+import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
@@ -307,6 +308,13 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
 
     this.audio = new Audio();
     this.audio.volume = this.props.volume;
+    // lets the macOS media keys, the menu-bar card and an AirPlay receiver's remote drive us
+    setTransportHandlers({
+      next: () => this.props.nextTrack(),
+      pause: () => this.props.playPause(),
+      play: () => this.props.playPause(),
+      previous: () => this.props.prevTrack(),
+    });
     this.audio.addEventListener('timeupdate', () => {
       this.props.updateTime(this.audio.currentTime);
       this.sendControllerUpdate();
@@ -366,6 +374,12 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
     if (this.audio.volume !== this.props.volume) {
       this.audio.volume = this.props.volume;
     }
+    if (prevProps.track !== this.props.track) {
+      this.updateNowPlayingCard();
+    }
+    if (prevProps.playing !== this.props.playing) {
+      setPlaybackState(this.props.playing);
+    }
     const path = this.props.track && this.props.track.filePath;
     const prevPath = prevProps.track && prevProps.track.filePath;
     if (path && path !== prevPath) {
@@ -396,6 +410,28 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
         </div>
       </div>
     );
+  }
+
+  /**
+   * Pushes the current track to the OS now-playing card.
+   *
+   * Shares the artist/album lookups the phone controller already does. The art path is the
+   * album's own file, so a track with no art simply shows none rather than a stale cover.
+   */
+  private updateNowPlayingCard(): void {
+    const track = this.props.track;
+    if (!track) {
+      updateNowPlaying(undefined);
+      return;
+    }
+    const artists = this.props.getArtistsByIds(track.artistIds);
+    const albums = this.props.getAlbumsByIds(track.albumIds);
+    updateNowPlaying({
+      album: albums.length ? albums[0].name : '',
+      artFile: albums.length ? albums[0].albumArtFile : undefined,
+      artist: artists.map((artist) => artist.name).join(', '),
+      title: track.name,
+    });
   }
 
   /** Offsite copy of the irreplaceable files. Silent unless something actually went wrong. */
