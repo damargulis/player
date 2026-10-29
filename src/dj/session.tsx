@@ -398,7 +398,7 @@ class DJSession {
     this.emit();
     while (this.pending.length) {
       const next = this.pending.shift() as {text: string; automatic: boolean; speaker?: string};
-      await this.runTurn(next.text, next.automatic);
+      await this.runTurn(next.text, next.automatic, next.speaker);
     }
     this.busy = false;
     this.emit();
