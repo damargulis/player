@@ -3,7 +3,6 @@ import {
   CurrentlyPlayingActionTypes,
   CurrentlyPlayingState,
   DJ_QUEUE_UPDATED,
-  DJ_TAKE_OVER,
   NEXT_ALBUM,
   NEXT_TRACK,
   PLAY_PAUSE,
@@ -11,6 +10,7 @@ import {
   PREV_TRACK,
   SET_PLAYLIST,
   SET_TIME,
+  SWAP_PLAYLIST,
   UPDATE_TIME,
 } from '../actionTypes';
 import {DEFAULT_VOLUME} from '../../constants';
@@ -79,9 +79,11 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
         isPlaying: true,
       });
     }
-    case DJ_TAKE_OVER: {
-      // Deliberately leaves currentlyPlayingId, isPlaying and time untouched: the DJ adopts
-      // the track that is already playing rather than re-selecting (and restarting) it.
+    case SWAP_PLAYLIST: {
+      // Replaces the playlist and deliberately leaves currentlyPlayingId, isPlaying and time
+      // untouched, so whatever is playing is neither restarted nor un-paused. Used in both
+      // directions: the DJ adopting the current track when it takes the queue over, and
+      // handing it back to album shuffle when the set ends.
       return Object.assign({}, state, {
         playlist: action.payload.playlist,
         queueVersion: state.queueVersion + 1,

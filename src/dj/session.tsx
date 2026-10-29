@@ -19,7 +19,6 @@ import store, {RootState} from '../redux/store';
 import {
   describeQueue,
   DJ_TOOLS,
-  ensureDJPlaylist,
   executeTool,
   formatTrack,
   queueSnapshot,
@@ -97,6 +96,7 @@ Working style
 - Don't repeat tracks already played this session unless the listener asks.
 - The first message of a session already lists what was played in the last few days — steer around it. Anything they have heard that recently is the most likely to feel stale, even when it is something they love, so leave it out unless they ask for that artist, album or song by name. A favourite they haven't played in months is still a great pick; the point is not to serve back the same handful of records every time. recent_plays goes further back if you want more.
 - If the library doesn't have what they're asking for, say so briefly and offer the closest thing it does have.
+- When they say they're done — "that's enough", "end the session", "back to album shuffle", "stop DJing" — call end_session and sign off in the same reply. It hands the queue back to the app's own album shuffle; what's playing is not interrupted, the shuffle picks up at the next track, and the rest of your queue is dropped, so say goodbye rather than queueing more. Nothing is lost: queueing anything later starts a fresh set.
 - Keep replies short and conversational (one to three sentences). The panel already shows the queue, so don't list every track — mention the direction you took and maybe a highlight.
 
 Memory
@@ -144,6 +144,7 @@ const TOOL_PHRASES: Record<string, string> = {
   search_albums: 'Browsing albums',
   search_library: 'Searching the library',
   set_queue: 'Rebuilding the queue',
+  end_session: 'Handing back to album shuffle',
   skip_current: 'Skipping ahead',
   web_search: 'Looking it up online',
 };
@@ -424,7 +425,10 @@ class DJSession {
   }
 
   private async runTurn(text: string, automatic: boolean, speaker?: string): Promise<void> {
-    ensureDJPlaylist();
+    // Deliberately does NOT seize the queue here. Every tool that needs the DJ playlist calls
+    // ensureDJPlaylist itself, so talking to the DJ no longer takes playback over on its own —
+    // which also means `end_session` sticks: saying "thanks, goodnight" afterwards would
+    // otherwise have grabbed the queue straight back.
     if (automatic) {
       this.addEntry('status', 'Queue running low — asking the DJ for more…');
     } else {

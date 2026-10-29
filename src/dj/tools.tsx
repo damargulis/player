@@ -1,9 +1,10 @@
-import {Album, Artist, DJ_QUEUE_UPDATED, DJ_TAKE_OVER, NEXT_TRACK, SET_PLAYLIST, Track} from '../redux/actionTypes';
+import {Album, Artist, DJ_QUEUE_UPDATED, NEXT_TRACK, SET_PLAYLIST, SWAP_PLAYLIST, Track} from '../redux/actionTypes';
 import activity, {humanDuration} from './activity';
 import {Tool} from './api';
 import {artistShowMarker, describeShow, showsForArtist, showsForArtists} from './concertInfo';
 import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {OWNER} from './owner';
+import RandomAlbumPlaylist from '../playlist/RandomAlbumPlaylist';
 import {currentReaction, describeReactions, Reaction} from '../reactions';
 import {
   getAlbumById,
@@ -218,6 +219,16 @@ export const DJ_TOOLS: Tool[] = [
     input_schema: {properties: {}, type: 'object'},
     name: 'skip_current',
   },
+  {
+    description: 'End the set and hand playback back to the app\'s own album shuffle. ' +
+      'Use when the listener says they are done — "that\'s enough", "end the session", ' +
+      '"back to normal", "go back to album shuffle". Whatever is playing keeps playing and is ' +
+      'not interrupted; the shuffle picks up when that track finishes. Your remaining queue is ' +
+      'dropped, so say goodbye in the same reply. Taking the queue back later is fine: queueing ' +
+      'anything starts a new set.',
+    input_schema: {properties: {}, type: 'object'},
+    name: 'end_session',
+  },
 ];
 
 export interface ToolOutcome {
@@ -332,14 +343,40 @@ export function ensureDJPlaylist(): DJPlaylist {
   const playlist = new DJPlaylist();
   if (currentId) {
     // Adopt the track that is already playing, and inherit whatever the app's own playlist had
-    // queued rather than discarding it. DJ_TAKE_OVER leaves playback state alone, so the current
+    // queued rather than discarding it. SWAP_PLAYLIST leaves playback state alone, so the current
     // track is neither restarted nor un-paused.
     playlist.adopt(currentId, state.currentlyPlaying.playlist.getUpcoming());
-    store.dispatch({payload: {playlist}, type: DJ_TAKE_OVER});
+    store.dispatch({payload: {playlist}, type: SWAP_PLAYLIST});
   } else {
     store.dispatch({payload: {play: false, playlist}, type: SET_PLAYLIST});
   }
   return playlist;
+}
+
+/**
+ * Gives the queue back to the app's own album shuffle.
+ *
+ * The exact mirror of `ensureDJPlaylist`: SWAP_PLAYLIST leaves playback alone, so the track
+ * that is playing finishes normally and the shuffle only takes effect at the next track. There
+ * is no separate "session ended" flag — `session.isActive()` just asks whether the playlist is
+ * a DJPlaylist, so handing it back is what ends the set, and queueing anything later starts a
+ * new one.
+ */
+export function handBackToShuffle(state: RootState): ToolOutcome {
+  const albums = Object.values(state.library.albums);
+  if (!albums.length) {
+    return {content: 'There are no albums to shuffle.', isError: true};
+  }
+  const playlist = new RandomAlbumPlaylist(albums);
+  if (state.currentlyPlaying.currentlyPlayingId) {
+    store.dispatch({payload: {playlist}, type: SWAP_PLAYLIST});
+    return {
+      content: 'Set ended. Album shuffle has the queue; the current track finishes first.',
+      queueChanged: true,
+    };
+  }
+  store.dispatch({payload: {play: false, playlist}, type: SET_PLAYLIST});
+  return {content: 'Set ended. Album shuffle has the queue.', queueChanged: true};
 }
 
 /**
@@ -1041,6 +1078,9 @@ export function executeTool(name: string, input: Record<string, unknown>): ToolO
       playlist.addUpcoming(ids, str(input, 'position') === 'next' ? 'next' : 'end'));
   case 'remove_from_queue':
     return mutateQueue(input, (playlist, ids) => playlist.removeUpcoming(ids));
+  case 'end_session': {
+    return handBackToShuffle(state);
+  }
   case 'skip_current': {
     const playlist = getPlaylist(state);
     if (!playlist) {
