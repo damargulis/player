@@ -139,8 +139,12 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
         speakers.push(entry.speaker);
       }
     });
-    const showSpeaker = speakers.length > 1;
-    return entries.map((entry) => this.renderEntry(entry, showSpeaker));
+    // Label anyone who is not the owner, always. The original rule only labelled once two
+    // people had spoken, which meant a guest chatting on their own appeared anonymous — the
+    // one case where knowing who is talking matters most.
+    const manySpeakers = speakers.length > 1;
+    return entries.map((entry) => this.renderEntry(
+      entry, Boolean(entry.speaker) && (manySpeakers || entry.speaker !== OWNER)));
   }
 
   private visibleEntries(): TranscriptEntry[] {

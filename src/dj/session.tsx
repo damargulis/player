@@ -242,6 +242,9 @@ class DJSession {
         text: entry.text,
       })),
       hasSession: this.messages.length > 0,
+      // Clients need to know which name is the owner's to decide when a label adds anything:
+      // "Daniel" on every message of a solo session is noise, but anyone else is the point.
+      owner: OWNER,
       queue: queueSnapshot(store.getState()),
     };
   }

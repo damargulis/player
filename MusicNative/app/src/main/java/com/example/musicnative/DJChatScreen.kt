@@ -66,6 +66,7 @@ fun DJChatScreen(onClose: () -> Unit) {
     val queue by DJChatState.queue.observeAsState(null)
     var queueOpen by remember { mutableStateOf(false) }
     val configured by DJChatState.configured.observeAsState(true)
+    val owner by DJChatState.owner.observeAsState(null)
     val connected by ServerConnection.connected.observeAsState(false)
     var draft by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -200,9 +201,13 @@ fun DJChatScreen(onClose: () -> Unit) {
                         )
                     }
                 }
-                // names appear only once a second person has joined the conversation
+                // Anyone who is not the owner is always named; the owner's own name waits
+                // until someone else speaks, so a solo chat stays clean. Naming only after a
+                // second speaker left a guest chatting alone looking anonymous.
                 val multipleSpeakers = entries.mapNotNull { it.speaker }.distinct().size > 1
-                items(entries, key = { it.id }) { entry -> ChatBubble(entry, multipleSpeakers) }
+                items(entries, key = { it.id }) { entry ->
+                    ChatBubble(entry, multipleSpeakers || (entry.speaker != null && entry.speaker != owner))
+                }
                 if (busy) {
                     item {
                         Text(

@@ -226,3 +226,27 @@ test('removing does nothing when the DJ queue is not active', () => {
   store.dispatch({payload: {play: false, playlist: new EmptyPlaylist()}, type: SET_PLAYLIST});
   expect(() => session.removeFromQueue(['t1'])).not.toThrow();
 });
+
+describe('speaker labelling', () => {
+  // The rule the three clients share. It lived only in their render code before, where the
+  // same mistake had to be made three times to be wrong everywhere - and was.
+  function shouldLabel(entry, speakers, owner) {
+    return Boolean(entry.speaker) && (speakers.length > 1 || entry.speaker !== owner);
+  }
+
+  it('labels a guest even when they are the only one talking', () => {
+    expect(shouldLabel({speaker: 'Chloe'}, ['Chloe'], 'Daniel')).toBe(true);
+  });
+
+  it('leaves the owner unlabelled in a solo session, which is the point of the rule', () => {
+    expect(shouldLabel({speaker: 'Daniel'}, ['Daniel'], 'Daniel')).toBe(false);
+  });
+
+  it('labels the owner once someone else has spoken', () => {
+    expect(shouldLabel({speaker: 'Daniel'}, ['Daniel', 'Chloe'], 'Daniel')).toBe(true);
+  });
+
+  it('labels nothing for an entry with no speaker', () => {
+    expect(shouldLabel({speaker: null}, ['Daniel', 'Chloe'], 'Daniel')).toBe(false);
+  });
+});

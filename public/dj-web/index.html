@@ -476,6 +476,8 @@
   var whoami = document.getElementById('whoami');
   var whoisname = document.getElementById('whoisname');
   var speaker = null;
+  // who the desktop is; sent with every dj-state so clients can tell a guest from the owner
+  var owner = null;
   // Keep in step with src/dj/speakerColor.tsx and DJChatScreen.kt so a person's colour
   // is the same on every client.
   var SPEAKER_COLORS = ['#8b7cf6', '#12a594', '#e0557a', '#b9740f', '#3fa45c', '#4a86f0'];
@@ -569,14 +571,16 @@
 
   function renderEntries(entries) {
     var stick = atBottom();
-    // names only appear once a second person has joined, so solo chats stay clean
+    // Anyone who is not the owner is always named; the owner's own name is only shown once
+    // someone else has spoken, so a solo chat stays clean. The earlier rule hid the name until
+    // two people had spoken, which left a guest chatting alone looking anonymous.
     var speakers = [];
     entries.forEach(function (entry) {
       if (entry.speaker && speakers.indexOf(entry.speaker) < 0) {
         speakers.push(entry.speaker);
       }
     });
-    var showSpeaker = speakers.length > 1;
+    var manySpeakers = speakers.length > 1;
     var seen = {};
     entries.forEach(function (entry) {
       seen[entry.id] = true;
@@ -595,7 +599,8 @@
       if (entry.role === 'user' && entry.speaker) {
         el.style.background = speakerColor(entry.speaker);
       }
-      var label = (showSpeaker && entry.speaker) ? entry.speaker : '';
+      var named = entry.speaker && (manySpeakers || entry.speaker !== owner);
+      var label = named ? entry.speaker : '';
       if (nameEl.textContent !== label) {
         nameEl.textContent = label;
       }
@@ -776,6 +781,9 @@
   socket.on('dj-state', function (state) {
     if (!state) {
       return;
+    }
+    if (state.owner) {
+      owner = state.owner;
     }
     renderEntries(state.entries || []);
     renderQueue(state.queue);
