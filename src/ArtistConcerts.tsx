@@ -1,6 +1,6 @@
 import {shell} from 'electron';
 import React from 'react';
-import {loadCache} from './concerts/store';
+import {concertsForArtists, loadCache} from './concerts/store';
 import {Concert} from './concerts/types';
 import {localDate} from './utils';
 
@@ -74,10 +74,11 @@ export default class ArtistConcerts extends React.Component<OwnProps, ArtistConc
   }
 
   private load(): void {
-    const cache = loadCache();
+    // concertsForArtists drops shows that have already happened; filtering the raw cache here
+    // is what listed a gig from three days ago as upcoming.
     this.setState({
-      concerts: cache.concerts.filter((concert) => concert.artistIds.indexOf(this.props.artistId) >= 0),
-      where: cache.location.label,
+      concerts: concertsForArtists([this.props.artistId]),
+      where: loadCache().location.label,
     });
   }
 }

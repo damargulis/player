@@ -8,7 +8,15 @@ const API_URL = 'https://api.anthropic.com/v1/messages';
 const API_VERSION = '2023-06-01';
 const API_KEY_NAME = 'ANTHROPIC_API_KEY';
 
-export const DJ_MODEL = 'claude-opus-5';
+/**
+ * The current Opus, and cheaper than Opus 5 ($4/$20 per MTok against $5/$25).
+ *
+ * Opus 5.5 rejects three things Opus 5 allowed — disabled thinking at any effort, forced
+ * `tool_choice`, and a thinking budget — none of which this client sends. Its effort default
+ * also dropped from `high` to `medium`, which does not bite here because `createMessage`
+ * always sets `output_config.effort` explicitly.
+ */
+export const DJ_MODEL = 'claude-opus-5-5';
 
 /**
  * A short display name for a model id: `claude-opus-5-5` reads as "Opus 5.5".

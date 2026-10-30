@@ -58,18 +58,40 @@ export function saveCache(cache: ConcertCache): void {
  */
 let byArtist: Record<string, Concert[]> | undefined;
 
+/** Drops the memoised index. `saveCache` does this already; tests and refreshes use it too. */
+export function resetConcertIndex(): void {
+  byArtist = undefined;
+}
+
+/**
+ * Whether a show still lies ahead.
+ *
+ * Midnight today, so a gig later tonight still counts and yesterday's does not. **This is the
+ * only definition of "upcoming" — every view must go through it.** The cache keeps shows until
+ * the next sweep, and sweeps are daily at best, so anything reading it raw will sooner or later
+ * present a gig that has already happened as upcoming. That is exactly what three separate
+ * copies of this logic did.
+ */
+export function isUpcoming(concert: Concert, now: Date = new Date()): boolean {
+  const today = new Date(now.getTime());
+  today.setHours(0, 0, 0, 0);
+  return localDate(concert.date).getTime() >= today.getTime();
+}
+
+/** Every show still ahead, soonest first. */
+export function upcomingConcerts(cache: ConcertCache = loadCache()): Concert[] {
+  return cache.concerts
+    .filter((concert) => isUpcoming(concert))
+    .sort((a, b) => localDate(a.date).getTime() - localDate(b.date).getTime());
+}
+
 function concertIndex(): Record<string, Concert[]> {
   if (byArtist) {
     return byArtist;
   }
   const built: Record<string, Concert[]> = {};
-  // midnight today: a show earlier today has probably not happened yet, and one yesterday
-  // certainly has. The cache only holds future shows when fresh, but it is only refreshed
-  // daily, so without this a stale cache would badge a gig that is already over.
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   loadCache().concerts.forEach((concert) => {
-    if (localDate(concert.date).getTime() < today.getTime()) {
+    if (!isUpcoming(concert)) {
       return;
     }
     concert.artistIds.forEach((artistId) => {

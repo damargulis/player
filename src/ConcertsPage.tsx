@@ -5,7 +5,7 @@ import './ConcertsPage.css';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAllTracks, getArtistById} from './redux/selectors';
-import {budgetRemaining, isStale, loadCache, markSeen, refreshConcerts} from './concerts/store';
+import {budgetRemaining, isStale, isUpcoming, loadCache, markSeen, refreshConcerts} from './concerts/store';
 import {RootState} from './redux/store';
 import {Concert, ConcertCache, emptyCache, milesBetween} from './concerts/types';
 import {dayKey, localDate} from './utils';
@@ -516,7 +516,9 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
 
   private visibleConcerts(): Concert[] {
     const {filter} = this.state;
-    const concerts = this.state.cache.concerts.filter((concert) => {
+    // isUpcoming first: the cache keeps a show until the next sweep, so without it the list
+    // runs backwards into gigs that are already over.
+    const concerts = this.state.cache.concerts.filter((c) => isUpcoming(c)).filter((concert) => {
       if (filter === 'favorites') {
         return concert.artistIds.some((id) => this.props.favoriteArtistIds.indexOf(id) >= 0);
       }

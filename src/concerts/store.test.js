@@ -1,4 +1,4 @@
-import {artistsByMbid, budgetRemaining, concertsForArtists, findUnseen, isStale, matchConcerts, REFRESH_INTERVAL_MS, saveCache} from './store';
+import {artistsByMbid, budgetRemaining, concertsForArtists, findUnseen, isStale, matchConcerts, isUpcoming, REFRESH_INTERVAL_MS, saveCache, upcomingConcerts} from './store';
 import {DEFAULT_LOCATION, emptyCache, milesBetween, MONTHLY_CALL_BUDGET} from './types';
 
 function ev(id, date, mbids, venue = 'Venue') {
@@ -198,5 +198,49 @@ describe('concertsForArtists', () => {
   it('is empty when nothing is cached at all', () => {
     seed([]);
     expect(concertsForArtists(['ar1'])).toStrictEqual([]);
+  });
+});
+
+describe('isUpcoming', () => {
+  function show(date) {
+    return {artistIds: ['ar1'], city: 'New York', date, id: 'e1', name: 'Show', region: 'NY',
+      venue: 'Venue'};
+  }
+  const now = new Date('2026-10-30T15:00:00');
+
+  // The reported bug: on Oct 30 the artist page still listed an Oct 27 gig, and the DJ called
+  // it upcoming. Three separate copies of this check existed and only one filtered by date.
+  it('excludes a show from earlier in the week', () => {
+    expect(isUpcoming(show('2026-10-27'), now)).toBe(false);
+  });
+
+  it('excludes yesterday', () => {
+    expect(isUpcoming(show('2026-10-29'), now)).toBe(false);
+  });
+
+  // Midnight, not "now": a gig tonight has not happened yet even at 3pm.
+  it('includes a show later today', () => {
+    expect(isUpcoming(show('2026-10-30'), now)).toBe(true);
+  });
+
+  it('includes future shows', () => {
+    expect(isUpcoming(show('2026-11-19'), now)).toBe(true);
+  });
+
+  // localDate, not new Date(iso): a date-only value is UTC midnight and lands a day early west
+  // of Greenwich, which would drop a show that is actually today.
+  it('reads a date-only value as local, not UTC', () => {
+    expect(isUpcoming(show('2026-10-30'), new Date('2026-10-30T00:30:00'))).toBe(true);
+  });
+});
+
+describe('upcomingConcerts', () => {
+  it('drops past shows and orders the rest soonest first', () => {
+    const cache = Object.assign(emptyCache(), {concerts: [
+      {artistIds: ['ar1'], city: 'NY', date: '2099-01-02', id: 'later', name: 'S', region: 'NY', venue: 'V'},
+      {artistIds: ['ar1'], city: 'NY', date: '2000-01-01', id: 'past', name: 'S', region: 'NY', venue: 'V'},
+      {artistIds: ['ar1'], city: 'NY', date: '2099-01-01', id: 'soon', name: 'S', region: 'NY', venue: 'V'},
+    ]});
+    expect(upcomingConcerts(cache).map((c) => c.id)).toStrictEqual(['soon', 'later']);
   });
 });

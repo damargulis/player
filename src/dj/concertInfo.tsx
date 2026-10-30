@@ -1,4 +1,4 @@
-import {loadCache} from '../concerts/store';
+import {concertsForArtists, resetConcertIndex} from '../concerts/store';
 import {Concert} from '../concerts/types';
 import {localDate} from '../utils';
 
@@ -11,49 +11,17 @@ import {localDate} from '../utils';
  * candidate is exactly how you end up with a set chosen for who happens to be touring.
  */
 
-/** Re-reading the cache file for every formatted line would be silly; it barely changes. */
-const TTL_MS = 30 * 1000;
-let cached: {at: number; byArtist: Record<string, Concert[]>} | undefined;
-
-function byArtist(): Record<string, Concert[]> {
-  if (cached && Date.now() - cached.at < TTL_MS) {
-    return cached.byArtist;
-  }
-  const map: Record<string, Concert[]> = {};
-  try {
-    loadCache().concerts.forEach((concert) => {
-      concert.artistIds.forEach((artistId) => {
-        map[artistId] = (map[artistId] || []).concat([concert]);
-      });
-    });
-  } catch (err) {
-    // no concerts cached yet; the DJ simply never mentions shows
-  }
-  cached = {at: Date.now(), byArtist: map};
-  return map;
-}
-
-/** Forgets the memoised cache; used by tests and after a refresh. */
+/** Kept for tests and for callers that refresh the cache; the shared index does the caching. */
 export function resetConcertInfo(): void {
-  cached = undefined;
+  resetConcertIndex();
 }
 
 export function showsForArtist(artistId: string): Concert[] {
-  return (byArtist()[artistId] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  return concertsForArtists([artistId]);
 }
 
 export function showsForArtists(artistIds: string[]): Concert[] {
-  const seen: Record<string, boolean> = {};
-  const out: Concert[] = [];
-  artistIds.forEach((artistId) => {
-    showsForArtist(artistId).forEach((concert) => {
-      if (!seen[concert.id]) {
-        seen[concert.id] = true;
-        out.push(concert);
-      }
-    });
-  });
-  return out.sort((a, b) => a.date.localeCompare(b.date));
+  return concertsForArtists(artistIds);
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
