@@ -1,6 +1,6 @@
 import {djQueueUpdated} from './redux/actions';
 import {Album, Track} from './redux/actionTypes';
-import {apiKeyHelp, getApiKey} from './dj/api';
+import {apiKeyHelp, DJ_MODEL, getApiKey, modelLabel} from './dj/api';
 import ArtImg from './ArtImg';
 import './DJPage.css';
 import DJPlaylist, {QueueEntry} from './playlist/DJPlaylist';
@@ -75,7 +75,10 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
     return (
       <div className="dj-chat">
         <div className="dj-chat-header">
-          <span>{session.isActive() ? 'DJ is controlling the queue' : 'DJ is idle'}</span>
+          <span>
+            {session.isActive() ? 'DJ is controlling the queue' : 'DJ is idle'}
+            <span className="dj-model" title={`Model: ${DJ_MODEL}`}>{modelLabel()}</span>
+          </span>
           <span>
             <label className="dj-verbose-toggle" title="Show the DJ's reasoning and every tool call">
               <input

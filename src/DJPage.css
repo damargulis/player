@@ -430,3 +430,17 @@
 .dj-album-header:hover .remove {
   opacity: 1;
 }
+
+/*
+ * Which model is DJing, beside the queue status. Deliberately quiet — it is reference
+ * information, not something to read on every glance; the exact id is on hover.
+ */
+.dj-model {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
