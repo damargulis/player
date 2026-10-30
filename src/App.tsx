@@ -96,6 +96,14 @@ class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
   private djStateTimer?: number;
   private backupTimer?: number;
+  /**
+   * The file currently loaded into the audio element.
+   *
+   * Tracked explicitly rather than compared against the previous render's path: when the same
+   * file plays twice in a row the path does not change, so a path comparison never reloads it
+   * — and `ended` has already blanked `src`, so playback stops dead with nothing to restart it.
+   */
+  private loadedPath?: string;
 
   constructor(props: AppProps) {
     super(props);
@@ -328,6 +336,7 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
         });
       }
       this.audio.src = '';
+      this.loadedPath = undefined;
       this.props.nextTrack();
     });
   }
@@ -381,9 +390,9 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
       setPlaybackState(this.props.playing);
     }
     const path = this.props.track && this.props.track.filePath;
-    const prevPath = prevProps.track && prevProps.track.filePath;
-    if (path && path !== prevPath) {
+    if (path && path !== this.loadedPath) {
       this.audio.src = new URL(path).toString();
+      this.loadedPath = path;
     }
     if (this.props.setTime !== undefined) {
       this.audio.currentTime = this.props.setTime;

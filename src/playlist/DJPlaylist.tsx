@@ -209,8 +209,19 @@ export default class DJPlaylist extends EmptyPlaylist {
     return this.history.slice(this.current + 1).concat(this.upcoming);
   }
 
+  /**
+   * Replaces what plays next, dropping the track that is already playing if it leads the list.
+   *
+   * The DJ reads the queue, thinks, then writes — and the song can end in between. The list it
+   * writes was built when the next track was still *next*, so by the time it lands that track
+   * is playing and ends up queued behind itself: shown twice, then played twice. Only a
+   * *leading* duplicate is dropped, so deliberately re-queueing something later still works.
+   */
   private setEntries(entries: QueueEntry[]): void {
     this.history = this.history.slice(0, this.current + 1);
-    this.upcoming = entries;
+    const currentId = this.getCurrentTrack();
+    this.upcoming = entries.length && currentId !== undefined && entries[0].id === currentId
+      ? entries.slice(1)
+      : entries;
   }
 }
