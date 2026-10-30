@@ -3,7 +3,14 @@ package com.example.musicnative
 import androidx.lifecycle.MutableLiveData
 import org.json.JSONObject
 
-data class ChatEntry(val id: Int, val role: String, val text: String, val speaker: String? = null)
+data class ChatEntry(
+    val id: Int,
+    val role: String,
+    val text: String,
+    val speaker: String? = null,
+    /** Epoch ms, as the desktop stamped it; null on entries from an older desktop build. */
+    val at: Long? = null,
+)
 
 data class QueueTrack(
     val id: String,
@@ -86,6 +93,7 @@ object DJChatState {
                         role = entry.optString("role", "dj"),
                         text = entry.optString("text", ""),
                         speaker = if (entry.isNull("speaker")) null else entry.optString("speaker", "").ifEmpty { null },
+                        at = if (entry.isNull("at")) null else entry.optLong("at").takeIf { it > 0 },
                     )
                 )
             }

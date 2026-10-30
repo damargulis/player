@@ -410,13 +410,28 @@
   }
 }
 
+.dj-entry-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+/* Quiet enough to scan past, there when you look for it. */
+.dj-entry-time {
+  font-size: 10px;
+  opacity: 0.45;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
 .dj-entry-speaker {
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   opacity: 0.65;
-  margin-bottom: 3px;
 }
 
 .dj-album-header .remove {

@@ -22,6 +22,7 @@ import {getAlbumById, getArtistsByIds, getCurrentTrackId, getQueueVersion, getTr
 import session, {DJSessionState, OWNER, TranscriptEntry, VERBOSE_ROLES} from './dj/session';
 import {speakerColor, speakerTint} from './dj/speakerColor';
 import {RootState} from './redux/store';
+import {clockTime} from './utils';
 import {toTime} from './utils';
 
 interface StateProps {
@@ -198,8 +199,16 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
       : undefined;
     return (
       <div key={entry.id} className={`dj-entry ${entry.role}`} style={tinted}>
-        {showSpeaker && entry.speaker &&
-          <div className="dj-entry-speaker" style={{color: speakerColor(entry.speaker)}}>{entry.speaker}</div>}
+        {(showSpeaker && entry.speaker) || entry.at ? (
+          <div className="dj-entry-meta">
+            {showSpeaker && entry.speaker && (
+              <span className="dj-entry-speaker" style={{color: speakerColor(entry.speaker)}}>
+                {entry.speaker}
+              </span>
+            )}
+            <span className="dj-entry-time">{clockTime(entry.at)}</span>
+          </div>
+        ) : null}
         <div className="dj-entry-text">{entry.text}</div>
         {entry.detail !== undefined && this.state.verbose &&
           <pre className="dj-entry-detail">{entry.detail}</pre>}

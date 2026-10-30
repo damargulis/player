@@ -28,6 +28,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
+import java.text.DateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -249,6 +252,18 @@ fun DJChatScreen(onClose: () -> Unit) {
 }
 
 /**
+ * Wall-clock time for an entry, matching clockTime in src/utils.tsx and the web app so the
+ * three clients agree. Hour and minute only; the device's own 12/24h setting decides the shape.
+ */
+private fun clockTime(at: Long?): String {
+    if (at == null || at <= 0L) {
+        return ""
+    }
+    // SHORT is hour-and-minute in every locale, and picks 12h or 24h from the locale itself.
+    return DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault()).format(Date(at))
+}
+
+/**
  * Stable colour per speaker, matching src/dj/speakerColor.tsx and the web app so the same
  * person looks the same on every client. Kotlin Int overflow matches JS's |0, so the hashes agree.
  */
@@ -397,9 +412,14 @@ private fun ChatBubble(entry: ChatEntry, showSpeaker: Boolean = false) {
                 .background(if (isUser) speakerColor(entry.speaker) else SurfaceLight)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            if (showSpeaker && entry.speaker != null) {
+            val named = showSpeaker && entry.speaker != null
+            val stamp = clockTime(entry.at)
+            if (named || stamp.isNotEmpty()) {
                 Text(
-                    entry.speaker.uppercase(),
+                    listOfNotNull(
+                        entry.speaker?.uppercase()?.takeIf { named },
+                        stamp.takeIf { it.isNotEmpty() },
+                    ).joinToString("  ·  "),
                     color = if (isUser) Color.White.copy(alpha = 0.75f) else TextSecondary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,

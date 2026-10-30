@@ -43,6 +43,8 @@ export interface TranscriptEntry {
   speaker?: string;
   /** Secondary text shown under `text` in the verbose view (e.g. a tool's result). */
   detail?: string;
+  /** When the entry was added, epoch ms. Formatted by each client in its own locale. */
+  at: number;
 }
 
 export interface DJSessionState {
@@ -237,6 +239,7 @@ class DJSession {
       configured: Boolean(getApiKey()),
       note: this.busyNote || null,
       entries: entries.slice(-limit).map((entry) => ({
+        at: entry.at || null,
         id: entry.id,
         role: entry.role,
         speaker: entry.speaker || null,
@@ -641,7 +644,9 @@ class DJSession {
   }
 
   private addEntry(role: EntryRole, text: string, detail?: string, speaker?: string): void {
-    this.entries = this.entries.concat([{detail, id: this.nextId++, role, speaker, text}]);
+    this.entries = this.entries.concat([
+      {at: Date.now(), detail, id: this.nextId++, role, speaker, text},
+    ]);
     this.emit();
   }
 

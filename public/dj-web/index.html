@@ -325,7 +325,7 @@
   #nowplaying.stale {
     opacity: 0.45;
   }
-  .speaker {
+  .meta {
     font-size: 10.5px;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -482,6 +482,14 @@
   // is the same on every client.
   var SPEAKER_COLORS = ['#8b7cf6', '#12a594', '#e0557a', '#b9740f', '#3fa45c', '#4a86f0'];
 
+  // Matches clockTime in src/utils.tsx and DJChatScreen.kt so the three clients agree.
+  function clockTime(at) {
+    if (!at) {
+      return '';
+    }
+    return new Date(at).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+  }
+
   function speakerColor(name) {
     if (!name) {
       return SPEAKER_COLORS[0];
@@ -588,23 +596,24 @@
       if (!el) {
         el = document.createElement('div');
         el.className = 'entry ' + entry.role;
-        el.appendChild(document.createElement('div')).className = 'speaker';
+        el.appendChild(document.createElement('div')).className = 'meta';
         el.appendChild(document.createElement('div')).className = 'body';
         // insert before the busy line so it always sits last
         transcript.insertBefore(el, busy);
         rendered[entry.id] = el;
       }
-      var nameEl = el.firstChild;
+      var metaEl = el.firstChild;
       var bodyEl = el.lastChild;
       if (entry.role === 'user' && entry.speaker) {
         el.style.background = speakerColor(entry.speaker);
       }
       var named = entry.speaker && (manySpeakers || entry.speaker !== owner);
-      var label = named ? entry.speaker : '';
-      if (nameEl.textContent !== label) {
-        nameEl.textContent = label;
+      var label = (named ? entry.speaker : '') +
+        (entry.at ? (named ? ' · ' : '') + clockTime(entry.at) : '');
+      if (metaEl.textContent !== label) {
+        metaEl.textContent = label;
       }
-      nameEl.style.display = label ? '' : 'none';
+      metaEl.style.display = label ? '' : 'none';
       // textContent, never innerHTML: this is model and listener text
       if (bodyEl.textContent !== entry.text) {
         bodyEl.textContent = entry.text;

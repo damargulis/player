@@ -79,3 +79,17 @@ export function localDate(isoDate: string): Date {
   const [hours, minutes] = time ? time.split(':').map(Number) : [0, 0];
   return new Date(year, (month || 1) - 1, day || 1, hours || 0, minutes || 0);
 }
+
+/**
+ * A wall-clock time for a transcript entry, in the viewer's own locale.
+ *
+ * Hour and minute only: seconds are noise in a conversation, and the date is carried by the
+ * session itself. Duplicated in `public/dj-web/index.html` and `DJChatScreen.kt` — the three
+ * clients render the same transcript and should agree, as with the speaker colours.
+ */
+export function clockTime(at?: number): string {
+  if (!at) {
+    return '';
+  }
+  return new Date(at).toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'});
+}
