@@ -433,14 +433,19 @@
 
 /*
  * Which model is DJing, beside the queue status. Deliberately quiet — it is reference
- * information, not something to read on every glance; the exact id is on hover.
+ * information, not something to read on every glance.
  */
 .dj-model {
   margin-left: 8px;
-  padding: 1px 6px;
+  padding: 1px 4px;
   border: 1px solid var(--border);
   border-radius: 9px;
+  background: none;
   font-size: 11px;
   color: var(--text-dim);
-  white-space: nowrap;
+  max-width: 200px;
+}
+
+.dj-model:hover {
+  color: var(--text);
 }

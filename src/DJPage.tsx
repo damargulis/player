@@ -8,6 +8,14 @@ import {shell} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import {getMemoryStore, MemoryFile} from './dj/memory';
 import defaultAlbum from './resources/missing_album.png';
+import {
+  availableModels,
+  isUsingDefaultModel,
+  ModelInfo,
+  refreshModels,
+  selectedModel,
+  selectModel,
+} from './dj/models';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumById, getArtistsByIds, getCurrentTrackId, getQueueVersion, getTrackById} from './redux/selectors';
@@ -34,6 +42,9 @@ type DJPageProps = StateProps & DispatchProps;
 interface DJPageState extends DJSessionState {
   draft: string;
   memoryFiles: MemoryFile[];
+  /** The chosen model id, or '' for the built-in default. */
+  model: string;
+  models: ModelInfo[];
   showMemory: boolean;
   verbose: boolean;
 }
@@ -44,8 +55,14 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
 
   constructor(props: DJPageProps) {
     super(props);
-    this.state = Object.assign({draft: '', memoryFiles: [], showMemory: false, verbose: false},
-      session.getState());
+    this.state = Object.assign({
+      draft: '',
+      memoryFiles: [],
+      model: isUsingDefaultModel() ? '' : selectedModel(),
+      models: availableModels(),
+      showMemory: false,
+      verbose: false,
+    }, session.getState());
   }
 
   public componentDidMount(): void {
@@ -53,6 +70,9 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
       this.setState(Object.assign({memoryFiles: readMemoryFiles()}, session.getState()), () => this.scrollToBottom());
     });
     this.setState({memoryFiles: readMemoryFiles()});
+    // Refreshes at most daily, so a model released since the last launch simply appears. The
+    // list falls back to whatever was cached if this fails, rather than emptying the dropdown.
+    refreshModels().then((models) => this.setState({models}));
   }
 
   public componentWillUnmount(): void {
@@ -77,7 +97,21 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
         <div className="dj-chat-header">
           <span>
             {session.isActive() ? 'DJ is controlling the queue' : 'DJ is idle'}
-            <span className="dj-model" title={`Model: ${DJ_MODEL}`}>{modelLabel()}</span>
+            <select
+              className="dj-model"
+              title="Which model the DJ uses. The default is pinned in code; this overrides it."
+              value={this.state.model}
+              onChange={(evt) => this.chooseModel(evt.target.value)}
+            >
+              <option value="">{`Default — ${modelLabel(DJ_MODEL)}`}</option>
+              {this.state.models
+                .filter((model) => model.id !== DJ_MODEL)
+                .map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.displayName}{model.lifecycle === 'deprecated' ? ' (deprecated)' : ''}
+                  </option>
+                ))}
+            </select>
           </span>
           <span>
             <label className="dj-verbose-toggle" title="Show the DJ's reasoning and every tool call">
@@ -316,6 +350,18 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
         </div>
       </div>
     );
+  }
+
+  /**
+   * Switches model mid-session.
+   *
+   * Safe to do between turns: the conversation is replayed in full on every request, and the
+   * API drops any thinking block the new model cannot read rather than erroring. Takes effect
+   * on the next message.
+   */
+  private chooseModel(id: string): void {
+    selectModel(id || undefined);
+    this.setState({model: id});
   }
 
   private toggleMemory(): void {
