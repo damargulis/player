@@ -34,6 +34,9 @@ export default class DJPlaylist extends EmptyPlaylist {
   private current: number;
   private transition?: QueueTransition;
   private pendingActor?: string;
+  /** When the queue was last rewritten, and to what size. Diagnostic only. */
+  private lastWriteAt = 0;
+  private lastWriteSize = 0;
 
   constructor(seedTrackId?: string) {
     super();
@@ -177,6 +180,25 @@ export default class DJPlaylist extends EmptyPlaylist {
     this.setEntries(this.forwardEntries().filter((entry) => !trackIds.includes(entry.id)));
   }
 
+  /**
+   * Replaces what plays next, dropping the track that is already playing if it leads the list.
+   *
+   * The DJ reads the queue, thinks, then writes — and the song can end in between. The list it
+   * writes was built when the next track was still *next*, so by the time it lands that track
+   * is playing and ends up queued behind itself: shown twice, then played twice. Only a
+   * *leading* duplicate is dropped, so deliberately re-queueing something later still works.
+   */
+  /** Describes the last queue rewrite, for diagnosing a queue that empties unexpectedly. */
+  public lastWrite(): {at: number; size: number} {
+    return {at: this.lastWriteAt, size: this.lastWriteSize};
+  }
+
+  /** Internal shape, for the same diagnostics: history/current are invisible from outside. */
+  public debugState(): {historyLength: number; current: number; upcomingLength: number} {
+    return {current: this.current, historyLength: this.history.length,
+      upcomingLength: this.upcoming.length};
+  }
+
   /** Moves to the next track without recording a transition; callers do that. */
   private advance(): string | undefined {
     if (this.current < this.history.length - 1) {
@@ -209,19 +231,13 @@ export default class DJPlaylist extends EmptyPlaylist {
     return this.history.slice(this.current + 1).concat(this.upcoming);
   }
 
-  /**
-   * Replaces what plays next, dropping the track that is already playing if it leads the list.
-   *
-   * The DJ reads the queue, thinks, then writes — and the song can end in between. The list it
-   * writes was built when the next track was still *next*, so by the time it lands that track
-   * is playing and ends up queued behind itself: shown twice, then played twice. Only a
-   * *leading* duplicate is dropped, so deliberately re-queueing something later still works.
-   */
   private setEntries(entries: QueueEntry[]): void {
     this.history = this.history.slice(0, this.current + 1);
     const currentId = this.getCurrentTrack();
     this.upcoming = entries.length && currentId !== undefined && entries[0].id === currentId
       ? entries.slice(1)
       : entries;
+    this.lastWriteAt = Date.now();
+    this.lastWriteSize = this.upcoming.length;
   }
 }

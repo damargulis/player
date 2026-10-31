@@ -14,6 +14,7 @@ import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
 import {OWNER} from './owner';
 import {Reaction} from '../reactions';
+import {recordRefill} from './refillLog';
 import {getAlbumById, getTrackById} from '../redux/selectors';
 import store, {RootState} from '../redux/store';
 import {
@@ -611,6 +612,9 @@ class DJSession {
     }
     const remaining = playlist.getUpcoming().length;
     if (remaining <= LOW_WATER_MARK && !this.pending.some((p) => p.automatic)) {
+      // Records what was actually true here; the DJ has twice reported this firing on a queue
+      // it had just filled, and the cause is not yet known. See dj/refillLog.tsx.
+      recordRefill(playlist, remaining, currentId);
       this.refillRequestedAt = currentId;
       this.enqueue(`Only ${remaining} track(s) left in the queue. Add more in the same spirit.`, true);
     }
