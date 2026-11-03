@@ -268,8 +268,9 @@
 
 
 /* Extension coverage: how much of the library each one has filled in. */
+/* Last block on the page, so it gets a little more room above than between sections. */
 .statsCoverage {
-  margin: 26px 0 10px;
+  margin: 34px 0 10px;
 }
 
 .statsCoverage h3 {

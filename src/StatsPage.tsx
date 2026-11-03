@@ -73,8 +73,6 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
           {this.tile(neverPlayed.toLocaleString(), 'never played')}
         </div>
 
-        {this.renderCoverage()}
-
         <div className="statsFilterRow">
           <span className="statsFilterLabel">Most played by:</span>
           <button
@@ -145,6 +143,8 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
             </div>
           ))}
         </div>
+
+        {this.renderCoverage()}
       </div>
     );
   }
