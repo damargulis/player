@@ -4,9 +4,17 @@ import {
   Track,
   TrackInfo
 } from '../../redux/actionTypes';
+import {
+  clearRateLimit,
+  describeWait,
+  geniusJson,
+  getAccessToken,
+  isRateLimited,
+  rateLimitedUntil,
+  tokenName,
+} from './api';
 import {DATA_DIR} from '../../constants';
 import {ipcRenderer} from 'electron';
-import {readEnvValue} from '../../envFile';
 import PromisePool from 'es6-promise-pool';
 import {
   getArtistById,
@@ -21,67 +29,65 @@ import {getPool} from '../utils';
 const BASE_URL = 'https://api.genius.com/';
 const SEARCH_URL = `${BASE_URL}search?q=`;
 const TRACK_URL = `${BASE_URL}songs/`;
-const TOKEN_KEY = 'GENIUS_ACCESS_TOKEN';
-
-/** Reads the Genius API token from .env.local (dev) or DATA_DIR/.env (packaged). */
-function getAccessToken(): string | undefined {
-  return readEnvValue(TOKEN_KEY);
-}
 
 interface Result {
   id: string;
   info: TrackInfo;
 }
 
-function geniusRequest(url: string): Promise<Response> {
-  return fetch(url, {headers: {Authorization: `Bearer ${getAccessToken()}`}});
+interface SearchHit {
+  result: {id: string; title: string; primary_artist: {name: string}};
 }
 
 function searchForTrackId(store: RootState, track: Track): Promise<string | undefined> {
   const primaryArtist = getArtistById(store, track.artistIds[0]);
   // TODO: remove periods and other puncutation from search url?
-  return geniusRequest(SEARCH_URL + encodeURIComponent(`${track.name} ${primaryArtist.name}`))
-    .then((res: Response) => res.text()).then((jsonString: string) => {
-    const results = JSON.parse(jsonString);
-    const result = results.response.hits.find((hit: {result: {title: string; primary_artist: {name: string}}}) => {
-      // normalize both sides so curly apostrophes (from either Genius or
-      // MusicBrainz-sourced library names) never break the match
-      const title = normalizeQuotes(hit.result.title).toLowerCase();
-      const artist = normalizeQuotes(hit.result.primary_artist.name).toLowerCase();
-      return title === normalizeQuotes(track.name).toLowerCase() &&
-        artist === normalizeQuotes(primaryArtist.name).toLowerCase();
+  return geniusJson(SEARCH_URL + encodeURIComponent(`${track.name} ${primaryArtist.name}`))
+    .then((results) => {
+      const response = results.response as {hits?: SearchHit[]} | undefined;
+      const hits = (response && response.hits) || [];
+      const result = hits.find((hit) => {
+        // normalize both sides so curly apostrophes (from either Genius or
+        // MusicBrainz-sourced library names) never break the match
+        const title = normalizeQuotes(hit.result.title).toLowerCase();
+        const artist = normalizeQuotes(hit.result.primary_artist.name).toLowerCase();
+        return title === normalizeQuotes(track.name).toLowerCase() &&
+          artist === normalizeQuotes(primaryArtist.name).toLowerCase();
+      });
+      return result && result.result.id;
     });
-    return result && result.result.id;
-  }).catch(() => {});
 }
 
 function modifyTrack(store: RootState, track: Track, geniusId: string): Promise<Result> {
-  return geniusRequest(TRACK_URL + geniusId).then((res: Response) => res.text()).then((jsonString: string) => {
-    const results = JSON.parse(jsonString);
-    const url = results.response.song.url;
-    return ({
+  return geniusJson(TRACK_URL + geniusId).then((results) => {
+    const response = results.response as {song?: {url?: string}} | undefined;
+    const url = response && response.song && response.song.url;
+    if (!url) {
+      return {id: track.id, info: {}};
+    }
+    return {
       id: track.id,
-      info: {
-        genius: {
-          id: geniusId,
-          page: url,
-          errors: [],
-        },
-      },
-    });
-  }).catch(() => ({id: track.id, info: {}}));
+      info: {genius: {errors: [], id: geniusId, page: url}},
+    };
+  });
 }
 
+/**
+ * Looks one track up, turning any failure into "nothing found" — except a rate limit.
+ *
+ * A rate limit is recorded in the client so every later call short-circuits; the summary then
+ * tells the listener when to resume. Everything else is genuinely per-track and should not
+ * abandon the run.
+ */
 function modifyTrackRunner(store: RootState, track: Track): Promise<Result> {
-  if (!track.genius) {
-    return searchForTrackId(store, track).then((trackId) => {
-      if (trackId) {
-        return modifyTrack(store, track, trackId);
-      }
-      return Promise.resolve({id: track.id, info: {}});
-    });
-  }
-  return modifyTrack(store, track, track.genius.id);
+  const lookup = track.genius
+    ? modifyTrack(store, track, track.genius.id)
+    : searchForTrackId(store, track).then((trackId) =>
+      trackId ? modifyTrack(store, track, trackId) : {id: track.id, info: {}});
+  // Every failure yields the same empty result here — including a rate limit, which the client
+  // has already recorded so that later calls short-circuit without asking. The difference shows
+  // up in the summary, not per track.
+  return lookup.catch(() => ({id: track.id, info: {}}));
 }
 
 function getTrackPool(store: RootState, trackIds: string[], extensionId: string): PromisePool<Result | void> {
@@ -104,12 +110,14 @@ export default function runGeniusExtension(store: RootState, trackIds: string[])
   const extensionId = shortid.generate();
   if (!getAccessToken()) {
     ipcRenderer.send('extension-update', {
-      msg: `Genius extension skipped: no ${TOKEN_KEY} found in .env.local or ${DATA_DIR}/.env`,
+      msg: `Genius extension skipped: no ${tokenName()} found in .env.local or ${DATA_DIR}/.env`,
       type: 'done',
       extensionId,
     });
     return Promise.resolve({tracks: {}});
   }
+  // A limit from an earlier run has usually expired by the time someone runs it again.
+  clearRateLimit();
   const tracks = {} as Record<string, TrackInfo>;
   const trackPool = getTrackPool(store, trackIds, extensionId);
   trackPool.addEventListener('fulfilled', (evt) => {
@@ -120,9 +128,16 @@ export default function runGeniusExtension(store: RootState, trackIds: string[])
     const tracksWithExt = Object.values(tracks).filter((track) => {
       return !!track.genius;
     }).length;
+    // Saying so is the whole point: a throttled run used to look identical to one that simply
+    // found nothing, so it would be re-run against the same wall.
+    const limited = isRateLimited()
+      ? `<br><b>Stopped early: Genius rate limit reached.</b><br>
+         Tracks after that point were skipped, not checked.<br>
+         Run it again in ${describeWait((rateLimitedUntil() - Date.now()) / 1000)} to continue.`
+      : '';
     const msg = `Genius Modifier Finished.<br>
       ${trackIds.length} Tracks modified.<br>
-      ${tracksWithExt} with genius link.\n
+      ${tracksWithExt} with genius link.${limited}\n
     `;
     ipcRenderer.send('extension-update', {
       msg,
