@@ -293,8 +293,9 @@
 }
 
 .coverageName {
-  width: 90px;
+  width: 150px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .coverageBarCell {

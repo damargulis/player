@@ -159,17 +159,21 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     const tracks = Object.values(this.props.tracks);
     const albums = Object.values(this.props.albums);
     const artists = Object.values(this.props.artists);
+    // Wikipedia and MusicBrainz are split by entity: a combined figure hides the fact that
+    // album and artist coverage are usually very different, which is what you want to see.
     const rows: Array<[string, number, number, string]> = [
       ['Genius', tracks.filter((track) => track.genius && track.genius.page).length,
         tracks.length, 'tracks'],
       ['Lyrics', tracks.filter((track) => track.lyrics && !track.lyrics.instrumental).length,
         tracks.length, 'tracks'],
-      ['Wikipedia', albums.filter((album) => album.wikiPage).length +
-        artists.filter((artist) => artist.wikiPage).length,
-        albums.length + artists.length, 'albums + artists'],
-      ['MusicBrainz', albums.filter((album) => album.mbid).length +
-        artists.filter((artist) => artist.mbid).length,
-        albums.length + artists.length, 'albums + artists'],
+      ['Wikipedia — albums', albums.filter((album) => album.wikiPage).length,
+        albums.length, 'albums'],
+      ['Wikipedia — artists', artists.filter((artist) => artist.wikiPage).length,
+        artists.length, 'artists'],
+      ['MusicBrainz — albums', albums.filter((album) => album.mbid).length,
+        albums.length, 'albums'],
+      ['MusicBrainz — artists', artists.filter((artist) => artist.mbid).length,
+        artists.length, 'artists'],
     ];
     const synced = tracks.filter((track) => track.lyrics && track.lyrics.synced).length;
     return (
