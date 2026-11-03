@@ -106,6 +106,35 @@ function concertIndex(): Record<string, Concert[]> {
   return built;
 }
 
+export type ConcertFilter = 'all' | 'favorites' | 'recent' | 'new';
+
+export interface FilterContext {
+  favoriteArtistIds: string[];
+  recentArtistIds: string[];
+  /** Ids flagged as newly announced this session; survives `markSeen`. */
+  highlighted: string[];
+}
+
+/**
+ * Whether a show belongs in the current view.
+ *
+ * Lives here beside `isUpcoming` so the list and the calendar cannot disagree about what is
+ * shown - they both go through `visibleConcerts`, and this is the half that varies.
+ */
+export function matchesFilter(concert: Concert, filter: ConcertFilter,
+                              context: FilterContext): boolean {
+  if (filter === 'favorites') {
+    return concert.artistIds.some((id) => context.favoriteArtistIds.indexOf(id) >= 0);
+  }
+  if (filter === 'recent') {
+    return concert.artistIds.some((id) => context.recentArtistIds.indexOf(id) >= 0);
+  }
+  if (filter === 'new') {
+    return context.highlighted.indexOf(concert.id) >= 0;
+  }
+  return true;
+}
+
 /**
  * Upcoming shows for any of these artists, soonest first.
  *

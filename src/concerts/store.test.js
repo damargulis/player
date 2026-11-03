@@ -1,4 +1,4 @@
-import {artistsByMbid, budgetRemaining, concertsForArtists, findUnseen, isStale, matchConcerts, isUpcoming, REFRESH_INTERVAL_MS, saveCache, upcomingConcerts} from './store';
+import {artistsByMbid, budgetRemaining, concertsForArtists, findUnseen, isStale, matchConcerts, isUpcoming, matchesFilter, REFRESH_INTERVAL_MS, saveCache, upcomingConcerts} from './store';
 import {DEFAULT_LOCATION, emptyCache, milesBetween, MONTHLY_CALL_BUDGET} from './types';
 
 function ev(id, date, mbids, venue = 'Venue') {
@@ -242,5 +242,41 @@ describe('upcomingConcerts', () => {
       {artistIds: ['ar1'], city: 'NY', date: '2099-01-01', id: 'soon', name: 'S', region: 'NY', venue: 'V'},
     ]});
     expect(upcomingConcerts(cache).map((c) => c.id)).toStrictEqual(['soon', 'later']);
+  });
+});
+
+describe('matchesFilter', () => {
+  function show(id, artistIds) {
+    return {artistIds, city: 'NY', date: '2099-01-01', id, name: 'S', region: 'NY', venue: 'V'};
+  }
+  const ctx = {favoriteArtistIds: ['fav'], highlighted: ['new1'], recentArtistIds: ['rec']};
+
+  it('lets everything through on "all"', () => {
+    expect(matchesFilter(show('e1', ['other']), 'all', ctx)).toBe(true);
+  });
+
+  it('keeps only favourites on "favorites"', () => {
+    expect(matchesFilter(show('e1', ['fav']), 'favorites', ctx)).toBe(true);
+    expect(matchesFilter(show('e2', ['other']), 'favorites', ctx)).toBe(false);
+  });
+
+  it('keeps only recently played on "recent"', () => {
+    expect(matchesFilter(show('e1', ['rec']), 'recent', ctx)).toBe(true);
+    expect(matchesFilter(show('e2', ['other']), 'recent', ctx)).toBe(false);
+  });
+
+  // The new filter: clicking the "N newly announced" badge narrows to exactly those shows.
+  it('keeps only newly announced shows on "new"', () => {
+    expect(matchesFilter(show('new1', ['other']), 'new', ctx)).toBe(true);
+    expect(matchesFilter(show('e2', ['fav']), 'new', ctx)).toBe(false);
+  });
+
+  it('matches a show on any of its credited artists', () => {
+    expect(matchesFilter(show('e1', ['other', 'fav']), 'favorites', ctx)).toBe(true);
+  });
+
+  it('shows nothing as new when nothing is highlighted', () => {
+    const empty = Object.assign({}, ctx, {highlighted: []});
+    expect(matchesFilter(show('e1', ['fav']), 'new', empty)).toBe(false);
   });
 });

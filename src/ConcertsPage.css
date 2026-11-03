@@ -357,6 +357,19 @@
   border: 1px solid var(--accent);
   color: var(--accent-strong);
   font-size: 11.5px;
+  /* It is a button now, but should still read as the badge it was. */
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.concerts-newcount:hover {
+  filter: brightness(1.15);
+}
+
+/* Filled while it is the active filter, so it is obvious the list is narrowed. */
+.concerts-newcount.on {
+  background: var(--accent);
+  color: #fff;
 }
 
 .cal-day.fresh {

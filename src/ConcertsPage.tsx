@@ -5,12 +5,21 @@ import './ConcertsPage.css';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAllTracks, getArtistById} from './redux/selectors';
-import {budgetRemaining, isStale, isUpcoming, loadCache, markSeen, refreshConcerts} from './concerts/store';
+import {
+  budgetRemaining,
+  ConcertFilter,
+  isStale,
+  isUpcoming,
+  loadCache,
+  markSeen,
+  matchesFilter,
+  refreshConcerts,
+} from './concerts/store';
 import {RootState} from './redux/store';
 import {Concert, ConcertCache, emptyCache, milesBetween} from './concerts/types';
 import {dayKey, localDate} from './utils';
 
-type Filter = 'all' | 'favorites' | 'recent';
+type Filter = ConcertFilter;
 type Sort = 'date' | 'plays';
 type View = 'list' | 'calendar';
 
@@ -134,9 +143,15 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
         <span className="concerts-where">
           {`within ${location.radiusMiles} mi of ${location.label} · next ${location.windowDays} days`}
           {this.state.highlighted.length > 0 && (
-            <span className="concerts-newcount">
+            <button
+              className={`concerts-newcount${this.state.filter === 'new' ? ' on' : ''}`}
+              onClick={() => this.setState({filter: this.state.filter === 'new' ? 'all' : 'new'})}
+              title={this.state.filter === 'new'
+                ? 'Show everything again'
+                : 'Show only the newly announced shows'}
+            >
               {`${this.state.highlighted.length} newly announced`}
-            </span>
+            </button>
           )}
         </span>
         <span className="concerts-filters">
@@ -313,8 +328,10 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
           {this.state.loading
             ? 'Looking for shows…'
             : this.state.cache.fetchedAt
-              ? 'No upcoming shows near you by artists in your library. Try a wider radius, ' +
-                'a longer window, or a different filter.'
+              ? this.state.filter === 'new'
+                ? 'Nothing newly announced is still upcoming.'
+                : 'No upcoming shows near you by artists in your library. Try a wider radius, ' +
+                  'a longer window, or a different filter.'
               : 'Nothing loaded yet — hit Refresh.'}
           {this.state.cache.error && <div className="concerts-error">{this.state.cache.error}</div>}
         </div>
@@ -518,16 +535,14 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     const {filter} = this.state;
     // isUpcoming first: the cache keeps a show until the next sweep, so without it the list
     // runs backwards into gigs that are already over.
-    const concerts = this.state.cache.concerts.filter((c) => isUpcoming(c)).filter((concert) => {
-      if (filter === 'favorites') {
-        return concert.artistIds.some((id) => this.props.favoriteArtistIds.indexOf(id) >= 0);
-      }
-      if (filter === 'recent') {
-        return concert.artistIds.some((id) => this.props.recentArtistIds.indexOf(id) >= 0);
-      }
-      return true;
-    });
-    return concerts;
+    // `highlighted` survives markSeen, so the 'new' filter keeps working after the badge clears
+    return this.state.cache.concerts
+      .filter((concert) => isUpcoming(concert))
+      .filter((concert) => matchesFilter(concert, filter, {
+        favoriteArtistIds: this.props.favoriteArtistIds,
+        highlighted: this.state.highlighted,
+        recentArtistIds: this.props.recentArtistIds,
+      }));
   }
 
   /** Date order by default; by plays when the listener would rather see what they care about. */
