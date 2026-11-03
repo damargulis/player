@@ -1,4 +1,5 @@
-import {isSynced, parseLyrics} from './store';
+import {isSynced, lyricsPath, markerFromStoredFile, parseLyrics, saveLyrics} from './store';
+import fs from 'fs';
 
 describe('parseLyrics', () => {
   it('reads [mm:ss.xx] timestamps', () => {
@@ -66,5 +67,50 @@ describe('isSynced', () => {
 
   it('is false for a file of metadata only', () => {
     expect(isSynced('[ar:Artist]\n[ti:Title]')).toBe(false);
+  });
+});
+
+describe('markerFromStoredFile', () => {
+  const ids = [];
+
+  afterEach(() => {
+    ids.splice(0).forEach((id) => {
+      try {
+        fs.unlinkSync(lyricsPath(id));
+      } catch (err) {
+        // already gone
+      }
+    });
+  });
+
+  function store(id, text) {
+    ids.push(id);
+    saveLyrics(id, text);
+    return id;
+  }
+
+  // The case this exists for: a sweep wrote the file, then the app closed before the markers
+  // reached the library. Re-fetching would spend a request to learn what is already on disk.
+  it('rebuilds a synced marker from a stored LRC file', () => {
+    const id = store('marker-synced', '[00:01.00]A line\n[00:02.00]Another');
+    const marker = markerFromStoredFile(id);
+    expect(marker.synced).toBe(true);
+    expect(marker.errors).toStrictEqual([]);
+    expect(marker.fetchedAt).toBeGreaterThan(0);
+  });
+
+  it('rebuilds an unsynced marker from plain text', () => {
+    const id = store('marker-plain', 'Just words\nNo timestamps');
+    expect(markerFromStoredFile(id).synced).toBe(false);
+  });
+
+  it('is undefined when no file exists, so the track is still fetched', () => {
+    expect(markerFromStoredFile('marker-absent')).toBeUndefined();
+  });
+
+  // An empty file would otherwise mark the track done and leave the overlay blank forever.
+  it('is undefined for an empty or whitespace-only file', () => {
+    expect(markerFromStoredFile(store('marker-empty', ''))).toBeUndefined();
+    expect(markerFromStoredFile(store('marker-blank', '   \n\n'))).toBeUndefined();
   });
 });

@@ -54,7 +54,12 @@ these are re-fetchable so they are deliberately not in the offsite backup. The *
 stored even though nothing highlights it yet**, so adding a follow-along later needs no second
 pass over the API.
 
-Pacing lives in `api.tsx`, not the caller: `getPool` runs seven items at once, so the client
+Markers are committed to the library **every 100 results**, not only when the pool finishes: a
+nine-hour sweep that only commits at the end shows no `L` all night, and closing the app first
+discards every marker while leaving the files on disk. A file with no marker is recovered by
+`markerFromStoredFile` rather than re-fetched, so an interrupted run costs nothing. The batch
+exists because the library reducer rewrites the whole 12MB file on every update. Pacing lives in
+`api.tsx`, not the caller: `getPool` runs seven items at once, so the client
 serialises every request through one promise chain at 800ms (~75/min, under the ~90 the docs
 allow an identified client) — the same shape as the MusicBrainz client. **~40% of LRCLIB
 requests return 503**, which is normal rather than exceptional, so retries are built in and

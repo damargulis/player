@@ -86,3 +86,24 @@ export function parseLyrics(text: string): LyricLine[] {
 export function isSynced(text: string): boolean {
   return parseLyrics(text).some((line) => line.at !== undefined);
 }
+
+export interface LyricsMarker {
+  synced: boolean;
+  errors: string[];
+  fetchedAt: number;
+}
+
+/**
+ * Rebuilds a track's marker from the file already on disk, or undefined if there is none.
+ *
+ * Covers the case where a sweep fetched lyrics but was closed before its markers reached the
+ * library: the words are here, so re-fetching them would spend a request to learn nothing.
+ */
+export function markerFromStoredFile(trackId: string): {synced: boolean; errors: string[];
+  fetchedAt: number; } | undefined {
+  const text = readLyrics(trackId);
+  if (!text || !text.trim()) {
+    return undefined;
+  }
+  return {errors: [], fetchedAt: Date.now(), synced: isSynced(text)};
+}
