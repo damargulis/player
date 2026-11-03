@@ -4,7 +4,9 @@ import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import ExternalLink from './ExternalLink';
 import favoriteImg from './resources/favorite.png';
+import LyricsOverlay from './LyricsOverlay';
 import runGeniusExtension from './extensions/genius/main';
+import runLyricsExtension from './extensions/lyrics/main';
 import playingImg from './resources/playing.svg';
 import RandomTrackPlaylist from './playlist/RandomTrackPlaylist';
 import React from 'react';
@@ -33,6 +35,8 @@ interface TrackPickerState {
   lastSelected?: number;
   search: string;
   editing: boolean;
+  /** The track whose lyrics overlay is open, if any. */
+  lyricsTrackId?: string;
 }
 
 interface StateProps {
@@ -43,6 +47,7 @@ interface StateProps {
   getAlbumsByIds(ids: string[]): Album[];
   getGenresByIds(ids: string[]): string[];
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
+  runLyricsExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
 }
 
 interface OwnProps {
@@ -105,6 +110,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
         <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()} >
           <TrackEditor exit={() => this.closeEdit()} tracks={selectedTracks} />
         </Modal>
+        {this.renderLyricsOverlay()}
         <SearchBar onSearch={(search) => this.onSearch(search)} />
         <div className="trackTableContainer">
         <AutoSizer>
@@ -133,6 +139,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
                 <Column dataKey="playing" width={18} cellRenderer={this.playingRenderer}/>
                 <Column dataKey="favorite" width={15} cellRenderer={this.favoriteRenderer}/>
                 <Column dataKey="genius" width={10} cellRenderer={this.geniusRenderer}/>
+                <Column dataKey="lyrics" width={10} cellRenderer={this.lyricsRenderer}/>
                 <Column dataKey="duration" label="Time" width={50} />
                 <Column dataKey="artists" label="Artists" width={150} />
                 <Column dataKey="albums" label="Albums" width={150} />
@@ -155,6 +162,25 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   private geniusRenderer({cellData}: {cellData?: string}): JSX.Element {
     return (<ExternalLink text="G" link={cellData}/>);
   }
+
+  /** Solid when the stored lyrics carry timestamps, dimmed when they are plain text only. */
+  private lyricsRenderer = ({cellData}: {cellData?: {id: string; synced: boolean}}): JSX.Element => {
+    if (!cellData) {
+      return <span/>;
+    }
+    return (
+      <span
+        className={`lyricsLink${cellData.synced ? '' : ' plain'}`}
+        onClick={(evt) => {
+          evt.stopPropagation();
+          this.setState({lyricsTrackId: cellData.id});
+        }}
+        title={cellData.synced ? 'Lyrics (synced)' : 'Lyrics'}
+      >
+        L
+      </span>
+    );
+  };
 
   private playingRenderer({cellData}: {cellData?: boolean}): JSX.Element {
     return (
@@ -264,8 +290,32 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
       year: track.year,
       playing: track.id === this.props.currentlyPlayingId,
       genius: track.genius && track.genius.page,
+      // the id rides along so the L can open the right file on click
+      lyrics: track.lyrics && !track.lyrics.instrumental
+        ? {id: track.id, synced: track.lyrics.synced}
+        : undefined,
       favorite: track.favorites.indexOf(year) !== -1,
     };
+  }
+
+  /** Rendered from the track rather than the row, so it survives a re-sort while open. */
+  private renderLyricsOverlay(): JSX.Element {
+    const trackId = this.state.lyricsTrackId;
+    if (!trackId) {
+      return <></>;
+    }
+    const track = this.state.tracks.find((candidate) => candidate.id === trackId);
+    if (!track) {
+      return <></>;
+    }
+    return (
+      <LyricsOverlay
+        artist={this.props.getArtistsByIds(track.artistIds).map((a) => a.name).join(', ')}
+        close={() => this.setState({lyricsTrackId: undefined})}
+        title={track.name}
+        trackId={trackId}
+      />
+    );
   }
 
   private getRowStyle(index: number): React.CSSProperties {
@@ -333,6 +383,13 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     }
   }
 
+  private runLyrics(): void {
+    const trackIds = this.state.selected.map((index) => this.state.tracks[index].id);
+    this.props.runLyricsExtension(trackIds).then((updates) => {
+      this.props.updateLibrary(updates);
+    });
+  }
+
   private runGenius(): void {
     const trackIds = this.state.selected.map((index) => this.state.tracks[index].id);
     this.props.runGeniusExtension(trackIds).then((updates) => {
@@ -350,6 +407,8 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     menu.append(new remote.MenuItem({label: 'Favorite', click: this.favorite.bind(this)}));
     menu.append(new remote.MenuItem({label: 'Extensions', submenu: [{
       label: 'Genius', click: this.runGenius.bind(this),
+    }, {
+      label: 'Lyrics', click: this.runLyrics.bind(this),
     }]}));
     menu.append(new remote.MenuItem({label: `Delete Track${this.state.selected.length > 1 ? 's' : ''}`,
       click: this.deleteTracks.bind(this)}));
@@ -438,6 +497,7 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
     playlists: getPlaylists(store),
     currentlyPlayingId: getCurrentTrackId(store),
     runGeniusExtension: (ids: string[]) => runGeniusExtension(store, ids),
+    runLyricsExtension: (ids: string[]) => runLyricsExtension(store, ids),
     tracksToShow: ownProps.tracks.filter((track) => {
       if (!genres.length) {
         return true;

@@ -266,3 +266,66 @@
   overflow: hidden;
 }
 
+
+/* Extension coverage: how much of the library each one has filled in. */
+.statsCoverage {
+  margin: 26px 0 10px;
+}
+
+.statsCoverage h3 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 10px;
+}
+
+.coverageTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.coverageTable td {
+  padding: 5px 8px 5px 0;
+  vertical-align: middle;
+}
+
+.coverageName {
+  width: 90px;
+  font-weight: 600;
+}
+
+.coverageBarCell {
+  width: 40%;
+}
+
+.coverageBar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.coverageBarFill {
+  height: 100%;
+  background: var(--accent, #8b7cf6);
+}
+
+.coverageCount {
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+.coveragePercent {
+  text-align: right;
+  width: 44px;
+  font-variant-numeric: tabular-nums;
+}
+
+.coverageNote {
+  margin-top: 8px;
+  font-size: 11.5px;
+  opacity: 0.55;
+}

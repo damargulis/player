@@ -73,6 +73,8 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
           {this.tile(neverPlayed.toLocaleString(), 'never played')}
         </div>
 
+        {this.renderCoverage()}
+
         <div className="statsFilterRow">
           <span className="statsFilterLabel">Most played by:</span>
           <button
@@ -142,6 +144,62 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * How much of the library each extension has filled in.
+   *
+   * Denominators differ on purpose: Genius and Lyrics are per-track, Wikipedia and MusicBrainz
+   * per album and artist, so a single percentage across all four would be meaningless.
+   */
+  private renderCoverage(): JSX.Element {
+    const tracks = Object.values(this.props.tracks);
+    const albums = Object.values(this.props.albums);
+    const artists = Object.values(this.props.artists);
+    const rows: Array<[string, number, number, string]> = [
+      ['Genius', tracks.filter((track) => track.genius && track.genius.page).length,
+        tracks.length, 'tracks'],
+      ['Lyrics', tracks.filter((track) => track.lyrics && !track.lyrics.instrumental).length,
+        tracks.length, 'tracks'],
+      ['Wikipedia', albums.filter((album) => album.wikiPage).length +
+        artists.filter((artist) => artist.wikiPage).length,
+        albums.length + artists.length, 'albums + artists'],
+      ['MusicBrainz', albums.filter((album) => album.mbid).length +
+        artists.filter((artist) => artist.mbid).length,
+        albums.length + artists.length, 'albums + artists'],
+    ];
+    const synced = tracks.filter((track) => track.lyrics && track.lyrics.synced).length;
+    return (
+      <div className="statsCoverage">
+        <h3>Extension coverage</h3>
+        <table className="coverageTable">
+          <tbody>
+            {rows.map(([label, done, total, unit]) => (
+              <tr key={label}>
+                <td className="coverageName">{label}</td>
+                <td className="coverageBarCell">
+                  <div className="coverageBar">
+                    <div
+                      className="coverageBarFill"
+                      style={{width: `${total ? (done / total) * 100 : 0}%`}}
+                    />
+                  </div>
+                </td>
+                <td className="coverageCount">
+                  {done.toLocaleString()} / {total.toLocaleString()} {unit}
+                </td>
+                <td className="coveragePercent">
+                  {total ? Math.round((done / total) * 100) : 0}%
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="coverageNote">
+          {synced.toLocaleString()} of those have synced (timestamped) lyrics.
         </div>
       </div>
     );

@@ -17,6 +17,7 @@ import {createLibrary} from './library/itunes';
 import {deleteLibrary, loadLibrary} from './library/main';
 import runWikiExtension from './extensions/wiki/main';
 import runGeniusExtension from './extensions/genius/main';
+import runLyricsExtension from './extensions/lyrics/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
 import MaxWindow from './MaxWindow';
 import MiniWindow from './MiniWindow';
@@ -63,6 +64,7 @@ interface StateProps {
   getGenresByIds(genreIds: string[]): Genre[];
   runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
+  runLyricsExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   runMusicBrainzExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
   getAllAlbumIds(): string[];
@@ -268,6 +270,11 @@ class App extends React.Component<AppProps, AppState> {
         break;
       case 'genius':
         this.props.runGeniusExtension(this.props.getAllTrackIds()).then((library: LibraryInfo) => {
+          this.props.updateLibrary(library);
+        });
+        break;
+      case 'lyrics':
+        this.props.runLyricsExtension(this.props.getAllTrackIds()).then((library: LibraryInfo) => {
           this.props.updateLibrary(library);
         });
         break;
@@ -536,6 +543,7 @@ function mapStateToProps(store: RootState): StateProps {
     playing: getIsPlaying(store),
     runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),
     runGeniusExtension: (trackIds: string[]) => runGeniusExtension(store, trackIds),
+    runLyricsExtension: (trackIds: string[]) => runLyricsExtension(store, trackIds),
     runMusicBrainzExtension: (albumIds: string[], artistIds: string[]) =>
       runMusicBrainzExtension(albumIds, artistIds, store),
     queueVersion: getQueueVersion(store),

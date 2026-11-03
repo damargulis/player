@@ -69,6 +69,17 @@ export interface TrackReaction {
   disliked: number[];
 }
 
+/** What the lyrics extension found. The text itself lives in DATA_DIR/lyrics, not here. */
+export interface TrackLyrics {
+  /** True when the stored file carries LRC timestamps. */
+  synced: boolean;
+  /** Epoch ms of the fetch, so a re-run can tell stale from never-tried. */
+  fetchedAt: number;
+  /** Set when the track is known to have no lyrics at all, so it is not retried forever. */
+  instrumental?: boolean;
+  errors: string[];
+}
+
 export interface Track {
   id: string;
   duration: number;
@@ -93,6 +104,7 @@ export interface Track {
     page: string;
     errors: string[];
   };
+  lyrics?: TrackLyrics;
   warning?: TrackWarning;
 }
 
@@ -280,6 +292,7 @@ export interface TrackInfo {
     page?: string;
     errors?: string[];
   };
+  lyrics?: TrackLyrics;
   warning?: TrackWarning;
 }
 

@@ -248,6 +248,7 @@ function createWindow() {
     submenu: [
     {label: "Wikipedia", click: () => runExtension("wikipedia")},
     {label: "Genius", click: () => runExtension("genius")},
+    {label: "Lyrics", click: () => runExtension("lyrics")},
     {label: "MusicBrainz", click: () => runExtension("musicbrainz")},
     {type: "separator"},
     {label: "Name That Tune", click: () => openNameThatTune()},
