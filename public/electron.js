@@ -18,6 +18,7 @@ const path = require("path");
 const defaultMenu = require("electron-default-menu");
 const fs = require("fs");
 const os = require("os");
+const systemVolumeControl = require("./systemVolume");
 
 app.whenReady().then(() => {
   // This app only ever loads its own content (localhost in dev, file:// when packaged), so
@@ -334,7 +335,17 @@ const io = require("socket.io")(http);
 let lastState = null;
 let lastDjState = null;
 
+// Keeps the cached level honest when the volume is changed at the laptop rather than the
+// phone. Only polls while something is actually listening, so an unattended app spawns nothing.
+systemVolumeControl.readSystemVolume();
+setInterval(() => {
+  if (io.engine.clientsCount > 0 && !systemVolumeControl.hasPending()) {
+    systemVolumeControl.readSystemVolume();
+  }
+}, 5000);
+
 io.on("connection", (socket) => {
+  systemVolumeControl.readSystemVolume();
   socket.emit("dj-build", djBuildId());
   if (lastState) {
     socket.emit("state", lastState);
@@ -344,13 +355,25 @@ io.on("connection", (socket) => {
   }
 
   socket.on("action", (action) => {
+    if (action.type === "set-system-volume") {
+      // The clients send the level as a bare number, matching the existing setVolume action.
+      systemVolumeControl.setSystemVolume(action.data);
+      return;
+    }
+    if (action.type === "set-system-muted") {
+      systemVolumeControl.setSystemMuted(action.data);
+      return;
+    }
     extEvt.reply(action.type, action.data);
   });
 });
 
 ipcMain.on("controller-state", (evt, state) => {
-  io.emit("state", state);
-  lastState = state;
+  // Merged from this process's cache rather than read per update: controller-state fires on
+  // every timeupdate, and a 150ms osascript call on each would be absurd.
+  const merged = Object.assign({}, state, { systemVolume: systemVolumeControl.current() });
+  io.emit("state", merged);
+  lastState = merged;
 });
 
 // DJ chat transcript, pushed to the mobile app whenever the session changes.

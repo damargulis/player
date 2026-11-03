@@ -87,6 +87,10 @@ fun RemoteScreen(
     val mediaState = remoteState.get("mediaState") as JSONObject
     val paused = mediaState.optBoolean("paused", true)
     val volume = mediaState.optDouble("volume", 0.0)
+    // The laptop's own output volume, sent by the main process; absent on an older desktop.
+    val systemVolumeObj = remoteState.optJSONObject("systemVolume")
+    val systemVolume = systemVolumeObj?.optInt("volume", -1)?.takeIf { it >= 0 }
+    val systemMuted = systemVolumeObj?.optBoolean("muted", false) ?: false
     val currentTime = remoteState.optDouble("currentTime", 0.0)
     val durationSec = remoteTrack.duration / 1000f
     val artFile = if (remoteAlbums.isNotEmpty()) {
@@ -337,6 +341,62 @@ fun RemoteScreen(
                 tint = TextSecondary,
                 modifier = Modifier.size(18.dp),
             )
+        }
+
+        // The laptop's own output volume. Only shown when the desktop reports one, so an older
+        // build simply does not grow the control rather than showing a dead slider.
+        if (systemVolume != null) {
+            var sysDragging by remember { mutableStateOf(false) }
+            var sysValue by remember { mutableStateOf(0f) }
+            var lastSysSent by remember { mutableStateOf(0L) }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    "MAC",
+                    color = TextSecondary,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.sp,
+                    modifier = Modifier.width(30.dp),
+                )
+                Slider(
+                    value = if (sysDragging) sysValue else systemVolume / 100f,
+                    valueRange = 0f..1f,
+                    onValueChange = {
+                        sysDragging = true
+                        sysValue = it
+                        val now = System.currentTimeMillis()
+                        // The desktop coalesces to ~5/sec anyway; this just saves the traffic.
+                        if (now - lastSysSent > 180) {
+                            lastSysSent = now
+                            emit("set-system-volume", (it * 100).toInt())
+                        }
+                    },
+                    onValueChangeFinished = {
+                        emit("set-system-volume", (sysValue * 100).toInt())
+                        scope.launch {
+                            delay(800)
+                            sysDragging = false
+                        }
+                    },
+                    colors = SliderDefaults.colors(
+                        thumbColor = TextPrimary,
+                        activeTrackColor = if (systemMuted) Border else TextSecondary,
+                        inactiveTrackColor = Border,
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
+                )
+                Text(
+                    if (systemMuted) "muted" else "$systemVolume",
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    modifier = Modifier.width(38.dp),
+                )
+            }
         }
     }
 }

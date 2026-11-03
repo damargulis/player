@@ -153,6 +153,30 @@ syncs on the next LAN `/start-sync` like any other — just lagged until the pho
 Do not transcode; originals are ~8MB and 2h/day of listening is ~$1/month of egress.
 
 
+### System volume from the phone
+
+`public/systemVolume.js` lets the Remote screen turn the **laptop** up and down, not just the
+app. `osascript` rather than a native module: no dependency, and no permission prompt (`set
+volume` runs inside osascript rather than scripting another app, so it is untouched by the TCC
+rules that govern automation). The cost is **~150ms per call**, so a slider drag is coalesced —
+only the latest level is applied, at most every 200ms.
+
+The level arrives from an **unauthenticated LAN socket**, so `clampVolume` is a security
+boundary, not input tidying: it type-checks *before* coercing (`Number(null)`, `Number("")`,
+`Number([])` and `Number(true)` are all numbers, so `null` would otherwise mute the laptop) and
+the result goes to `execFile` as an argument, never interpolated into a shell string.
+`src/systemVolume.test.js` covers both.
+
+The cached level is merged into the `state` broadcast by the main process rather than read per
+update — `controller-state` fires on every `timeupdate`, and a 150ms call on each would be
+absurd — and refreshed every 5s only while a client is connected, so an unattended app spawns
+nothing. The phone hides the control entirely when the desktop reports no `systemVolume`, so an
+older build shows no dead slider.
+
+Note this is **system-wide**: it moves notifications and every other app too. Whether it reaches
+an AirPlay receiver is **unverified** — some configurations keep the receiver's volume separate,
+in which case `set volume` succeeds and changes nothing audible.
+
 ## Gotchas
 
 - The toolchain is old: React 16, TypeScript 3.7, Electron 13, react-scripts 2 patched through `@rescripts`. Don't modernize syntax or bump deps incidentally. The `start`/`build` scripts need `NODE_OPTIONS=--openssl-legacy-provider` (webpack 4's md4 hash vs Node 17+), and the BrowserWindows need `contextIsolation: false` + `enableRemoteModule: true` (Electron 12+ changed both defaults; the renderer uses `require` and `electron.remote` freely).
