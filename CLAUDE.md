@@ -87,13 +87,26 @@ games had ids; everything else is `scores_<id>.json`.
 
 The chrome is shared, not copied. `public/game-common.css` is the theme and the card / button /
 round-header / end-screen styling; `public/game-common.js` is the behaviour behind a `Game`
-global — fuzzy answer matching (`normalize` treats "the" as optional, `artistMatches` accepts any
-one artist of a `", "` credit), the setup-screen `Filters` and difficulty slicing, the countdown
+global — fuzzy answer matching (`normalize` folds case, punctuation and **accents**, and treats
+"the" as optional; `artistMatches` accepts any one artist of a `", "` credit), the setup-screen
+`Filters` and difficulty slicing, the countdown
 `Timer`, the shared speed/streak `bonuses`, multiple-choice building, per-game `Scores` with the
 history line and the all-time insights fold, and `parseLrc`. A game's own `<style>` holds only
 what is specific to it. Name That Tune went from 1,059 self-contained lines to 511 by consuming
 both; the point is that a fourth game does not mean a fourth copy of the theme, which is the
 shape of problem the speaker-colour hash and the concert date filter both became.
+
+The accent fold is not cosmetic: the key strips every non-ASCII letter, so without folding first
+"Björk" keys as `bjrk` and a correctly typed "Bjork" is marked wrong. 14 artists and 15 albums in
+this library were unguessable that way. Anything matching **single words** needs its own key
+rather than `normalize`, because the "the" rule turns "there" into "re" and makes "the" itself
+unmatchable — both lyric games say so in place.
+
+`src/gameCommon.test.js` pins the `Game` surface, because the export list is hand-written and an
+omission is invisible: the function is defined, the file parses, every page loads, and the call
+throws only when a game actually runs. `loadTracks` was once left out exactly that way and broke
+the library fetch on all six pages at once while `node --check`, tsc, lint and the tests all
+passed.
 
 `parseLrc` is a **port** of `parseLyrics` in `src/extensions/lyrics/store.tsx` — the TS copy
 pulls in Electron and cannot be required from a `file://` page. Keep the two in step.

@@ -37,7 +37,11 @@
    * "the" is optional, so "Beatles" matches "The Beatles".
    */
   function normalize(str) {
-    const base = (str || "").toLowerCase().replace(/[‘’ʼ]/g, "'");
+    // Accents are folded first, because the strip below drops every non-ASCII letter: without
+    // this "Bj\u00f6rk" keys as "bjrk" and a player typing "Bjork" is told they are wrong.
+    // Sigur R\u00f3s, Blue \u00d6yster Cult and Beyonc\u00e9 were all unguessable until this landed.
+    const folded = (str || "").normalize("NFD").replace(/[\u0300-\u036F]/g, "");
+    const base = folded.toLowerCase().replace(/[‘’ʼ]/g, "'");
     const stripped = base.replace(/\bthe\b/g, "").replace(/[^a-z0-9]/g, "");
     // titles made entirely of "the" (hi, The The) fall back to the full form
     return stripped || base.replace(/[^a-z0-9]/g, "");
@@ -237,11 +241,13 @@
     const count = document.getElementById(countId);
     const start = document.getElementById(startId);
     return {
-      update(matching, minimum) {
+      /** `noun` because a round is not always a song — Album Art Zoom deals in covers. */
+      update(matching, minimum, noun) {
         const enough = matching >= (minimum || 1);
+        const one = noun || "song";
         count.textContent = matching ?
-          `${matching.toLocaleString()} song${matching === 1 ? "" : "s"} in play` :
-          "No songs match these filters";
+          `${matching.toLocaleString()} ${one}${matching === 1 ? "" : "s"} in play` :
+          `No ${one}s match these filters`;
         if (matching && !enough) {
           count.textContent += ` — need at least ${minimum}`;
         }
@@ -549,6 +555,7 @@
     bonuses,
     buildChoices,
     djClue,
+    loadTracks,
     lyrics,
     matchCounter,
     normalize,
