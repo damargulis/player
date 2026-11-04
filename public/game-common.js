@@ -485,6 +485,39 @@
     });
   }
 
+  const LRC_LINE = /^\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]\s?(.*)$/;
+
+  /**
+   * Parses a stored .lrc into `{at, text}` lines, falling back to plain text.
+   *
+   * A port of `parseLyrics` in src/extensions/lyrics/store.tsx — the renderer's copy is TS and
+   * pulls in Electron, so it cannot be required from a game page. Keep the two in step. Handles
+   * `[mm:ss.xx]` and `[mm:ss:xx]` with two- or three-digit fractions, because LRC in the wild
+   * uses all of them; metadata tags like `[ar:...]` fail the digit groups and are dropped.
+   */
+  function parseLrc(text) {
+    const lines = [];
+    (text || "").split(/\r?\n/).forEach((raw) => {
+      const match = LRC_LINE.exec(raw);
+      if (!match) {
+        if (!/^\[[a-z]+:/i.test(raw)) {
+          lines.push({text: raw});
+        }
+        return;
+      }
+      const frac = match[3] ? Number(match[3].padEnd(3, "0")) : 0;
+      lines.push({
+        at: Number(match[1]) * 60000 + Number(match[2]) * 1000 + frac,
+        text: match[4],
+      });
+    });
+    while (lines.length && !lines[lines.length - 1].text.trim() &&
+        lines[lines.length - 1].at === undefined) {
+      lines.pop();
+    }
+    return lines;
+  }
+
   let clueSeq = 0;
 
   /**
@@ -520,6 +553,7 @@
     matchCounter,
     normalize,
     parseList,
+    parseLrc,
     renderInsights,
     revealChoices,
     screens,
