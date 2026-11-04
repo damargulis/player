@@ -9,7 +9,9 @@ const SOURCE = path.join(__dirname, "../public/game-common.js");
  * it here means stubbing the two things it reaches for.
  */
 function loadGame() {
-  const ipc = {on() {}, once() {}, send() {}};
+  // the module registers listeners and fires sends at load; nothing here needs to answer
+  const noop = () => undefined;
+  const ipc = {on: noop, once: noop, send: noop};
   const sandbox = {window: {require: () => ({ipcRenderer: ipc})}, document: {}};
   // tslint:disable-next-line no-eval
   new Function("window", "document", fs.readFileSync(SOURCE, "utf8"))(sandbox.window, sandbox.document);

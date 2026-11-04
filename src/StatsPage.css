@@ -331,3 +331,47 @@
   font-size: 11.5px;
   opacity: 0.55;
 }
+
+/* --- minimum-tracks slider (median ranking only) --- */
+
+.statsSliderRow {
+  /* sits directly under the metric chips it qualifies, so it reads as part of them */
+  margin-top: -8px;
+}
+
+.statsSlider {
+  -webkit-appearance: none;
+  background: transparent;
+  height: 18px;
+  margin: 0;
+  width: 160px;
+}
+
+.statsSlider::-webkit-slider-runnable-track {
+  background: var(--border-strong);
+  border-radius: 2px;
+  height: 4px;
+}
+
+.statsSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  height: 14px;
+  /* half the thumb minus half the track, to centre it on the 4px rail */
+  margin-top: -5px;
+  width: 14px;
+}
+
+.statsSlider:hover::-webkit-slider-thumb {
+  background: var(--accent-strong);
+}
+
+.statsSliderValue {
+  color: var(--text);
+  font-size: 12px;
+  /* fixed width so the row does not shuffle as the number changes */
+  min-width: 30px;
+}

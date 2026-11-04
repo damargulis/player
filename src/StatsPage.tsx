@@ -23,6 +23,8 @@ interface StatsPageState {
   // undefined = aggregate favorites over all years
   favoriteYear?: number;
   playMetric: 'sum' | 'median' | 'time';
+  /** Floor on how many tracks an album or artist must have to be ranked by median. */
+  minTracks: number;
   favSource: 'tracks' | 'albums';
   favMetric: 'count' | 'rate';
   skipMetric: 'count' | 'rate';
@@ -37,6 +39,15 @@ interface RankedItem {
   goTo?(id: string): void;
 }
 
+/**
+ * Ceiling on the minimum-tracks slider.
+ *
+ * Only 81 of this library's 2,173 albums have 20 or more tracks, so a higher ceiling would
+ * just offer settings that empty the album list. p99 is 24 and the one 90-track outlier is a
+ * box set.
+ */
+const MAX_MIN_TRACKS = 20;
+
 function formatDuration(ms: number): string {
   const hours = Math.floor(ms / 3600000);
   const days = Math.floor(hours / 24);
@@ -50,7 +61,13 @@ function formatDuration(ms: number): string {
 class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
   constructor(props: StatsPageProps) {
     super(props);
-    this.state = {playMetric: 'sum', favSource: 'tracks', favMetric: 'count', skipMetric: 'count'};
+    this.state = {
+      favMetric: 'count',
+      favSource: 'tracks',
+      minTracks: 1,
+      playMetric: 'sum',
+      skipMetric: 'count',
+    };
   }
 
   public render(): JSX.Element {
@@ -94,6 +111,7 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
             Play Time
           </button>
         </div>
+        {this.getMinTracksSlider()}
 
         <div className="statsColumns">
           {this.rankedList('Most Played Albums', this.getTopAlbums())}
@@ -226,6 +244,64 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
   }
 
   /**
+   * The minimum-tracks slider, shown only while ranking by median.
+   *
+   * A median is a per-track figure, so it says nothing about how big the thing is: a
+   * one-track single whose only track was played 98 times outranks every real album in this
+   * library, and 493 of 2,173 albums have fewer than five tracks. Total plays and play time
+   * are already sums, so a size floor there would only hide things the metric was never
+   * confused about — hence this appears for median and nothing else.
+   *
+   * It starts at 1, i.e. filtering nothing, so opening the page shows the same numbers as
+   * before and the floor is something the reader chooses.
+   */
+  private getMinTracksSlider(): JSX.Element | null {
+    if (this.state.playMetric !== 'median') {
+      return null;
+    }
+    const {minTracks} = this.state;
+    return (
+      <div className="statsFilterRow statsSliderRow">
+        <span className="statsFilterLabel">Minimum tracks:</span>
+        <input
+          className="statsSlider"
+          max={MAX_MIN_TRACKS}
+          min={1}
+          onChange={(evt) => this.setState({minTracks: Number(evt.target.value)})}
+          type="range"
+          value={minTracks}
+        />
+        <span className="statsSliderValue">
+          {minTracks === 1 ? 'any' : `${minTracks}+`}
+        </span>
+        {minTracks > 1 && (
+          <button className="yearChip" onClick={() => this.setState({minTracks: 1})}>
+            Clear
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  /** Tracks the library actually still holds, which is what the median is taken over. */
+  private trackCount(trackIds: string[]): number {
+    return trackIds.filter((trackId) => this.props.tracks[trackId]).length;
+  }
+
+  /**
+   * Whether something clears the size floor.
+   *
+   * Only applied to the median lists, and counting live tracks rather than `trackIds.length`
+   * so the floor means the same thing the median does.
+   */
+  private meetsMinTracks(trackIds: string[]): boolean {
+    if (this.state.playMetric !== 'median' || this.state.minTracks <= 1) {
+      return true;
+    }
+    return this.trackCount(trackIds) >= this.state.minTracks;
+  }
+
+  /**
    * Median play count across an album's tracks: a robust proxy for complete
    * album listens that a total would bias toward albums with more tracks.
    */
@@ -273,6 +349,7 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
 
   private getTopAlbums(): RankedItem[] {
     return Object.values(this.props.albums)
+      .filter((album) => this.meetsMinTracks(album.trackIds))
       .map((album) => ({album, value: this.playMetricValue(album.trackIds)}))
       .filter(({value}) => value > 0)
       .sort((entry1, entry2) => entry2.value - entry1.value
@@ -290,6 +367,7 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
 
   private getTopArtists(): RankedItem[] {
     return Object.values(this.props.artists)
+      .filter((artist) => this.meetsMinTracks(artist.trackIds))
       .map((artist) => ({artist, value: this.playMetricValue(artist.trackIds)}))
       .filter(({value}) => value > 0)
       .sort((entry1, entry2) => entry2.value - entry1.value
