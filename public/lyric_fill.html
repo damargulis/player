@@ -1,0 +1,759 @@
+<html>
+  <head>
+    <title>Name All the Lyrics</title>
+    <link rel="stylesheet" href="game-common.css">
+    <style>
+      /* Only what is specific to this game; the rest is in game-common.css. */
+
+      /* ---- setup: the song picker ---- */
+      #random-button {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-dim);
+        font-size: 12px;
+        font-weight: 400;
+        margin: 0;
+        padding: 8px 14px;
+        white-space: nowrap;
+      }
+      #random-button:hover:enabled {
+        background: var(--surface);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      #song-results {
+        margin: 0 0 12px 86px;
+        max-height: 196px;
+        overflow-y: auto;
+      }
+      .song-row {
+        align-items: baseline;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        font-size: 13px;
+        gap: 8px;
+        padding: 6px 8px;
+      }
+      .song-row:hover { background: var(--bg); }
+      .song-row.selected {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+      }
+      .song-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .song-by {
+        color: var(--text-dim);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .song-best {
+        color: var(--accent-strong);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      /* ---- play screen ---- */
+      #clock-label { font-variant-numeric: tabular-nums; }
+      #progress-outer {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        height: 8px;
+        margin: 10px 0 14px 0;
+        overflow: hidden;
+      }
+      #progress-inner {
+        background: var(--accent-strong);
+        display: block;
+        height: 100%;
+        transition: width 0.25s ease-out;
+        width: 0;
+      }
+      /*
+       * The grid is monospace so a blank is exactly as wide as the word it hides: filling a word
+       * swaps the glyphs without reflowing the line, and the shape of the song never shifts
+       * under the player's eyes.
+       */
+      #lyric-grid {
+        font-family: 'SF Mono', Menlo, monospace;
+        font-size: 14px;
+        line-height: 1.85;
+        max-height: 46vh;
+        overflow-y: auto;
+        text-align: center;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .lyric-line.spacer { height: 0.9em; }
+      .lyric-line.annotation { color: var(--text-dim); font-size: 12px; }
+      .w.blank {
+        color: var(--text-dim);
+        letter-spacing: 1px;
+        opacity: 0.55;
+      }
+      .w.got { color: var(--text); }
+      /* revealed at the end rather than found, so the score is still legible on the page */
+      .w.missed { color: var(--danger); }
+      .w.flash {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+      }
+      #end-block { display: none; }
+      #end-block.showing { display: block; }
+      #end-block #score-line { margin-top: 18px; }
+      .button-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>NAME ALL THE LYRICS</h1>
+    <div class="subtitle">Every word blanked &middot; fill them in before the clock</div>
+
+    <div id="start-screen" class="screen active">
+      <div class="card">
+        <div class="rules">
+          A whole song with <b>every word blanked</b> &mdash; the lines, the word lengths and the
+          punctuation stay, so you can see the shape of what you're filling. Type a word and press
+          <b>Enter</b> and <b>every copy of it fills at once</b>; a word that can't be confused
+          with another in the song fills the moment you finish typing it. Capitalization,
+          punctuation and accents are ignored, hyphenated words count separately, and a wrong
+          guess costs nothing but time. The score is the <b>distinct words</b> you found, and the
+          clock scales with how many there are.
+        </div>
+        <div class="option-row">
+          <span class="option-label">SONG</span>
+          <input id="song-search" class="filter-input" placeholder="Search title or artist&hellip;"
+            autocomplete="off" spellcheck="false">
+          <button type="button" id="random-button">&#127922; Random song</button>
+        </div>
+        <div id="song-results"></div>
+        <div class="option-row">
+          <span class="option-label">PACE</span>
+          <div class="segment" id="pace">
+            <label><input type="radio" name="pace" value="blitz"><span>Blitz<br>half the clock</span></label>
+            <label><input type="radio" name="pace" value="standard" checked><span>Standard<br>4s a word</span></label>
+            <label><input type="radio" name="pace" value="relaxed"><span>Relaxed<br>double the clock</span></label>
+          </div>
+        </div>
+        <div id="match-count">Loading library&hellip;</div>
+        <div id="history-line"></div>
+      </div>
+      <button id="start-button" disabled>Start</button>
+    </div>
+
+    <div id="play-screen" class="screen">
+      <div class="card">
+        <div class="round-header">
+          <span id="song-label"></span>
+          <span id="clock-label"></span>
+          <span id="found-label"></span>
+        </div>
+        <div id="timer-outer"><span id="timer-inner"></span></div>
+        <div class="guess-row">
+          <span class="guess-label">WORD</span>
+          <input id="guess-word" class="guess-input" type="text" placeholder="Type a word&hellip;"
+            autocomplete="off" spellcheck="false">
+        </div>
+        <div id="feedback"></div>
+        <div id="progress-outer"><span id="progress-inner"></span></div>
+        <div id="lyric-grid"></div>
+        <button id="giveup-button" type="button">Give up and reveal the rest</button>
+        <div id="end-block">
+          <div id="score-line"></div>
+          <div id="best-line" class="dim"></div>
+          <div class="button-row">
+            <button id="again-button">Play Again</button>
+            <button id="setup-button">Change Song</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  <script src="game-common.js"></script>
+  <script>
+/*
+ * Sporcle's "name every word in this song", for anything in the library with stored lyrics.
+ *
+ * Two screens rather than three: giving up or running out of time reveals the words you missed
+ * *in place* in the grid, so the end-of-game card appears below the lyric rather than replacing
+ * it. Hiding the song to show a score would throw away the only thing worth looking at.
+ *
+ * The song is never played. Nothing here reads the stored timestamps either — this is a memory
+ * game, and the only thing a timestamp could have driven was following along with the audio.
+ */
+
+/*
+ * 4s per distinct word, clamped. The National's "Sorrow" has 45 distinct words, which is 3:00 —
+ * about what Sporcle allows for a quiz that size; the library's median is ~86 (5:44) and the
+ * long rap tracks run past 350, where the cap stops the clock from becoming a commitment. The
+ * pace multiplier is applied after the clamp, so Relaxed on a huge song really is twice as long.
+ */
+const MS_PER_DISTINCT_WORD = 4000;
+const MIN_CLOCK_MS = 180000;
+const MAX_CLOCK_MS = 600000;
+const CLOCK_STEP_MS = 15000;
+const PACE_FACTORS = {blitz: 0.5, relaxed: 2, standard: 1};
+/** Below this a "song" is an instrumental marker or a scat vocal, not something to play. */
+const MIN_DISTINCT_WORDS = 5;
+const RESULT_LIMIT = 8;
+const FLASH_MS = 700;
+const CLOCK_TICK_MS = 250;
+
+// ---- text: tokenising, the part everything else rests on ----
+
+/*
+ * A word is letters and digits, with apostrophes allowed *between* them: "don't" and "y'all" are
+ * one word each, while the outer apostrophes of "nothin'" and "'cause" and the pair in
+ * "rock 'n' roll" fall out as punctuation, which is the right answer for all three — the player
+ * types "nothin" either way.
+ *
+ * A hyphen deliberately does NOT join: the library's hyphenated words are almost entirely
+ * "oh-oh", "la-la" and "boom-boom", where one "la" filling every half is what a player expects,
+ * and nobody types "wama-lama" as a unit.
+ */
+const WORD_RE = /[\p{L}\p{N}]+(?:'[\p{L}\p{N}]+)*/gu;
+/* Within a word token that leaves only letters, digits and apostrophes, so this is the blank. */
+const NON_APOSTROPHE_RE = /[^']/g;
+/*
+ * Everything above runs on folded text, which is why `foldText` has to come first.
+ *
+ * The four apostrophes are all in use in this library's stored LRC files ("don’t", "it´s",
+ * "`cause"). Folding them to a straight one is not tidying: U+02BC is a modifier *letter*, so
+ * \p{L} matches it — left alone it survives `wordKey`'s punctuation strip, and "donʼt" keys as
+ * itself, a word no keyboard can produce. The zero-width and filler characters go for the same
+ * reason: one file ends a line with a hangul filler (U+3164), also a \p{L} letter, which would
+ * stretch the word "it" into a three-character blank nobody could ever fill.
+ */
+const APOSTROPHE_RE = /[\u2019\u02BC\u00B4\u0060]/g;
+const INVISIBLE_RE = /[\u00AD\u115F\u1160\u200B-\u200F\u2060\u3164\uFEFF]/g;
+/** `[Chorus]`, `[x4]`, `[Instrumental]` — structure, not words to guess. */
+const BRACKETED_RE = /^\[[^\]]*\]$/;
+const COMBINING_RE = /[\u0300-\u036F]/g;
+
+function foldText(raw) {
+  return (raw || '').replace(INVISIBLE_RE, '').replace(APOSTROPHE_RE, '\'');
+}
+
+/*
+ * The matching key for one word. Deliberately *not* Game.normalize, which drops "the" — right
+ * for comparing a title against a guess, fatal here: it would turn "there" into "re" and make
+ * "the", the commonest word in the library, unmatchable. Accents fold, so "cafe" finds "café".
+ */
+function wordKey(word) {
+  return word.toLowerCase().normalize('NFD')
+    .replace(COMBINING_RE, '')
+    .replace(/[^\p{L}\p{N}]+/gu, '');
+}
+
+/** The blank: one underscore per letter or digit, apostrophes kept so the shape still reads. */
+function blankOf(word) {
+  return word.replace(NON_APOSTROPHE_RE, '_');
+}
+
+/** Splits one lyric line into guessable `{key, word}` tokens and literal `{lit}` runs. */
+function tokeniseLine(raw) {
+  const text = foldText(raw);
+  if (BRACKETED_RE.test(text.trim())) {
+    return {annotation: true, spacer: false, tokens: [{lit: text}]};
+  }
+  const tokens = [];
+  let cursor = 0;
+  let match;
+  WORD_RE.lastIndex = 0;
+  while ((match = WORD_RE.exec(text)) !== null) {
+    if (match.index > cursor) {
+      tokens.push({lit: text.slice(cursor, match.index)});
+    }
+    const key = wordKey(match[0]);
+    // a "word" of nothing but marks has no key a player could type; treat it as punctuation
+    tokens.push(key ? {key, word: match[0]} : {lit: match[0]});
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < text.length) {
+    tokens.push({lit: text.slice(cursor)});
+  }
+  const hasWords = tokens.some((token) => token.key);
+  return {annotation: !hasWords && !!text.trim(), spacer: !hasWords && !text.trim(), tokens};
+}
+
+/** The whole song: lines to render, plus how many times each distinct word occurs. */
+function buildSong(text) {
+  const counts = new Map();
+  const lines = Game.parseLrc(text).map((line) => {
+    const parsed = tokeniseLine(line.text);
+    parsed.tokens.forEach((token) => {
+      if (token.key) {
+        counts.set(token.key, (counts.get(token.key) || 0) + 1);
+      }
+    });
+    return parsed;
+  });
+  return {counts, lines};
+}
+
+/** Every distinct word a guess contains, in order, so pasting a whole phrase still works. */
+function guessKeys(value) {
+  const keys = [];
+  let match;
+  WORD_RE.lastIndex = 0;
+  while ((match = WORD_RE.exec(foldText(value))) !== null) {
+    const key = wordKey(match[0]);
+    if (key && !keys.includes(key)) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
+/** The clock for a song of this many distinct words, rounded to something that looks chosen. */
+function clockFor(distinctWords, pace) {
+  const scaled = Math.min(MAX_CLOCK_MS,
+    Math.max(MIN_CLOCK_MS, distinctWords * MS_PER_DISTINCT_WORD));
+  const paced = scaled * (PACE_FACTORS[pace] || 1);
+  return Math.round(paced / CLOCK_STEP_MS) * CLOCK_STEP_MS;
+}
+
+function clockText(ms) {
+  const seconds = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+// ---- wiring ----
+
+const screens = Game.screens(['start-screen', 'play-screen']);
+const scores = Game.Scores('lyric_fill');
+const counter = Game.matchCounter('match-count', 'start-button');
+
+const searchInput = document.getElementById('song-search');
+const resultsDiv = document.getElementById('song-results');
+const randomButton = document.getElementById('random-button');
+const paceGroup = document.getElementById('pace');
+const startButton = document.getElementById('start-button');
+const historyLine = document.getElementById('history-line');
+const songLabel = document.getElementById('song-label');
+const clockLabel = document.getElementById('clock-label');
+const foundLabel = document.getElementById('found-label');
+const guessInput = document.getElementById('guess-word');
+const feedback = document.getElementById('feedback');
+const progressInner = document.getElementById('progress-inner');
+const grid = document.getElementById('lyric-grid');
+const giveupButton = document.getElementById('giveup-button');
+const endBlock = document.getElementById('end-block');
+const scoreLine = document.getElementById('score-line');
+const bestLine = document.getElementById('best-line');
+const againButton = document.getElementById('again-button');
+const setupButton = document.getElementById('setup-button');
+
+let allTracks = [];
+let selected = null;
+/** The chosen track's lyrics, fetched during setup so Start never has to wait on a file. */
+let selectedSong = null;
+/** Bumped on every selection, so a slow fetch for a song since abandoned is ignored. */
+let selectSeq = 0;
+let timer = null;
+let totalMs = 0;
+let song = null;
+let found = new Set();
+let wordSpans = new Map();
+let gameOver = true;
+let clockId = null;
+let gameKey = '';
+
+function pace() {
+  return paceGroup.querySelector('input:checked').value;
+}
+
+/**
+ * Best is per song, which is the whole point of this game — but the pace changes the clock
+ * enough that a Relaxed run should not sit in the same column as a Blitz.
+ */
+function songKey(trackId) {
+  return `${trackId}|${pace()}`;
+}
+
+function scoreKey() {
+  return songKey(selected ? selected.id : '');
+}
+
+function updateHistoryLine() {
+  historyLine.textContent = selected ? scores.historyText(scoreKey()) : '';
+}
+
+// ---- setup screen ----
+
+/**
+ * Matches a query against title and artist, every term having to appear somewhere in either.
+ *
+ * Game.normalize strips "the" from the haystack but keeps a bare "the" the player typed (its
+ * all-"the" fallback kicks in), so such a term could never match anything — drop it instead of
+ * letting "sorrow the national" find nothing.
+ */
+function matchesQuery(track, terms) {
+  const haystack = `${Game.normalize(track.name)}\u0000${Game.normalize(track.artist)}`;
+  return terms.every((term) => haystack.includes(term));
+}
+
+function searchResults() {
+  const terms = searchInput.value.split(/\s+/)
+    .map((part) => Game.normalize(part))
+    .filter((term) => term && term !== 'the');
+  const matching = terms.length ?
+    allTracks.filter((track) => matchesQuery(track, terms)) :
+    allTracks;
+  // most played first: with no query at all that makes the default list the songs you know
+  const ranked = matching.slice()
+    .sort((track1, track2) => (track2.playCount || 0) - (track1.playCount || 0))
+    .slice(0, RESULT_LIMIT);
+  if (selected && !ranked.some((track) => track.id === selected.id)) {
+    ranked.unshift(selected);
+  }
+  return ranked;
+}
+
+function renderResults() {
+  resultsDiv.innerHTML = '';
+  searchResults().forEach((track) => {
+    const row = document.createElement('div');
+    row.className = `song-row${selected && track.id === selected.id ? ' selected' : ''}`;
+    const name = document.createElement('span');
+    name.className = 'song-name';
+    name.textContent = track.name;
+    const by = document.createElement('span');
+    by.className = 'song-by';
+    by.textContent = track.artist;
+    const best = document.createElement('span');
+    best.className = 'song-best';
+    const entry = scores.entry(songKey(track.id));
+    best.textContent = entry ? `best ${entry.best}` : '';
+    row.appendChild(name);
+    row.appendChild(by);
+    row.appendChild(best);
+    row.addEventListener('click', () => selectTrack(track));
+    resultsDiv.appendChild(row);
+  });
+}
+
+function describeSelection() {
+  if (!selected) {
+    counter.message(`${allTracks.length.toLocaleString()} songs have lyrics — pick one`, true);
+    return;
+  }
+  if (!selectedSong) {
+    counter.message(`Reading the lyrics for ${selected.name}…`, true);
+    return;
+  }
+  const words = selectedSong.counts.size;
+  counter.message(`${selected.name} — ${selected.artist} · ${words} words · ` +
+    `${clockText(clockFor(words, pace()))} on the clock`);
+}
+
+function selectTrack(track) {
+  selected = track;
+  selectedSong = null;
+  const seq = ++selectSeq;
+  renderResults();
+  describeSelection();
+  updateHistoryLine();
+  Game.lyrics(track.id).then((text) => {
+    if (seq !== selectSeq) {
+      return;
+    }
+    const built = text ? buildSong(text) : null;
+    /*
+     * A marker can outlive its file — deleted by hand, or written empty. Catching that here
+     * rather than after Start means a stale one costs the player a sentence on the setup screen
+     * instead of a game that cannot begin.
+     *
+     * The word floor rejects the other thing stored lyrics turn out to be: a file whose whole
+     * content is "Instrumental -", and the occasional scat vocal that really is one word over
+     * and over ("Badoobadoobadooba"). Both parse fine and neither is a game.
+     */
+    if (!built || built.counts.size < MIN_DISTINCT_WORDS) {
+      const words = built ? built.counts.size : 0;
+      selected = null;
+      renderResults();
+      counter.message(words ?
+        `"${track.name}" has only ${words} word${words === 1 ? '' : 's'} stored — pick another` :
+        `No lyrics stored for "${track.name}" after all — pick another`, true);
+      updateHistoryLine();
+      return;
+    }
+    selectedSong = built;
+    describeSelection();
+  });
+}
+
+function onSettingsChange() {
+  renderResults();
+  describeSelection();
+  updateHistoryLine();
+}
+
+Game.loadTracks({
+  // no clip to crop and no art to zoom, so a 40-second song with words in it is a fine round
+  minDurationMs: 0,
+  needs: ['hasLyrics'],
+}, (tracks) => {
+  allTracks = tracks;
+  if (!allTracks.length) {
+    counter.message('No songs have lyrics yet — run Extensions → Lyrics first', true);
+    return;
+  }
+  renderResults();
+  describeSelection();
+});
+scores.load(() => {
+  renderResults();
+  updateHistoryLine();
+});
+searchInput.addEventListener('input', renderResults);
+paceGroup.addEventListener('change', onSettingsChange);
+randomButton.addEventListener('click', () => {
+  if (allTracks.length) {
+    selectTrack(allTracks[Math.floor(Math.random() * allTracks.length)]);
+  }
+});
+
+// ---- the game ----
+
+/** Every exit path goes through here, so the clock cannot outlive a game. */
+function stopEverything() {
+  if (timer) {
+    timer.stop();
+  }
+  clearInterval(clockId);
+  clockId = null;
+}
+
+function renderGrid() {
+  grid.innerHTML = '';
+  wordSpans = new Map();
+  song.lines.forEach((line) => {
+    const el = document.createElement('div');
+    el.className = 'lyric-line';
+    if (line.spacer) {
+      // a blank line in the stored lyric is deliberate spacing, not a line to fill
+      el.className += ' spacer';
+    } else if (line.annotation) {
+      el.className += ' annotation';
+    }
+    line.tokens.forEach((token) => {
+      if (!token.key) {
+        el.appendChild(document.createTextNode(token.lit));
+        return;
+      }
+      const span = document.createElement('span');
+      span.className = 'w blank';
+      span.textContent = blankOf(token.word);
+      el.appendChild(span);
+      const spans = wordSpans.get(token.key) || [];
+      spans.push({el: span, word: token.word});
+      wordSpans.set(token.key, spans);
+    });
+    grid.appendChild(el);
+  });
+}
+
+function updateProgress() {
+  const total = song.counts.size;
+  foundLabel.textContent = `${found.size} / ${total} words`;
+  progressInner.style.width = `${(found.size / total) * 100}%`;
+}
+
+function tickClock() {
+  clockLabel.textContent = clockText(timer.fractionLeft() * totalMs);
+}
+
+function startGame() {
+  if (!selected || !selectedSong) {
+    return;
+  }
+  stopEverything();
+  song = selectedSong;
+  gameKey = scoreKey();
+  totalMs = clockFor(song.counts.size, pace());
+  found = new Set();
+  gameOver = false;
+  timer = Game.Timer('timer-inner', totalMs);
+  timer.reset();
+  songLabel.textContent = `${selected.name} — ${selected.artist}`;
+  feedback.textContent = 'Type a word…';
+  feedback.className = 'dim';
+  endBlock.className = '';
+  giveupButton.style.display = 'block';
+  guessInput.disabled = false;
+  guessInput.classList.remove('locked');
+  guessInput.value = '';
+  renderGrid();
+  updateProgress();
+  grid.scrollTop = 0;
+  screens.show('play-screen');
+  guessInput.focus();
+  // the grid is on screen and the input is live, so now the clock is fair
+  timer.start(() => endGame(false));
+  tickClock();
+  clockId = setInterval(tickClock, CLOCK_TICK_MS);
+}
+
+function fill(key, className) {
+  (wordSpans.get(key) || []).forEach((span) => {
+    span.el.textContent = span.word;
+    span.el.className = `w ${className}`;
+    if (className === 'got') {
+      span.el.classList.add('flash');
+      setTimeout(() => span.el.classList.remove('flash'), FLASH_MS);
+    }
+  });
+}
+
+/** Tries a guess; returns the words it newly filled and how many blanks that was. */
+function applyGuess(value) {
+  const hits = [];
+  let blanks = 0;
+  let known = 0;
+  guessKeys(value).forEach((key) => {
+    if (!song.counts.has(key)) {
+      return;
+    }
+    if (found.has(key)) {
+      known++;
+      return;
+    }
+    found.add(key);
+    hits.push(key);
+    blanks += song.counts.get(key);
+    fill(key, 'got');
+  });
+  return {blanks, hits, known};
+}
+
+function submit(value) {
+  if (gameOver) {
+    return;
+  }
+  const result = applyGuess(value);
+  guessInput.value = '';
+  if (result.hits.length) {
+    updateProgress();
+    const what = result.hits.length === 1 ?
+      `“${result.hits[0]}”` :
+      `${result.hits.length} words`;
+    feedback.textContent =
+      `✓ ${what} — ${result.blanks} blank${result.blanks === 1 ? '' : 's'} filled`;
+    feedback.className = 'good';
+    if (found.size === song.counts.size) {
+      endGame(true);
+    }
+    return;
+  }
+  if (result.known) {
+    feedback.textContent = 'Already had that one';
+    feedback.className = 'dim';
+    return;
+  }
+  const typed = value.trim();
+  feedback.textContent = typed ? `✗ no “${typed}” in this one` : '';
+  feedback.className = 'bad';
+}
+
+/**
+ * Whether a complete word can be filled the instant it is typed.
+ *
+ * Only when nothing else still missing starts with it: "cry" would otherwise fill and clear the
+ * box before anyone could reach "crying", which is unwinnable rather than merely annoying. Short
+ * common words therefore nearly always want Enter, which is how people type these anyway.
+ */
+function safeToFillImmediately(key) {
+  if (!song.counts.has(key) || found.has(key)) {
+    return false;
+  }
+  for (const other of song.counts.keys()) {
+    if (other !== key && !found.has(other) && other.startsWith(key)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+guessInput.addEventListener('input', () => {
+  if (gameOver) {
+    return;
+  }
+  const value = guessInput.value;
+  // a trailing space is the player saying "that's the whole word", same as Enter
+  if (/\s$/.test(value)) {
+    submit(value);
+    return;
+  }
+  const keys = guessKeys(value);
+  if (keys.length === 1 && safeToFillImmediately(keys[0])) {
+    submit(value);
+  }
+});
+
+guessInput.addEventListener('keydown', (evt) => {
+  if (evt.key === 'Enter') {
+    submit(guessInput.value);
+  }
+});
+
+function endGame(won) {
+  if (gameOver) {
+    return;
+  }
+  gameOver = true;
+  stopEverything();
+  song.counts.forEach((count, key) => {
+    if (!found.has(key)) {
+      fill(key, 'missed');
+    }
+  });
+  guessInput.value = '';
+  guessInput.disabled = true;
+  guessInput.classList.add('locked');
+  giveupButton.style.display = 'none';
+  clockLabel.textContent = won ? 'complete' : clockText(0);
+  const total = song.counts.size;
+  const missed = total - found.size;
+  const percent = Math.round((found.size / total) * 100);
+  feedback.textContent = won ?
+    'Every word. The whole song.' :
+    `${missed} word${missed === 1 ? '' : 's'} in red were the ones you missed`;
+  feedback.className = won ? 'good' : 'dim';
+  const saved = scores.save(gameKey, found.size);
+  scoreLine.textContent = `${found.size} / ${total} words · ${percent}%`;
+  if (saved.newBest && saved.entry.games.length > 1) {
+    bestLine.textContent = '★ New personal best for this song!';
+    bestLine.className = 'good';
+  } else {
+    bestLine.textContent = `Best on this song: ${saved.entry.best} / ${total}`;
+    bestLine.className = 'dim';
+  }
+  endBlock.className = 'showing';
+  updateHistoryLine();
+  renderResults();
+}
+
+giveupButton.addEventListener('click', () => endGame(false));
+startButton.addEventListener('click', startGame);
+againButton.addEventListener('click', startGame);
+setupButton.addEventListener('click', () => {
+  stopEverything();
+  onSettingsChange();
+  screens.show('start-screen');
+  searchInput.focus();
+});
+  </script>
+  </body>
+</html>
