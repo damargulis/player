@@ -159,6 +159,7 @@ function resetLibrary() {
  */
 const GAMES = {
   album_art_zoom: {file: "album_art_zoom.html", height: 700, label: "Album Art Zoom", width: 520},
+  artist_tracks: {file: "artist_tracks.html", height: 760, label: "Name Every Track", width: 760},
   dj_clues: {file: "dj_clues.html", height: 660, label: "Guess the Artist (DJ)", width: 560},
   finish_the_lyric: {file: "finish_the_lyric.html", height: 680, label: "Finish the Lyric", width: 560},
   lyric_fill: {file: "lyric_fill.html", height: 760, label: "Name All the Lyrics", width: 760},
