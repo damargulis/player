@@ -1,0 +1,868 @@
+<html>
+  <head>
+    <title>Finish the Lyric</title>
+    <link rel="stylesheet" href="game-common.css">
+    <style>
+      /* Only what is specific to this game; the rest is in game-common.css. */
+      #lyric-block {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        min-height: 122px;
+        padding: 14px 16px;
+      }
+      #context-lines {
+        color: var(--text-dim);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+      /* The gap is the whole point of the screen, so it gets the accent and the weight. */
+      #blank-line {
+        font-size: 16px;
+        line-height: 1.9;
+        margin-top: 8px;
+        min-height: 30px;
+      }
+      .blank {
+        border-bottom: 2px solid var(--accent);
+        display: inline-block;
+        height: 15px;
+        margin-right: 9px;
+        width: 42px;
+      }
+      /* Per-word marking on the reveal: this is what partial credit looks like. */
+      .got { color: var(--success); }
+      .missed { color: var(--danger); }
+      #word-count {
+        color: var(--text-dim);
+        font-size: 11px;
+        letter-spacing: 1px;
+        margin: -4px 0 12px 2px;
+      }
+      #track-line {
+        color: var(--text-dim);
+        font-size: 13px;
+        margin-top: 8px;
+        text-align: center;
+      }
+      /* Secondary action, so it has to opt out of the bare `button` rule. */
+      #hear-button {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-dim);
+        display: none;
+        font-size: 12px;
+        font-weight: 400;
+        margin: 0 auto 12px auto;
+        padding: 6px 16px;
+      }
+      body.mode-hear #hear-button { display: block; }
+      #hear-button:hover:enabled {
+        background: var(--surface);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      /* A whole lyric line is long; keep the end-screen rows on one line each. */
+      #answers .answer-title, #answers .answer-artist {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>FINISH THE LYRIC</h1>
+    <div class="subtitle">10 rounds &middot; 40 seconds each</div>
+
+    <div id="start-screen" class="screen active">
+      <div class="card">
+        <div class="rules">
+          A few lines of a song, then a gap. Type the <b>missing line</b> before time runs
+          out &mdash; Enter to answer. It is worth up to <b>6 pts</b>, scored on the fraction
+          of its words you get, so a near miss still pays; capitalization, punctuation and
+          word order are ignored, but padding a guess with extra words costs you. Get the
+          whole line for a <b>speed bonus</b> (+2 in the first 10s, +1 in the first 20s) and
+          chain perfect lines for a <b>streak bonus</b> (up to +2).
+        </div>
+        <div class="option-row">
+          <span class="option-label">MODE</span>
+          <div class="segment" id="mode">
+            <label><input type="radio" name="mode" value="read" checked><span>Read it<br>words only</span></label>
+            <label><input type="radio" name="mode" value="hear"><span>Hear it<br>lead-in plays</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DIFFICULTY</span>
+          <div class="segment" id="difficulty">
+            <label><input type="radio" name="difficulty" value="easy"><span>Easy<br>most played</span></label>
+            <label><input type="radio" name="difficulty" value="normal" checked><span>Normal<br>everything</span></label>
+            <label><input type="radio" name="difficulty" value="hard"><span>Hard<br>deep cuts</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DECADE</span>
+          <select id="decade-select"><option value="">Any decade</option></select>
+        </div>
+        <div class="option-row">
+          <span class="option-label">GENRES</span>
+          <input id="genre-filter" class="filter-input" list="genre-options"
+            placeholder="Any &mdash; or comma-separated genres" autocomplete="off" spellcheck="false">
+          <datalist id="genre-options"></datalist>
+        </div>
+        <div class="option-row">
+          <span class="option-label">ARTISTS</span>
+          <input id="artist-filter" class="filter-input" list="artist-options"
+            placeholder="Any &mdash; or comma-separated artists" autocomplete="off" spellcheck="false">
+          <datalist id="artist-options"></datalist>
+        </div>
+        <div id="match-count">Loading library&hellip;</div>
+        <div id="history-line"></div>
+      </div>
+      <button id="start-button" disabled>Start</button>
+    </div>
+
+    <div id="round-screen" class="screen">
+      <div class="card">
+        <div class="round-header">
+          <span id="round-label">Round 1 / 10</span>
+          <span id="streak-label"></span>
+          <span id="score-label">Score: 0</span>
+        </div>
+        <div id="timer-outer"><span id="timer-inner"></span></div>
+        <div id="lyric-block">
+          <div id="context-lines"></div>
+          <div id="blank-line"></div>
+        </div>
+        <div id="word-count"></div>
+        <button id="hear-button" type="button" disabled>&#9834; Replay the lead-in</button>
+        <div class="guess-row">
+          <span class="guess-label">LINE</span>
+          <input id="guess-line" class="guess-input" type="text" placeholder="The missing line&hellip;"
+            autocomplete="off" spellcheck="false">
+        </div>
+        <div id="feedback"></div>
+        <div id="track-line"></div>
+        <img id="reveal-art" alt="album art">
+        <button id="giveup-button" type="button">Give up on this one</button>
+      </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+      <div id="score-line"></div>
+      <div id="best-line" class="dim"></div>
+      <div class="card" id="answers"></div>
+      <div class="card" id="insights" style="display: none; margin-top: 14px;">
+        <div class="choice-label">YOUR TRACK RECORD · ALL-TIME</div>
+        <div id="insight-rows"></div>
+      </div>
+      <button id="again-button">Play Again</button>
+      <button id="setup-button">Change Settings</button>
+    </div>
+
+    <audio id="player"></audio>
+  <script src="game-common.js"></script>
+  <script>
+const ROUNDS = 10;
+const ROUND_MS = 40000;
+/** One line before bonuses. Partial credit is a fraction of this, so it wants to divide well. */
+const LINE_POINTS = 6;
+
+/** How many lead-in lines to show, and the earliest line that can be blanked. */
+const CONTEXT_LINES = 3;
+const MIN_CONTEXT_LINES = 2;
+/** Three words is a shrug and fifteen is a typing test; both make a bad round. */
+const MIN_LINE_WORDS = 4;
+const MAX_LINE_WORDS = 12;
+const MIN_REAL_WORDS = 3;
+/** Above this much word overlap with a line already on screen, the answer is just copying. */
+const MAX_CONTEXT_OVERLAP = 0.6;
+
+const MIN_LEAD_IN_MS = 2500;
+const LEAD_IN_MAX_MS = 15000;
+/** Stop the lead-in this far short of the line, so no part of the answer is sung. */
+const LEAD_IN_STOP_MS = 300;
+const REVEAL_MIN_MS = 2500;
+/** Kept under HOLD_MISS_MS, so the reveal's audio is not cut off by the next round. */
+const REVEAL_MAX_MS = 4500;
+const HOLD_PERFECT_MS = 3000;
+const HOLD_MISS_MS = 4800;
+/** Stale markers and unusable files are both common enough to need more than one spare. */
+const PREPARE_TRIES = 12;
+
+const screens = Game.screens(['start-screen', 'round-screen', 'end-screen']);
+const scores = Game.Scores('finish_the_lyric');
+const timer = Game.Timer('timer-inner', ROUND_MS);
+const filters = Game.Filters({
+  artist: 'artist-filter',
+  artistOptions: 'artist-options',
+  decade: 'decade-select',
+  difficulty: 'difficulty',
+  genre: 'genre-filter',
+  genreOptions: 'genre-options',
+});
+const counter = Game.matchCounter('match-count', 'start-button');
+
+const startButton = document.getElementById('start-button');
+const againButton = document.getElementById('again-button');
+const setupButton = document.getElementById('setup-button');
+const historyLine = document.getElementById('history-line');
+const bestLine = document.getElementById('best-line');
+const roundLabel = document.getElementById('round-label');
+const streakLabel = document.getElementById('streak-label');
+const scoreLabel = document.getElementById('score-label');
+const contextLines = document.getElementById('context-lines');
+const blankLine = document.getElementById('blank-line');
+const wordCountLabel = document.getElementById('word-count');
+const hearButton = document.getElementById('hear-button');
+const lineInput = document.getElementById('guess-line');
+const feedback = document.getElementById('feedback');
+const trackLine = document.getElementById('track-line');
+const revealArt = document.getElementById('reveal-art');
+const giveupButton = document.getElementById('giveup-button');
+const scoreLine = document.getElementById('score-line');
+const answersDiv = document.getElementById('answers');
+const player = document.getElementById('player');
+
+let allTracks = [];
+let syncedTracks = [];
+let gameTracks = [];
+let spares = [];
+let round = 0;
+let score = 0;
+let streak = 0;
+let results = [];
+let currentMode = 'read';
+let gameKey = '';
+/** The track and the chosen line for the round on screen, once it is ready. */
+let current = null;
+/** Lyrics arrive asynchronously, so a round is not answerable the moment it starts. */
+let roundReady = false;
+let roundOver = false;
+let clockStarted = false;
+/** Bumped per round, so a lyric fetch that lands after the player has moved on is ignored. */
+let roundToken = 0;
+let loadedPath = '';
+let stopId = null;
+let guardId = null;
+/** Bumped by `stopAudio`, so a superseded playback cannot finish over a live one. */
+let audioToken = 0;
+
+// ---- words ----
+
+/**
+ * Noise words carry no information, so a line made of them is unguessable by typing.
+ * "Na na na na hey Jude" is a great hook and a terrible round.
+ */
+const FILLER_WORDS = new Set(['a', 'aah', 'ah', 'aha', 'ahh', 'ay', 'da', 'dee', 'doo', 'duh',
+  'eh', 'ha', 'hey', 'hmm', 'ho', 'huh', 'la', 'mm', 'mmm', 'na', 'nah', 'oh', 'ohh', 'ooh',
+  'oooh', 'ow', 'sha', 'uh', 'uhh', 'um', 'whoa', 'woah', 'woo', 'wooh', 'yea', 'yeah', 'yeh',
+  'yo']);
+
+/** Captures the words so `split` yields word, separator, word… and punctuation survives. */
+const WORD_SPLIT = /([A-Za-z0-9À-ÿ'’ʼ]+)/;
+
+/**
+ * The comparison key for one word.
+ *
+ * Diacritics are folded before `Game.normalize`, which keeps only a-z0-9: without this "café"
+ * keys as "caf" and a player who types "cafe" loses a word they got right.
+ */
+function wordKey(word) {
+  return Game.normalize(word.normalize('NFD').replace(/[̀-ͯ]/g, ''));
+}
+
+/** A line as word/separator tokens; `key` is empty on anything that is not a scored word. */
+function lineTokens(text) {
+  return (text || '').split(WORD_SPLIT)
+    .map((part, index) => ({key: index % 2 ? wordKey(part) : '', raw: part}))
+    .filter((token) => token.raw);
+}
+
+function wordKeys(text) {
+  return lineTokens(text).map((token) => token.key).filter(Boolean);
+}
+
+/**
+ * Compares a guess with the real line word by word.
+ *
+ * Word order is ignored, which is forgiving by design — the player is recalling a lyric, not
+ * transcribing one. `marks` lines up with the answer's scored words so the reveal can colour
+ * each one. The fraction divides by the *longer* of the two lines, so spraying common words to
+ * fish for matches costs as much precision as it buys recall.
+ */
+function scoreGuess(guess, answer) {
+  const target = lineTokens(answer).filter((token) => token.key);
+  const guessed = wordKeys(guess);
+  const spare = guessed.slice();
+  let matched = 0;
+  const marks = target.map((token) => {
+    const at = spare.indexOf(token.key);
+    if (at < 0) {
+      return false;
+    }
+    spare.splice(at, 1);
+    matched++;
+    return true;
+  });
+  const span = Math.max(target.length, guessed.length);
+  return {fraction: span ? matched / span : 0, marks, matched, total: target.length};
+}
+
+/** What share of `keys1` also appears in `keys2`, counting repeats once each. */
+function overlapFraction(keys1, keys2) {
+  if (!keys1.length) {
+    return 0;
+  }
+  const spare = keys2.slice();
+  let shared = 0;
+  keys1.forEach((key) => {
+    const at = spare.indexOf(key);
+    if (at >= 0) {
+      spare.splice(at, 1);
+      shared++;
+    }
+  });
+  return shared / keys1.length;
+}
+
+function isUsableLine(keys) {
+  if (keys.length < MIN_LINE_WORDS || keys.length > MAX_LINE_WORDS) {
+    return false;
+  }
+  const real = new Set(keys.filter((key) => !FILLER_WORDS.has(key)));
+  return real.size >= MIN_REAL_WORDS;
+}
+
+/** Where the lead-in audio starts: the earliest context line still inside the window. */
+function leadInStart(picked) {
+  const timed = picked.context.filter((line) => line.at !== undefined);
+  if (!timed.length) {
+    return NaN;
+  }
+  const earliest = timed.find((line) => line.at >= picked.at - LEAD_IN_MAX_MS);
+  // a lone context line can sit minutes back across an instrumental break; play the last
+  // LEAD_IN_MAX_MS rather than the whole solo
+  return Math.max(earliest ? earliest.at : timed[timed.length - 1].at,
+    picked.at - LEAD_IN_MAX_MS);
+}
+
+/**
+ * The reveal plays just the missing line: up to the next line's timestamp, with a floor so a
+ * rapid-fire couplet is still audible and a ceiling so it cannot outlast the reveal pause.
+ */
+function revealEnd(picked) {
+  const gap = picked.next && picked.next.at !== undefined ?
+    picked.next.at - picked.at : REVEAL_MAX_MS;
+  return picked.at + Math.min(Math.max(gap, REVEAL_MIN_MS), REVEAL_MAX_MS);
+}
+
+/**
+ * Chooses the line to blank out of a stored LRC, or undefined when the song has none.
+ *
+ * Blank `text` entries are deliberate spacing in the lyric rather than lines, so they are
+ * dropped before anything is counted — including when counting context, or a round would open
+ * on two empty lines. The first lines of a song can never be the answer because there would be
+ * no lead-in to show, and a line that repeats what is already on screen is not a question.
+ * `needsTiming` is Hear It, which cannot use a line it has no timestamp for.
+ */
+function pickLine(text, needsTiming) {
+  const sung = Game.parseLrc(text).filter((line) => line.text && line.text.trim());
+  const keys = sung.map((line) => wordKeys(line.text));
+  const options = [];
+  for (let index = MIN_CONTEXT_LINES; index < sung.length; index++) {
+    const trimmed = sung[index].text.trim();
+    // "[Chorus]", "(spoken)" and "Verse 2:" are annotations, not lyrics
+    if (/^[\[(]/.test(trimmed) || /:$/.test(trimmed)) {
+      continue;
+    }
+    if (!isUsableLine(keys[index])) {
+      continue;
+    }
+    const context = sung.slice(Math.max(0, index - CONTEXT_LINES), index);
+    const tooFamiliar = context.some((line, offset) => {
+      return overlapFraction(keys[index], keys[index - context.length + offset]) >
+        MAX_CONTEXT_OVERLAP;
+    });
+    if (tooFamiliar) {
+      continue;
+    }
+    const option = {
+      at: sung[index].at,
+      context,
+      next: sung[index + 1],
+      text: sung[index].text,
+    };
+    if (needsTiming && !(option.at - leadInStart(option) >= MIN_LEAD_IN_MS)) {
+      continue;
+    }
+    options.push(option);
+  }
+  return options.length ? Game.shuffle(options)[0] : undefined;
+}
+
+// ---- setup ----
+
+function selectedMode() {
+  return document.querySelector('input[name="mode"]:checked').value;
+}
+
+/** Hear It needs timestamps, so it plays only the tracks whose stored LRC is synced. */
+function modeTracks() {
+  return selectedMode() === 'hear' ? syncedTracks : allTracks;
+}
+
+/** History is keyed by the active settings so bests compare like with like. */
+function settingsKey() {
+  return `${selectedMode()}|${filters.key()}`;
+}
+
+function updateHistoryLine() {
+  historyLine.textContent = scores.historyText(settingsKey());
+}
+
+function onSettingsChange() {
+  if (allTracks.length) {
+    const pool = modeTracks();
+    if (pool.length) {
+      counter.update(filters.candidates(pool, ROUNDS).length, ROUNDS);
+    } else {
+      counter.message('No synced lyrics yet — Hear It needs timestamps, so try Read It', true);
+    }
+  }
+  updateHistoryLine();
+}
+
+Game.loadTracks({needs: ['hasLyrics', 'id']}, (tracks) => {
+  allTracks = tracks;
+  syncedTracks = tracks.filter((track) => track.syncedLyrics);
+  if (!allTracks.length) {
+    // the sweep is slow and a dev library has none at all, so say what to do about it
+    counter.message('No lyrics stored yet — run Extensions → Lyrics to fetch them', true);
+    return;
+  }
+  filters.populate(allTracks);
+  onSettingsChange();
+});
+scores.load(updateHistoryLine);
+filters.onChange(onSettingsChange);
+document.getElementById('mode').addEventListener('change', onSettingsChange);
+
+function startGame() {
+  const pool = Game.shuffle(filters.candidates(modeTracks(), ROUNDS).slice());
+  if (!pool.length) {
+    return;
+  }
+  gameKey = settingsKey();
+  currentMode = selectedMode();
+  document.body.className = `mode-${currentMode}`;
+  const roundCount = Math.min(ROUNDS, pool.length);
+  gameTracks = pool.slice(0, roundCount);
+  spares = pool.slice(roundCount);
+  round = 0;
+  score = 0;
+  streak = 0;
+  results = [];
+  screens.show('round-screen');
+  startRound();
+}
+
+// ---- lyrics ----
+
+/** Files are read off disk per round, so the same track is never fetched twice in a session. */
+const lyricsCache = new Map();
+
+function fetchLyrics(trackId) {
+  if (!lyricsCache.has(trackId)) {
+    lyricsCache.set(trackId, Game.lyrics(trackId));
+  }
+  return lyricsCache.get(trackId);
+}
+
+/**
+ * The next round's read starts during the reveal, so the lyric is usually already in hand when
+ * the round flips and "Finding a line…" never flashes.
+ */
+function prefetchNext() {
+  [gameTracks[round + 1], spares[0]].forEach((track) => {
+    if (track) {
+      fetchLyrics(track.id);
+    }
+  });
+}
+
+/**
+ * Finds a track whose stored lyrics actually yield a round.
+ *
+ * A `hasLyrics` marker can be stale — the file deleted, or empty — and plenty of real files
+ * have no line worth blanking (one repeated hook, or no line breaks at all), so a track that
+ * does not work is swapped for a spare rather than wedging the round.
+ */
+async function prepareRound(token) {
+  for (let attempt = 0; attempt < PREPARE_TRIES; attempt++) {
+    const track = gameTracks[round];
+    const text = await fetchLyrics(track.id);
+    if (token !== roundToken) {
+      return null;
+    }
+    const picked = text && text.trim() ? pickLine(text, currentMode === 'hear') : undefined;
+    if (picked) {
+      return {picked, track};
+    }
+    const spare = spares.shift();
+    if (!spare) {
+      return null;
+    }
+    gameTracks[round] = spare;
+  }
+  return null;
+}
+
+// ---- audio ----
+
+function stopAudio() {
+  audioToken++;
+  clearTimeout(stopId);
+  clearTimeout(guardId);
+  player.onerror = null;
+  player.onloadedmetadata = null;
+  player.onplaying = null;
+  player.pause();
+}
+
+/**
+ * Plays `[startMs, endMs)` of the current track and calls `onDone` once it stops.
+ *
+ * The end is a timeout rather than a `timeupdate` check: timeupdate fires every ~250ms, which
+ * is long enough to leak the first syllable of the answer. `onDone` is what starts the clock,
+ * so it has to run even when the file is missing or never plays — hence the error handler and
+ * the guard timer. `loadedPath` is the same trick `App.tsx` uses: re-seeking a file that is
+ * already loaded skips a reload the reveal would otherwise pay for.
+ */
+function playSpan(startMs, endMs, onDone) {
+  stopAudio();
+  const track = current.track;
+  const token = audioToken;
+  const finish = () => {
+    // A `play()` rejection can land after this span has been superseded; its timers are
+    // already someone else's by then, so the token decides whether to touch anything.
+    if (token !== audioToken) {
+      return;
+    }
+    audioToken++;
+    clearTimeout(stopId);
+    clearTimeout(guardId);
+    player.pause();
+    if (onDone) {
+      onDone();
+    }
+  };
+  if (!(endMs > startMs)) {
+    finish();
+    return;
+  }
+  const span = endMs - startMs;
+  const seekAndPlay = () => {
+    const limit = isFinite(player.duration) ? Math.max(0, player.duration - 1) : Infinity;
+    player.currentTime = Math.min(startMs / 1000, limit);
+    const started = player.play();
+    if (started && started.catch) {
+      started.catch(finish);
+    }
+  };
+  player.onerror = finish;
+  player.onplaying = () => {
+    player.onplaying = null;
+    clearTimeout(stopId);
+    stopId = setTimeout(finish, span);
+  };
+  guardId = setTimeout(finish, span + 4000);
+  if (loadedPath === track.filePath && player.readyState >= 1) {
+    seekAndPlay();
+  } else {
+    loadedPath = track.filePath;
+    player.src = track.filePath;
+    player.onloadedmetadata = seekAndPlay;
+  }
+}
+
+// ---- the round ----
+
+function renderContext(lines) {
+  contextLines.innerHTML = '';
+  lines.forEach((line) => {
+    const div = document.createElement('div');
+    div.textContent = line.text.trim();
+    contextLines.appendChild(div);
+  });
+}
+
+/** One blank per scored word: the count is the hint that makes partial credit legible. */
+function renderBlanks(count) {
+  blankLine.innerHTML = '';
+  for (let index = 0; index < count; index++) {
+    const span = document.createElement('span');
+    span.className = 'blank';
+    blankLine.appendChild(span);
+  }
+}
+
+/** Replaces the blanks with the real line, each scored word coloured by whether it was got. */
+function renderAnswer(picked, result) {
+  blankLine.innerHTML = '';
+  let scored = 0;
+  lineTokens(picked.text).forEach((token) => {
+    const span = document.createElement('span');
+    span.textContent = token.raw;
+    if (token.key) {
+      span.className = result.marks[scored] ? 'got' : 'missed';
+      scored++;
+    }
+    blankLine.appendChild(span);
+  });
+}
+
+/**
+ * The clock cannot start until the line is on screen — and in Hear It, not until the lead-in
+ * has finished, or most of the 40s would be spent listening. Token- and state-guarded because
+ * both the audio's stop timer and its error handler can reach it.
+ */
+function startClock(token) {
+  if (token !== roundToken || clockStarted || roundOver) {
+    return;
+  }
+  clockStarted = true;
+  feedback.textContent = 'Type the missing line, then Enter.';
+  feedback.className = 'dim';
+  timer.start(endRound);
+  lineInput.focus();
+}
+
+async function startRound() {
+  const token = ++roundToken;
+  roundReady = false;
+  roundOver = false;
+  clockStarted = false;
+  current = null;
+  timer.reset();
+  stopAudio();
+  roundLabel.textContent = `Round ${round + 1} / ${gameTracks.length}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  scoreLabel.textContent = `Score: ${score}`;
+  renderContext([]);
+  renderBlanks(0);
+  wordCountLabel.textContent = '';
+  trackLine.textContent = '';
+  revealArt.style.display = 'none';
+  giveupButton.style.visibility = 'hidden';
+  hearButton.disabled = true;
+  hearButton.textContent = '♪ Replay the lead-in';
+  lineInput.value = '';
+  lineInput.disabled = false;
+  lineInput.classList.remove('locked');
+  feedback.textContent = 'Finding a line…';
+  feedback.className = 'dim';
+
+  const prepared = await prepareRound(token);
+  if (token !== roundToken) {
+    return;
+  }
+  if (!prepared) {
+    endGameEarly();
+    return;
+  }
+  current = prepared;
+  renderContext(prepared.picked.context);
+  const words = wordKeys(prepared.picked.text).length;
+  renderBlanks(words);
+  wordCountLabel.textContent = `${words} WORDS`;
+  roundReady = true;
+  giveupButton.style.visibility = 'visible';
+  lineInput.focus();
+  if (currentMode === 'hear') {
+    hearButton.disabled = false;
+    feedback.textContent = 'Listen to the lead-in…';
+    playSpan(leadInStart(prepared.picked), prepared.picked.at - LEAD_IN_STOP_MS,
+      () => startClock(token));
+  } else {
+    startClock(token);
+  }
+  prefetchNext();
+}
+
+function endRound() {
+  if (roundOver || !roundReady) {
+    return;
+  }
+  roundOver = true;
+  // Answering before the clock even starts is as fast as it gets, so it earns the full bonus.
+  const timeFraction = clockStarted ? timer.fractionLeft() : 1;
+  timer.stop();
+  stopAudio();
+  const picked = current.picked;
+  const track = current.track;
+  const result = scoreGuess(lineInput.value, picked.text);
+  const base = Math.round(result.fraction * LINE_POINTS);
+  const perfect = result.fraction === 1;
+  let speedBonus = 0;
+  let streakBonus = 0;
+  if (perfect) {
+    streak++;
+    const extra = Game.bonuses(timeFraction, streak);
+    speedBonus = extra.speedBonus;
+    streakBonus = extra.streakBonus;
+  } else {
+    streak = 0;
+  }
+  const points = base + speedBonus + streakBonus;
+  score += points;
+  scoreLabel.textContent = `Score: ${score}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  lineInput.disabled = true;
+  lineInput.classList.add('locked');
+  renderAnswer(picked, result);
+  if (perfect) {
+    const extras = [];
+    if (speedBonus) {
+      extras.push(`+${speedBonus} speed`);
+    }
+    if (streakBonus) {
+      extras.push(`+${streakBonus} streak`);
+    }
+    feedback.textContent = `✓ The whole line! +${points}${extras.length ? ` (${extras.join(', ')})` : ''}`;
+    feedback.className = 'good';
+  } else {
+    feedback.textContent = `${result.matched} of ${result.total} words — +${points}`;
+    feedback.className = points ? 'dim' : 'bad';
+  }
+  trackLine.textContent = `${track.name} — ${track.artist}`;
+  giveupButton.style.visibility = 'hidden';
+  if (track.artFile) {
+    revealArt.src = Game.artUrl(track.artFile);
+    revealArt.style.display = 'block';
+  }
+  if (currentMode === 'hear' && picked.at !== undefined) {
+    hearButton.disabled = false;
+    hearButton.textContent = '♪ Hear the line';
+    playSpan(picked.at, revealEnd(picked), null);
+  }
+  results.push({
+    artist: track.artist,
+    basePoints: base,
+    genres: track.genres || [],
+    line: picked.text.trim(),
+    matched: result.matched,
+    perfect,
+    points,
+    speedBonus,
+    streakBonus,
+    title: track.name,
+    total: result.total,
+    year: track.year,
+  });
+  round++;
+  setTimeout(() => {
+    if (round < gameTracks.length) {
+      startRound();
+    } else {
+      showResults();
+    }
+  }, perfect ? HOLD_PERFECT_MS : HOLD_MISS_MS);
+}
+
+/**
+ * Nothing in the pool yields another round. Keep the rounds already played rather than
+ * pretending the game is still going; with none at all, the pool itself is the problem.
+ */
+function endGameEarly() {
+  timer.stop();
+  stopAudio();
+  gameTracks = gameTracks.slice(0, round);
+  if (results.length) {
+    showResults();
+    return;
+  }
+  counter.message('No stored lyrics here gave a usable line — widen the filters, or run ' +
+    'Extensions → Lyrics', true);
+  screens.show('start-screen');
+}
+
+function showResults() {
+  stopAudio();
+  scores.foldInsights(results, LINE_POINTS);
+  const saved = scores.save(gameKey, score);
+  scoreLine.textContent = `Score: ${score}`;
+  if (saved.newBest && saved.entry.games.length > 1) {
+    bestLine.textContent = '★ New personal best for these settings!';
+    bestLine.className = 'good';
+  } else {
+    bestLine.textContent = `Best with these settings: ${saved.entry.best}`;
+    bestLine.className = 'dim';
+  }
+  answersDiv.innerHTML = '';
+  results.forEach((result) => {
+    const row = document.createElement('div');
+    row.className = 'answer-row';
+    const line = document.createElement('span');
+    const mark = result.perfect ? '✓' : result.matched ? '~' : '✗';
+    line.className = `answer-title ${result.perfect ? 'good' : result.matched ? 'dim' : 'bad'}`;
+    line.textContent = `${mark} ${result.line}`;
+    line.title = result.line;
+    const song = document.createElement('span');
+    song.className = 'answer-artist dim';
+    song.textContent = `${result.title} — ${result.artist}`;
+    song.title = song.textContent;
+    const points = document.createElement('span');
+    points.className = 'answer-points';
+    const bonusMarks = `${result.speedBonus ? '⚡' : ''}${result.streakBonus ? '🔥' : ''}`;
+    points.textContent = `${bonusMarks}+${result.points}`;
+    row.appendChild(line);
+    row.appendChild(song);
+    row.appendChild(points);
+    answersDiv.appendChild(row);
+  });
+  Game.renderInsights(scores, 'insights', 'insight-rows', LINE_POINTS);
+  screens.show('end-screen');
+}
+
+lineInput.addEventListener('keydown', (evt) => {
+  if (evt.key !== 'Enter' || roundOver || !roundReady) {
+    return;
+  }
+  // An empty Enter would otherwise burn the round; Give up is the deliberate way out.
+  if (!wordKeys(lineInput.value).length) {
+    feedback.textContent = 'Nothing typed yet — guess what you can, or give up.';
+    feedback.className = 'bad';
+    return;
+  }
+  endRound();
+});
+
+giveupButton.addEventListener('click', endRound);
+
+hearButton.addEventListener('click', () => {
+  if (!current) {
+    return;
+  }
+  const picked = current.picked;
+  if (roundOver) {
+    playSpan(picked.at, revealEnd(picked), null);
+    return;
+  }
+  // Replaying does not restart the clock: `startClock` ignores a round that is already running.
+  const token = roundToken;
+  playSpan(leadInStart(picked), picked.at - LEAD_IN_STOP_MS, () => startClock(token));
+  lineInput.focus();
+});
+
+startButton.addEventListener('click', startGame);
+againButton.addEventListener('click', startGame);
+setupButton.addEventListener('click', () => {
+  stopAudio();
+  onSettingsChange();
+  screens.show('start-screen');
+});
+  </script>
+  </body>
+</html>
