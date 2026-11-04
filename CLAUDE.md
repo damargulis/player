@@ -18,7 +18,7 @@
 
 Two Electron processes plus an embedded HTTP server, communicating over IPC:
 
-- **Main process — `public/electron.js`** (plain JS, not compiled from `src/`). Creates the frameless main window, app menu (Library → "Reset from itunes", Extensions → Wikipedia/Genius), and global shortcuts (Cmd+8/9/0 = prev/play/next). Also runs an Express + socket.io server (port 4444 dev, 4443 prod) published over bonjour as "MyMusic" — this is the mobile-app API (`/get-track/:id`, `/get-album-art/:id`, `/start-sync`, socket "state"/"action" events). The main process holds almost no state; every HTTP request is proxied to the renderer over IPC (`extEvt.reply(...)` → renderer answers with `ipcMain.once(...)`).
+- **Main process — `public/electron.js`** (plain JS, not compiled from `src/`). Creates the frameless main window, app menu (Library → "Reset from itunes", Extensions → Wikipedia/Genius, Games → the `GAMES` registry), and global shortcuts (Cmd+8/9/0 = prev/play/next). Also runs an Express + socket.io server (port 4444 dev, 4443 prod) published over bonjour as "MyMusic" — this is the mobile-app API (`/get-track/:id`, `/get-album-art/:id`, `/start-sync`, socket "state"/"action" events). The main process holds almost no state; every HTTP request is proxied to the renderer over IPC (`extEvt.reply(...)` → renderer answers with `ipcMain.once(...)`).
 - **Renderer — `src/`**. `nodeIntegration` is enabled and webpack targets `electron-renderer` (via `@rescripts`, see `.rescriptsrc.js` → `.webpack.config.js`), so renderer code freely imports `fs`, `path`, and `electron`. `App.tsx` is the connected root: it owns the `<audio>` element, registers all IPC listeners (minimize/maximize, run-extension, reset-library, mobile sync/data requests), and schedules daily library backups. Two UI modes: `MaxWindow` (full library browser) and `MiniWindow` (240×120 mini-player), toggled by resizing the window via IPC.
 
 ### State & persistence
@@ -72,6 +72,46 @@ The `L` beside the Genius `G` in the track list opens `LyricsOverlay.tsx`, which
 on demand; it is dimmed when the stored lyrics have no timestamps. The Stats page shows
 per-extension coverage, with different denominators per row on purpose (Genius and Lyrics are
 per-track, Wikipedia and MusicBrainz per album+artist).
+
+### Games
+
+Standalone `BrowserWindow`s off the **Games** menu, each one page in `public/` with
+`nodeIntegration` on, loaded over `file://` with no build step. They are not part of the React
+app and share nothing with it but the library.
+
+`public/electron.js` holds a **`GAMES` registry**: the id names the html file, the saved-scores
+file and the menu entry, so adding a game is one entry there plus one page. Only ids in that map
+are ever accepted from a game window — that is what keeps a crafted id out of the scores and
+lyrics file paths. Name That Tune's scores stay in `tune_scores.json` because it shipped before
+games had ids; everything else is `scores_<id>.json`.
+
+The chrome is shared, not copied. `public/game-common.css` is the theme and the card / button /
+round-header / end-screen styling; `public/game-common.js` is the behaviour behind a `Game`
+global — fuzzy answer matching (`normalize` treats "the" as optional, `artistMatches` accepts any
+one artist of a `", "` credit), the setup-screen `Filters` and difficulty slicing, the countdown
+`Timer`, the shared speed/streak `bonuses`, multiple-choice building, per-game `Scores` with the
+history line and the all-time insights fold, and `parseLrc`. A game's own `<style>` holds only
+what is specific to it. Name That Tune went from 1,059 self-contained lines to 511 by consuming
+both; the point is that a fourth game does not mean a fourth copy of the theme, which is the
+shape of problem the speaker-colour hash and the concert date filter both became.
+
+`parseLrc` is a **port** of `parseLyrics` in `src/extensions/lyrics/store.tsx` — the TS copy
+pulls in Electron and cannot be required from a `file://` page. Keep the two in step.
+
+Games get the library through the renderer, which owns it: `game-get-tracks` →
+`extEvt.reply("get-game-tracks")` → `App.tsx` → `game-tracks`, the same proxy shape as the mobile
+API. Requests **queue by sender**, because the renderer answers on one channel and a second
+window asking while a request is in flight would otherwise wait for a reply that never comes. The
+payload carries `album`, `artFile`, `artist`, `duration`, `filePath`, `genres`, `hasLyrics`, `id`,
+`name`, `playCount`, `syncedLyrics` and `year` — the lyrics **markers**, not the words, so a game
+filters 21,000 tracks and then reads only the few files it needs. `game-get-lyrics` reads a stored
+`.lrc` straight off disk in the main process (`path.basename` on the id is what stops a walk out
+of the directory); `game-dj-clue` goes to the renderer instead, because the API key is there.
+
+`src/dj/clue.tsx` asks the DJ to describe a track without naming it. It **redacts** the artist,
+title and album out of the reply rather than re-requesting: a leaked answer costs the round, and a
+second call costs as much as the first. One Messages API call per round, which is why the clue game
+has few rounds, says so in its rules, and pre-fetches the next clue while the player works.
 
 ### Concert tracker
 
