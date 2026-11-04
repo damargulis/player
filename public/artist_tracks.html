@@ -1,0 +1,753 @@
+<html>
+  <head>
+    <title>Name Every Track</title>
+    <link rel="stylesheet" href="game-common.css">
+    <style>
+      /* Only what is specific to this game; the rest is in game-common.css. */
+      /* The head stays put while the discography scrolls under it — the grid runs to
+         hundreds of rows, and an input box you have to scroll back to is unplayable. */
+      #play-head {
+        margin-bottom: 14px;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+      #progress-outer {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        height: 8px;
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+      #progress-inner {
+        background: var(--success);
+        display: block;
+        height: 100%;
+        transition: width 0.2s ease-out;
+        width: 0;
+      }
+      /* The window is 760 wide so a discography reads in two columns rather than one
+         endless strip; an album is kept whole so its running order stays readable. */
+      #grid {
+        column-count: 2;
+        column-gap: 14px;
+      }
+      .album-group {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        break-inside: avoid;
+        margin-bottom: 14px;
+        padding: 10px 12px;
+      }
+      .album-head {
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 8px;
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+      }
+      .album-art {
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        height: 34px;
+        object-fit: cover;
+        width: 34px;
+      }
+      .album-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .album-year, .album-score {
+        color: var(--text-dim);
+        font-size: 11px;
+      }
+      .track-row {
+        border-left: 2px solid transparent;
+        display: flex;
+        font-size: 12px;
+        gap: 7px;
+        padding: 2px 0 2px 5px;
+      }
+      .track-num {
+        color: var(--border);
+        text-align: right;
+        width: 16px;
+      }
+      /* Monospace so a blank and the title that replaces it occupy the same width and
+         nothing reflows mid-game; the letter-spacing is what makes "____" countable. */
+      .track-text {
+        flex: 1;
+        font-family: 'SF Mono', Menlo, monospace;
+        letter-spacing: 1px;
+        word-break: break-word;
+      }
+      .track-row .track-text { color: var(--text-dim); }
+      .track-row.got {
+        border-left-color: var(--success);
+      }
+      .track-row.got .track-text {
+        color: var(--text);
+        letter-spacing: 0;
+      }
+      .track-row.missed {
+        border-left-color: var(--danger);
+      }
+      .track-row.missed .track-text {
+        color: var(--text-dim);
+        font-style: italic;
+        letter-spacing: 0;
+      }
+      /* ---- setup screen ---- */
+      #artist-results {
+        margin: -4px 0 10px 0;
+        max-height: 212px;
+        overflow-y: auto;
+      }
+      .artist-option {
+        align-items: center;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        font-size: 13px;
+        gap: 10px;
+        padding: 6px 8px;
+      }
+      .artist-option:hover { background: var(--bg); border-color: var(--border); }
+      .artist-option.picked {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+      .artist-option-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .artist-option-count { color: var(--text-dim); font-size: 11px; }
+      /* The bare `button` rule in game-common.css is the primary action, so anything
+         secondary has to opt out of it by class. */
+      button.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        font-size: 13px;
+        font-weight: 400;
+        padding: 8px 20px;
+      }
+      button.secondary:hover:enabled {
+        background: var(--surface);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      .button-row { display: flex; justify-content: center; }
+      #summary-line { font-size: 13px; margin-top: -8px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <h1>NAME EVERY TRACK</h1>
+    <div class="subtitle">Pick an artist &middot; name everything of theirs in the library</div>
+
+    <div id="setup-screen" class="screen active">
+      <div class="card">
+        <div class="rules">
+          Every song an artist has <b>in this library</b> is listed, blanked out. Type
+          titles and hit Enter &mdash; capitalization and punctuation ignored, a wrong
+          guess costs nothing but clock. You are scored on <b>distinct songs</b>, so a
+          title that sits on three different records is one point and fills all three
+          rows. The clock scales with how much there is to name.
+        </div>
+        <div class="option-row">
+          <span class="option-label">BLANKS</span>
+          <div class="segment" id="hints">
+            <label><input type="radio" name="hints" value="shape" checked><span>Shape<br>word lengths shown</span></label>
+            <label><input type="radio" name="hints" value="blind"><span>Blind<br>featureless bars</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">ARTIST</span>
+          <input id="artist-search" class="filter-input" type="text"
+            placeholder="Search the library&hellip;" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="artist-results"></div>
+        <div id="match-count">Loading library&hellip;</div>
+        <div id="history-line"></div>
+      </div>
+      <button id="start-button" disabled>Start</button>
+      <div class="button-row">
+        <button id="random-button" class="secondary" type="button">&#127922; Random artist</button>
+      </div>
+    </div>
+
+    <div id="game-screen" class="screen">
+      <div class="card" id="play-head">
+        <div class="round-header">
+          <span id="artist-label"></span>
+          <span id="count-label"></span>
+          <span id="clock-label"></span>
+        </div>
+        <div id="progress-outer"><span id="progress-inner"></span></div>
+        <div id="timer-outer"><span id="timer-inner"></span></div>
+        <div class="guess-row">
+          <span class="guess-label">TITLE</span>
+          <input id="guess" class="guess-input" type="text" placeholder="Name a song&hellip;"
+            autocomplete="off" spellcheck="false">
+        </div>
+        <div id="feedback"></div>
+        <button id="giveup-button" type="button">Give up &amp; reveal the rest</button>
+      </div>
+
+      <div class="card" id="endbar" style="display: none;">
+        <div id="score-line"></div>
+        <div id="best-line" class="dim"></div>
+        <div id="summary-line" class="dim"></div>
+        <div class="button-row">
+          <button id="again-button">Play Again</button>
+          <button id="setup-button" class="secondary" type="button">Pick Another Artist</button>
+        </div>
+      </div>
+
+      <div id="grid"></div>
+    </div>
+  <script src="game-common.js"></script>
+  <script>
+/**
+ * An artist needs this many distinct titles to be offerable. Below ten there is no
+ * "how many can you name" game to play: you either own the one record or you don't,
+ * the clock never matters, and a perfect score proves nothing.
+ */
+const MIN_TITLES = 10;
+/** The clock is a per-song allowance, floored and capped: naming 15 and naming 200
+ *  are different games, but nobody wants a 22-minute one. */
+const MS_PER_TITLE = 6000;
+const MIN_CLOCK_MS = 60000;
+const MAX_CLOCK_MS = 600000;
+const RESULT_LIMIT = 10;
+/** Random artist picks the best-played of a few draws — most of the pool is artists
+ *  with a dozen tracks you half remember buying, which makes for a bleak game. */
+const RANDOM_DRAWS = 3;
+const BLIND_BAR = '______________';
+/**
+ * Punctuation survives blanking because it is shape, not letters — "___'_ ___ _ ___"
+ * is a readable puzzle. Anything else non-blank becomes an underscore, which is why
+ * this is a keep-list: a letter-class test would leave accents (C'était toi) showing.
+ */
+const SHAPE_KEEP = '-\'‘’"“”!?.,:;&/()[]–—‐…';
+
+const screens = Game.screens(['setup-screen', 'game-screen']);
+const scores = Game.Scores('artist_tracks');
+const counter = Game.matchCounter('match-count', 'start-button');
+
+const startButton = document.getElementById('start-button');
+const randomButton = document.getElementById('random-button');
+const againButton = document.getElementById('again-button');
+const setupButton = document.getElementById('setup-button');
+const searchInput = document.getElementById('artist-search');
+const resultsDiv = document.getElementById('artist-results');
+const historyLine = document.getElementById('history-line');
+const hintsSegment = document.getElementById('hints');
+const artistLabel = document.getElementById('artist-label');
+const countLabel = document.getElementById('count-label');
+const clockLabel = document.getElementById('clock-label');
+const progressInner = document.getElementById('progress-inner');
+const guessInput = document.getElementById('guess');
+const feedback = document.getElementById('feedback');
+const giveupButton = document.getElementById('giveup-button');
+const endbar = document.getElementById('endbar');
+const scoreLine = document.getElementById('score-line');
+const bestLine = document.getElementById('best-line');
+const summaryLine = document.getElementById('summary-line');
+const playHead = document.getElementById('play-head');
+const grid = document.getElementById('grid');
+
+let roster = [];
+let selected = null;
+// a fresh Timer per game, because its total is a function of the artist's track count
+let timer = null;
+let clockId = null;
+// true whenever no game is running, so every end path is a no-op after the first
+let finished = true;
+let game = null;
+
+function hintMode() {
+  return hintsSegment.querySelector('input:checked').value;
+}
+
+/** Bests are per artist *and* per blank mode — blind is a strictly harder game. */
+function scoreKey(entry) {
+  return `${entry.key}|${hintMode()}`;
+}
+
+function clockMs(titleCount) {
+  return Math.min(MAX_CLOCK_MS, Math.max(MIN_CLOCK_MS, titleCount * MS_PER_TITLE));
+}
+
+function clockText(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/**
+ * The track's position on its record, read off the file name ("08 Roll Over Beethoven",
+ * "1-04 …" on a double). The game payload carries no track number, and 99% of this
+ * library is iTunes-organised, so the name is the only ordering signal there is — the
+ * 1% that has none falls back to library order, which is itself usually album order.
+ */
+const DISC_TRACK = /^(?:(\d+)-)?(\d+)[ _.-]/;
+function discTrack(filePath) {
+  const file = decodeURIComponent((filePath || '').split('/').pop() || '');
+  const match = DISC_TRACK.exec(file);
+  if (!match) {
+    return Infinity;
+  }
+  return (match[1] ? Number(match[1]) * 1000 : 0) + Number(match[2]);
+}
+
+/**
+ * Every artist in the library with enough to name, with their tracks.
+ *
+ * Credits are ", "-joined, so a track billed "Artist, Someone Else" belongs to both —
+ * the same rule `Game.artistMatches` applies to a guess, applied here to the roster so
+ * features and collaborations count as theirs. Artists are keyed by `normalize`, which
+ * is also what the guesses are compared on, so "Beatles" and "The Beatles" cannot
+ * become two half-populated entries.
+ */
+function buildRoster(tracks) {
+  const byKey = new Map();
+  tracks.forEach((track, order) => {
+    (track.artist || '').split(', ').forEach((name) => {
+      const key = Game.normalize(name);
+      if (!key) {
+        return;
+      }
+      let entry = byKey.get(key);
+      if (!entry) {
+        entry = {albums: new Set(), key, names: {}, plays: 0, titles: new Set(), tracks: []};
+        byKey.set(key, entry);
+      }
+      entry.albums.add(Game.normalize(track.album) || track.album || '');
+      entry.names[name] = (entry.names[name] || 0) + 1;
+      entry.plays += track.playCount || 0;
+      entry.titles.add(Game.normalize(track.name));
+      entry.tracks.push({order, track});
+    });
+  });
+  return [...byKey.values()]
+    .filter((entry) => entry.titles.size >= MIN_TITLES)
+    .map((entry) => ({
+      albums: entry.albums.size,
+      key: entry.key,
+      // credits disagree about spelling ("JAY-Z" / "Jay-Z"); show the commonest
+      name: Object.keys(entry.names).sort((one, two) => entry.names[two] - entry.names[one])[0],
+      plays: entry.plays,
+      rows: entry.tracks.length,
+      titles: entry.titles.size,
+      tracks: entry.tracks,
+    }))
+    .sort((one, two) => two.titles - one.titles);
+}
+
+/**
+ * The artist's tracks as album groups, oldest record first, in running order.
+ *
+ * Grouped on the normalized album name rather than an id, because the payload has no
+ * album id — which also folds the handful of albums the library holds twice under one
+ * heading, where two columns of identical blanks would just look like a bug.
+ */
+function albumGroups(entry) {
+  const groups = new Map();
+  entry.tracks.forEach(({order, track}) => {
+    const name = track.album || 'Singles & loose ends';
+    const key = Game.normalize(name) || name;
+    let group = groups.get(key);
+    if (!group) {
+      group = {art: track.artFile, name, rows: [], year: track.year};
+      groups.set(key, group);
+    }
+    if (!group.art) {
+      group.art = track.artFile;
+    }
+    if (track.year > 1000 && (!group.year || track.year < group.year)) {
+      group.year = track.year;
+    }
+    group.rows.push({key: Game.normalize(track.name), order, seq: discTrack(track.filePath), title: track.name});
+  });
+  const list = [...groups.values()];
+  list.forEach((group) => {
+    group.rows.sort((one, two) => (one.seq - two.seq) || (one.order - two.order));
+  });
+  list.sort((one, two) => {
+    return (one.year || 9999) - (two.year || 9999) || one.name.localeCompare(two.name);
+  });
+  return list;
+}
+
+function blankFor(title) {
+  if (hintMode() === 'blind') {
+    return BLIND_BAR;
+  }
+  return [...title].map((char) => {
+    if (!char.trim()) {
+      return ' ';
+    }
+    return SHAPE_KEEP.includes(char) ? char : '_';
+  }).join('');
+}
+
+// ---- setup screen ----
+
+function updateHistoryLine() {
+  if (!selected) {
+    historyLine.textContent = '';
+    return;
+  }
+  const entry = scores.entry(scoreKey(selected));
+  if (!entry || !entry.games.length) {
+    historyLine.textContent = `No ${hintMode() === 'blind' ? 'blind ' : ''}runs at ` +
+      `${selected.name} yet`;
+    return;
+  }
+  historyLine.textContent = `Best on ${selected.name}: ${entry.best} / ${selected.titles} · ` +
+    `${entry.games.length} run${entry.games.length === 1 ? '' : 's'}`;
+}
+
+function selectArtist(entry) {
+  selected = entry;
+  [...resultsDiv.children].forEach((child) => {
+    child.classList.toggle('picked', child.dataset.key === entry.key);
+  });
+  const dupes = entry.rows - entry.titles;
+  counter.message(`${entry.name} — ${entry.titles} songs on ${entry.albums} ` +
+    `album${entry.albums === 1 ? '' : 's'}` +
+    `${dupes ? ` (${entry.rows} tracks)` : ''} · ${clockText(clockMs(entry.titles))} on the clock`,
+    false);
+  updateHistoryLine();
+}
+
+/**
+ * Up to ten matches for what has been typed, best first.
+ *
+ * Matching is on `Game.normalize`, so case, punctuation and a leading "the" all stop
+ * mattering: "beatles", "The Beatles" and "beatles," all find the same band.
+ */
+function renderResults() {
+  const query = Game.normalize(searchInput.value);
+  const matches = (query ?
+    roster.filter((entry) => entry.key.includes(query))
+      .sort((one, two) => {
+        const lead = Number(two.key.startsWith(query)) - Number(one.key.startsWith(query));
+        return lead || two.titles - one.titles;
+      }) :
+    roster).slice(0, RESULT_LIMIT);
+  resultsDiv.innerHTML = '';
+  matches.forEach((entry) => {
+    const row = document.createElement('div');
+    row.className = `artist-option${selected && selected.key === entry.key ? ' picked' : ''}`;
+    row.dataset.key = entry.key;
+    const name = document.createElement('span');
+    name.className = 'artist-option-name';
+    name.textContent = entry.name;
+    const count = document.createElement('span');
+    count.className = 'artist-option-count';
+    count.textContent = `${entry.titles} songs`;
+    row.appendChild(name);
+    row.appendChild(count);
+    row.addEventListener('click', () => selectArtist(entry));
+    resultsDiv.appendChild(row);
+  });
+  if (!matches.length) {
+    counter.message(`Nobody matching that with ${MIN_TITLES}+ songs in the library`, true);
+    selected = null;
+    historyLine.textContent = '';
+  } else if (!selected || !matches.some((entry) => entry.key === selected.key)) {
+    selectArtist(matches[0]);
+  }
+}
+
+function randomArtist() {
+  let pick = null;
+  for (let draw = 0; draw < RANDOM_DRAWS; draw++) {
+    const candidate = roster[Math.floor(Math.random() * roster.length)];
+    if (!pick || candidate.plays > pick.plays) {
+      pick = candidate;
+    }
+  }
+  searchInput.value = '';
+  renderResults();
+  selectArtist(pick);
+  // the pick is almost never in the unfiltered top ten, so put it on screen alone
+  resultsDiv.innerHTML = '';
+  const row = document.createElement('div');
+  row.className = 'artist-option picked';
+  row.dataset.key = pick.key;
+  const name = document.createElement('span');
+  name.className = 'artist-option-name';
+  name.textContent = pick.name;
+  const count = document.createElement('span');
+  count.className = 'artist-option-count';
+  count.textContent = `${pick.titles} songs`;
+  row.appendChild(name);
+  row.appendChild(count);
+  resultsDiv.appendChild(row);
+}
+
+// minDurationMs 0, not the shared default of 30s: a twenty-second album interlude is
+// still a track with a name, and leaving it out of a "name every track" grid is a lie.
+Game.loadTracks({minDurationMs: 0}, (tracks) => {
+  roster = buildRoster(tracks);
+  if (!roster.length) {
+    counter.message('No artists with enough tracks to play', true);
+    return;
+  }
+  renderResults();
+});
+scores.load(updateHistoryLine);
+searchInput.addEventListener('input', renderResults);
+searchInput.addEventListener('keydown', (evt) => {
+  if (evt.key !== 'Enter' || startButton.disabled) {
+    return;
+  }
+  startGame();
+});
+hintsSegment.addEventListener('change', () => {
+  if (selected) {
+    updateHistoryLine();
+  }
+});
+randomButton.addEventListener('click', randomArtist);
+
+// ---- the game ----
+
+function stopClocks() {
+  if (timer) {
+    timer.stop();
+  }
+  clearInterval(clockId);
+  clockId = null;
+}
+
+function updateCounters() {
+  countLabel.textContent = `${game.found} / ${game.total} songs`;
+  progressInner.style.width = `${(game.found / game.total) * 100}%`;
+}
+
+function renderGrid() {
+  grid.innerHTML = '';
+  game.groups.forEach((group) => {
+    const card = document.createElement('div');
+    card.className = 'album-group';
+    const head = document.createElement('div');
+    head.className = 'album-head';
+    const name = document.createElement('span');
+    name.className = 'album-name';
+    name.textContent = group.name;
+    name.title = group.name;
+    const year = document.createElement('span');
+    year.className = 'album-year';
+    year.textContent = group.year > 1000 ? group.year : '';
+    head.appendChild(name);
+    head.appendChild(year);
+    card.appendChild(head);
+    group.els = [];
+    group.rows.forEach((entry, index) => {
+      const row = document.createElement('div');
+      row.className = 'track-row';
+      const num = document.createElement('span');
+      num.className = 'track-num';
+      num.textContent = index + 1;
+      const text = document.createElement('span');
+      text.className = 'track-text';
+      text.textContent = blankFor(entry.title);
+      row.appendChild(num);
+      row.appendChild(text);
+      card.appendChild(row);
+      const record = game.titles.get(entry.key);
+      record.rows.push({row, text, title: entry.title});
+      group.els.push(row);
+    });
+    group.head = head;
+    group.card = card;
+    grid.appendChild(card);
+  });
+}
+
+function startGame() {
+  if (!selected) {
+    return;
+  }
+  // a game can be started from the end screen, so never leave the old clocks running
+  stopClocks();
+  const entry = selected;
+  const groups = albumGroups(entry);
+  const titles = new Map();
+  groups.forEach((group) => {
+    group.rows.forEach((row) => {
+      if (!titles.has(row.key)) {
+        titles.set(row.key, {found: false, rows: [], title: row.title});
+      }
+    });
+  });
+  game = {
+    entry,
+    found: 0,
+    groups,
+    key: scoreKey(entry),
+    misses: 0,
+    titles,
+    total: titles.size,
+    totalMs: clockMs(titles.size),
+  };
+  finished = false;
+  renderGrid();
+  artistLabel.textContent = entry.name;
+  updateCounters();
+  endbar.style.display = 'none';
+  giveupButton.style.visibility = 'visible';
+  feedback.textContent = 'Go!';
+  feedback.className = 'dim';
+  guessInput.value = '';
+  guessInput.disabled = false;
+  guessInput.classList.remove('locked');
+  clockLabel.textContent = clockText(game.totalMs);
+  timer = Game.Timer('timer-inner', game.totalMs);
+  timer.reset();
+  screens.show('game-screen');
+  window.scrollTo(0, 0);
+  guessInput.focus();
+  timer.start(() => finishGame('time'));
+  clockId = setInterval(() => {
+    clockLabel.textContent = clockText(timer.fractionLeft() * game.totalMs);
+  }, 250);
+}
+
+/** Keeps a filled row on screen, but only when the guess landed somewhere unseen. */
+function revealRow(row) {
+  const box = row.getBoundingClientRect();
+  const headBottom = playHead.getBoundingClientRect().bottom;
+  if (box.top < headBottom + 8 || box.bottom > window.innerHeight - 8) {
+    row.scrollIntoView({block: 'center'});
+  }
+}
+
+function fillRecord(record, missed) {
+  record.rows.forEach(({row, text, title}) => {
+    text.textContent = title;
+    row.classList.add(missed ? 'missed' : 'got');
+  });
+}
+
+function submitGuess() {
+  const guess = Game.normalize(guessInput.value);
+  // the guard lives here rather than in the key handler so no caller can score a
+  // revealed grid — a win and a time-out both leave the input sitting there
+  if (finished || !guess) {
+    return;
+  }
+  const record = game.titles.get(guess);
+  if (!record) {
+    game.misses++;
+    feedback.textContent = `✗ Nothing of theirs by that name — ${game.misses} miss` +
+      `${game.misses === 1 ? '' : 'es'}`;
+    feedback.className = 'bad';
+    return;
+  }
+  if (record.found) {
+    feedback.textContent = `Already had “${record.title}”`;
+    feedback.className = 'dim';
+    guessInput.value = '';
+    return;
+  }
+  record.found = true;
+  game.found++;
+  fillRecord(record, false);
+  // one guess, one point, however many records the song turns up on
+  const extra = record.rows.length > 1 ? ` — filled ${record.rows.length} tracks` : '';
+  feedback.textContent = `✓ ${record.title}${extra}`;
+  feedback.className = 'good';
+  guessInput.value = '';
+  updateCounters();
+  revealRow(record.rows[0].row);
+  if (game.found >= game.total) {
+    finishGame('clean');
+  }
+}
+
+function finishGame(reason) {
+  if (finished) {
+    return;
+  }
+  finished = true;
+  stopClocks();
+  guessInput.value = '';
+  guessInput.disabled = true;
+  giveupButton.style.visibility = 'hidden';
+  clockLabel.textContent = reason === 'time' ? '0:00' : clockText(timer.fractionLeft() * game.totalMs);
+  // the reveal is the only time art appears: album covers from the start would be a
+  // free answer sheet for anyone who knows the sleeves
+  game.titles.forEach((record) => {
+    if (!record.found) {
+      fillRecord(record, true);
+    }
+  });
+  game.groups.forEach((group) => {
+    const got = group.els.filter((row) => row.classList.contains('got')).length;
+    const score = document.createElement('span');
+    score.className = 'album-score';
+    score.textContent = `${got} / ${group.els.length}`;
+    group.head.appendChild(score);
+    if (group.art) {
+      const art = document.createElement('img');
+      art.className = 'album-art';
+      art.alt = '';
+      art.src = Game.artUrl(group.art);
+      group.head.insertBefore(art, group.head.firstChild);
+    }
+  });
+  const saved = scores.save(game.key, game.found);
+  const percent = Math.round((game.found / game.total) * 100);
+  scoreLine.textContent = `${game.found} / ${game.total} songs · ${percent}%`;
+  if (saved.newBest && saved.entry.games.length > 1) {
+    bestLine.textContent = `★ New best for ${game.entry.name}!`;
+    bestLine.className = 'good';
+  } else {
+    bestLine.textContent = `Best on ${game.entry.name}: ${saved.entry.best} / ${game.total}`;
+    bestLine.className = 'dim';
+  }
+  const verdict = reason === 'clean' ? 'Cleared the whole discography' :
+    reason === 'time' ? 'Out of time' : 'Gave up';
+  summaryLine.textContent = `${verdict} · ${game.entry.rows} tracks on ` +
+    `${game.groups.length} album${game.groups.length === 1 ? '' : 's'} · ` +
+    `${game.misses} miss${game.misses === 1 ? '' : 'es'}`;
+  feedback.textContent = reason === 'clean' ? 'Every one of them. 🏆' :
+    `${game.total - game.found} left unnamed — they are in red below`;
+  feedback.className = reason === 'clean' ? 'good' : 'dim';
+  endbar.style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+guessInput.addEventListener('keydown', (evt) => {
+  if (evt.key === 'Enter') {
+    submitGuess();
+  }
+});
+giveupButton.addEventListener('click', () => finishGame('giveup'));
+startButton.addEventListener('click', startGame);
+againButton.addEventListener('click', startGame);
+setupButton.addEventListener('click', () => {
+  stopClocks();
+  updateHistoryLine();
+  screens.show('setup-screen');
+  window.scrollTo(0, 0);
+  searchInput.focus();
+});
+  </script>
+  </body>
+</html>
