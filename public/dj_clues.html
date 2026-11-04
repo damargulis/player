@@ -1,0 +1,818 @@
+<html>
+  <head>
+    <title>Guess the Artist</title>
+    <link rel="stylesheet" href="game-common.css">
+    <style>
+      /* Only what is specific to this game; the rest is in game-common.css. */
+      /* typed input vs. multiple choice, toggled by a body-level mode class */
+      body.mode-choices .guess-row { display: none; }
+      .choice-block { display: none; }
+      body.mode-choices .choice-block { display: block; }
+      /* The clue is the whole game, so it is set like speech rather than like chrome. */
+      .clue {
+        background: var(--accent-soft);
+        border-left: 3px solid var(--accent);
+        border-radius: 4px 10px 10px 4px;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 15px;
+        line-height: 1.65;
+        margin-bottom: 12px;
+        padding: 13px 16px;
+      }
+      .clue.thinking {
+        animation: clue-pulse 1.4s ease-in-out infinite;
+        color: var(--text-dim);
+        font-style: italic;
+      }
+      @keyframes clue-pulse {
+        0%, 100% { opacity: 0.45; }
+        50% { opacity: 0.9; }
+      }
+      /* The second angle reads as a continuation of the same voice, one shade quieter. */
+      .clue-extra {
+        background: var(--bg);
+        border-left-color: var(--border);
+        display: none;
+        font-size: 14px;
+        margin-top: -4px;
+      }
+      /* secondary buttons: the bare `button` rule in game-common.css is the primary pill */
+      #more-button, #next-button {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-dim);
+        display: none;
+        font-size: 12px;
+        font-weight: 400;
+        margin: 12px auto 0 auto;
+        padding: 6px 16px;
+      }
+      #more-button:hover:enabled {
+        background: var(--surface);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      #next-button {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+      #next-button:hover:enabled { background: var(--surface); }
+      #giveup-button { display: none; }
+      .guess-input:disabled { color: var(--text-dim); }
+      #reveal-artist {
+        color: var(--accent-strong);
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 10px;
+        text-align: center;
+      }
+      #reveal-track {
+        color: var(--text-dim);
+        font-size: 13px;
+        margin-top: 2px;
+        text-align: center;
+      }
+      /* 140px of art plus the clue does not fit 660px of window; the answer still reads. */
+      #reveal-art { height: 104px; width: 104px; }
+      #setup-note, #calls-line {
+        font-size: 12px;
+        line-height: 1.5;
+        margin-top: 6px;
+        text-align: center;
+      }
+      #calls-line { margin: -10px 0 16px 0; }
+    </style>
+  </head>
+  <body>
+    <h1>GUESS THE ARTIST</h1>
+    <div class="subtitle">5 rounds &middot; 45 seconds each &middot; the DJ describes, you name the band</div>
+
+    <div id="start-screen" class="screen active">
+      <div class="card">
+        <div class="rules">
+          The DJ describes a track in two or three sentences without naming anyone &mdash; you
+          name the <b>artist</b> (3 pts). Enter to guess, unlimited tries, capitalization and
+          punctuation ignored, and any one name in a shared credit counts. Answer fast for a
+          <b>speed bonus</b> (+2 in the first 11s, +1 in the first 22s) and chain correct rounds
+          for a <b>streak bonus</b> (up to +2).
+          <br><br>
+          <b>Every clue is a live Messages API call, billed for real.</b> A five-round game
+          spends five of them; asking the DJ for a second angle costs a point and one more call.
+          The next round's clue is written while you work on the current one, and the clock never
+          starts before a clue is on screen.
+        </div>
+        <div class="option-row">
+          <span class="option-label">MODE</span>
+          <div class="segment" id="mode">
+            <label><input type="radio" name="mode" value="typed" checked><span>Typed<br>name them</span></label>
+            <label><input type="radio" name="mode" value="choices"><span>Choices<br>pick from 4</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DIFFICULTY</span>
+          <div class="segment" id="difficulty">
+            <label><input type="radio" name="difficulty" value="easy" checked><span>Easy<br>most played</span></label>
+            <label><input type="radio" name="difficulty" value="normal"><span>Normal<br>everything</span></label>
+            <label><input type="radio" name="difficulty" value="hard"><span>Hard<br>deep cuts</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DECADE</span>
+          <select id="decade-select"><option value="">Any decade</option></select>
+        </div>
+        <div class="option-row">
+          <span class="option-label">GENRES</span>
+          <input id="genre-filter" class="filter-input" list="genre-options"
+            placeholder="Any &mdash; or comma-separated genres" autocomplete="off" spellcheck="false">
+          <datalist id="genre-options"></datalist>
+        </div>
+        <div class="option-row">
+          <span class="option-label">ARTISTS</span>
+          <input id="artist-filter" class="filter-input" list="artist-options"
+            placeholder="Any &mdash; or comma-separated artists" autocomplete="off" spellcheck="false">
+          <datalist id="artist-options"></datalist>
+        </div>
+        <div id="match-count">Loading library&hellip;</div>
+        <div id="history-line"></div>
+        <div id="setup-note" class="dim"></div>
+      </div>
+      <button id="start-button" disabled>Start</button>
+    </div>
+
+    <div id="round-screen" class="screen">
+      <div class="card">
+        <div class="round-header">
+          <span id="round-label">Round 1 / 5</span>
+          <span id="streak-label"></span>
+          <span id="score-label">Score: 0</span>
+        </div>
+        <div id="timer-outer"><span id="timer-inner"></span></div>
+        <div class="choice-label">THE DJ SAYS</div>
+        <div id="clue" class="clue thinking">The DJ is thinking&hellip;</div>
+        <div id="clue-extra" class="clue clue-extra"></div>
+        <div class="guess-row">
+          <span class="guess-label">ARTIST</span>
+          <input id="guess-artist" class="guess-input" type="text" placeholder="Waiting for the DJ&hellip;"
+            autocomplete="off" spellcheck="false" disabled>
+        </div>
+        <div class="choice-block">
+          <div class="choice-label">WHO IS IT?</div>
+          <div class="choice-grid" id="artist-choices"></div>
+        </div>
+        <div id="feedback"></div>
+        <div id="reveal-artist"></div>
+        <div id="reveal-track"></div>
+        <img id="reveal-art" alt="album art">
+        <button id="more-button" type="button">Another angle &middot; &minus;1 pt &middot; one more API call</button>
+        <button id="giveup-button" type="button">Give up on this one</button>
+        <button id="next-button" type="button">Next round &rarr;</button>
+      </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+      <div id="score-line"></div>
+      <div id="best-line" class="dim"></div>
+      <div id="calls-line" class="dim"></div>
+      <div class="card" id="answers"></div>
+      <div class="card" id="insights" style="display: none; margin-top: 14px;">
+        <div class="choice-label">YOUR TRACK RECORD · ALL-TIME</div>
+        <div id="insight-rows"></div>
+      </div>
+      <button id="again-button">Play Again</button>
+      <button id="setup-button">Change Settings</button>
+    </div>
+
+    <audio id="player"></audio>
+  <script src="game-common.js"></script>
+  <script>
+/*
+ * Guess the Artist.
+ *
+ * The one thing that makes this game unlike its siblings: a round's puzzle costs money and
+ * seconds to produce, so the clue pipeline — not the guessing — is what the code is shaped
+ * around. Clues are stored per round index and tagged with a game generation, which is what
+ * keeps a late or abandoned answer from landing on the wrong round.
+ */
+const ROUNDS = 5;
+const ROUND_MS = 45000;
+const ARTIST_POINTS = 3;
+/** What a second clue costs the player, since it costs the owner another API call. */
+const SECOND_CLUE_COST = 1;
+const CHOICE_COUNT = 4;
+/** The DJ always replies — see `withTimeout` for the one case where it cannot. */
+const CLUE_TIMEOUT_MS = 90000;
+const REVEAL_CLIP_MS = 5000;
+/** A quarter in is past the intro, so the reveal is recognisable rather than ambient. */
+const REVEAL_START_FRACTION = 0.25;
+const NEXT_DELAY_MS = 5400;
+const MORE_LABEL = 'Another angle · −1 pt · one more API call';
+
+const screens = Game.screens(['start-screen', 'round-screen', 'end-screen']);
+const scores = Game.Scores('dj_clues');
+const timer = Game.Timer('timer-inner', ROUND_MS);
+const filters = Game.Filters({
+  artist: 'artist-filter',
+  artistOptions: 'artist-options',
+  decade: 'decade-select',
+  difficulty: 'difficulty',
+  genre: 'genre-filter',
+  genreOptions: 'genre-options',
+});
+const counter = Game.matchCounter('match-count', 'start-button');
+
+const startButton = document.getElementById('start-button');
+const againButton = document.getElementById('again-button');
+const setupButton = document.getElementById('setup-button');
+const historyLine = document.getElementById('history-line');
+const setupNote = document.getElementById('setup-note');
+const bestLine = document.getElementById('best-line');
+const callsLine = document.getElementById('calls-line');
+const roundLabel = document.getElementById('round-label');
+const streakLabel = document.getElementById('streak-label');
+const scoreLabel = document.getElementById('score-label');
+const clueEl = document.getElementById('clue');
+const clueExtra = document.getElementById('clue-extra');
+const artistInput = document.getElementById('guess-artist');
+const artistChoices = document.getElementById('artist-choices');
+const feedback = document.getElementById('feedback');
+const revealArtist = document.getElementById('reveal-artist');
+const revealTrack = document.getElementById('reveal-track');
+const revealArt = document.getElementById('reveal-art');
+const moreButton = document.getElementById('more-button');
+const giveupButton = document.getElementById('giveup-button');
+const nextButton = document.getElementById('next-button');
+const scoreLine = document.getElementById('score-line');
+const answersDiv = document.getElementById('answers');
+const player = document.getElementById('player');
+
+let allTracks = [];
+let gameTracks = [];
+let decoyPool = [];
+/** Clues by round index: `{text}` or `{error}`, filled in whatever order they arrive. */
+let clues = [];
+let requested = [];
+let round = 0;
+let score = 0;
+let streak = 0;
+let results = [];
+let roundOver = false;
+let roundAdvanced = false;
+let awaitingClue = false;
+let usedSecondClue = false;
+let currentMode = 'typed';
+let gameKey = '';
+let apiCalls = 0;
+let djError = '';
+/** Bumped by every new game, so a clue paid for by an abandoned one is discarded. */
+let gameGeneration = 0;
+let phase = 'setup';
+let advanceId = null;
+let clipStopId = null;
+
+function selectedMode() {
+  return document.querySelector('input[name="mode"]:checked').value;
+}
+
+/** History is keyed by the active settings so bests compare like with like. */
+function settingsKey() {
+  return `${selectedMode()}|${filters.key()}`;
+}
+
+function updateHistoryLine() {
+  historyLine.textContent = scores.historyText(settingsKey());
+}
+
+function artistKeys(track) {
+  return (track.artist || '').split(', ').map(Game.normalize).filter(Boolean);
+}
+
+/**
+ * One round per artist, taken in pool order.
+ *
+ * Deduping by track would happily serve two Pixies songs in a five-round game, and a second
+ * clue about a band you have already named is a wasted round and a wasted API call. Every name
+ * in a shared credit is spent, so a collaboration cannot come back as its own round.
+ */
+function pickRounds(pool, limit) {
+  const used = new Set();
+  const picked = [];
+  for (const track of pool) {
+    if (picked.length >= limit) {
+      break;
+    }
+    const keys = artistKeys(track);
+    if (!keys.length || keys.some((key) => used.has(key))) {
+      continue;
+    }
+    keys.forEach((key) => used.add(key));
+    picked.push(track);
+  }
+  return picked;
+}
+
+/** Start is held off while the first clue is being written; nothing else may spend a call. */
+function setArming(on) {
+  startButton.disabled = on;
+  startButton.textContent = on ? 'The DJ is thinking…' : 'Start';
+  if (on) {
+    setupNote.textContent = 'Writing the first clue. This takes a few seconds — ' +
+      'the round will not start without it.';
+    setupNote.className = 'dim';
+  }
+}
+
+function onSettingsChange() {
+  updateHistoryLine();
+  setupNote.textContent = '';
+  setupNote.className = 'dim';
+  if (!allTracks.length) {
+    return;
+  }
+  const candidates = filters.candidates(allTracks, ROUNDS);
+  // the real constraint is distinct artists, not tracks, so it is counted the way rounds are
+  const usable = pickRounds(candidates, ROUNDS).length;
+  if (usable < ROUNDS) {
+    counter.message(`Only ${usable} different artist${usable === 1 ? '' : 's'} ` +
+      `match these filters — need ${ROUNDS}`, true);
+  } else {
+    counter.update(candidates.length, ROUNDS);
+  }
+  if (phase === 'arming') {
+    setArming(true);
+  }
+}
+
+Game.loadTracks({}, (tracks) => {
+  allTracks = tracks;
+  if (!allTracks.length) {
+    counter.message('No playable tracks found', true);
+    return;
+  }
+  filters.populate(allTracks);
+  onSettingsChange();
+});
+scores.load(updateHistoryLine);
+filters.onChange(onSettingsChange);
+document.getElementById('mode').addEventListener('change', onSettingsChange);
+
+/**
+ * The DJ always answers — unless the main window has gone away mid-request, in which case the
+ * IPC reply never comes and the round would sit on "thinking" forever. An error the player can
+ * read beats a dead screen.
+ */
+function withTimeout(promise) {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error('The DJ did not answer in time')), CLUE_TIMEOUT_MS);
+    promise.then(
+      (value) => {
+        clearTimeout(id);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(id);
+        reject(err);
+      },
+    );
+  });
+}
+
+/**
+ * Fetches the clue for one round, at most once.
+ *
+ * Indexed by round rather than kept in a "next clue" variable: an answer that arrives after its
+ * round has gone lands in its own slot, where it cannot be mistaken for the round the player is
+ * on now. `requested` is what makes this safe to call every round.
+ */
+function requestClue(index) {
+  if (index >= gameTracks.length || requested[index]) {
+    return;
+  }
+  requested[index] = true;
+  apiCalls++;
+  const generation = gameGeneration;
+  withTimeout(Game.djClue(gameTracks[index])).then(
+    (result) => storeClue(generation, index, {text: result.clue}),
+    (err) => storeClue(generation, index, {error: err.message}),
+  );
+}
+
+/** Files an arrived clue, and wakes up whichever screen is waiting on it. */
+function storeClue(generation, index, entry) {
+  if (generation !== gameGeneration) {
+    // paid for by a game the player walked away from; spending it on this one would be worse
+    return;
+  }
+  clues[index] = entry;
+  if (phase === 'arming' && index === 0) {
+    armComplete();
+    return;
+  }
+  if (phase === 'playing' && awaitingClue && index === round) {
+    presentClue();
+  }
+}
+
+function beginGame() {
+  const candidates = filters.candidates(allTracks, ROUNDS);
+  const picked = pickRounds(Game.shuffle(candidates.slice()), ROUNDS);
+  if (!picked.length) {
+    return;
+  }
+  gameGeneration++;
+  gameKey = settingsKey();
+  currentMode = selectedMode();
+  document.body.className = `mode-${currentMode}`;
+  gameTracks = picked;
+  decoyPool = candidates.slice();
+  clues = [];
+  requested = [];
+  results = [];
+  round = 0;
+  score = 0;
+  streak = 0;
+  apiCalls = 0;
+  djError = '';
+  // Round 1's clue is fetched here, on the setup screen: the round screen should never appear
+  // with nothing to read on it.
+  phase = 'arming';
+  setArming(true);
+  requestClue(0);
+}
+
+function armComplete() {
+  setArming(false);
+  const entry = clues[0];
+  if (entry.error) {
+    // The likeliest cause is a missing ANTHROPIC_API_KEY, and this is where the player finds
+    // out. Disabling Start is kinder than a round screen that can never show a clue; touching
+    // any setting re-enables it, which is also the retry for a DJ that was merely offline.
+    djError = entry.error;
+    counter.message(entry.error, true);
+    setupNote.textContent = 'No clue, no game. Change a setting to try again.';
+    setupNote.className = 'bad';
+    return;
+  }
+  phase = 'playing';
+  screens.show('round-screen');
+  startRound();
+}
+
+function startRound() {
+  roundOver = false;
+  roundAdvanced = false;
+  awaitingClue = true;
+  usedSecondClue = false;
+  timer.reset();
+  roundLabel.textContent = `Round ${round + 1} / ${gameTracks.length}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  scoreLabel.textContent = `Score: ${score}`;
+  feedback.textContent = '';
+  feedback.className = 'dim';
+  clueEl.className = 'clue thinking';
+  clueEl.textContent = 'The DJ is thinking…';
+  clueExtra.style.display = 'none';
+  clueExtra.textContent = '';
+  revealArtist.textContent = '';
+  revealTrack.textContent = '';
+  revealArt.style.display = 'none';
+  moreButton.style.display = 'none';
+  moreButton.disabled = false;
+  moreButton.textContent = MORE_LABEL;
+  giveupButton.style.display = 'none';
+  nextButton.style.display = 'none';
+  artistChoices.innerHTML = '';
+  artistInput.value = '';
+  artistInput.disabled = true;
+  artistInput.classList.remove('locked');
+  artistInput.placeholder = 'Waiting for the DJ…';
+  // The next clue is written while this one is being read: a clue takes seconds, and a blank
+  // screen between rounds is worse than the call it saves — the call is spent on this game
+  // either way.
+  requestClue(round + 1);
+  if (clues[round]) {
+    presentClue();
+  }
+}
+
+function presentClue() {
+  const entry = clues[round];
+  awaitingClue = false;
+  if (entry.error) {
+    clueFailed(entry.error);
+    return;
+  }
+  clueEl.className = 'clue';
+  clueEl.textContent = entry.text;
+  moreButton.style.display = 'block';
+  giveupButton.style.display = 'block';
+  if (currentMode === 'choices') {
+    // decoys from the filtered pool first, so the wrong answers are plausible company
+    const pool = decoyPool.concat(allTracks);
+    Game.buildChoices(artistChoices, gameTracks[round].artist, pool,
+      (track) => track.artist, pickArtist, CHOICE_COUNT);
+    feedback.textContent = 'Pick one — you get one shot.';
+  } else {
+    artistInput.disabled = false;
+    artistInput.placeholder = 'Who is it?';
+    artistInput.focus();
+    feedback.textContent = 'Enter to guess — as many tries as the clock allows.';
+  }
+  feedback.className = 'dim';
+  // The clue is on screen; only now is there anything to be timed on.
+  timer.start(() => endRound(false));
+}
+
+/**
+ * No clue, no round.
+ *
+ * Whatever stopped the DJ — no key, the hourly rate limit, no network — will stop it again next
+ * round, so the set ends here unless a clue for the next round has already been paid for and is
+ * waiting. The round is recorded but marked, and a marked round keeps the game out of the high
+ * scores: a four-round score is not a five-round score.
+ */
+function clueFailed(message) {
+  if (roundOver) {
+    return;
+  }
+  roundOver = true;
+  timer.stop();
+  awaitingClue = false;
+  djError = message;
+  setupNote.textContent = `The DJ stopped answering: ${message}`;
+  setupNote.className = 'bad';
+  clueEl.className = 'clue bad';
+  clueEl.textContent = message;
+  moreButton.style.display = 'none';
+  giveupButton.style.display = 'none';
+  artistInput.disabled = true;
+  feedback.textContent = 'This round does not count.';
+  feedback.className = 'bad';
+  const track = gameTracks[round];
+  results.push({
+    artist: track.artist,
+    basePoints: 0,
+    error: message,
+    genres: [],
+    guessed: false,
+    points: 0,
+    speedBonus: 0,
+    streakBonus: 0,
+    title: track.name,
+    year: track.year,
+  });
+  const ahead = clues[round + 1];
+  if (!ahead || ahead.error) {
+    gameTracks = gameTracks.slice(0, round + 1);
+  }
+  showNext(NEXT_DELAY_MS);
+}
+
+function showNext(delayMs) {
+  nextButton.textContent = round + 1 < gameTracks.length ? 'Next round →' : 'See your score →';
+  nextButton.style.display = 'block';
+  clearTimeout(advanceId);
+  advanceId = setTimeout(advance, delayMs);
+}
+
+/** The only way out of a finished round, whether the player clicked or the pause ran out. */
+function advance() {
+  if (!roundOver || roundAdvanced) {
+    return;
+  }
+  roundAdvanced = true;
+  clearTimeout(advanceId);
+  advanceId = null;
+  stopReveal();
+  nextButton.style.display = 'none';
+  round++;
+  if (round < gameTracks.length) {
+    startRound();
+  } else {
+    showResults();
+  }
+}
+
+function endRound(won) {
+  if (roundOver) {
+    return;
+  }
+  roundOver = true;
+  const fractionLeft = timer.fractionLeft();
+  timer.stop();
+  const track = gameTracks[round];
+  artistInput.disabled = true;
+  moreButton.style.display = 'none';
+  giveupButton.style.display = 'none';
+  const base = won ? ARTIST_POINTS - (usedSecondClue ? SECOND_CLUE_COST : 0) : 0;
+  let speedBonus = 0;
+  let streakBonus = 0;
+  if (won) {
+    streak++;
+    const extra = Game.bonuses(fractionLeft, streak);
+    speedBonus = extra.speedBonus;
+    streakBonus = extra.streakBonus;
+  } else {
+    streak = 0;
+  }
+  const points = base + speedBonus + streakBonus;
+  score += points;
+  scoreLabel.textContent = `Score: ${score}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  if (won) {
+    const extras = [];
+    if (usedSecondClue) {
+      extras.push(`−${SECOND_CLUE_COST} second clue`);
+    }
+    if (speedBonus) {
+      extras.push(`+${speedBonus} speed`);
+    }
+    if (streakBonus) {
+      extras.push(`+${streakBonus} streak`);
+    }
+    feedback.textContent = `✓ That's them! +${points}${extras.length ? ` (${extras.join(', ')})` : ''}`;
+    feedback.className = 'good';
+  } else {
+    feedback.textContent = '✗ Not this time.';
+    feedback.className = 'bad';
+  }
+  revealArtist.textContent = track.artist;
+  revealTrack.textContent = track.album ?
+    `${track.name} · ${track.album}${track.year > 1000 ? ` (${track.year})` : ''}` :
+    track.name;
+  if (track.artFile) {
+    revealArt.src = Game.artUrl(track.artFile);
+    revealArt.style.display = 'block';
+  }
+  results.push({
+    artist: track.artist,
+    basePoints: base,
+    genres: track.genres || [],
+    guessed: won,
+    points,
+    secondClue: usedSecondClue,
+    speedBonus,
+    streakBonus,
+    title: track.name,
+    year: track.year,
+  });
+  // hearing it is the payoff, and the clue never gave the music away
+  playReveal(track);
+  showNext(won ? NEXT_DELAY_MS : NEXT_DELAY_MS + 800);
+}
+
+function playReveal(track) {
+  stopReveal();
+  player.src = track.filePath;
+  player.onloadedmetadata = () => {
+    player.currentTime = (player.duration || 0) * REVEAL_START_FRACTION;
+    player.play();
+  };
+  player.onplaying = () => {
+    clipStopId = setTimeout(() => player.pause(), REVEAL_CLIP_MS);
+  };
+  // a file that has gone missing just means a silent reveal; the answer is on screen regardless
+  player.onerror = null;
+}
+
+function stopReveal() {
+  clearTimeout(clipStopId);
+  clipStopId = null;
+  player.onloadedmetadata = null;
+  player.onplaying = null;
+  player.pause();
+}
+
+function pickArtist(button, value) {
+  if (roundOver || awaitingClue) {
+    return;
+  }
+  const track = gameTracks[round];
+  Game.revealChoices(artistChoices, button, track.artist);
+  endRound(Game.normalize(value) === Game.normalize(track.artist));
+}
+
+function showResults() {
+  const dropped = results.some((result) => result.error);
+  scores.foldInsights(results.filter((result) => !result.error), ARTIST_POINTS);
+  scoreLine.textContent = `Score: ${score}`;
+  if (dropped) {
+    // a short set is not comparable with a full one, so it does not go in the book
+    bestLine.textContent = 'Not recorded — the DJ dropped out mid-game';
+    bestLine.className = 'bad';
+  } else {
+    const saved = scores.save(gameKey, score);
+    if (saved.newBest && saved.entry.games.length > 1) {
+      bestLine.textContent = '★ New personal best for these settings!';
+      bestLine.className = 'good';
+    } else {
+      bestLine.textContent = `Best with these settings: ${saved.entry.best}`;
+      bestLine.className = 'dim';
+    }
+  }
+  callsLine.textContent = `${apiCalls} Messages API call${apiCalls === 1 ? '' : 's'} spent on this game`;
+  answersDiv.innerHTML = '';
+  results.forEach((result) => {
+    const row = document.createElement('div');
+    row.className = 'answer-row';
+    const artist = document.createElement('span');
+    artist.className = `answer-title ${result.error ? 'dim' : result.guessed ? 'good' : 'bad'}`;
+    artist.textContent = `${result.error ? '–' : result.guessed ? '✓' : '✗'} ${result.artist}`;
+    const title = document.createElement('span');
+    title.className = 'answer-artist dim';
+    title.textContent = result.error ? `no clue — ${result.error}` : result.title;
+    const points = document.createElement('span');
+    points.className = 'answer-points';
+    const marks = `${result.secondClue ? '💬' : ''}${result.speedBonus ? '⚡' : ''}` +
+      `${result.streakBonus ? '🔥' : ''}`;
+    points.textContent = `${marks}+${result.points}`;
+    row.appendChild(artist);
+    row.appendChild(title);
+    row.appendChild(points);
+    answersDiv.appendChild(row);
+  });
+  Game.renderInsights(scores, 'insights', 'insight-rows', ARTIST_POINTS);
+  screens.show('end-screen');
+}
+
+artistInput.addEventListener('keydown', (evt) => {
+  if (evt.key !== 'Enter' || roundOver || awaitingClue) {
+    return;
+  }
+  const guess = Game.normalize(artistInput.value);
+  if (!guess) {
+    return;
+  }
+  if (Game.artistMatches(guess, gameTracks[round].artist)) {
+    artistInput.classList.add('locked');
+    endRound(true);
+    return;
+  }
+  feedback.textContent = 'Not them — keep going!';
+  feedback.className = 'bad';
+  artistInput.select();
+});
+
+moreButton.addEventListener('click', () => {
+  if (roundOver || awaitingClue || usedSecondClue) {
+    return;
+  }
+  // charged in points here, and in money the moment the request goes out; the clock keeps
+  // running, which is the rest of what a second clue costs
+  usedSecondClue = true;
+  apiCalls++;
+  moreButton.disabled = true;
+  moreButton.textContent = 'The DJ is thinking…';
+  const generation = gameGeneration;
+  const forRound = round;
+  withTimeout(Game.djClue(gameTracks[round])).then(
+    (result) => showSecondClue(generation, forRound, result.clue, ''),
+    (err) => showSecondClue(generation, forRound, '', err.message),
+  );
+});
+
+/** A second angle on the same track. Dropped on the floor if its round has already ended. */
+function showSecondClue(generation, forRound, text, error) {
+  if (generation !== gameGeneration || forRound !== round || roundOver) {
+    return;
+  }
+  moreButton.style.display = 'none';
+  clueExtra.style.display = 'block';
+  clueExtra.className = error ? 'clue clue-extra bad' : 'clue clue-extra';
+  clueExtra.textContent = error || text;
+  if (error) {
+    // nothing was delivered, so nothing is charged for it
+    usedSecondClue = false;
+  }
+}
+
+giveupButton.addEventListener('click', () => {
+  if (!roundOver && !awaitingClue) {
+    endRound(false);
+  }
+});
+
+nextButton.addEventListener('click', advance);
+
+startButton.addEventListener('click', beginGame);
+againButton.addEventListener('click', () => {
+  // back to setup first: the first clue is fetched there, and that is where the wait is shown
+  screens.show('start-screen');
+  onSettingsChange();
+  beginGame();
+});
+setupButton.addEventListener('click', () => {
+  // any clue still in flight belongs to a game that no longer exists
+  gameGeneration++;
+  phase = 'setup';
+  stopReveal();
+  onSettingsChange();
+  if (djError) {
+    setupNote.textContent = `The DJ stopped answering: ${djError}`;
+    setupNote.className = 'bad';
+  }
+  screens.show('start-screen');
+});
+  </script>
+  </body>
+</html>
