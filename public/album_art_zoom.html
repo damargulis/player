@@ -1,0 +1,671 @@
+<html>
+  <head>
+    <title>Album Art Zoom</title>
+    <link rel="stylesheet" href="game-common.css">
+    <style>
+      /* Only what is specific to this game; the rest is in game-common.css. */
+      /*
+       * The crop is a background layer rather than an <img> inside an overflow:hidden box:
+       * background-size and background-position are one pair of writes per frame with no
+       * wrapper element, and the positioning area is exactly the box we measure.
+       */
+      #zoom-frame {
+        background-color: var(--bg);
+        background-repeat: no-repeat;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-sizing: border-box;
+        height: 264px;
+        margin: 0 auto 14px auto;
+        width: 264px;
+      }
+      /* typed inputs vs. multiple choice, toggled by a body-level mode class */
+      body.mode-choices .guess-row { display: none; }
+      .choice-block { display: none; margin-bottom: 10px; }
+      body.mode-choices .choice-block { display: block; }
+      /*
+       * Four buttons and two labels cost about 200px that typed mode does not spend, and this
+       * window is 520x700 — so choices mode trades some of the cover for them rather than
+       * pushing the give-up button off the bottom.
+       */
+      body.mode-choices #zoom-frame {
+        height: 190px;
+        margin-bottom: 10px;
+        width: 190px;
+      }
+      body.mode-choices .choice-block { margin-bottom: 6px; }
+      body.mode-choices .choice-label { margin-bottom: 4px; }
+      body.mode-choices .choice-button { font-size: 12px; padding: 7px 8px; }
+      body.mode-choices #feedback { margin-top: 8px; min-height: 18px; }
+      body.mode-choices #giveup-button { margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>ALBUM ART ZOOM</h1>
+    <div class="subtitle">10 covers &middot; 25 seconds each</div>
+
+    <div id="start-screen" class="screen active">
+      <div class="card">
+        <div class="rules">
+          A cover starts magnified on a random corner of itself and zooms out, fully revealed as
+          the clock runs out. Name the <b>album</b> (2 pts) and <b>artist</b> (1 pt) &mdash; the
+          sooner the better, since a perfect round is worth a <b>speed bonus</b> (+2 in the first
+          6s, +1 in the first 12s) and chaining them is worth a <b>streak bonus</b> (up to +2).
+          No sound: hearing the song would give the cover away.
+        </div>
+        <div class="option-row">
+          <span class="option-label">MODE</span>
+          <div class="segment" id="mode">
+            <label><input type="radio" name="mode" value="typed" checked><span>Typed<br>free text</span></label>
+            <label><input type="radio" name="mode" value="choices"><span>Choices<br>pick from 4</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">ZOOM</span>
+          <div class="segment" id="zoom">
+            <label><input type="radio" name="zoom" value="wide"><span>Wide<br>&times;4 start</span></label>
+            <label><input type="radio" name="zoom" value="close" checked><span>Close<br>&times;8 start</span></label>
+            <label><input type="radio" name="zoom" value="pinhole"><span>Pinhole<br>&times;16 start</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DIFFICULTY</span>
+          <div class="segment" id="difficulty">
+            <label><input type="radio" name="difficulty" value="easy"><span>Easy<br>most played</span></label>
+            <label><input type="radio" name="difficulty" value="normal" checked><span>Normal<br>everything</span></label>
+            <label><input type="radio" name="difficulty" value="hard"><span>Hard<br>deep cuts</span></label>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="option-label">DECADE</span>
+          <select id="decade-select"><option value="">Any decade</option></select>
+        </div>
+        <div class="option-row">
+          <span class="option-label">GENRES</span>
+          <input id="genre-filter" class="filter-input" list="genre-options"
+            placeholder="Any &mdash; or comma-separated genres" autocomplete="off" spellcheck="false">
+          <datalist id="genre-options"></datalist>
+        </div>
+        <div class="option-row">
+          <span class="option-label">ARTISTS</span>
+          <input id="artist-filter" class="filter-input" list="artist-options"
+            placeholder="Any &mdash; or comma-separated artists" autocomplete="off" spellcheck="false">
+          <datalist id="artist-options"></datalist>
+        </div>
+        <div id="match-count">Loading library&hellip;</div>
+        <div id="history-line"></div>
+      </div>
+      <button id="start-button" disabled>Start</button>
+    </div>
+
+    <div id="round-screen" class="screen">
+      <div class="card">
+        <div class="round-header">
+          <span id="round-label">Round 1 / 10</span>
+          <span id="streak-label"></span>
+          <span id="score-label">Score: 0</span>
+        </div>
+        <div id="timer-outer"><span id="timer-inner"></span></div>
+        <div id="zoom-frame"></div>
+        <div class="guess-row">
+          <span class="guess-label">ALBUM (2)</span>
+          <input id="guess-album" class="guess-input" type="text" placeholder="Album title&hellip;"
+            autocomplete="off" spellcheck="false">
+        </div>
+        <div class="guess-row">
+          <span class="guess-label">ARTIST (1)</span>
+          <input id="guess-artist" class="guess-input" type="text" placeholder="Artist&hellip;"
+            autocomplete="off" spellcheck="false">
+        </div>
+        <div class="choice-block" id="choice-album-block">
+          <div class="choice-label">ALBUM (2)</div>
+          <div class="choice-grid" id="album-choices"></div>
+        </div>
+        <div class="choice-block" id="choice-artist-block">
+          <div class="choice-label">ARTIST (1)</div>
+          <div class="choice-grid" id="artist-choices"></div>
+        </div>
+        <div id="feedback"></div>
+        <button id="giveup-button" type="button">Give up on this one</button>
+      </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+      <div id="score-line"></div>
+      <div id="best-line" class="dim"></div>
+      <div class="card" id="answers"></div>
+      <div class="card" id="insights" style="display: none; margin-top: 14px;">
+        <div class="choice-label">YOUR TRACK RECORD · ALL-TIME</div>
+        <div id="insight-rows"></div>
+      </div>
+      <button id="again-button">Play Again</button>
+      <button id="setup-button">Change Settings</button>
+    </div>
+  <script src="game-common.js"></script>
+  <script>
+const ROUNDS = 10;
+const ROUND_MS = 25000;
+const ALBUM_POINTS = 2;
+const ARTIST_POINTS = 1;
+const CHOICE_COUNT = 4;
+const START_ZOOMS = {close: 8, pinhole: 16, wide: 4};
+/** How long the cover takes to open out when a round ends before the clock does. */
+const REVEAL_MS = 500;
+/** A crop anchor this close to the middle on both axes is re-rolled; see randomFocus. */
+const CENTRE_GUARD = 0.22;
+
+const screens = Game.screens(['start-screen', 'round-screen', 'end-screen']);
+const scores = Game.Scores('album_art_zoom');
+const timer = Game.Timer('timer-inner', ROUND_MS);
+const filters = Game.Filters({
+  artist: 'artist-filter',
+  artistOptions: 'artist-options',
+  decade: 'decade-select',
+  difficulty: 'difficulty',
+  genre: 'genre-filter',
+  genreOptions: 'genre-options',
+});
+const counter = Game.matchCounter('match-count', 'start-button');
+
+const startButton = document.getElementById('start-button');
+const againButton = document.getElementById('again-button');
+const setupButton = document.getElementById('setup-button');
+const historyLine = document.getElementById('history-line');
+const bestLine = document.getElementById('best-line');
+const roundLabel = document.getElementById('round-label');
+const streakLabel = document.getElementById('streak-label');
+const scoreLabel = document.getElementById('score-label');
+const zoomFrame = document.getElementById('zoom-frame');
+const albumInput = document.getElementById('guess-album');
+const artistInput = document.getElementById('guess-artist');
+const feedback = document.getElementById('feedback');
+const giveupButton = document.getElementById('giveup-button');
+const albumChoices = document.getElementById('album-choices');
+const artistChoices = document.getElementById('artist-choices');
+const scoreLine = document.getElementById('score-line');
+const answersDiv = document.getElementById('answers');
+
+let albumTracks = [];
+let gameTracks = [];
+let spares = [];
+let round = 0;
+let score = 0;
+let results = [];
+let roundOver = false;
+let albumDone = false;
+let artistDone = false;
+let streak = 0;
+let currentMode = 'typed';
+let startZoom = START_ZOOMS.close;
+let decoyPool = [];
+// in choices mode a wrong pick resolves the category without scoring it
+let albumResolved = false;
+let artistResolved = false;
+let gameKey = '';
+// the crop anchor and the cover's real pixel size, both fixed for the round
+let focus = {x: 0, y: 0};
+let artSize = {height: 1, width: 1};
+let zoomRaf = null;
+let revealFrom = 1;
+let revealAt = 0;
+// a stale image load from an abandoned round must not paint over the current one
+let artToken = 0;
+
+function selectedMode() {
+  return document.querySelector('input[name="mode"]:checked').value;
+}
+
+function selectedZoom() {
+  return document.querySelector('input[name="zoom"]:checked').value;
+}
+
+/** History is keyed by the active settings so bests compare like with like. */
+function settingsKey() {
+  return `${selectedMode()}|${selectedZoom()}|${filters.key()}`;
+}
+
+/**
+ * One track per album, the most played standing in for its album.
+ *
+ * `artFile` is a property of the album, so the library hands the same cover back once per
+ * track on it — without this the same art comes up two or three times in a ten-round game.
+ * It is also the dedupe key rather than the album name: two bands with a self-titled record
+ * are two albums, while one album is one art file by construction. Picking the most played
+ * track is what makes the shared difficulty slice mean "well-known albums" rather than
+ * "albums whose alphabetically-first track happens to get played".
+ */
+function oneTrackPerAlbum(tracks) {
+  const best = new Map();
+  tracks.forEach((track) => {
+    const current = best.get(track.artFile);
+    if (!current || track.playCount > current.playCount) {
+      best.set(track.artFile, track);
+    }
+  });
+  return [...best.values()];
+}
+
+function updateHistoryLine() {
+  historyLine.textContent = scores.historyText(settingsKey());
+}
+
+function onSettingsChange() {
+  if (albumTracks.length) {
+    const matching = filters.candidates(albumTracks, ROUNDS).length;
+    // matchCounter's own wording counts songs; a round here is a whole album, and saying
+    // "songs" would badly misreport a pool that has already been deduped down to covers.
+    counter.message(matching ?
+      `${matching.toLocaleString()} album${matching === 1 ? '' : 's'} in play` +
+        (matching < ROUNDS ? ` — need at least ${ROUNDS}` : '') :
+      'No albums match these filters',
+      matching < ROUNDS);
+  }
+  updateHistoryLine();
+}
+
+// A cover is worth looking at however short the song is, so the usual clip-length floor is
+// dropped; `album` has to be present too, or there is no answer to check a guess against.
+Game.loadTracks({minDurationMs: 0, needs: ['artFile']}, (tracks) => {
+  albumTracks = oneTrackPerAlbum(tracks.filter((track) => track.album));
+  if (!albumTracks.length) {
+    counter.message('No albums with art found', true);
+    return;
+  }
+  filters.populate(albumTracks);
+  onSettingsChange();
+});
+scores.load(updateHistoryLine);
+filters.onChange(onSettingsChange);
+document.getElementById('mode').addEventListener('change', onSettingsChange);
+document.getElementById('zoom').addEventListener('change', onSettingsChange);
+
+/**
+ * A random crop anchor, kept off the middle of the cover.
+ *
+ * Dead centre is where half the covers in the library put the band logo or the single face
+ * the record is selling, so a centred crop hands the answer over on the first frame. At
+ * least one axis has to be out towards an edge.
+ */
+function randomFocus() {
+  for (let tries = 0; tries < 20; tries++) {
+    const x = Math.random();
+    const y = Math.random();
+    if (Math.abs(x - 0.5) > CENTRE_GUARD || Math.abs(y - 0.5) > CENTRE_GUARD) {
+      return {x, y};
+    }
+  }
+  return {x: Math.random() < 0.5 ? 0 : 1, y: Math.random()};
+}
+
+/**
+ * Where to put a background layer `size` px wide inside a `frame` px box.
+ *
+ * `p` only steers the layer while it is bigger than the box; once it fits, it is centred. That
+ * is what makes the pan land on the whole cover exactly as the zoom reaches 1 instead of
+ * leaving the last frame parked against an edge, and it needs no clamping of its own: a
+ * fraction of a negative gap is always a crop that stays inside the image.
+ */
+function place(frame, size, p) {
+  return size > frame ? p * (frame - size) : (frame - size) / 2;
+}
+
+/** Paints the cover at `zoom`, where 1 is the whole thing and 8 is eight times across. */
+function drawZoom(zoom) {
+  const frameWidth = zoomFrame.clientWidth;
+  const frameHeight = zoomFrame.clientHeight;
+  if (!frameWidth || !frameHeight) {
+    return;
+  }
+  // contain-fit at zoom 1, so "fully revealed" is the whole cover whatever its aspect — the
+  // library's art is usually square but runs to 1.2:1, and a stretched cover reads as wrong
+  const fit = Math.min(frameWidth / artSize.width, frameHeight / artSize.height) *
+    Math.max(1, zoom);
+  const width = artSize.width * fit;
+  const height = artSize.height * fit;
+  zoomFrame.style.backgroundPosition =
+    `${place(frameWidth, width, focus.x)}px ${place(frameHeight, height, focus.y)}px`;
+  zoomFrame.style.backgroundSize = `${width}px ${height}px`;
+}
+
+/**
+ * Magnification after a fraction `p` of the zoom-out.
+ *
+ * Geometric, not linear: 16&rarr;8 and 2&rarr;1 look like the same step, so a linear ramp
+ * would crawl through the unguessable magnifications and then dump most of the cover in the
+ * last second. p=1 lands exactly on 1, which is the full reveal.
+ */
+function zoomFrom(from, p) {
+  return Math.pow(Math.max(1, from), 1 - Math.min(1, Math.max(0, p)));
+}
+
+/**
+ * The round's zoom-out, driven off the timer rather than a clock of its own.
+ *
+ * The bar and the cover then cannot drift apart, so "fully revealed as time runs out" is true
+ * by construction and the speed bonus is a reading of how much cover was still hidden.
+ */
+function animateRound() {
+  drawZoom(zoomFrom(startZoom, 1 - timer.fractionLeft()));
+  zoomRaf = requestAnimationFrame(animateRound);
+}
+
+/** The quick open-out when a round ends early, from wherever the zoom had got to. */
+function animateReveal() {
+  const p = Math.min(1, (Date.now() - revealAt) / REVEAL_MS);
+  // ease out, so the last of the cover arrives gently instead of snapping into place
+  drawZoom(zoomFrom(revealFrom, 1 - (1 - p) * (1 - p)));
+  zoomRaf = p < 1 ? requestAnimationFrame(animateReveal) : null;
+}
+
+function stopZoom() {
+  cancelAnimationFrame(zoomRaf);
+  zoomRaf = null;
+}
+
+function startGame() {
+  const pool = Game.shuffle(filters.candidates(albumTracks, ROUNDS).slice());
+  if (!pool.length) {
+    return;
+  }
+  gameKey = settingsKey();
+  currentMode = selectedMode();
+  startZoom = START_ZOOMS[selectedZoom()];
+  document.body.className = `mode-${currentMode}`;
+  decoyPool = pool.slice();
+  const roundCount = Math.min(ROUNDS, pool.length);
+  gameTracks = pool.slice(0, roundCount);
+  spares = pool.slice(roundCount);
+  round = 0;
+  score = 0;
+  streak = 0;
+  results = [];
+  screens.show('round-screen');
+  startRound();
+}
+
+/**
+ * Album titles carry editions and disc numbers nobody types &mdash; "Achtung Baby (Deluxe
+ * Edition)", "Sign o' the Times [Disc 1]" &mdash; so a typed guess counts against the title
+ * with a trailing bracketed qualifier dropped as well as the full one. A title that is all
+ * qualifier ("(What's the Story) Morning Glory?") strips to nothing and only matches in full.
+ */
+function albumMatches(guess, album) {
+  if (guess === Game.normalize(album)) {
+    return true;
+  }
+  const bare = (album || '').replace(/\s*[([{].*$/, '').trim();
+  return Boolean(bare) && guess === Game.normalize(bare);
+}
+
+function pickAlbum(button, value) {
+  if (roundOver || albumResolved) {
+    return;
+  }
+  const track = gameTracks[round];
+  albumResolved = true;
+  // strict here, unlike a typed guess: the options are real album titles, so a lenient
+  // compare would accept "Greatest Hits" for "Greatest Hits (Vol. 2)" sitting beside it
+  albumDone = Game.normalize(value) === Game.normalize(track.album);
+  Game.revealChoices(albumChoices, button, track.album);
+  afterChoicePick();
+}
+
+function pickArtist(button, value) {
+  if (roundOver || artistResolved) {
+    return;
+  }
+  const track = gameTracks[round];
+  artistResolved = true;
+  artistDone = Game.normalize(value) === Game.normalize(track.artist);
+  Game.revealChoices(artistChoices, button, track.artist);
+  afterChoicePick();
+}
+
+function afterChoicePick() {
+  if (albumResolved && artistResolved) {
+    endRound();
+    return;
+  }
+  feedback.textContent = albumResolved ? 'Now the artist…' : 'Now the album…';
+  feedback.className = 'dim';
+}
+
+function resetInput(input) {
+  input.value = '';
+  input.disabled = false;
+  input.classList.remove('locked');
+}
+
+/**
+ * Loads the cover, then starts the clock and the zoom-out together.
+ *
+ * Deferring `timer.start` until the image has decoded is the reason Timer does not start
+ * itself: a cover that takes a moment off disk would otherwise eat the round, and the player
+ * would be staring at an empty frame while the bar drained.
+ */
+function showArt(track) {
+  const token = ++artToken;
+  const url = Game.artUrl(track.artFile);
+  const probe = new Image();
+  probe.onload = () => {
+    if (token !== artToken) {
+      return;
+    }
+    artSize = {height: probe.naturalHeight || 1, width: probe.naturalWidth || 1};
+    focus = randomFocus();
+    zoomFrame.style.backgroundImage = `url("${url}")`;
+    drawZoom(startZoom);
+    feedback.textContent = 'Name the cover…';
+    feedback.className = 'dim';
+    // the clock has to be running before the first animated frame: animateRound reads
+    // fractionLeft, and on a stopped timer that is 0, which would flash the whole cover
+    timer.start(endRound);
+    animateRound();
+  };
+  probe.onerror = () => {
+    if (token !== artToken) {
+      return;
+    }
+    // the library says this album has art but the file is gone: burn a spare, not a round
+    const spare = spares.shift();
+    if (spare) {
+      gameTracks[round] = spare;
+      startRound();
+    } else {
+      endRound();
+    }
+  };
+  probe.src = url;
+}
+
+function startRound() {
+  roundOver = false;
+  albumDone = false;
+  artistDone = false;
+  albumResolved = false;
+  artistResolved = false;
+  timer.reset();
+  stopZoom();
+  roundLabel.textContent = `Round ${round + 1} / ${gameTracks.length}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  scoreLabel.textContent = `Score: ${score}`;
+  feedback.textContent = 'Loading cover…';
+  feedback.className = 'dim';
+  zoomFrame.style.backgroundImage = 'none';
+  giveupButton.style.visibility = 'visible';
+  const track = gameTracks[round];
+  if (currentMode === 'choices') {
+    const pool = decoyPool.concat(albumTracks);
+    Game.buildChoices(albumChoices, track.album, pool, (d) => d.album, pickAlbum, CHOICE_COUNT);
+    Game.buildChoices(artistChoices, track.artist, pool, (d) => d.artist, pickArtist,
+      CHOICE_COUNT);
+  } else {
+    resetInput(albumInput);
+    resetInput(artistInput);
+    albumInput.focus();
+  }
+  showArt(track);
+}
+
+function endRound() {
+  if (roundOver) {
+    return;
+  }
+  roundOver = true;
+  const timeFraction = timer.fractionLeft();
+  timer.stop();
+  // whatever the zoom had reached is where the reveal opens out from
+  revealFrom = zoomFrom(startZoom, 1 - timeFraction);
+  revealAt = Date.now();
+  stopZoom();
+  animateReveal();
+  artToken++;
+  const track = gameTracks[round];
+  const base = (albumDone ? ALBUM_POINTS : 0) + (artistDone ? ARTIST_POINTS : 0);
+  const perfect = albumDone && artistDone;
+  let speedBonus = 0;
+  let streakBonus = 0;
+  if (perfect) {
+    streak++;
+    const extra = Game.bonuses(timeFraction, streak);
+    speedBonus = extra.speedBonus;
+    streakBonus = extra.streakBonus;
+  } else {
+    streak = 0;
+  }
+  const points = base + speedBonus + streakBonus;
+  score += points;
+  scoreLabel.textContent = `Score: ${score}`;
+  streakLabel.textContent = streak > 1 ? `🔥 streak ×${streak}` : '';
+  if (perfect) {
+    const extras = [];
+    if (speedBonus) {
+      extras.push(`+${speedBonus} speed`);
+    }
+    if (streakBonus) {
+      extras.push(`+${streakBonus} streak`);
+    }
+    feedback.textContent = `✓ Got it! +${points}${extras.length ? ` (${extras.join(', ')})` : ''}`;
+    feedback.className = 'good';
+  } else {
+    feedback.textContent = `${points ? `+${points} — ` : ''}It was: ${track.album} — ${track.artist}`;
+    feedback.className = points ? 'dim' : 'bad';
+  }
+  giveupButton.style.visibility = 'hidden';
+  results.push({
+    album: track.album,
+    albumDone,
+    artist: track.artist,
+    artistDone,
+    basePoints: base,
+    genres: track.genres || [],
+    points,
+    speedBonus,
+    streakBonus,
+    year: track.year,
+  });
+  round++;
+  setTimeout(() => {
+    if (round < gameTracks.length) {
+      startRound();
+    } else {
+      stopZoom();
+      showResults();
+    }
+  }, perfect ? 2200 : 3200);
+}
+
+function showResults() {
+  scores.foldInsights(results, ALBUM_POINTS + ARTIST_POINTS);
+  const saved = scores.save(gameKey, score);
+  scoreLine.textContent = `Score: ${score}`;
+  if (saved.newBest && saved.entry.games.length > 1) {
+    bestLine.textContent = '★ New personal best for these settings!';
+    bestLine.className = 'good';
+  } else {
+    bestLine.textContent = `Best with these settings: ${saved.entry.best}`;
+    bestLine.className = 'dim';
+  }
+  answersDiv.innerHTML = '';
+  results.forEach((result) => {
+    const row = document.createElement('div');
+    row.className = 'answer-row';
+    const album = document.createElement('span');
+    album.className = `answer-title ${result.albumDone ? 'good' : 'bad'}`;
+    album.textContent = `${result.albumDone ? '✓' : '✗'} ${result.album}`;
+    const artist = document.createElement('span');
+    artist.className = `answer-artist ${result.artistDone ? 'good' : 'bad'}`;
+    artist.textContent = `${result.artistDone ? '✓' : '✗'} ${result.artist}`;
+    const points = document.createElement('span');
+    points.className = 'answer-points';
+    const bonusMarks = `${result.speedBonus ? '⚡' : ''}${result.streakBonus ? '🔥' : ''}`;
+    points.textContent = `${bonusMarks}+${result.points}`;
+    row.appendChild(album);
+    row.appendChild(artist);
+    row.appendChild(points);
+    answersDiv.appendChild(row);
+  });
+  Game.renderInsights(scores, 'insights', 'insight-rows', ALBUM_POINTS + ARTIST_POINTS);
+  screens.show('end-screen');
+}
+
+function lockInput(input) {
+  input.disabled = true;
+  input.classList.add('locked');
+}
+
+function checkGuesses() {
+  const track = gameTracks[round];
+  let hit = false;
+  if (!albumDone && Game.normalize(albumInput.value) &&
+      albumMatches(Game.normalize(albumInput.value), track.album)) {
+    albumDone = true;
+    albumResolved = true;
+    lockInput(albumInput);
+    hit = true;
+  }
+  if (!artistDone && Game.normalize(artistInput.value) &&
+      Game.artistMatches(Game.normalize(artistInput.value), track.artist)) {
+    artistDone = true;
+    artistResolved = true;
+    lockInput(artistInput);
+    hit = true;
+  }
+  if (albumDone && artistDone) {
+    endRound();
+    return;
+  }
+  if (hit) {
+    feedback.textContent = albumDone ? 'Album locked — whose is it?' : 'Artist locked — which album?';
+    feedback.className = 'good';
+    (albumDone ? artistInput : albumInput).focus();
+  } else {
+    feedback.textContent = 'Not it — keep looking!';
+    feedback.className = 'bad';
+  }
+}
+
+[albumInput, artistInput].forEach((input) => {
+  input.addEventListener('keydown', (evt) => {
+    if (evt.key !== 'Enter' || roundOver) {
+      return;
+    }
+    checkGuesses();
+  });
+});
+
+giveupButton.addEventListener('click', () => {
+  if (!roundOver) {
+    endRound();
+  }
+});
+
+startButton.addEventListener('click', startGame);
+againButton.addEventListener('click', startGame);
+setupButton.addEventListener('click', () => {
+  onSettingsChange();
+  screens.show('start-screen');
+});
+  </script>
+  </body>
+</html>
