@@ -149,61 +149,153 @@ function resetLibrary() {
   extEvt.reply("reset-library");
 }
 
-let gameWindow = null;
+/**
+ * The game windows, keyed by id.
+ *
+ * A registry rather than one variable per game: the id is what names the html file, the saved
+ * scores file and the menu entry, so adding a game is one entry here plus one page in public/.
+ * Only ids in this map are ever accepted from a game window, which is what keeps a crafted
+ * id out of the scores and lyrics paths below.
+ */
+const GAMES = {
+  album_art_zoom: {file: "album_art_zoom.html", height: 700, label: "Album Art Zoom", width: 520},
+  dj_clues: {file: "dj_clues.html", height: 660, label: "Guess the Artist (DJ)", width: 560},
+  finish_the_lyric: {file: "finish_the_lyric.html", height: 680, label: "Finish the Lyric", width: 560},
+  lyric_fill: {file: "lyric_fill.html", height: 760, label: "Name All the Lyrics", width: 760},
+  name_that_tune: {file: "name_that_tune.html", height: 640, label: "Name That Tune", width: 520},
+};
 
-/** Opens the Name That Tune game window. */
-function openNameThatTune() {
-  if (gameWindow) {
-    gameWindow.focus();
+const gameWindows = {};
+
+/**
+ * Opens a game window, or focuses it if it is already up.
+ * @param {string} gameId A key of GAMES.
+ */
+function openGame(gameId) {
+  const game = GAMES[gameId];
+  if (!game) {
     return;
   }
-  gameWindow = new BrowserWindow({
-    height: 640,
+  if (gameWindows[gameId]) {
+    gameWindows[gameId].focus();
+    return;
+  }
+  const win = new BrowserWindow({
+    height: game.height,
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
       webSecurity: false,
     },
-    width: 520,
+    width: game.width,
   });
-  gameWindow.loadURL(`file://${path.join(__dirname, "./name_that_tune.html")}`);
-  gameWindow.on("closed", () => gameWindow = null);
+  gameWindows[gameId] = win;
+  win.loadURL(`file://${path.join(__dirname, `./${game.file}`)}`);
+  win.on("closed", () => gameWindows[gameId] = null);
 }
 
-// The game window asks for playable tracks; proxy through the renderer,
+/**
+ * Game windows waiting on the library.
+ *
+ * The renderer answers on one channel, so a second window asking while a request is in flight
+ * joins the queue and shares the answer rather than waiting for a reply that never comes.
+ */
+let trackRequests = [];
+
+// The game windows ask for playable tracks; proxy through the renderer,
 // which owns the library, like the mobile API endpoints do.
-ipcMain.on("game-get-tracks", () => {
-  ipcMain.once("game-tracks", (evt, data) => {
-    if (gameWindow) {
-      gameWindow.webContents.send("game-tracks", data);
+ipcMain.on("game-get-tracks", (evt) => {
+  trackRequests.push(evt.sender);
+  if (trackRequests.length === 1) {
+    extEvt.reply("get-game-tracks");
+  }
+});
+
+ipcMain.on("game-tracks", (evt, data) => {
+  const waiting = trackRequests;
+  trackRequests = [];
+  waiting.forEach((sender) => {
+    if (!sender.isDestroyed()) {
+      sender.send("game-tracks", data);
     }
   });
-  extEvt.reply("get-game-tracks");
 });
 
 // mirrors DATA_DIR in src/constants.tsx
-function gameScoresFile() {
-  const dataDir = isDev ? path.resolve("data") : path.join(app.getPath("userData"), "data");
-  return path.join(dataDir, "tune_scores.json");
+function dataDir() {
+  return isDev ? path.resolve("data") : path.join(app.getPath("userData"), "data");
 }
 
-ipcMain.on("game-get-scores", (evt) => {
+/**
+ * Where a game's scores live.
+ * @param {string} gameId A key of GAMES.
+ * @return {?string} The file path, or null for an unknown game.
+ */
+function gameScoresFile(gameId) {
+  if (!GAMES[gameId]) {
+    return null;
+  }
+  // Name That Tune shipped before games had ids; keep its file name so its bests survive.
+  const name = gameId === "name_that_tune" ? "tune_scores.json" : `scores_${gameId}.json`;
+  return path.join(dataDir(), name);
+}
+
+ipcMain.on("game-get-scores", (evt, gameId) => {
   let scores = {};
+  const file = gameScoresFile(gameId);
   try {
-    scores = JSON.parse(fs.readFileSync(gameScoresFile(), "utf8"));
+    scores = JSON.parse(fs.readFileSync(file, "utf8"));
   } catch (err) {
     // no scores saved yet
   }
   evt.reply("game-scores", scores);
 });
 
-ipcMain.on("game-save-scores", (evt, scores) => {
+ipcMain.on("game-save-scores", (evt, arg) => {
+  const file = gameScoresFile(arg && arg.gameId);
+  if (!file) {
+    return;
+  }
   try {
-    fs.mkdirSync(path.dirname(gameScoresFile()), {recursive: true});
-    fs.writeFileSync(gameScoresFile(), JSON.stringify(scores));
+    fs.mkdirSync(path.dirname(file), {recursive: true});
+    fs.writeFileSync(file, JSON.stringify(arg.scores));
   } catch (err) {
     // scores are best-effort; losing one save is fine
   }
+});
+
+/**
+ * The stored lyrics for a track, read here rather than in the renderer.
+ *
+ * `src/extensions/lyrics/store.tsx` owns the same layout; main can read a file off disk
+ * without a round trip, so a game asking for one line of a song doesn't wake the renderer.
+ * `path.basename` is what stops a crafted track id walking out of the lyrics directory.
+ */
+ipcMain.on("game-get-lyrics", (evt, trackId) => {
+  let text = null;
+  try {
+    const file = path.join(dataDir(), "lyrics", `${path.basename(String(trackId))}.lrc`);
+    text = fs.readFileSync(file, "utf8");
+  } catch (err) {
+    // nothing fetched for this track
+  }
+  evt.reply(`game-lyrics-${trackId}`, text);
+});
+
+/**
+ * Asks the DJ to describe a track without naming it.
+ *
+ * The API key is the renderer's, so this proxies the same way the library does. Keyed by a
+ * request id because a game may have several rounds in flight while it pre-fetches clues.
+ */
+ipcMain.on("game-dj-clue", (evt, arg) => {
+  const channel = `game-dj-clue-${arg.requestId}`;
+  ipcMain.once(channel, (replyEvt, result) => {
+    if (!evt.sender.isDestroyed()) {
+      evt.sender.send(channel, result);
+    }
+  });
+  extEvt.reply("get-dj-clue", arg);
 });
 
 /**
@@ -246,13 +338,19 @@ function createWindow() {
   menu.push(new MenuItem({
     label: "Extensions",
     submenu: [
-    {label: "Wikipedia", click: () => runExtension("wikipedia")},
-    {label: "Genius", click: () => runExtension("genius")},
-    {label: "Lyrics", click: () => runExtension("lyrics")},
-    {label: "MusicBrainz", click: () => runExtension("musicbrainz")},
-    {type: "separator"},
-    {label: "Name That Tune", click: () => openNameThatTune()},
-  ],
+      {label: "Wikipedia", click: () => runExtension("wikipedia")},
+      {label: "Genius", click: () => runExtension("genius")},
+      {label: "Lyrics", click: () => runExtension("lyrics")},
+      {label: "MusicBrainz", click: () => runExtension("musicbrainz")},
+    ],
+  }));
+  menu.push(new MenuItem({
+    label: "Games",
+    submenu: Object.keys(GAMES).sort((id1, id2) => {
+      return GAMES[id1].label.localeCompare(GAMES[id2].label);
+    }).map((gameId) => {
+      return {label: GAMES[gameId].label, click: () => openGame(gameId)};
+    }),
   }));
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 }

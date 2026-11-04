@@ -5,6 +5,7 @@ import djActivity from './dj/activity';
 import './App.css';
 import {publishCatalog} from './backup/catalog';
 import {runCloudBackup} from './backup/cloudBackup';
+import {djClue} from './dj/clue';
 import {BACKUP_TIME, DATA_DIR} from './constants';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
@@ -240,17 +241,32 @@ class App extends React.Component<AppProps, AppState> {
           .filter(Boolean).map((genre) => genre.name);
         const album = this.props.getAlbumsByIds(track.albumIds)[0];
         return {
+          album: album && album.name,
           artFile: album && album.albumArtFile,
           artist,
           duration: track.duration,
           filePath: track.filePath,
           genres,
+          // The marker, not the words: a lyrics game filters the library on these and then
+          // reads only the handful of files it actually needs. Shipping 21,000 songs' text
+          // over IPC to pick ten rounds would be absurd.
+          hasLyrics: Boolean(track.lyrics && !track.lyrics.instrumental),
+          id: trackId,
           name: track.name,
           playCount: track.playCount,
+          syncedLyrics: Boolean(track.lyrics && track.lyrics.synced),
           year: track.year,
         };
       });
       ipcRenderer.send('game-tracks', gameTracks);
+    });
+    // A game window has no API key, so it asks the renderer for a clue the way it asks for
+    // the library. Keyed by request id because the game pre-fetches the next round's clue.
+    ipcRenderer.on('get-dj-clue', (evt, request) => {
+      djClue(request.track).then(
+        (clue) => ipcRenderer.send(`game-dj-clue-${request.requestId}`, {clue}),
+        (err) => ipcRenderer.send(`game-dj-clue-${request.requestId}`, {error: err.message}),
+      );
     });
     ipcRenderer.on('get-artist', (evt, artistId) => {
       const artist = this.props.getArtistsByIds([artistId])[0];
