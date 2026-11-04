@@ -103,6 +103,15 @@ export interface Track {
     id: string;
     page: string;
     errors: string[];
+    /**
+     * Set when a search ran and matched nothing, to the `MATCHER_VERSION` that ran.
+     *
+     * Without it a miss stored nothing at all, so "Genius has no page for this" was
+     * indistinguishable from "the run never got this far" — which is how ~1,600 tracks ended
+     * up unlinked despite matching exactly. Recording the version rather than a bare flag
+     * means improving the matcher retries every old miss instead of trusting it.
+     */
+    missedBy?: number;
   };
   lyrics?: TrackLyrics;
   warning?: TrackWarning;
@@ -291,6 +300,7 @@ export interface TrackInfo {
     id?: string;
     page?: string;
     errors?: string[];
+    missedBy?: number;
   };
   lyrics?: TrackLyrics;
   warning?: TrackWarning;
