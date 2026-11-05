@@ -2,6 +2,7 @@ import {deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, upda
 import {Album, AlbumInfo, Artist, ArtistInfo, Genre, LibraryInfo, Track, TrackInfo, TrackWarning} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
+import ArtZoom from './ArtZoom';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
@@ -60,6 +61,7 @@ interface DispatchProps {
 interface AlbumPageState {
   editing: boolean;
   deleting: boolean;
+  zooming: boolean;
 }
 
 type AlbumPageProps = OwnProps & StateProps & DispatchProps;
@@ -69,8 +71,9 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     super(props);
 
     this.state = {
-      editing: false,
       deleting: false,
+      editing: false,
+      zooming: false,
     };
   }
 
@@ -80,6 +83,14 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     // TODO: set playTrack to play an album playlist of by artist ?
     return (
       <div className="main">
+        {this.state.zooming && file && (
+          <ArtZoom
+            close={() => this.setState({zooming: false})}
+            file={file}
+            subtitle={this.props.artists.map((artist) => artist.name).join(', ')}
+            title={this.props.album.name}
+          />
+        )}
         <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()}>
           <AlbumEditor exit={() => this.closeEdit()} album={this.props.album} />
         </Modal>
@@ -99,7 +110,15 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
               goBack={this.props.goBack}
               goForward={this.props.goForward}
             />
-            <img alt="album art" height="100" src={src} width="100" />
+            {/* clickable only when there is real art; the fallback has nothing to show */}
+            <img
+              alt="album art"
+              className={file ? 'zoomableArt' : ''}
+              height="100"
+              onClick={() => file && this.setState({zooming: true})}
+              src={src}
+              width="100"
+            />
             <div>{this.props.album.name}</div>
             <Links items={this.props.artists} goToItem={this.props.goToArtist} name="Artists" />
             <div>Total Time: {this.getTotalTime()}</div>

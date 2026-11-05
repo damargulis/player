@@ -1,0 +1,54 @@
+.artZoomBackdrop {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.82);
+  cursor: zoom-out;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 60;
+}
+
+/*
+ * Never larger than the file itself, so a 500px cover is shown at 500px rather than smeared
+ * across the window — which is the whole point of being able to look at it.
+ */
+.artZoomImage {
+  border-radius: 4px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+  max-height: 82vh;
+  max-width: 82vw;
+  object-fit: contain;
+}
+
+.artZoomCaption {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.artZoomTitle {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.artZoomSubtitle {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.artZoomSize {
+  color: var(--text-faint, var(--text-dim));
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+/* The thumbnails that open it; the cursor is the only affordance there is room for. */
+.zoomableArt {
+  cursor: zoom-in;
+}

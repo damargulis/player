@@ -4,6 +4,7 @@ import AlbumPicker from './AlbumPicker';
 import ArtistConcerts from './ArtistConcerts';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
+import ArtZoom from './ArtZoom';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
 import defaultArtist from './resources/missing_artist.png';
@@ -47,6 +48,7 @@ type ArtistPageProps = OwnProps & StateProps & DispatchProps;
 interface ArtistPageState {
   editing: boolean;
   deleting: boolean;
+  zooming: boolean;
 }
 
 class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
@@ -54,15 +56,24 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
     super(props);
 
     this.state = {
-      editing: false,
       deleting: false,
+      editing: false,
+      zooming: false,
     };
   }
 
   public render(): JSX.Element {
-    const src = this.props.artist.artFile ? getImgSrc(this.props.artist.artFile) : defaultArtist;
+    const file = this.props.artist.artFile;
+    const src = file ? getImgSrc(file) : defaultArtist;
     return (
       <div className="main">
+        {this.state.zooming && file && (
+          <ArtZoom
+            close={() => this.setState({zooming: false})}
+            file={file}
+            title={this.props.artist.name}
+          />
+        )}
         <Modal isOpen={this.state.editing} onRequestClose={() => this.closeEdit()}>
           <ArtistEditor exit={() => this.closeEdit()} artist={this.props.artist} />
         </Modal>
@@ -83,7 +94,14 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               goForward={this.props.goForward}
             />
             <div className="info">
-              <img alt="artist art" height="100" src={src} width="100" />
+              <img
+                alt="artist art"
+                className={file ? 'zoomableArt' : ''}
+                height="100"
+                onClick={() => file && this.setState({zooming: true})}
+                src={src}
+                width="100"
+              />
               <div>{this.props.artist.name}</div>
               <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} onRun={() => this.runWiki()} />
