@@ -64,6 +64,44 @@
         border-color: var(--accent);
         color: var(--text);
       }
+      #hint-row {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 10px;
+        min-height: 28px;
+      }
+      /* Secondary action, so it has to opt out of the bare `button` rule. */
+      #hint-button {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-dim);
+        font-size: 12px;
+        font-weight: 400;
+        margin: 0;
+        padding: 6px 14px;
+        white-space: nowrap;
+      }
+      #hint-button:hover:enabled {
+        background: var(--surface);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      #hint-button:disabled {
+        background: transparent;
+        border-color: transparent;
+        color: var(--text-faint, var(--text-dim));
+      }
+      #hint-shown {
+        color: var(--accent-strong);
+        font-size: 13px;
+        overflow: hidden;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       /* A whole lyric line is long; keep the end-screen rows on one line each. */
       #answers .answer-title, #answers .answer-artist {
         overflow: hidden;
@@ -84,7 +122,9 @@
           of its words you get, so a near miss still pays; capitalization, punctuation and
           word order are ignored, but padding a guess with extra words costs you. Get the
           whole line for a <b>speed bonus</b> (+2 in the first 10s, +1 in the first 20s) and
-          chain perfect lines for a <b>streak bonus</b> (up to +2).
+          chain perfect lines for a <b>streak bonus</b> (up to +2). Stuck? <b>Hint</b> gives you
+          the artist and drops the line to <b>4 pts</b>; a second gives you the title and drops
+          it to <b>2</b>. A hinted line still counts toward a streak but earns no speed bonus.
         </div>
         <div class="option-row">
           <span class="option-label">MODE</span>
@@ -137,6 +177,10 @@
         </div>
         <div id="word-count"></div>
         <button id="hear-button" type="button" disabled>&#9834; Replay the lead-in</button>
+        <div id="hint-row">
+          <button id="hint-button" type="button">Hint</button>
+          <span id="hint-shown"></span>
+        </div>
         <div class="guess-row">
           <span class="guess-label">LINE</span>
           <input id="guess-line" class="guess-input" type="text" placeholder="The missing line&hellip;"
@@ -168,6 +212,17 @@ const ROUNDS = 10;
 const ROUND_MS = 40000;
 /** One line before bonuses. Partial credit is a fraction of this, so it wants to divide well. */
 const LINE_POINTS = 6;
+/**
+ * What a whole line is worth after 0, 1 and 2 hints.
+ *
+ * A ladder rather than one big "reveal": the artist alone narrows the field and is often enough
+ * to jog the memory, while the title is most of the way to the answer, so they should not cost
+ * the same amount of nothing. Integers all the way down, so the ceiling shown on the button is
+ * the number actually awarded rather than something that rounds oddly.
+ */
+const HINT_LADDER = [LINE_POINTS, 4, 2];
+/** Which hint each rung reveals, in order of how much it gives away. */
+const HINTS = ['artist', 'title'];
 
 /** How many lead-in lines to show, and the earliest line that can be blanked. */
 const CONTEXT_LINES = 3;
@@ -221,6 +276,8 @@ const feedback = document.getElementById('feedback');
 const trackLine = document.getElementById('track-line');
 const revealArt = document.getElementById('reveal-art');
 const giveupButton = document.getElementById('giveup-button');
+const hintButton = document.getElementById('hint-button');
+const hintShown = document.getElementById('hint-shown');
 const scoreLine = document.getElementById('score-line');
 const answersDiv = document.getElementById('answers');
 const player = document.getElementById('player');
@@ -239,6 +296,8 @@ let gameKey = '';
 let current = null;
 /** Lyrics arrive asynchronously, so a round is not answerable the moment it starts. */
 let roundReady = false;
+/** How many hints have been taken this round; indexes HINT_LADDER. */
+let hintsUsed = 0;
 let roundOver = false;
 let clockStarted = false;
 /** Bumped per round, so a lyric fetch that lands after the player has moved on is ignored. */
@@ -639,6 +698,50 @@ function startClock(token) {
   lineInput.focus();
 }
 
+/** The ceiling on this round, which is what the hint button has to advertise before it is used. */
+function hintCeiling() {
+  return HINT_LADDER[Math.min(hintsUsed, HINT_LADDER.length - 1)];
+}
+
+/**
+ * Refreshes the hint button and the revealed-hint line.
+ *
+ * The button names the *next* hint and what taking it costs, because a hint whose price is only
+ * visible after the fact is a trap rather than a choice.
+ */
+function renderHint() {
+  if (!current) {
+    // startRound clears `current` before the lyric arrives; nothing to reveal yet
+    hintShown.textContent = '';
+    hintButton.disabled = true;
+    hintButton.textContent = 'Hint';
+    return;
+  }
+  const track = current.track;
+  const revealed = HINTS.slice(0, hintsUsed)
+    .map((kind) => (kind === 'artist' ? track.artist : track.name));
+  hintShown.textContent = revealed.join(' — ');
+  if (hintsUsed >= HINTS.length) {
+    hintButton.disabled = true;
+    hintButton.textContent = `No hints left · max ${hintCeiling()}`;
+    return;
+  }
+  hintButton.disabled = roundOver || !roundReady;
+  const next = HINTS[hintsUsed] === 'artist' ? 'the artist' : 'the title';
+  hintButton.textContent = `Hint: ${next} · drops max to ${HINT_LADDER[hintsUsed + 1]}`;
+}
+
+function takeHint() {
+  if (roundOver || !roundReady || hintsUsed >= HINTS.length) {
+    return;
+  }
+  hintsUsed++;
+  renderHint();
+  lineInput.focus();
+}
+
+hintButton.addEventListener('click', takeHint);
+
 async function startRound() {
   const token = ++roundToken;
   roundReady = false;
@@ -658,6 +761,8 @@ async function startRound() {
   giveupButton.style.visibility = 'hidden';
   hearButton.disabled = true;
   hearButton.textContent = '♪ Replay the lead-in';
+  hintsUsed = 0;
+  renderHint();
   lineInput.value = '';
   lineInput.disabled = false;
   lineInput.classList.remove('locked');
@@ -679,6 +784,7 @@ async function startRound() {
   wordCountLabel.textContent = `${words} WORDS`;
   roundReady = true;
   giveupButton.style.visibility = 'visible';
+  renderHint();
   lineInput.focus();
   if (currentMode === 'hear') {
     hearButton.disabled = false;
@@ -703,14 +809,21 @@ function endRound() {
   const picked = current.picked;
   const track = current.track;
   const result = scoreGuess(lineInput.value, picked.text);
-  const base = Math.round(result.fraction * LINE_POINTS);
+  // Two different numbers on purpose. `recall` is the share of words out of the unhinted six and
+  // is what the all-time accuracy card is folded from — buying a hint says nothing about how
+  // well you know the words, so penalising it there would make the stats measure spending
+  // rather than memory. `base` is what the round actually pays, capped by the hint ladder.
+  const recall = Math.round(result.fraction * LINE_POINTS);
+  const base = Math.round(result.fraction * hintCeiling());
   const perfect = result.fraction === 1;
   let speedBonus = 0;
   let streakBonus = 0;
   if (perfect) {
     streak++;
     const extra = Game.bonuses(timeFraction, streak);
-    speedBonus = extra.speedBonus;
+    // No speed bonus on a hinted round: being quick *because* you bought the title is not the
+    // thing the bonus is for. The streak still counts — a whole line is a whole line.
+    speedBonus = hintsUsed ? 0 : extra.speedBonus;
     streakBonus = extra.streakBonus;
   } else {
     streak = 0;
@@ -733,7 +846,8 @@ function endRound() {
     feedback.textContent = `✓ The whole line! +${points}${extras.length ? ` (${extras.join(', ')})` : ''}`;
     feedback.className = 'good';
   } else {
-    feedback.textContent = `${result.matched} of ${result.total} words — +${points}`;
+    const capped = hintsUsed ? ` of ${hintCeiling()} after ${hintsUsed} hint${hintsUsed === 1 ? '' : 's'}` : '';
+    feedback.textContent = `${result.matched} of ${result.total} words — +${points}${capped}`;
     feedback.className = points ? 'dim' : 'bad';
   }
   trackLine.textContent = `${track.name} — ${track.artist}`;
@@ -747,9 +861,12 @@ function endRound() {
     hearButton.textContent = '♪ Hear the line';
     playSpan(picked.at, revealEnd(picked), null);
   }
+  hintButton.disabled = true;
   results.push({
     artist: track.artist,
-    basePoints: base,
+    // the unhinted score, so the insights card measures recall rather than hint spending
+    basePoints: recall,
+    hintsUsed,
     genres: track.genres || [],
     line: picked.text.trim(),
     matched: result.matched,
@@ -815,8 +932,10 @@ function showResults() {
     song.title = song.textContent;
     const points = document.createElement('span');
     points.className = 'answer-points';
+    // 💡 per hint taken, so a cheap-looking round is visibly explained on the recap
+    const hintMarks = '💡'.repeat(result.hintsUsed || 0);
     const bonusMarks = `${result.speedBonus ? '⚡' : ''}${result.streakBonus ? '🔥' : ''}`;
-    points.textContent = `${bonusMarks}+${result.points}`;
+    points.textContent = `${hintMarks}${bonusMarks}+${result.points}`;
     row.appendChild(line);
     row.appendChild(song);
     row.appendChild(points);
