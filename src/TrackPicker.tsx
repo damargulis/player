@@ -308,10 +308,17 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     if (!track) {
       return <></>;
     }
+    const album = this.props.getAlbumsByIds(track.albumIds)[0];
     return (
       <LyricsOverlay
+        album={album ? album.name : ''}
         artist={this.props.getArtistsByIds(track.artistIds).map((a) => a.name).join(', ')}
         close={() => this.setState({lyricsTrackId: undefined})}
+        durationMs={track.duration}
+        // editing can add or remove timestamps, so the marker has to follow the file
+        onSaved={(synced) => this.props.updateTrack(trackId, {
+          lyrics: {errors: [], fetchedAt: Date.now(), synced},
+        })}
         title={track.name}
         trackId={trackId}
       />

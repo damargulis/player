@@ -86,3 +86,84 @@
   opacity: 0.45;
   font-weight: 400;
 }
+
+/* --- editing --- */
+
+/*
+ * The raw LRC, timestamps included. Monospace because the `[mm:ss.xx]` tags line up into a
+ * readable column that way, and editing a word inside a timed line is the common case.
+ */
+.lyricsEditor {
+  background: var(--bg, #121216);
+  border: 1px solid var(--border, #33333a);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--text, #e7e7ec);
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  /* fills the body, which is already the panel's scrolling region */
+  min-height: 40vh;
+  outline: none;
+  padding: 10px 12px;
+  resize: none;
+  white-space: pre;
+  width: 100%;
+}
+
+.lyricsEditor:focus {
+  border-color: var(--accent, #8b7cf6);
+}
+
+.lyricsFooter {
+  align-items: center;
+  border-top: 1px solid var(--border, #33333a);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 10px 16px;
+}
+
+/* Takes the remaining width so a long error message wraps rather than shoving the buttons. */
+.lyricsStatus {
+  flex: 1;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.lyricsStatus.good { color: var(--success, #3fb950); }
+.lyricsStatus.bad { color: var(--danger, #f85149); }
+.lyricsStatus.busy { color: var(--text-dim, #9a9aa6); }
+
+.lyricsAction {
+  background: var(--bg, #121216);
+  border: 1px solid var(--border, #33333a);
+  border-radius: 8px;
+  color: var(--text-dim, #9a9aa6);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
+.lyricsAction:hover:enabled {
+  border-color: var(--accent, #8b7cf6);
+  color: var(--text, #e7e7ec);
+}
+
+.lyricsAction:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.lyricsAction.primary {
+  background: var(--accent, #8b7cf6);
+  border-color: var(--accent, #8b7cf6);
+  color: #fff;
+}
+
+.lyricsAction.primary:hover:enabled {
+  background: var(--accent-strong, #a89bff);
+  color: #fff;
+}
