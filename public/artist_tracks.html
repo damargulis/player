@@ -133,6 +133,11 @@
         white-space: nowrap;
       }
       .artist-option-count { color: var(--text-dim); font-size: 11px; }
+      .artist-option-best {
+        color: var(--accent-strong);
+        font-size: 11px;
+        white-space: nowrap;
+      }
       /* The bare `button` rule in game-common.css is the primary action, so anything
          secondary has to opt out of it by class. */
       button.secondary {
@@ -439,6 +444,37 @@ function selectArtist(entry) {
  * Matching is on `Game.normalize`, so case, punctuation and a leading "the" all stop
  * mattering: "beatles", "The Beatles" and "beatles," all find the same band.
  */
+/**
+ * One row of the artist list.
+ *
+ * Shared by the search list and the lone row the random pick puts on screen, because those two
+ * had already drifted — the random one was missing the song count's companion, and a best shown
+ * in one place and not the other is the same kind of thing again.
+ *
+ * The best is read per row rather than only for the selection, as the song picker in Name All
+ * the Lyrics does it: scanning the list for one you have not beaten yet is most of why anyone
+ * reads this screen. It is keyed on the blank mode too, so switching to blind shows blind bests.
+ */
+function artistRow(entry, picked) {
+  const row = document.createElement('div');
+  row.className = `artist-option${picked ? ' picked' : ''}`;
+  row.dataset.key = entry.key;
+  const name = document.createElement('span');
+  name.className = 'artist-option-name';
+  name.textContent = entry.name;
+  const count = document.createElement('span');
+  count.className = 'artist-option-count';
+  count.textContent = `${entry.titles} songs`;
+  const best = document.createElement('span');
+  best.className = 'artist-option-best';
+  const record = scores.entry(scoreKey(entry));
+  best.textContent = record ? `best ${record.best}/${entry.titles}` : '';
+  row.appendChild(name);
+  row.appendChild(count);
+  row.appendChild(best);
+  return row;
+}
+
 function renderResults() {
   const query = Game.normalize(searchInput.value);
   const matches = (query ?
@@ -450,17 +486,7 @@ function renderResults() {
     roster).slice(0, RESULT_LIMIT);
   resultsDiv.innerHTML = '';
   matches.forEach((entry) => {
-    const row = document.createElement('div');
-    row.className = `artist-option${selected && selected.key === entry.key ? ' picked' : ''}`;
-    row.dataset.key = entry.key;
-    const name = document.createElement('span');
-    name.className = 'artist-option-name';
-    name.textContent = entry.name;
-    const count = document.createElement('span');
-    count.className = 'artist-option-count';
-    count.textContent = `${entry.titles} songs`;
-    row.appendChild(name);
-    row.appendChild(count);
+    const row = artistRow(entry, selected && selected.key === entry.key);
     row.addEventListener('click', () => selectArtist(entry));
     resultsDiv.appendChild(row);
   });
@@ -486,18 +512,7 @@ function randomArtist() {
   selectArtist(pick);
   // the pick is almost never in the unfiltered top ten, so put it on screen alone
   resultsDiv.innerHTML = '';
-  const row = document.createElement('div');
-  row.className = 'artist-option picked';
-  row.dataset.key = pick.key;
-  const name = document.createElement('span');
-  name.className = 'artist-option-name';
-  name.textContent = pick.name;
-  const count = document.createElement('span');
-  count.className = 'artist-option-count';
-  count.textContent = `${pick.titles} songs`;
-  row.appendChild(name);
-  row.appendChild(count);
-  resultsDiv.appendChild(row);
+  resultsDiv.appendChild(artistRow(pick, /* picked= */ true));
 }
 
 // minDurationMs 0, not the shared default of 30s: a twenty-second album interlude is
@@ -510,7 +525,23 @@ Game.loadTracks({minDurationMs: 0}, (tracks) => {
   }
   renderResults();
 });
-scores.load(updateHistoryLine);
+/**
+ * The setup screen after something changed what a best would say.
+ *
+ * `renderResults` is guarded on the roster: scores can arrive before the library does, and
+ * rendering an empty roster would replace "Loading library…" with "nobody matches" and
+ * disable Start.
+ */
+function refreshSetup() {
+  if (roster.length) {
+    renderResults();
+  }
+  if (selected) {
+    updateHistoryLine();
+  }
+}
+
+scores.load(refreshSetup);
 searchInput.addEventListener('input', renderResults);
 searchInput.addEventListener('keydown', (evt) => {
   if (evt.key !== 'Enter' || startButton.disabled) {
@@ -518,11 +549,7 @@ searchInput.addEventListener('keydown', (evt) => {
   }
   startGame();
 });
-hintsSegment.addEventListener('change', () => {
-  if (selected) {
-    updateHistoryLine();
-  }
-});
+hintsSegment.addEventListener('change', refreshSetup);
 randomButton.addEventListener('click', randomArtist);
 
 // ---- the game ----
