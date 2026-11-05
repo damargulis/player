@@ -159,9 +159,10 @@
     <div id="setup-screen" class="screen active">
       <div class="card">
         <div class="rules">
-          Every song an artist has <b>in this library</b> is listed, blanked out. Type
-          titles and hit Enter &mdash; capitalization and punctuation ignored, a wrong
-          guess costs nothing but clock. You are scored on <b>distinct songs</b>, so a
+          Every song an artist has <b>in this library</b> is listed, blanked out. Just type
+          titles &mdash; each one fills as soon as it is complete, no Enter needed;
+          capitalization and punctuation are ignored, and a wrong guess costs nothing but
+          clock. You are scored on <b>distinct songs</b>, so a
           title that sits on three different records is one point and fills all three
           rows. The clock scales with how much there is to name.
         </div>
@@ -644,6 +645,51 @@ function fillRecord(record, missed) {
   });
 }
 
+/** Credits a title that is known to be present and unfound. */
+function creditTitle(key) {
+  const record = game.titles.get(key);
+  record.found = true;
+  game.found++;
+  fillRecord(record, false);
+  // one guess, one point, however many records the song turns up on
+  const extra = record.rows.length > 1 ? ` — filled ${record.rows.length} tracks` : '';
+  feedback.textContent = `✓ ${record.title}${extra}`;
+  feedback.className = 'good';
+  guessInput.value = '';
+  updateCounters();
+  revealRow(record.rows[0].row);
+  if (game.found >= game.total) {
+    finishGame('clean');
+  }
+}
+
+/**
+ * The longest unfound title the box *ends* with, or null.
+ *
+ * The tail rather than the whole box, because a title fills the moment it is complete and that
+ * clears the box — but typing does not stop on the keystroke that matched. "Sorrow" filling
+ * mid-way through "Sorrow and Joy" leaves "and joy" behind, and matching only the whole box
+ * would make the retype read "and joysorrow and joy" and never match again. Keys are already
+ * punctuation-free (`Game.normalize` built them), so slicing the normalized box lines up with
+ * them directly.
+ */
+function fillableTail(value) {
+  const text = Game.normalize(value);
+  for (let start = 0; start < text.length; start++) {
+    const record = game.titles.get(text.slice(start));
+    if (record && !record.found) {
+      return text.slice(start);
+    }
+  }
+  return null;
+}
+
+/**
+ * Enter, which is the only path that can record a miss.
+ *
+ * Titles fill themselves as they are typed, so a miss has to mean a deliberate wrong guess —
+ * counting one per keystroke would make the number meaningless.
+ */
 function submitGuess() {
   const guess = Game.normalize(guessInput.value);
   // the guard lives here rather than in the key handler so no caller can score a
@@ -665,19 +711,7 @@ function submitGuess() {
     guessInput.value = '';
     return;
   }
-  record.found = true;
-  game.found++;
-  fillRecord(record, false);
-  // one guess, one point, however many records the song turns up on
-  const extra = record.rows.length > 1 ? ` — filled ${record.rows.length} tracks` : '';
-  feedback.textContent = `✓ ${record.title}${extra}`;
-  feedback.className = 'good';
-  guessInput.value = '';
-  updateCounters();
-  revealRow(record.rows[0].row);
-  if (game.found >= game.total) {
-    finishGame('clean');
-  }
+  creditTitle(guess);
 }
 
 function finishGame(reason) {
@@ -732,6 +766,17 @@ function finishGame(reason) {
   endbar.style.display = 'block';
   window.scrollTo(0, 0);
 }
+
+// A complete title fills itself; Enter is only needed to register a wrong guess as a miss.
+guessInput.addEventListener('input', () => {
+  if (finished) {
+    return;
+  }
+  const key = fillableTail(guessInput.value);
+  if (key) {
+    creditTitle(key);
+  }
+});
 
 guessInput.addEventListener('keydown', (evt) => {
   if (evt.key === 'Enter') {
