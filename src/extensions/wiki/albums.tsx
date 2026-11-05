@@ -1,7 +1,7 @@
 import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
 import {downloadIfBigger} from '../artFile';
 import {BASE_URL} from './constants';
-import {addError, ExtensionError, removeError} from '../errors';
+import {addError, ExtensionError, removeError, setError} from '../errors';
 import moment from 'moment';
 import * as React from 'react';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
@@ -317,15 +317,13 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     // over art the Cover Art Archive supplied would undo that run. Keeping the existing file
     // still counts as having art, so the error clears either way.
     return downloadIfBigger(picURL, album.albumArtFile).then((result) => {
-      removeError(album, ExtensionError.ALBUM_ART);
       if (result.path) {
         album.albumArtFile = result.path;
       }
-    }).catch(() => {
-      if (!album.albumArtFile) {
-        addError(album, ExtensionError.ALBUM_ART);
-      }
-      return Promise.resolve();
+    }).catch(() => Promise.resolve()).then(() => {
+      // the error is a statement about the album, not about this request, so it is set from
+      // the outcome either way rather than added on failure and removed on success
+      setError(album, ExtensionError.ALBUM_ART, !album.albumArtFile);
     });
   }).catch(() => {
     addError(album, ExtensionError.PARSER);

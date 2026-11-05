@@ -2,7 +2,7 @@ import {Album, AlbumInfo, LibraryInfo, UPDATE_LIBRARY} from '../../redux/actionT
 import {fetchFrontCover} from './api';
 import {writeIfBigger} from '../artFile';
 import {ipcRenderer} from 'electron';
-import {ExtensionError} from '../errors';
+import {ExtensionError, withError} from '../errors';
 import PromisePool from 'es6-promise-pool';
 import {imageSize, sizeFromBuffer} from '../imageSize';
 import {getAlbumsByIds, getArtistsByIds} from '../../redux/selectors';
@@ -83,15 +83,6 @@ function longerSide(filePath: string): number {
   return size ? Math.max(size.width, size.height) : 0;
 }
 
-/** The album's errors with the art error added or cleared, as a fresh array for the delta. */
-function errorsWith(album: Album, hasArt: boolean): string[] {
-  const errors = (album.errors || []).filter((error) => error !== ExtensionError.ALBUM_ART);
-  if (!hasArt) {
-    errors.push(ExtensionError.ALBUM_ART);
-  }
-  return errors;
-}
-
 /**
  * Fetches better art for one album, or decides it needs none.
  *
@@ -110,7 +101,8 @@ function upgradeAlbum(album: Album): Promise<Result> {
     if (!data) {
       // deliberately no marker: only ~44 albums land here, retrying one request each is
       // cheaper than never noticing art the community adds later
-      return {id: album.id, info: {errors: errorsWith(album, false)}, outcome: 'none' as Outcome};
+      const errors = withError(album.errors, ExtensionError.ALBUM_ART, /* missing= */ true);
+      return {id: album.id, info: {errors}, outcome: 'none' as Outcome};
     }
     const size = sizeFromBuffer(data);
     const got = size ? Math.max(size.width, size.height) : 0;
@@ -121,12 +113,16 @@ function upgradeAlbum(album: Album): Promise<Result> {
     const result = writeIfBigger(album.albumArtFile, data);
     if (!result.wrote) {
       // nothing better came back; record that and stop asking
-      return {id: album.id, info: {coverArt, errors: errorsWith(album, current > 0)},
+      return {id: album.id, info: {coverArt, errors: withError(album.errors, ExtensionError.ALBUM_ART, current === 0)},
         outcome: 'kept' as Outcome};
     }
     return {
       id: album.id,
-      info: {albumArtFile: result.path, coverArt, errors: errorsWith(album, true)},
+      info: {
+        albumArtFile: result.path,
+        coverArt,
+        errors: withError(album.errors, ExtensionError.ALBUM_ART, /* missing= */ false),
+      },
       outcome: 'upgraded' as Outcome,
     };
   }).catch(() => ({id: album.id, info: {}, outcome: 'failed' as Outcome}));

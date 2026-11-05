@@ -10,7 +10,7 @@ import {
 } from './api';
 import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
-import {addError, ExtensionError, removeError} from '../errors';
+import {addError, ExtensionError, removeError, setError} from '../errors';
 import fs from 'fs';
 import {getGenreIds} from '../../redux/selectors';
 import shortid from 'shortid';
@@ -45,11 +45,9 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     } else {
       addError(artist, ExtensionError.GENRE);
     }
-    return downloadArtistImage(artist, lookup).then(() => {
-      removeError(artist, ExtensionError.PIC);
-    }).catch(() => {
-      addError(artist, ExtensionError.PIC);
-    });
+    return downloadArtistImage(artist, lookup)
+      .catch(() => undefined)
+      .then(() => setError(artist, ExtensionError.PIC, !artist.artFile));
   }).catch(() => {
     addError(artist, ExtensionError.LOOKUP);
   });

@@ -14,7 +14,7 @@ import {
 } from './api';
 import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
-import {addError, ExtensionError, removeError} from '../errors';
+import {addError, ExtensionError, removeError, setError} from '../errors';
 import fs from 'fs';
 import {getArtistsByIds, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
@@ -96,11 +96,11 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
       addError(album, ExtensionError.GENRE);
     }
     return verifyTracks(store, album).then(() => {
-      return downloadCoverArt(album).then(() => {
-        removeError(album, ExtensionError.ALBUM_ART);
-      }).catch(() => {
-        addError(album, ExtensionError.ALBUM_ART);
-      });
+      // the error states whether the album has art, not whether this fetch worked: a failed
+      // request against an album that already has a cover is not a missing cover
+      return downloadCoverArt(album)
+        .catch(() => undefined)
+        .then(() => setError(album, ExtensionError.ALBUM_ART, !album.albumArtFile));
     });
   }).catch(() => {
     addError(album, ExtensionError.LOOKUP);

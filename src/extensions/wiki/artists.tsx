@@ -1,7 +1,7 @@
 import {Artist, ArtistInfo} from '../../redux/actionTypes';
 import {downloadIfBigger} from '../artFile';
 import {BASE_URL} from './constants';
-import {addError, ExtensionError, removeError} from '../errors';
+import {addError, ExtensionError, removeError, setError} from '../errors';
 import {getGenreIds} from '../../redux/selectors';
 import {RootState} from '../../redux/store';
 import {findAsync, getDoc, getGenresByRow} from './utils';
@@ -73,15 +73,11 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     }
     // One-way, as with album art: an infobox thumbnail must not replace a larger picture.
     return downloadIfBigger(picURL, artist.artFile).then((result) => {
-      removeError(artist, ExtensionError.PIC);
       if (result.path) {
         artist.artFile = result.path;
       }
-    }).catch(() => {
-      if (!artist.artFile) {
-        addError(artist, ExtensionError.PIC);
-      }
-      return Promise.resolve();
+    }).catch(() => Promise.resolve()).then(() => {
+      setError(artist, ExtensionError.PIC, !artist.artFile);
     });
   }).catch(() => {
     addError(artist, ExtensionError.PARSER);

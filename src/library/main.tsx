@@ -1,6 +1,6 @@
 import {Album, Artist, Genre, LibraryState, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
-import {migrateLegacyErrors} from '../extensions/errors';
+import {ExtensionError, migrateLegacyErrors, withError} from '../extensions/errors';
 import fs from 'fs';
 import path from 'path';
 
@@ -20,7 +20,11 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
           albums: Object.values(libraryData.albums).reduce((map: Record<string, Album>, albumData: Album) => {
             map[albumData.id] = {
             id: albumData.id,
-            errors: migrateLegacyErrors(albumData.errors),
+            // ALBUM_ART says "this album has no art", so it is derived from whether it has a
+            // file rather than trusted from storage — 257 albums here were flagged despite
+            // having art, and 34 without any were not flagged at all.
+            errors: withError(migrateLegacyErrors(albumData.errors),
+              ExtensionError.ALBUM_ART, !albumData.albumArtFile),
             albumArtFile: albumData.albumArtFile,
             coverArt: albumData.coverArt,
             artistIds: albumData.artistIds,
@@ -43,7 +47,9 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             name: artistData.name,
             albumIds: artistData.albumIds,
             artFile: artistData.artFile,
-            errors: migrateLegacyErrors(artistData.errors),
+            // PIC is the same shape of claim as ALBUM_ART, and was wrong the same way
+            errors: withError(migrateLegacyErrors(artistData.errors),
+              ExtensionError.PIC, !artistData.artFile),
             wikiPage: artistData.wikiPage,
             mbid: artistData.mbid,
             genreIds: artistData.genreIds,

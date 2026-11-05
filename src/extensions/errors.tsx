@@ -35,6 +35,33 @@ export function addError(item: Errorable, err: string): void {
   }
 }
 
+/**
+ * Keeps a "missing X" error in step with whether X is actually there.
+ *
+ * `ALBUM_ART` and `PIC` describe a fact about the entity — it has a picture or it does not —
+ * but they were recorded as "a download failed", which is a different thing and drifts from
+ * the truth in both directions. In this library 257 of the 267 albums flagged "No album art
+ * found" had art, while 34 albums with none were flagged with nothing; artists were wrong 56
+ * and 78 ways respectively. A fetch failing when the entity already has a picture is not a
+ * missing picture, and a successful fetch is not the only way to come to have one.
+ *
+ * So these two are treated as derived rather than reported: both the extensions and
+ * `loadLibrary` put them through here, which makes a stale flag correct itself on next launch.
+ */
+export function setError(item: Errorable, err: string, missing: boolean): void {
+  if (missing) {
+    addError(item, err);
+  } else {
+    removeError(item, err);
+  }
+}
+
+/** The same rule for a fresh array, which is what the load path builds. */
+export function withError(errors: string[], err: string, missing: boolean): string[] {
+  const without = errors.filter((existing) => existing !== err);
+  return missing ? without.concat([err]) : without;
+}
+
 // Errors written by older versions were prefixed per extension; map them onto
 // the shared errors so they can still be cleared.
 const LEGACY_PREFIXES = ['Wikipedia Modifier: ', 'MusicBrainz Modifier: '];
