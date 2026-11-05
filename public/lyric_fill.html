@@ -208,13 +208,6 @@ const PACE_FACTORS = {blitz: 0.5, relaxed: 2, standard: 1};
 const MIN_DISTINCT_WORDS = 5;
 const RESULT_LIMIT = 8;
 const FLASH_MS = 700;
-/**
- * How long a prefix word waits before filling itself.
- *
- * Long enough that typing "crying" straight through never trips the "cry" fill, short enough
- * that stopping after a short word feels like it just worked rather than like a delay.
- */
-const PREFIX_FILL_MS = 600;
 const CLOCK_TICK_MS = 250;
 
 // ---- text: tokenising, the part everything else rests on ----
@@ -375,15 +368,6 @@ let found = new Set();
 let wordSpans = new Map();
 let gameOver = true;
 let clockId = null;
-/**
- * Pending auto-fill for a word that is a prefix of another one still missing.
- *
- * Every complete word now fills without a space or Enter, including the short common ones —
- * but a word like "the", with "there" and "them" still to find, cannot fill on the keystroke
- * or the longer words become untypable. So it fills once typing stops. Any further keystroke
- * cancels it, which is what keeps "crying" reachable after "cry" is already on screen.
- */
-let pendingFillId = null;
 let gameKey = '';
 
 function pace() {
@@ -550,9 +534,6 @@ function stopEverything() {
   }
   clearInterval(clockId);
   clockId = null;
-  // a word waiting to fill itself must not land after the game has ended or restarted
-  clearTimeout(pendingFillId);
-  pendingFillId = null;
 }
 
 function renderGrid() {
@@ -640,11 +621,29 @@ function fill(key, className) {
   });
 }
 
-/** Tries a guess; returns the words it newly filled and how many blanks that was. */
+/**
+ * Tries a guess; returns the words it newly filled and how many blanks that was.
+ *
+ * A word also credits every longer word still missing that starts with it, so typing "cry"
+ * takes "crying" with it. That is a deliberate freebie: without it, filling "cry" the instant
+ * it is typed would clear the box before anyone could reach "crying", and the alternative —
+ * making short words wait, or demanding a space — put the key presses exactly where they are
+ * most annoying, on the commonest words in the song.
+ *
+ * It is a prefix relation, not a substring one: "the" takes "there" and "them", but not
+ * "other", "gather" or "whether". Substring would hand over a third of a song for one guess.
+ */
 function applyGuess(value) {
   const hits = [];
+  const free = [];
   let blanks = 0;
   let known = 0;
+  const credit = (key, list) => {
+    found.add(key);
+    list.push(key);
+    blanks += song.counts.get(key);
+    fill(key, 'got');
+  };
   guessKeys(value).forEach((key) => {
     if (!song.counts.has(key)) {
       return;
@@ -653,12 +652,14 @@ function applyGuess(value) {
       known++;
       return;
     }
-    found.add(key);
-    hits.push(key);
-    blanks += song.counts.get(key);
-    fill(key, 'got');
+    credit(key, hits);
+    song.counts.forEach((count, other) => {
+      if (!found.has(other) && other.startsWith(key)) {
+        credit(other, free);
+      }
+    });
   });
-  return {blanks, hits, known};
+  return {blanks, free, hits, known};
 }
 
 function submit(value) {
@@ -672,8 +673,12 @@ function submit(value) {
     const what = result.hits.length === 1 ?
       `“${result.hits[0]}”` :
       `${result.hits.length} words`;
+    // naming the freebies matters: words lighting up that you did not type reads as a bug
+    const bonus = result.free.length
+      ? ` (+${result.free.map((word) => `“${word}”`).join(', ')})`
+      : '';
     feedback.textContent =
-      `✓ ${what} — ${result.blanks} blank${result.blanks === 1 ? '' : 's'} filled`;
+      `✓ ${what}${bonus} — ${result.blanks} blank${result.blanks === 1 ? '' : 's'} filled`;
     feedback.className = 'good';
     if (found.size === song.counts.size) {
       endGame(true);
@@ -696,27 +701,12 @@ function fillable(key) {
 }
 
 /**
- * Whether a longer word still missing starts with this one — "cry" while "crying" is missing.
+ * Every complete word fills the moment it is typed — no space, no Enter, short words included.
  *
- * Filling instantly in that case would clear the box before anyone could reach the longer word,
- * so those wait out a short pause instead of being filled on the keystroke.
+ * Nothing waits and nothing is held back, because `applyGuess` takes the longer words with it:
+ * "cry" filling instantly cannot cost you "crying" when "crying" fills too.
  */
-function hasLongerMissing(key) {
-  for (const other of song.counts.keys()) {
-    if (other !== key && !found.has(other) && other.startsWith(key)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function cancelPendingFill() {
-  clearTimeout(pendingFillId);
-  pendingFillId = null;
-}
-
 guessInput.addEventListener('input', () => {
-  cancelPendingFill();
   if (gameOver) {
     return;
   }
@@ -727,25 +717,13 @@ guessInput.addEventListener('input', () => {
     return;
   }
   const keys = guessKeys(value);
-  if (keys.length !== 1 || !fillable(keys[0])) {
-    return;
-  }
-  if (!hasLongerMissing(keys[0])) {
+  if (keys.length === 1 && fillable(keys[0])) {
     submit(value);
-    return;
   }
-  pendingFillId = setTimeout(() => {
-    pendingFillId = null;
-    // re-check: the clock may have run out, or the word been found another way, while waiting
-    if (!gameOver && guessInput.value === value && keys.length === 1 && fillable(keys[0])) {
-      submit(value);
-    }
-  }, PREFIX_FILL_MS);
 });
 
 guessInput.addEventListener('keydown', (evt) => {
   if (evt.key === 'Enter') {
-    cancelPendingFill();
     submit(guessInput.value);
   }
 });
