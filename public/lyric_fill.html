@@ -208,6 +208,13 @@ const PACE_FACTORS = {blitz: 0.5, relaxed: 2, standard: 1};
 const MIN_DISTINCT_WORDS = 5;
 const RESULT_LIMIT = 8;
 const FLASH_MS = 700;
+/**
+ * How long a prefix word waits before filling itself.
+ *
+ * Long enough that typing "crying" straight through never trips the "cry" fill, short enough
+ * that stopping after a short word feels like it just worked rather than like a delay.
+ */
+const PREFIX_FILL_MS = 600;
 const CLOCK_TICK_MS = 250;
 
 // ---- text: tokenising, the part everything else rests on ----
@@ -368,6 +375,15 @@ let found = new Set();
 let wordSpans = new Map();
 let gameOver = true;
 let clockId = null;
+/**
+ * Pending auto-fill for a word that is a prefix of another one still missing.
+ *
+ * Every complete word now fills without a space or Enter, including the short common ones —
+ * but a word like "the", with "there" and "them" still to find, cannot fill on the keystroke
+ * or the longer words become untypable. So it fills once typing stops. Any further keystroke
+ * cancels it, which is what keeps "crying" reachable after "cry" is already on screen.
+ */
+let pendingFillId = null;
 let gameKey = '';
 
 function pace() {
@@ -534,6 +550,9 @@ function stopEverything() {
   }
   clearInterval(clockId);
   clockId = null;
+  // a word waiting to fill itself must not land after the game has ended or restarted
+  clearTimeout(pendingFillId);
+  pendingFillId = null;
 }
 
 function renderGrid() {
@@ -597,9 +616,13 @@ function startGame() {
   guessInput.value = '';
   renderGrid();
   updateProgress();
-  grid.scrollTop = 0;
   screens.show('play-screen');
-  guessInput.focus();
+  // After the screen is up, not before: the play screen is display:none while the grid is
+  // built, and scrollTop on an unlaid-out element does nothing. preventScroll because focusing
+  // the input scrolls it into view, which on a long song is what left the lyric partway down.
+  grid.scrollTop = 0;
+  window.scrollTo(0, 0);
+  guessInput.focus({preventScroll: true});
   // the grid is on screen and the input is live, so now the clock is fair
   timer.start(() => endGame(false));
   tickClock();
@@ -667,26 +690,33 @@ function submit(value) {
   feedback.className = 'bad';
 }
 
+/** A word that is in the song and not yet found. */
+function fillable(key) {
+  return song.counts.has(key) && !found.has(key);
+}
+
 /**
- * Whether a complete word can be filled the instant it is typed.
+ * Whether a longer word still missing starts with this one — "cry" while "crying" is missing.
  *
- * Only when nothing else still missing starts with it: "cry" would otherwise fill and clear the
- * box before anyone could reach "crying", which is unwinnable rather than merely annoying. Short
- * common words therefore nearly always want Enter, which is how people type these anyway.
+ * Filling instantly in that case would clear the box before anyone could reach the longer word,
+ * so those wait out a short pause instead of being filled on the keystroke.
  */
-function safeToFillImmediately(key) {
-  if (!song.counts.has(key) || found.has(key)) {
-    return false;
-  }
+function hasLongerMissing(key) {
   for (const other of song.counts.keys()) {
     if (other !== key && !found.has(other) && other.startsWith(key)) {
-      return false;
+      return true;
     }
   }
-  return true;
+  return false;
+}
+
+function cancelPendingFill() {
+  clearTimeout(pendingFillId);
+  pendingFillId = null;
 }
 
 guessInput.addEventListener('input', () => {
+  cancelPendingFill();
   if (gameOver) {
     return;
   }
@@ -697,13 +727,25 @@ guessInput.addEventListener('input', () => {
     return;
   }
   const keys = guessKeys(value);
-  if (keys.length === 1 && safeToFillImmediately(keys[0])) {
-    submit(value);
+  if (keys.length !== 1 || !fillable(keys[0])) {
+    return;
   }
+  if (!hasLongerMissing(keys[0])) {
+    submit(value);
+    return;
+  }
+  pendingFillId = setTimeout(() => {
+    pendingFillId = null;
+    // re-check: the clock may have run out, or the word been found another way, while waiting
+    if (!gameOver && guessInput.value === value && keys.length === 1 && fillable(keys[0])) {
+      submit(value);
+    }
+  }, PREFIX_FILL_MS);
 });
 
 guessInput.addEventListener('keydown', (evt) => {
   if (evt.key === 'Enter') {
+    cancelPendingFill();
     submit(guessInput.value);
   }
 });
