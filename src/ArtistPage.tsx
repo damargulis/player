@@ -4,6 +4,7 @@ import AlbumPicker from './AlbumPicker';
 import ArtistConcerts from './ArtistConcerts';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
+import ArtistPicLabel from './ArtistPicLabel';
 import ArtZoom from './ArtZoom';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
@@ -13,6 +14,7 @@ import NavigationBar from './NavigationBar';
 import React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
+import {artistStepNames, runAllForArtist} from './extensions/runAll';
 import {getAlbumsByIds, getArtistById, getGenreById, getTracksByIds} from './redux/selectors';
 import {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
@@ -49,6 +51,9 @@ interface ArtistPageState {
   editing: boolean;
   deleting: boolean;
   zooming: boolean;
+  /** The extension currently running over this artist, when Run-all is working. */
+  runningStep?: string;
+  runReport?: string;
 }
 
 class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
@@ -105,6 +110,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <div>{this.props.artist.name}</div>
               <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} onRun={() => this.runWiki()} />
+              <ArtistPicLabel artist={this.props.artist} />
               <MusicBrainzLabel
                 mbid={this.props.artist.mbid}
                 entityType="artist"
@@ -112,6 +118,16 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               />
               <ArtistConcerts artistId={this.props.artist.id} />
             </div>
+            <button
+              className="editArtist"
+              disabled={!!this.state.runningStep}
+              onClick={() => this.runAllExtensions()}
+              title={`Run every extension for this artist, their albums and their tracks: ` +
+                artistStepNames().join(', ')}
+            >
+              {this.state.runningStep ? `Running ${this.state.runningStep}…` : 'Run All Extensions'}
+            </button>
+            {this.state.runReport && <div className="runReport">{this.state.runReport}</div>}
             <button onClick={() => this.editArtist()} className="editArtist" >Edit Artist</button>
             <button onClick={() => this.deleteArtist()} className="deleteArtist button-danger">Delete Artist</button>
             {this.getErrors()}
@@ -127,6 +143,26 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
         </div>
       </div>
     );
+  }
+
+  /**
+   * Runs every extension over this artist, their albums and their tracks.
+   *
+   * Potentially a long run — the biggest artist in this library has 253 tracks — so the step
+   * being worked on is shown throughout and the track count goes in the report.
+   */
+  private runAllExtensions(): void {
+    this.setState({runReport: undefined, runningStep: artistStepNames()[0]});
+    const tracks = this.props.artist.trackIds.length;
+    runAllForArtist(this.props.artistId, (name) => this.setState({runningStep: name}))
+      .then((failed) => {
+        this.setState({
+          runReport: failed.length
+            ? `Finished ${tracks} tracks; ${failed.join(' and ')} failed. Re-running retries them.`
+            : `All extensions finished over ${tracks} tracks.`,
+          runningStep: undefined,
+        });
+      });
   }
 
   private editArtist(): void {

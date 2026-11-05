@@ -1,4 +1,4 @@
-import {stepNames} from './runForAlbum';
+import {artistStepNames, stepNames} from './runAll';
 
 /**
  * The order is not cosmetic. MusicBrainz is what fills in `Album.mbid`, and Cover Art has
@@ -23,5 +23,21 @@ describe('runForAlbum step order', () => {
       names.indexOf('Cover art'));
     expect(lastAlbumStep).toBeLessThan(names.indexOf('Genius'));
     expect(lastAlbumStep).toBeLessThan(names.indexOf('Lyrics'));
+  });
+});
+
+/**
+ * An artist run covers the artist, their albums' art and all their tracks, so it carries the
+ * same mbid-before-cover-art dependency and has to stay in step with the album version.
+ */
+describe('runAll artist step order', () => {
+  const names = artistStepNames();
+
+  it('runs the same five extensions as an album run', () => {
+    expect(names).toEqual(stepNames());
+  });
+
+  it('runs MusicBrainz before Cover art', () => {
+    expect(names.indexOf('MusicBrainz')).toBeLessThan(names.indexOf('Cover art'));
   });
 });

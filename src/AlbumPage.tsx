@@ -17,7 +17,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import runAllForAlbum, {stepNames} from './extensions/runForAlbum';
+import runAllForAlbum, {stepNames} from './extensions/runAll';
 import {
   getAlbumById, getArtistByName, getArtistsByIds, getGenreById, getTrackById, getTracksByIds, getWarningsFromAlbum
 } from './redux/selectors';

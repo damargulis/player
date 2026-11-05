@@ -4,6 +4,8 @@ import ArtistInfo from './ArtistInfo';
 import React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
+import {runAllForArtists} from './extensions/runAll';
+import RunExtensionsButton from './RunExtensionsButton';
 import SearchBar from './SearchBar';
 import {getSelectedGenres} from './redux/selectors';
 import shortid from 'shortid';
@@ -80,6 +82,11 @@ class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState>
         </Modal>
         <button onClick={() => this.withErrors()}>Show Wiki Status</button>
         <SearchBar onSearch={(search) => this.onSearch(search)} />
+        <RunExtensionsButton
+          ids={items.map((artist) => artist.id)}
+          noun="artist"
+          run={runAllForArtists}
+        />
         <button onClick={() => this.addArtist()}>+</button>
         <WrappedGrid
           cellRenderer={(index, key, style) => this.cellRenderer(index, key, style)}

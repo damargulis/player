@@ -178,3 +178,19 @@ input[type="image"]:disabled {
   line-height: 1.4;
   max-width: 160px;
 }
+
+/* Batch extension runner in the album and artist pickers. */
+.runBatch {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.runBatchStatus {
+  color: var(--text-dim);
+  font-size: 11px;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

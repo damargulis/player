@@ -4,6 +4,8 @@ import AlbumInfo from './AlbumInfo';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
+import {runAllForAlbums} from './extensions/runAll';
+import RunExtensionsButton from './RunExtensionsButton';
 import SearchBar from './SearchBar';
 import {getArtistsByIds, getSelectedGenres} from './redux/selectors';
 import shortid from 'shortid';
@@ -114,6 +116,11 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
           <button onClick={() => this.chooseSort(this.sortByYear)}>Year</button>
           <button onClick={() => this.withErrors()}>Show Wiki Status</button>
           <SearchBar onSearch={(search: string) => this.onSearch(search)} />
+          <RunExtensionsButton
+            ids={items.map((album) => album.id)}
+            noun="album"
+            run={runAllForAlbums}
+          />
           <button onClick={() => this.addAlbum()}>+</button>
         </div>
         <WrappedGrid

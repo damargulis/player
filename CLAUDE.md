@@ -76,7 +76,7 @@ orphan the old one.
 
 The album page carries a **Cover art** row showing the current resolution with a Run button for
 that album alone, and a **Run All Extensions** button whose order lives in
-`src/extensions/runForAlbum.tsx`: MusicBrainz, Wikipedia, Cover art, Genius, Lyrics. MusicBrainz
+`src/extensions/runAll.tsx`: MusicBrainz, Wikipedia, Cover art, Genius, Lyrics. MusicBrainz
 is **first because it fills `Album.mbid`**, which Cover art has nothing to ask the Archive
 without — 163 albums here have no mbid, which is exactly the set someone presses the button on,
 and the other order makes the cover-art step silently do nothing. Each step re-reads
@@ -85,7 +85,17 @@ album out of a `RootState` and a snapshot taken before MusicBrainz ran still has
 whatever it dispatched; that is why the sequence lives in a module and not in the component,
 whose `this.props` is precisely such a snapshot. A failing step does not stop the rest — these
 are five unrelated services and a Genius rate limit is no reason to skip lyrics — and the
-failures are reported together. `runForAlbum.test.js` pins the order.
+failures are reported together. `runAll.test.js` pins the order.
+
+The artist page has the same pair — a **Picture** row and a **Run All Extensions** that covers
+the artist, their albums' cover art and all their tracks, which for the biggest artist here is
+253 tracks. Both pickers carry a **Run extensions (N)** button that sweeps whatever the list is
+currently showing, over the shown items rather than a selection because those pickers have
+none; the search box beside it is how the list is narrowed. It asks before starting, since the
+unfiltered list is the whole library and hours of rate-limited requests, captures the ids at
+that moment so a changing list cannot redirect a running sweep, and can be stopped — between
+items, not between steps, because abandoning mid-album would leave one with an mbid and no
+cover art, which reads as a bug rather than a cancellation.
 
 `src/extensions/imageSize.tsx` reads PNG/JPEG/GIF dimensions from the header, since the pass
 has to size 2,176 files without decoding any of them on the thread playing audio. All three
