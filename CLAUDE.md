@@ -61,10 +61,17 @@ original upload is under 1200px would re-download on every run, forever. It stor
 `Track.genius.missedBy`. A 404 is deliberately **not** marked: only ~44 albums land there and
 retrying one request each is cheaper than never noticing art the community adds later.
 
-Art is overwritten in place at the album's existing path, because nothing in the app ever
-deletes an art file and a fresh shortid each run would orphan the old one. What comes back is
-measured before being written — CAA does not upscale, so `front-1200` for a release whose only
-upload is 300px is 300px, and writing that over better art would be a downgrade.
+**`src/extensions/artFile.tsx` is the only thing in the app that writes art**, and it only
+writes an image that is **larger** than what is already on disk. Four downloaders feed it — the
+Wikipedia infobox image and the MusicBrainz cover art, for both albums and artists — and all
+four used to write unconditionally, so the extensions silently fought each other: a MusicBrainz
+run after this one replaced 1200px art with its own `front-500`, and a Wikipedia run replaced
+either with whatever low-resolution fair-use thumbnail the infobox carried. Whichever extension
+ran last decided the resolution. It also refuses to write anything that does not parse as an
+image, and checks `res.ok` before reading a body — the old `downloadImage` did neither, which
+is how one album's cover became a saved HTML error page. Art is written in place at the
+existing path, because nothing ever deletes an art file and a fresh shortid each run would
+orphan the old one.
 
 `src/extensions/imageSize.tsx` reads PNG/JPEG/GIF dimensions from the header, since the pass
 has to size 2,176 files without decoding any of them on the thread playing audio. All three

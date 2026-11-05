@@ -1,13 +1,10 @@
 import {Artist, ArtistInfo} from '../../redux/actionTypes';
-import {DATA_DIR} from '../../constants';
+import {downloadIfBigger} from '../artFile';
 import {BASE_URL} from './constants';
 import {addError, ExtensionError, removeError} from '../errors';
-import fs from 'fs';
 import {getGenreIds} from '../../redux/selectors';
-import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {findAsync, getDoc, getGenresByRow} from './utils';
-import {downloadImage} from '../utils';
 
 function getWikiPageOptions(artist: Artist): string[] {
   const artistName = artist.name.replace(/ /g, '_');
@@ -74,12 +71,16 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    const filePath = artist.artFile || `${DATA_DIR}/${shortid.generate()}.png`;
-    return downloadImage(picURL, filePath).then(() => {
+    // One-way, as with album art: an infobox thumbnail must not replace a larger picture.
+    return downloadIfBigger(picURL, artist.artFile).then((result) => {
       removeError(artist, ExtensionError.PIC);
-      artist.artFile = filePath;
+      if (result.path) {
+        artist.artFile = result.path;
+      }
     }).catch(() => {
-      addError(artist, ExtensionError.PIC);
+      if (!artist.artFile) {
+        addError(artist, ExtensionError.PIC);
+      }
       return Promise.resolve();
     });
   }).catch(() => {

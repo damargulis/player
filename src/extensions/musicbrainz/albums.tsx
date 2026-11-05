@@ -12,6 +12,7 @@ import {
   ReleaseTrack,
   searchReleaseGroups,
 } from './api';
+import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
 import {addError, ExtensionError, removeError} from '../errors';
 import fs from 'fs';
@@ -35,9 +36,12 @@ function downloadCoverArt(album: Album): Promise<void> {
     }
     return res.arrayBuffer();
   }).then((data) => {
-    const filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
-    fs.writeFileSync(filePath, Buffer.from(data));
-    album.albumArtFile = filePath;
+    // front-500 must not replace the larger art the Cover Art extension fetches at
+    // front-1200; whichever extension runs last should not decide the resolution.
+    const result = writeIfBigger(album.albumArtFile, Buffer.from(data));
+    if (result.path) {
+      album.albumArtFile = result.path;
+    }
   });
 }
 

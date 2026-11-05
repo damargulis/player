@@ -8,6 +8,7 @@ import {
   pickBestArtist,
   searchArtists,
 } from './api';
+import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
 import {addError, ExtensionError, removeError} from '../errors';
 import fs from 'fs';
@@ -26,9 +27,10 @@ function downloadArtistImage(artist: Artist, lookup: ArtistLookup): Promise<void
       }
       return res.arrayBuffer();
     }).then((data) => {
-      const filePath = artist.artFile || `${DATA_DIR}/${shortid.generate()}.png`;
-      fs.writeFileSync(filePath, Buffer.from(data));
-      artist.artFile = filePath;
+      const result = writeIfBigger(artist.artFile, Buffer.from(data));
+      if (result.path) {
+        artist.artFile = result.path;
+      }
     });
   });
 }

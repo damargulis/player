@@ -1,10 +1,9 @@
 import {Album, AlbumInfo, LibraryInfo, UPDATE_LIBRARY} from '../../redux/actionTypes';
 import {fetchFrontCover} from './api';
-import {DATA_DIR} from '../../constants';
+import {writeIfBigger} from '../artFile';
 import {ipcRenderer} from 'electron';
 import {ExtensionError} from '../errors';
 import PromisePool from 'es6-promise-pool';
-import fs from 'fs';
 import {imageSize, sizeFromBuffer} from '../imageSize';
 import {getAlbumsByIds, getArtistsByIds} from '../../redux/selectors';
 import shortid from 'shortid';
@@ -94,19 +93,6 @@ function errorsWith(album: Album, hasArt: boolean): string[] {
 }
 
 /**
- * Writes the art, reusing the album's existing file path.
- *
- * Overwriting in place rather than minting a new shortid, because nothing in the app ever
- * deletes an art file — a new path each run would leave the old one orphaned in `data/` and
- * the upgrade would cost double the disk it saved.
- */
-function writeArt(album: Album, data: Buffer): string {
-  const filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
-  fs.writeFileSync(filePath, data);
-  return filePath;
-}
-
-/**
  * Fetches better art for one album, or decides it needs none.
  *
  * The decision comes from the file on disk, not from a stored marker: the file is the
@@ -129,14 +115,18 @@ function upgradeAlbum(album: Album): Promise<Result> {
     const size = sizeFromBuffer(data);
     const got = size ? Math.max(size.width, size.height) : 0;
     const coverArt = {maxPx: Math.max(got, current), target: TARGET_PX};
-    if (got <= current) {
-      // what came back is no better than what is on disk; record that and stop asking
+    // `writeIfBigger` is the only thing in the app that writes art, so the "never downgrade"
+    // rule lives in one place for all four downloaders. CAA does not upscale, so front-1200
+    // for a release whose only upload is 300px really is 300px and must not be written.
+    const result = writeIfBigger(album.albumArtFile, data);
+    if (!result.wrote) {
+      // nothing better came back; record that and stop asking
       return {id: album.id, info: {coverArt, errors: errorsWith(album, current > 0)},
         outcome: 'kept' as Outcome};
     }
     return {
       id: album.id,
-      info: {albumArtFile: writeArt(album, data), coverArt, errors: errorsWith(album, true)},
+      info: {albumArtFile: result.path, coverArt, errors: errorsWith(album, true)},
       outcome: 'upgraded' as Outcome,
     };
   }).catch(() => ({id: album.id, info: {}, outcome: 'failed' as Outcome}));

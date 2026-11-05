@@ -1,14 +1,11 @@
 import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
-import {DATA_DIR} from '../../constants';
+import {downloadIfBigger} from '../artFile';
 import {BASE_URL} from './constants';
 import {addError, ExtensionError, removeError} from '../errors';
-import fs from 'fs';
 import moment from 'moment';
 import * as React from 'react';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
-import shortid from 'shortid';
 import {RootState} from '../../redux/store';
-import {downloadImage} from '../utils';
 import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
 
 function getYear(rootNode: HTMLElement): number {
@@ -316,12 +313,18 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
       url.protocol = 'https://';
       picURL = url.toString();
     }
-    const filePath = album.albumArtFile || `${DATA_DIR}/${shortid.generate()}.png`;
-    return downloadImage(picURL, filePath).then(() => {
+    // One-way: the infobox image is often a low-resolution fair-use thumbnail, and writing it
+    // over art the Cover Art Archive supplied would undo that run. Keeping the existing file
+    // still counts as having art, so the error clears either way.
+    return downloadIfBigger(picURL, album.albumArtFile).then((result) => {
       removeError(album, ExtensionError.ALBUM_ART);
-      album.albumArtFile = filePath;
+      if (result.path) {
+        album.albumArtFile = result.path;
+      }
     }).catch(() => {
-      addError(album, ExtensionError.ALBUM_ART);
+      if (!album.albumArtFile) {
+        addError(album, ExtensionError.ALBUM_ART);
+      }
       return Promise.resolve();
     });
   }).catch(() => {
