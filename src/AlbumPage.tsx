@@ -3,11 +3,13 @@ import {Album, AlbumInfo, Artist, ArtistInfo, Genre, LibraryInfo, Track, TrackIn
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
 import ArtZoom from './ArtZoom';
+import CoverArtLabel from './CoverArtLabel';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
+import runCoverArtExtension from './extensions/coverart/main';
 import defaultAlbum from './resources/missing_album.png';
 import MusicBrainzLabel from './MusicBrainzLabel';
 import NavigationBar from './NavigationBar';
@@ -15,6 +17,7 @@ import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
+import runAllForAlbum, {stepNames} from './extensions/runForAlbum';
 import {
   getAlbumById, getArtistByName, getArtistsByIds, getGenreById, getTrackById, getTracksByIds, getWarningsFromAlbum
 } from './redux/selectors';
@@ -37,6 +40,7 @@ interface StateProps {
   getTrackById(id: string): Track;
   runWikiExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
   runMusicBrainzExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
+  runCoverArtExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
   getArtistByName(name: string): Artist | undefined;
 }
 
@@ -62,6 +66,9 @@ interface AlbumPageState {
   editing: boolean;
   deleting: boolean;
   zooming: boolean;
+  /** The extension currently running over this album, when the Run-all button is working. */
+  runningStep?: string;
+  runReport?: string;
 }
 
 type AlbumPageProps = OwnProps & StateProps & DispatchProps;
@@ -130,12 +137,22 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
               entityType="release-group"
               onRun={() => this.runMusicBrainz()}
             />
+            <CoverArtLabel album={this.props.album} onRun={() => this.runCoverArt()} />
           </div>
           <div className="albumPageControls" >
             <button onClick={() => this.playAlbum()} className="playAlbum button-primary" >Play Album</button>
             <div className="likeButtonContainer">
               <LikeButton item={this.props.album} update={this.props.updateAlbum}/>
             </div>
+            <button
+              className="editAlbum"
+              disabled={!!this.state.runningStep}
+              onClick={() => this.runAllExtensions()}
+              title={`Run every extension for this album: ${stepNames().join(', ')}`}
+            >
+              {this.state.runningStep ? `Running ${this.state.runningStep}…` : 'Run All Extensions'}
+            </button>
+            {this.state.runReport && <div className="runReport">{this.state.runReport}</div>}
             <button onClick={() => this.editAlbum()} className="editAlbum" >Edit Album</button>
             <button onClick={() => this.deleteAlbum()} className="deleteAlbum button-danger">Delete Album</button>
           </div>
@@ -159,6 +176,40 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     this.props.runMusicBrainzExtension([this.props.album.id]).then((updates) => {
       this.props.updateLibrary(updates);
     });
+  }
+
+  /**
+   * Runs the Cover Art extension for this album alone.
+   *
+   * Returns the promise so the label can show progress and report a failure, rather than
+   * leaving a button that looks like it did nothing. The extension dispatches its own library
+   * update as it goes, so this only has to apply the final delta.
+   */
+  private runCoverArt(): Promise<void> {
+    return Promise.resolve(this.props.runCoverArtExtension([this.props.album.id]))
+      .then((updates) => {
+        this.props.updateLibrary(updates);
+      });
+  }
+
+  /**
+   * Runs every extension over this album and its tracks.
+   *
+   * The ordering and the store reads live in `runForAlbum` rather than here, because each step
+   * needs the state the previous one produced and `this.props` is a snapshot from before any of
+   * them ran.
+   */
+  private runAllExtensions(): void {
+    this.setState({runReport: undefined, runningStep: stepNames()[0]});
+    runAllForAlbum(this.props.album.id, (name) => this.setState({runningStep: name}))
+      .then((failed) => {
+        this.setState({
+          runReport: failed.length
+            ? `Finished; ${failed.join(' and ')} failed. Re-running retries them.`
+            : 'All extensions finished.',
+          runningStep: undefined,
+        });
+      });
   }
 
   private acceptTrackWarnings(): void {
@@ -283,6 +334,7 @@ function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
     getTracksByIds: (ids: string[]) => getTracksByIds(state, ids),
     runWikiExtension: (albumIds: string[]) => runWikiExtension(albumIds, /* artistIds= */ [], state),
     runMusicBrainzExtension: (albumIds: string[]) => runMusicBrainzExtension(albumIds, /* artistIds= */ [], state),
+    runCoverArtExtension: (albumIds: string[]) => runCoverArtExtension(state, albumIds),
     tracks: getTracksByIds(state, album.trackIds),
     album: album,
     getGenreById: (id: string) => getGenreById(state, id),

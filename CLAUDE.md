@@ -74,6 +74,19 @@ is how one album's cover became a saved HTML error page. Art is written in place
 existing path, because nothing ever deletes an art file and a fresh shortid each run would
 orphan the old one.
 
+The album page carries a **Cover art** row showing the current resolution with a Run button for
+that album alone, and a **Run All Extensions** button whose order lives in
+`src/extensions/runForAlbum.tsx`: MusicBrainz, Wikipedia, Cover art, Genius, Lyrics. MusicBrainz
+is **first because it fills `Album.mbid`**, which Cover art has nothing to ask the Archive
+without — 163 albums here have no mbid, which is exactly the set someone presses the button on,
+and the other order makes the cover-art step silently do nothing. Each step re-reads
+`reduxStore.getState()` rather than closing over one snapshot, because the extensions read the
+album out of a `RootState` and a snapshot taken before MusicBrainz ran still has no mbid
+whatever it dispatched; that is why the sequence lives in a module and not in the component,
+whose `this.props` is precisely such a snapshot. A failing step does not stop the rest — these
+are five unrelated services and a Genius rate limit is no reason to skip lyrics — and the
+failures are reported together. `runForAlbum.test.js` pins the order.
+
 `src/extensions/imageSize.tsx` reads PNG/JPEG/GIF dimensions from the header, since the pass
 has to size 2,176 files without decoding any of them on the thread playing audio. All three
 formats really are in `data/` despite every file being written with a `.png` name. The JPEG

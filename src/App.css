@@ -163,3 +163,18 @@ input[type="image"]:disabled {
 .metaRow .runExtension:hover:enabled {
   color: var(--text);
 }
+
+/* Cover-art row: a note beside the Run button, e.g. that the Archive has nothing bigger. */
+.metaRow .coverArtNote {
+  color: var(--text-faint, var(--text-dim));
+  font-size: 10px;
+  margin-left: 6px;
+}
+
+/* The outcome of a Run-all, under the button that started it. */
+.runReport {
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.4;
+  max-width: 160px;
+}
