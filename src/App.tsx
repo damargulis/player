@@ -9,6 +9,8 @@ import {djClue} from './dj/clue';
 import {BACKUP_TIME, DATA_DIR} from './constants';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
+import {logPlays} from './playLog';
+import {countsByTrack, latestPlayedAt, parseSyncedPlays} from './syncedPlays';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
 const DJ_STATE_THROTTLE = 200;
@@ -175,16 +177,32 @@ class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on('setVolume', (evt, volume) => {
       this.props.changeVolume(volume);
     });
-    ipcRenderer.on('get-synced-playlists', (evt, plays) => {
-      Object.keys(plays).forEach((trackId) => {
+    ipcRenderer.on('get-synced-playlists', (evt, payload) => {
+      // The phone now sends a timestamp per play; a pre-timestamp build still sends a bare
+      // {trackId: count} map, which parseSyncedPlays reads too.
+      const syncedAt = Date.now();
+      const plays = parseSyncedPlays(payload);
+      const counts = countsByTrack(plays);
+      Object.keys(counts).forEach((trackId) => {
         const track = this.props.getTrackById(trackId);
-        if (track && plays[trackId]) {
-          this.props.updateTrack(track.id, {
-            playCount: track.playCount + plays[trackId],
-            playDate: new Date(),
-          });
+        if (!track) {
+          return;
         }
+        const playedAt = latestPlayedAt(plays, trackId);
+        this.props.updateTrack(track.id, {
+          playCount: track.playCount + counts[trackId],
+          // only move playDate forward: an old sync arriving late must not rewind it
+          playDate: new Date(Math.max(playedAt || syncedAt,
+            track.playDate ? track.playDate.getTime() : 0)),
+        });
       });
+      logPlays(plays.map((play) => ({
+        at: play.at || syncedAt,
+        count: play.count,
+        estimated: play.at === undefined,
+        id: play.id,
+        source: 'phone' as 'phone',
+      })));
       ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
     });
     ipcRenderer.on('dj-message', (evt, payload: string | {text: string; speaker?: string}) => {
@@ -361,10 +379,13 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
     this.audio.addEventListener('ended', () => {
       const track = this.props.track;
       if (track) {
+        const at = Date.now();
         this.props.updateTrack(track.id, {
           playCount: track.playCount + 1,
-          playDate: new Date(),
+          playDate: new Date(at),
         });
+        // the log is the history; playCount and playDate stay as the running totals
+        logPlays([{at, id: track.id, source: 'desktop'}]);
       }
       this.audio.src = '';
       this.loadedPath = undefined;

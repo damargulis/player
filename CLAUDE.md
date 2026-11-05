@@ -201,6 +201,37 @@ title and album out of the reply rather than re-requesting: a leaked answer cost
 second call costs as much as the first. One Messages API call per round, which is why the clue game
 has few rounds, says so in its rules, and pre-fetches the next clue while the player works.
 
+### Play log
+
+`src/playLog.tsx` appends one line per play to `DATA_DIR/plays.jsonl`. `Track.playCount` and
+`Track.playDate` record how many times a song has been played and when it was played **last**,
+which makes the listening history one date per song — "what did I listen to in March", "what
+have I rediscovered", and any view of listening over time are all unanswerable from it. This is
+the missing half, and the Stats page's last-28-days and by-hour charts are the first thing to
+read it.
+
+Deliberately **not** in `library.json`: that file is 13MB, parsed at launch, rewritten on every
+library update and uploaded daily, and a log that grows forever has no business in it. JSONL so
+an append is a single write with nothing to re-serialise, and so a line torn by a crash costs
+that line rather than the file — `parseEntry` skips unparseable lines. Appends are
+**synchronous**: tens of bytes every few minutes costs nothing and sidesteps the interleaving
+that corrupted `library.json` rather than guarding against it. Losing an entry is silent on
+purpose; a play log must never interrupt playback.
+
+Phone plays carry **their own** timestamp, taken on the phone where it is known.
+`PlayTracker.kt` used to keep a bare count per track, so a day of listening arrived as "three
+plays" with no idea when; it now stores `{i, t}` records and `/start-sync` sends
+`{v: 2, plays: [...], counts: {...}}`. `src/syncedPlays.tsx` reads **both** shapes, because an
+older phone against a newer desktop must keep syncing; `v` is the discriminator, not the
+presence of `plays` — keying off `plays` read an empty `{v: 2}` payload as a play of a track
+called "v", and an empty sync is the common case. `counts` carries whatever a pre-timestamp
+build was still holding: those have no time to give, so they are stamped with the sync moment
+and marked `est`, which keeps them out of the by-hour chart (they would pile a day onto the
+hour the phone came home) while still counting toward days and totals. A sync only ever moves
+`playDate` forward, so a late sync cannot rewind it. `PlayTracker` also now clears **exactly
+what it sent** rather than the whole preferences file, so a play recorded while a sync is in
+flight is no longer thrown away.
+
 ### Concert tracker
 
 `src/concerts/` tracks upcoming shows near the listener by artists in the library. Data comes from the **JamBase Data API** (`api.data.jambase.com/v3`, `Authorization: Bearer` with `JAMBASE_API_KEY` from the usual env files) — Songkick is partner-only now and Bandsintown's keys are scoped to a single artist, so neither can serve a whole library. The design is one cheap **location sweep** (`/events?geoLatitude&geoLongitude&geoRadiusAmount&geoRadiusUnits&eventDateFrom&eventDateTo&perPage=100&expandExternalIdentifiers=true`) rather than a lookup per artist: `expandExternalIdentifiers` puts a MusicBrainz id on every performer, which matches **exactly** against the ~90% of library artists that have an `mbid`, so two bands sharing a name can't be confused. The free Developer tier allows **1000 calls/month**, so `store.tsx` tracks usage, refuses to sweep when spent, and only refreshes when the cache is older than **24h** — a dense metro is ~24 pages a sweep, so twice-daily would cost ~1500/month. Radius barely affects cost (15mi is 23 pages, 40mi is 26), so prefer a generous radius over a tight one. **Use my location** tries the OS first and falls back to IP. `navigator.geolocation` in Electron on macOS does reach CoreLocation (an unprivileged attempt fails with *"User has not allowed access to system location"*, which is macOS talking, not Chromium) — but only from a secure origin and only once the bundle declares `NSLocationWhenInUseUsageDescription` (set via electron-builder `mac.extendInfo`) **and** Location Services has been granted to MyMusic in System Settings. `session.setPermissionRequestHandler` must also allow it, or Electron denies the request before macOS sees it. The IP fallback uses `ipapi.co` (JamBase's own `geoIp` reports its servers, not the caller) and is ISP-accurate to a few miles, hence the "(approx.)" label. Results live in `DATA_DIR/concerts.json` — deliberately *not* in `library.json`, which is large, backed up daily, and must not churn with volatile data. A 🎟️ appears beside the now-playing artist whenever they have a show coming up — in `InfoPanel.tsx`, which both the full header and the mini player render, so one badge covers both; it reads the cache via `concertsForArtists` (a memoised artist→shows index dropped inside `saveCache`, the only writer) and never fetches, so it costs no API calls. `ConcertsPage.tsx` is the tab — a date-ordered list (sortable by play count) or a month calendar whose dots are sized by plays and coloured for favourites, filterable, with a city picker backed by `/geographies/cities?geoCityName=`. **`isUpcoming` in `concerts/store.tsx` is the only definition of "not in the past" — every view must go through it** (the tab, `ArtistConcerts`, the badge, and the DJ's `concertInfo`). The cache keeps a show until the next sweep and sweeps are daily at best, so anything filtering the raw cache will eventually present a finished gig as upcoming; three separate copies of the logic existed and only one checked the date. Parse show dates with `localDate` from `src/utils.tsx`, never `new Date(iso)`: a date-only value like `2027-01-14` is read as UTC midnight and renders as the 13th anywhere west of Greenwich; `ArtistConcerts.tsx` shows the same cached data on an artist page and renders nothing when there's nothing. Newly announced shows are diffed on each refresh (`findUnseen`) and carried forward across refreshes until the tab is opened, so nothing is lost between visits; the "N newly announced" badge is a **toggle** that filters the list and calendar to just those, and keeps working after the sidebar badge clears because `highlighted` outlives `markSeen`. `matchesFilter` lives in `concerts/store.tsx` beside `isUpcoming` so the list and calendar cannot disagree about what is shown; the count reaches the sidebar through `concerts/alerts.tsx`, a tiny subscribable store rather than Redux, since it derives from a file on disk and only two components care. JamBase requires visible attribution, which is in the tab footer.

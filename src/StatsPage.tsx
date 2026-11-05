@@ -1,4 +1,5 @@
 import {Album, Artist, Genre, Track} from './redux/actionTypes';
+import {dayOf, PlayEntry, playsByDay, playsByHour, readPlays, since} from './playLog';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import './StatsPage.css';
@@ -20,6 +21,14 @@ interface StateProps {
 type StatsPageProps = OwnProps & StateProps;
 
 interface StatsPageState {
+  /**
+   * The play log, read once on mount.
+   *
+   * Read rather than held in Redux: it derives from a file that only this page and the DJ
+   * care about, and it is append-only so it cannot go stale mid-session in a way that matters.
+   * Read once, not in render — this component re-renders on every action.
+   */
+  plays?: PlayEntry[];
   // undefined = aggregate favorites over all years
   favoriteYear?: number;
   playMetric: 'sum' | 'median' | 'time';
@@ -48,6 +57,9 @@ interface RankedItem {
  */
 const MAX_MIN_TRACKS = 20;
 
+/** Days of listening history to chart. Four weeks reads as a habit; a year reads as noise. */
+const HISTORY_DAYS = 28;
+
 function formatDuration(ms: number): string {
   const hours = Math.floor(ms / 3600000);
   const days = Math.floor(hours / 24);
@@ -68,6 +80,10 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
       playMetric: 'sum',
       skipMetric: 'count',
     };
+  }
+
+  public componentDidMount(): void {
+    this.setState({plays: readPlays()});
   }
 
   public render(): JSX.Element {
@@ -141,6 +157,8 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
           {this.barChart('Tracks Added by Year', this.getAddedByYear())}
           {this.barChart('Tracks by Release Decade', this.getByDecade())}
         </div>
+
+        {this.getListeningHistory()}
 
         <div className="statsColumns">
           {this.rankedList('Top Genres by Time Listened', this.getTopGenres())}
@@ -744,6 +762,51 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
       .map(Number)
       .sort((decade1, decade2) => decade1 - decade2)
       .map((decade) => ({label: `${decade}s`, value: byDecade[decade]}));
+  }
+
+  /**
+   * What the play log makes possible, and nothing else in the app can answer.
+   *
+   * `Track.playDate` is one date per song, so until this log existed there was no way to ask
+   * what a week of listening looked like or which hours anyone actually listens in. It renders
+   * nothing at all until there are plays, rather than showing an empty chart that reads as
+   * broken — the log only starts filling from the build that introduced it.
+   */
+  private getListeningHistory(): JSX.Element {
+    const plays = this.state.plays;
+    if (!plays || !plays.length) {
+      return <></>;
+    }
+    const recent = since(plays, HISTORY_DAYS);
+    const byDay = playsByDay(recent);
+    const days: Array<{label: string; value: number}> = [];
+    for (let back = HISTORY_DAYS - 1; back >= 0; back--) {
+      const when = new Date();
+      when.setHours(0, 0, 0, 0);
+      const at = when.getTime() - back * 86400000;
+      // every day in the window, including the silent ones: a gap is information
+      days.push({label: dayOf(at).slice(5), value: byDay[dayOf(at)] || 0});
+    }
+    const hours = playsByHour(plays).map((value, hour) => ({
+      label: hour % 3 === 0 ? `${hour}` : '',
+      value,
+    }));
+    const total = plays.reduce((sum, entry) => sum + entry.count, 0);
+    const estimated = plays.filter((entry) => entry.estimated)
+      .reduce((sum, entry) => sum + entry.count, 0);
+    return (
+      <>
+        <div className="statsColumns">
+          {this.barChart(`Plays, Last ${HISTORY_DAYS} Days`, days, 'plays')}
+          {this.barChart('Plays by Hour of Day', hours, 'plays')}
+        </div>
+        <div className="statsNote">
+          {total.toLocaleString()} plays logged since the log began
+          {estimated ? `; ${estimated.toLocaleString()} of them synced from a phone build that
+            kept no times, so they count toward days but not hours` : ''}
+        </div>
+      </>
+    );
   }
 
   private barChart(

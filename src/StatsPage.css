@@ -375,3 +375,11 @@
   /* fixed width so the row does not shuffle as the number changes */
   min-width: 30px;
 }
+
+/* Caveat under the listening-history charts. */
+.statsNote {
+  color: var(--text-faint, var(--text-dim));
+  font-size: 11px;
+  line-height: 1.5;
+  margin: -4px 0 16px 2px;
+}

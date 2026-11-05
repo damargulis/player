@@ -84,9 +84,12 @@ class SyncHelper2(private var context: Context, private var library: Library, va
     private suspend fun getManifest() {
         val base = base() ?: return
         val tracker = PlayTracker(context)
-        val plays = tracker.getQueryString()
+        // Take a snapshot, send it, then clear exactly that. The old code cleared everything
+        // after the request, so a play that landed while the sync was in flight was lost.
+        val (records, legacy) = tracker.pending()
+        val plays = tracker.getQueryString(records, legacy)
         val response = downloadJson("$base/start-sync?$plays")
-        tracker.clearPlays()
+        tracker.clearSent(records, legacy)
         val res = JSONObject(response)
         val playlistsObj = res.getJSONArray("playlists")
         val trackIds = mutableSetOf<String>()
