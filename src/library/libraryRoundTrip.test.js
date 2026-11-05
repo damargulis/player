@@ -39,6 +39,7 @@ const track = {
 const album = {
   albumArtFile: '/data/art.png',
   artistIds: ['artist-1'],
+  coverArt: {maxPx: 1200, target: 1200},
   errors: [],
   genreIds: ['genre-1'],
   id: 'album-1',

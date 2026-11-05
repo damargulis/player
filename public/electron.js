@@ -342,6 +342,7 @@ function createWindow() {
       {label: "Wikipedia", click: () => runExtension("wikipedia")},
       {label: "Genius", click: () => runExtension("genius")},
       {label: "Lyrics", click: () => runExtension("lyrics")},
+      {label: "Cover Art", click: () => runExtension("coverart")},
       {label: "MusicBrainz", click: () => runExtension("musicbrainz")},
     ],
   }));

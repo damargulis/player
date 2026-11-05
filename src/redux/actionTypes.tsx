@@ -134,6 +134,15 @@ export interface Album {
   id: string;
   errors: string[];
   albumArtFile?: string;
+  /**
+   * The largest the Cover Art Archive could supply, and the target that was asked for.
+   *
+   * Without it a re-run re-downloads the whole library: CAA scales the *longer* side to the
+   * requested size, so a cover whose only upload is 800px comes back at 800 forever and looks
+   * like it still needs upgrading. Recording the target rather than a bare flag means raising
+   * it later retries every album, the same reason `Track.genius.missedBy` stores a version.
+   */
+  coverArt?: {maxPx: number; target: number};
   artistIds: string[];
   name: string;
   trackIds: string[];
@@ -259,6 +268,7 @@ interface SetTimeAction {
 export interface AlbumInfo {
   errors?: string[];
   albumArtFile?: string;
+  coverArt?: {maxPx: number; target: number};
   artistIds?: string[];
   name?: string;
   trackIds?: string[];

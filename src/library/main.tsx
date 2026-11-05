@@ -22,6 +22,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             id: albumData.id,
             errors: migrateLegacyErrors(albumData.errors),
             albumArtFile: albumData.albumArtFile,
+            coverArt: albumData.coverArt,
             artistIds: albumData.artistIds,
             name: albumData.name,
             trackIds: albumData.trackIds,

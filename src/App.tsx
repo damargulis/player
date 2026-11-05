@@ -18,6 +18,7 @@ import {createLibrary} from './library/itunes';
 import {deleteLibrary, loadLibrary} from './library/main';
 import runWikiExtension from './extensions/wiki/main';
 import runGeniusExtension from './extensions/genius/main';
+import runCoverArtExtension from './extensions/coverart/main';
 import runLyricsExtension from './extensions/lyrics/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
 import MaxWindow from './MaxWindow';
@@ -65,6 +66,7 @@ interface StateProps {
   getGenresByIds(genreIds: string[]): Genre[];
   runWikiExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
+  runCoverArtExtension(albumIds: string[]): PromiseLike<LibraryInfo>;
   runLyricsExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   runMusicBrainzExtension(albumIds: string[], artistIds: string[]): PromiseLike<LibraryInfo>;
   getAllTrackIds(): string[];
@@ -293,6 +295,12 @@ class App extends React.Component<AppProps, AppState> {
         this.props.runLyricsExtension(this.props.getAllTrackIds()).then((library: LibraryInfo) => {
           this.props.updateLibrary(library);
         });
+        break;
+      case 'coverart':
+        this.props.runCoverArtExtension(this.props.getAllAlbumIds())
+          .then((library: LibraryInfo) => {
+            this.props.updateLibrary(library);
+          });
         break;
       case 'musicbrainz':
         this.props.runMusicBrainzExtension(this.props.getAllAlbumIds(), this.props.getAllArtistIds())
@@ -559,6 +567,7 @@ function mapStateToProps(store: RootState): StateProps {
     playing: getIsPlaying(store),
     runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),
     runGeniusExtension: (trackIds: string[]) => runGeniusExtension(store, trackIds),
+    runCoverArtExtension: (albumIds: string[]) => runCoverArtExtension(store, albumIds),
     runLyricsExtension: (trackIds: string[]) => runLyricsExtension(store, trackIds),
     runMusicBrainzExtension: (albumIds: string[], artistIds: string[]) =>
       runMusicBrainzExtension(albumIds, artistIds, store),

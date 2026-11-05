@@ -192,6 +192,10 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
         albums.length, 'albums'],
       ['MusicBrainz — artists', artists.filter((artist) => artist.mbid).length,
         artists.length, 'artists'],
+      // Counted from the stored marker rather than by measuring 2,176 files on every render:
+      // the extension writes what the Archive could supply, and absent means never asked.
+      ['Cover art — full size', albums.filter((album) => album.coverArt).length,
+        albums.length, 'albums'],
     ];
     const synced = tracks.filter((track) => track.lyrics && track.lyrics.synced).length;
     return (
