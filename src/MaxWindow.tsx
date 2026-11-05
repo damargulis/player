@@ -9,6 +9,7 @@ import DJPage from './DJPage';
 import {ipcRenderer} from 'electron';
 import GenrePicker from './GenrePicker';
 import Header from './Header';
+import {boundTo} from './redux/memo';
 import NewTracksPage from './NewTracksPage';
 import PlaylistPage from './PlaylistPage';
 import PlaylistPicker from './PlaylistPicker';
@@ -247,13 +248,20 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
   }
 }
 
+/**
+ * Every one of these reads only `store.library`, so binding them to that slice keeps the props
+ * identical while the library is unchanged — which is every `timeupdate` during playback.
+ * Without it this component, and therefore the whole browser tree, re-rendered four times a
+ * second for nothing.
+ */
 function mapStateToProps(store: RootState): StateProps {
+  const library = store.library;
   return {
-    getAlbumById: (id: string) => getAlbumById(store, id),
-    getAlbumsByGenres: (genres: string[]) => getAlbumsByGenres(store, genres),
-    getArtistById: (id: string) => getArtistById(store, id),
-    getArtistsByGenres: (genres: string[]) => getArtistsByGenres(store, genres),
-    getTracksByGenres: (genres: string[]) => getTracksByGenres(store, genres),
+    getAlbumById: boundTo(library, store, getAlbumById),
+    getAlbumsByGenres: boundTo(library, store, getAlbumsByGenres),
+    getArtistById: boundTo(library, store, getArtistById),
+    getArtistsByGenres: boundTo(library, store, getArtistsByGenres),
+    getTracksByGenres: boundTo(library, store, getTracksByGenres),
   };
 }
 

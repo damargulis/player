@@ -10,6 +10,7 @@ import Links from './Links';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
 import runCoverArtExtension from './extensions/coverart/main';
+import {boundTo, memoize} from './redux/memo';
 import defaultAlbum from './resources/missing_album.png';
 import MusicBrainzLabel from './MusicBrainzLabel';
 import NavigationBar from './NavigationBar';
@@ -325,20 +326,34 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 }
 
+/** Each returns a new array, so both are memoised on the library and the album they read. */
+const artistsOf = memoize((library: object, state: RootState, album: Album) =>
+  getArtistsByIds(state, album.artistIds));
+const tracksOf = memoize((library: object, state: RootState, album: Album) =>
+  getTracksByIds(state, album.trackIds));
+const warningsOf = memoize((library: object, state: RootState, album: Album) =>
+  getWarningsFromAlbum(state, album));
+/** Wrapped so the extension runners have the (state, ids) shape `boundTo` caches. */
+const runWikiForAlbums = (state: RootState, albumIds: string[]) =>
+  runWikiExtension(albumIds, /* artistIds= */ [], state);
+const runMusicBrainzForAlbums = (state: RootState, albumIds: string[]) =>
+  runMusicBrainzExtension(albumIds, /* artistIds= */ [], state);
+
 function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
+  const library = state.library;
   const album = getAlbumById(state, ownProps.albumId);
   return {
-    getArtistByName: (name: string) => getArtistByName(state, name),
-    artists: getArtistsByIds(state, album.artistIds),
-    getTrackById: (id: string) => getTrackById(state, id),
-    getTracksByIds: (ids: string[]) => getTracksByIds(state, ids),
-    runWikiExtension: (albumIds: string[]) => runWikiExtension(albumIds, /* artistIds= */ [], state),
-    runMusicBrainzExtension: (albumIds: string[]) => runMusicBrainzExtension(albumIds, /* artistIds= */ [], state),
-    runCoverArtExtension: (albumIds: string[]) => runCoverArtExtension(state, albumIds),
-    tracks: getTracksByIds(state, album.trackIds),
-    album: album,
-    getGenreById: (id: string) => getGenreById(state, id),
-    warnings: getWarningsFromAlbum(state, album),
+    album,
+    artists: artistsOf(library, state, album),
+    getArtistByName: boundTo(library, state, getArtistByName),
+    getGenreById: boundTo(library, state, getGenreById),
+    getTrackById: boundTo(library, state, getTrackById),
+    getTracksByIds: boundTo(library, state, getTracksByIds),
+    runCoverArtExtension: boundTo(library, state, runCoverArtExtension),
+    runMusicBrainzExtension: boundTo(library, state, runMusicBrainzForAlbums),
+    runWikiExtension: boundTo(library, state, runWikiForAlbums),
+    tracks: tracksOf(library, state, album),
+    warnings: warningsOf(library, state, album),
   };
 }
 

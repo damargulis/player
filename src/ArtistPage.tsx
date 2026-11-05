@@ -8,6 +8,7 @@ import ArtistPicLabel from './ArtistPicLabel';
 import ArtZoom from './ArtZoom';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
+import {boundTo, memoize} from './redux/memo';
 import defaultArtist from './resources/missing_artist.png';
 import MusicBrainzLabel from './MusicBrainzLabel';
 import NavigationBar from './NavigationBar';
@@ -218,15 +219,25 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
   }
 }
 
+const albumsOf = memoize((library: object, store: RootState, artist: Artist) =>
+  getAlbumsByIds(store, artist.albumIds));
+const artistTracksOf = memoize((library: object, store: RootState, artist: Artist) =>
+  getTracksByIds(store, artist.trackIds));
+const runWikiForArtists = (store: RootState, artistIds: string[]) =>
+  runWikiExtension(/* albumIds= */ [], artistIds, store);
+const runMusicBrainzForArtists = (store: RootState, artistIds: string[]) =>
+  runMusicBrainzExtension(/* albumIds= */ [], artistIds, store);
+
 function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+  const library = store.library;
   const artist = getArtistById(store, ownProps.artistId);
   return {
-    albums: getAlbumsByIds(store, artist.albumIds),
-    runWikiExtension: (artistIds: string[]) => runWikiExtension(/* albumIds= */ [], artistIds, store),
-    runMusicBrainzExtension: (artistIds: string[]) => runMusicBrainzExtension(/* albumIds= */ [], artistIds, store),
-    tracks: getTracksByIds(store, artist.trackIds),
-    artist: artist,
-    getGenreById: (genreId: string) => getGenreById(store, genreId),
+    albums: albumsOf(library, store, artist),
+    artist,
+    getGenreById: boundTo(library, store, getGenreById),
+    runMusicBrainzExtension: boundTo(library, store, runMusicBrainzForArtists),
+    runWikiExtension: boundTo(library, store, runWikiForArtists),
+    tracks: artistTracksOf(library, store, artist),
   };
 }
 

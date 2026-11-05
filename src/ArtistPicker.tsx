@@ -1,6 +1,7 @@
 import {Artist} from './redux/actionTypes';
 import ArtistEditor from './ArtistEditor';
 import ArtistInfo from './ArtistInfo';
+import {memoize} from './redux/memo';
 import React from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
@@ -142,15 +143,18 @@ class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState>
   }
 }
 
+/** As in AlbumPicker: the filter both cost work and defeated the compare that would skip it. */
+const artistsForGenres = memoize((artists: Artist[], genres: string[]) =>
+  artists.filter((artist) => {
+    if (!genres.length) {
+      return true;
+    }
+    return artist.genreIds.some((id) => genres.includes(id));
+  }));
+
 function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
-  const genres = getSelectedGenres(store);
   return {
-    artistsToShow: ownProps.artists.filter((artist) => {
-      if (!genres.length) {
-        return true;
-      }
-      return artist.genreIds.some((id) => genres.includes(id));
-    }),
+    artistsToShow: artistsForGenres(ownProps.artists, getSelectedGenres(store)),
   };
 }
 
