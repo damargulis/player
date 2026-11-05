@@ -102,6 +102,13 @@ this library were unguessable that way. Anything matching **single words** needs
 rather than `normalize`, because the "the" rule turns "there" into "re" and makes "the" itself
 unmatchable — both lyric games say so in place.
 
+All-time insight accuracy is `base / (rounds * maxPoints)`, computed at render rather than
+stored. An earlier version kept a running `max`, but accumulated it only for the rounds of the
+game being folded while `base` already carried the whole history — Name That Tune's saved
+insights then reported accuracies of 633%, 817% and 1283%. Every game passes a constant for
+`maxPoints`, so the stored total was redundant as well as wrong; a stale `max` is now deleted
+on the next fold and ignored on render, which repairs the file in place.
+
 `src/gameCommon.test.js` pins the `Game` surface, because the export list is hand-written and an
 omission is invisible: the function is defined, the file parses, every page loads, and the call
 throws only when a game actually runs. `loadTracks` was once left out exactly that way and broke

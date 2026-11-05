@@ -321,8 +321,12 @@
       /**
        * Folds a game's rounds into all-time per-genre and per-decade accuracy.
        *
-       * `maxPoints` is what one round is worth before bonuses, so the percentage means
-       * "how much of the answerable did you answer" rather than depending on streak luck.
+       * Only `base` and `rounds` are stored. The denominator is `rounds * maxPoints`, computed
+       * at render time, because every game passes a constant for `maxPoints` — so storing a
+       * running total of it was redundant, and storing it wrong was worse: an earlier version
+       * accumulated `max` only for new rounds while `base` already carried the whole history,
+       * which made Name That Tune report all-time accuracies of 600% and 1283%. A stale `max`
+       * is deleted here so a touched file stops carrying the dead field.
        */
       foldInsights(results, maxPoints) {
         const insights = all.__insights || {};
@@ -333,11 +337,10 @@
           }
           (result.genres || []).forEach((genre) => categories.push(genre));
           categories.forEach((category) => {
-            const entry = insights[category] || {base: 0, max: 0, rounds: 0};
+            const entry = insights[category] || {base: 0, rounds: 0};
             entry.rounds++;
             entry.base += result.basePoints;
-            // older entries predate `max`; fall back to the caller's current round value
-            entry.max = (entry.max || 0) + maxPoints;
+            delete entry.max;
             insights[category] = entry;
           });
         });
@@ -357,7 +360,9 @@
     const qualified = Object.keys(insights)
       .map((category) => {
         const entry = insights[category];
-        const max = entry.max || entry.rounds * maxPoints;
+        // never entry.max: a file written by the version that stored it holds a wrong value,
+        // and rounds * maxPoints is the right answer for every game regardless
+        const max = entry.rounds * maxPoints;
         return {
           category,
           percent: max ? Math.round((entry.base / max) * 100) : 0,
