@@ -20,6 +20,7 @@ import {
   UPDATE_TRACK,
   UPLOAD_FILES
 } from '../actionTypes';
+import {atomicSave} from '../../library/atomicSave';
 import {DATA_DIR} from '../../constants';
 import fs from 'fs';
 import shortid from 'shortid';
@@ -97,17 +98,10 @@ function createBackup(library: LibraryState): Promise<void> {
     fs.mkdirSync(backups);
   }
   const fileName = `${backups}/${Date.now()}.json`;
-  // TODO: maybe use sync if you want to do this on exit so it doesn't half write?
-  // will have to see how exiting works on electron...
-  return new Promise((resolve, reject) => {
-    fs.writeFile(fileName, JSON.stringify(library), (err: Error | null) => {
-      if (err) {
-        reject(err);
-      }
-      pruneBackups(backups);
-      return resolve();
-    });
-  });
+  // Atomic for a different reason than the main save: the name is unique so nothing can race
+  // it, but a crash mid-write leaves a truncated backup that looks fine until the day it is
+  // needed. Renaming means a backup either exists whole or not at all.
+  return atomicSave(fileName, JSON.stringify(library)).then(() => pruneBackups(backups));
 }
 
 /** Below this, a library file on disk is a placeholder rather than real data. */
@@ -144,16 +138,7 @@ function save(library: LibraryState): Promise<void> {
     alert(message);
     return Promise.resolve();
   }
-  // TODO: maybe use sync if you want to do this on exit so it doesn't half write?
-  // will have to see how exiting works on electron...
-  return new Promise((resolve, reject) => {
-    fs.writeFile(fileName, JSON.stringify(library), (err: Error | null) => {
-      if (err) {
-        reject(err);
-      }
-      return resolve();
-    });
-  });
+  return atomicSave(fileName, JSON.stringify(library));
 }
 
 function tracks(state: Record<string, Track>, action: LibraryActionTypes): Record<string, Track> {
