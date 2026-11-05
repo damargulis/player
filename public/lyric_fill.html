@@ -624,26 +624,16 @@ function fill(key, className) {
 /**
  * Tries a guess; returns the words it newly filled and how many blanks that was.
  *
- * A word also credits every longer word still missing that starts with it, so typing "cry"
- * takes "crying" with it. That is a deliberate freebie: without it, filling "cry" the instant
- * it is typed would clear the box before anyone could reach "crying", and the alternative —
- * making short words wait, or demanding a space — put the key presses exactly where they are
- * most annoying, on the commonest words in the song.
- *
- * It is a prefix relation, not a substring one: "the" takes "there" and "them", but not
- * "other", "gather" or "whether". Substring would hand over a third of a song for one guess.
+ * Each word earns only itself — "cry" does not bring "crying" with it. That costs nothing even
+ * though a complete word fills the instant it is typed: once "cry" is found it is no longer
+ * fillable, so typing it again does not fill and does not clear the box, and the keystrokes
+ * carry straight on to "crying". Typing "crying" from cold does cost the detour of filling
+ * "cry" first and starting the word over, which is the price of never needing a space.
  */
 function applyGuess(value) {
   const hits = [];
-  const free = [];
   let blanks = 0;
   let known = 0;
-  const credit = (key, list) => {
-    found.add(key);
-    list.push(key);
-    blanks += song.counts.get(key);
-    fill(key, 'got');
-  };
   guessKeys(value).forEach((key) => {
     if (!song.counts.has(key)) {
       return;
@@ -652,14 +642,12 @@ function applyGuess(value) {
       known++;
       return;
     }
-    credit(key, hits);
-    song.counts.forEach((count, other) => {
-      if (!found.has(other) && other.startsWith(key)) {
-        credit(other, free);
-      }
-    });
+    found.add(key);
+    hits.push(key);
+    blanks += song.counts.get(key);
+    fill(key, 'got');
   });
-  return {blanks, free, hits, known};
+  return {blanks, hits, known};
 }
 
 function submit(value) {
@@ -673,12 +661,8 @@ function submit(value) {
     const what = result.hits.length === 1 ?
       `“${result.hits[0]}”` :
       `${result.hits.length} words`;
-    // naming the freebies matters: words lighting up that you did not type reads as a bug
-    const bonus = result.free.length
-      ? ` (+${result.free.map((word) => `“${word}”`).join(', ')})`
-      : '';
     feedback.textContent =
-      `✓ ${what}${bonus} — ${result.blanks} blank${result.blanks === 1 ? '' : 's'} filled`;
+      `✓ ${what} — ${result.blanks} blank${result.blanks === 1 ? '' : 's'} filled`;
     feedback.className = 'good';
     if (found.size === song.counts.size) {
       endGame(true);
@@ -701,10 +685,33 @@ function fillable(key) {
 }
 
 /**
+ * The longest word still missing that the box *ends* with, or null.
+ *
+ * Matching the whole box is not enough, and that is not a corner case. A fill clears the box,
+ * but a typist is already a few letters further on when it happens: typing "crying" fills
+ * "cry" and leaves "ing" sitting there, so the retype reads "ingcrying" and matches nothing —
+ * the game wedges until the box is manually cleared. Reading the tail means typing the word
+ * again just works, whatever residue is in front of it.
+ *
+ * Longest match wins, so a box of "ingcrying" fills "crying" rather than stopping at "ing".
+ */
+function fillableTail(value) {
+  const text = foldText(value).replace(/[^\p{L}\p{N}']/gu, '');
+  for (let start = 0; start < text.length; start++) {
+    const key = wordKey(text.slice(start));
+    if (key && fillable(key)) {
+      return key;
+    }
+  }
+  return null;
+}
+
+/**
  * Every complete word fills the moment it is typed — no space, no Enter, short words included.
  *
- * Nothing waits and nothing is held back, because `applyGuess` takes the longer words with it:
- * "cry" filling instantly cannot cost you "crying" when "crying" fills too.
+ * A word that is also the start of a longer one still fills straight away, and earns only
+ * itself; reaching the longer word means typing it again, which works because the short word
+ * is found by then and so no longer clears the box.
  */
 guessInput.addEventListener('input', () => {
   if (gameOver) {
@@ -716,9 +723,10 @@ guessInput.addEventListener('input', () => {
     submit(value);
     return;
   }
-  const keys = guessKeys(value);
-  if (keys.length === 1 && fillable(keys[0])) {
-    submit(value);
+  const key = fillableTail(value);
+  if (key) {
+    // the key, not the box, so residue in front of it is not reported as part of the guess
+    submit(key);
   }
 });
 
