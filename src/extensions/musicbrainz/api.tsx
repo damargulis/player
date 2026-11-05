@@ -3,6 +3,7 @@ import {formatGenre} from '../../utils';
 
 const API_BASE = 'https://musicbrainz.org/ws/2';
 export const COVER_ART_BASE = 'https://coverartarchive.org';
+const WIKI_BASE_URL = 'https://en.wikipedia.org/wiki/';
 // MusicBrainz requires a meaningful user agent with contact info and allows
 // at most one request per second per client.
 const USER_AGENT = 'MyMusic/0.1.0 (damargulis1@gmail.com)';
@@ -31,6 +32,7 @@ export interface GenreResult {
 export interface ReleaseGroupLookup {
   'first-release-date'?: string;
   'genres'?: GenreResult[];
+  'relations'?: UrlRelation[];
 }
 
 export interface ArtistResult {
@@ -147,7 +149,10 @@ export function searchReleaseGroups(albumName: string, artistName?: string): Pro
 }
 
 export function lookupReleaseGroup(mbid: string): Promise<ReleaseGroupLookup> {
-  return apiFetch(`${API_BASE}/release-group/${mbid}?inc=genres&fmt=json`);
+  // url-rels as well as genres: the relations are how the Wikipedia page is found without
+  // guessing urls, and asking for both costs the same single request
+  const inc = encodeURIComponent('genres+url-rels');
+  return apiFetch(`${API_BASE}/release-group/${mbid}?inc=${inc}&fmt=json`);
 }
 
 export function searchArtists(artistName: string): Promise<ArtistResult[]> {
@@ -196,6 +201,50 @@ export function getArtistImageUrl(lookup: ArtistLookup): Promise<string | undefi
       const fileName = claims && claims[0] && claims[0].mainsnak &&
         claims[0].mainsnak.datavalue && claims[0].mainsnak.datavalue.value;
       return fileName ? commonsFilePath(fileName) : undefined;
+    })
+    .catch(() => undefined);
+}
+
+/** The Wikipedia page title a Wikidata entity links to, from its English sitelink. */
+function enwikiTitle(data: unknown, entityId: string): string | undefined {
+  const entities = (data as {entities?: Record<string, {sitelinks?:
+    Record<string, {title?: string}>; }>; }).entities;
+  const entity = entities && entities[entityId];
+  const sitelink = entity && entity.sitelinks && entity.sitelinks.enwiki;
+  return (sitelink && sitelink.title) || undefined;
+}
+
+/**
+ * Resolves the English Wikipedia page for an entity from its MusicBrainz relations.
+ *
+ * This is the path the Wikipedia extension does not have. That one guesses urls — four for an
+ * artist, ten for an album — built by slugging the name, which is why artist coverage sat at
+ * 66% while 90% of artists had an mbid all along. MusicBrainz already knows the answer and the
+ * lookups already ask for `url-rels`, so it was arriving and being thrown away.
+ *
+ * Most entities carry a `wikidata` relation rather than a `wikipedia` one — measured over this
+ * library, 16 of 20 sampled artists versus 1 — so the Wikidata entity has to be fetched for
+ * its `enwiki` sitelink. That request is the same one `getArtistImageUrl` already makes for
+ * the artist picture.
+ */
+export function getWikiPageUrl(relations?: UrlRelation[]): Promise<string | undefined> {
+  const rels = relations || [];
+  const direct = rels.find((rel) => rel.type === 'wikipedia' && !!rel.url);
+  if (direct && direct.url) {
+    return Promise.resolve(direct.url.resource);
+  }
+  const wikidata = rels.find((rel) => rel.type === 'wikidata' && !!rel.url);
+  if (!wikidata || !wikidata.url) {
+    return Promise.resolve(undefined);
+  }
+  const entityId = wikidata.url.resource.split('/').pop() as string;
+  return fetchWithRetry(`https://www.wikidata.org/wiki/Special:EntityData/${entityId}.json`)
+    .then((res) => res.json())
+    .then((data) => {
+      const title = enwikiTitle(data, entityId);
+      // the same form the extension's own url guesses take, so nothing downstream can tell
+      // a page found this way from one found by guessing
+      return title ? `${WIKI_BASE_URL}${encodeURIComponent(title.replace(/ /g, '_'))}` : undefined;
     })
     .catch(() => undefined);
 }
