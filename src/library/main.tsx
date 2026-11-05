@@ -67,6 +67,11 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             favorites: trackData.favorites,
             reactions: trackData.reactions,
             genius: trackData.genius,
+            // Dropping a field here does not fail anywhere: the track loads, the app runs, and
+            // the next save writes the library back without it. `lyrics` was missing, so every
+            // restart silently erased 18,949 lyrics markers while leaving the .lrc files on
+            // disk. `libraryRoundTrip.test.js` now fails if any field is left out again.
+            lyrics: trackData.lyrics,
             warning: trackData.warning,
         };
         return map;
