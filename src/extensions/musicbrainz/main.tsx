@@ -45,8 +45,10 @@ function getArtistPool(store: RootState, artists: Artist[], extId: string): Prom
 }
 
 export default function runMusicBrainzExtension(
-  albumIds: string[], artistIds: string[], store: RootState): PromiseLike<LibraryInfo> {
-  const extId = shortid.generate();
+  albumIds: string[], artistIds: string[], store: RootState,
+  sharedId?: string): PromiseLike<LibraryInfo> {
+  // A grouped run supplies one id so every step reports into a single monitor window.
+  const extId = sharedId || shortid.generate();
   const albums = getAlbumsByIds(store, albumIds);
   const artists = getArtistsByIds(store, artistIds);
   const albumPool = getAlbumsPool(store, albums, extId);

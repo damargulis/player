@@ -37,14 +37,15 @@ class ExtensionMonitor {
   constructor(extensionId) {
     this.extensionId = extensionId;
     this.extensionWindow_ = new BrowserWindow({
-      height: 250,
+      // taller than it was: a grouped run stacks a summary per extension
+      height: 420,
       webPreferences: {
         nodeIntegration: true,
         nodeIntegrationInWorker: true,
         contextIsolation: false,
         webSecurity: false,
       },
-      width: 500,
+      width: 560,
     });
     this.extensionWindow_.loadURL(
       `file://${path.join(__dirname,

@@ -5,6 +5,43 @@ import fs from 'fs';
 import path from 'path';
 
 /**
+ * Genre names that are plainly not genres.
+ *
+ * Wikipedia injects TemplateStyles into the infobox, and the genre parser used to walk into
+ * that `<style>` element and split its CSS on commas — so `.mw-parser-output .hlist dl` and 38
+ * more like it became genres. `wiki/utils.tsx` no longer reads them, but 39 were already
+ * stored, and they show up in every genre picker.
+ */
+function looksLikeCss(name: string): boolean {
+  return name.length > 40 || /[{};<>]/.test(name) || name.startsWith('.');
+}
+
+/**
+ * Drops stored genres that are CSS fragments **and referenced by nothing**.
+ *
+ * Referenced ones are kept: removing a genre something points at would leave a dangling id,
+ * and a visible wrong genre is better than a broken reference. In this library all 39 were
+ * orphans, so nothing loses a genre. Done on load so the file repairs itself rather than
+ * needing hand surgery, the same way the art errors do.
+ */
+function dropJunkGenres(libraryData: LibraryState): Record<string, Genre> {
+  const referenced = new Set<string>();
+  [libraryData.tracks, libraryData.albums, libraryData.artists].forEach((collection) => {
+    Object.values(collection || {}).forEach((entity: {genreIds?: string[]}) => {
+      (entity.genreIds || []).forEach((id) => referenced.add(id));
+    });
+  });
+  return Object.keys(libraryData.genres).reduce((map: Record<string, Genre>, genreId: string) => {
+    const name = libraryData.genres[genreId].name;
+    if (looksLikeCss(name) && !referenced.has(genreId)) {
+      return map;
+    }
+    map[genreId] = {name};
+    return map;
+  }, {} as Record<string, Genre>);
+}
+
+/**
  * Loads a library from a given file.
  */
 export function loadLibrary(libraryFile: string): Promise<LibraryState> {
@@ -83,12 +120,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
         };
         return map;
       }, {} as Record<string, Track>),
-          genres: Object.keys(libraryData.genres).reduce((map: Record<string, Genre>, genreId: string) => {
-            map[genreId] = {
-              name: libraryData.genres[genreId].name,
-            };
-            return map;
-          }, {} as Record<string, Genre>),
+          genres: dropJunkGenres(libraryData),
           playlists: libraryData.playlists,
           newTracks: libraryData.newTracks,
         });

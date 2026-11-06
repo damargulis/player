@@ -145,9 +145,10 @@ function getAlbumPool(store: RootState, albumIds: string[], extensionId: string)
   );
 }
 
-export default function runCoverArtExtension(store: RootState, albumIds: string[]):
-  PromiseLike<LibraryInfo> {
-  const extensionId = shortid.generate();
+export default function runCoverArtExtension(store: RootState, albumIds: string[],
+                                             sharedId?: string): PromiseLike<LibraryInfo> {
+  // A grouped run supplies one id so every step reports into a single monitor window.
+  const extensionId = sharedId || shortid.generate();
   const albums = {} as Record<string, AlbumInfo>;
   const tally = {'failed': 0, 'kept': 0, 'none': 0, 'no-mbid': 0, 'upgraded': 0};
   let uncommitted = {} as Record<string, AlbumInfo>;

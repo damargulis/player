@@ -1,0 +1,22 @@
+/*
+ * The app's palette, in one place.
+ *
+ * Shared by every page that loads over file:// rather than through the React build — the game
+ * windows via game-common.css, and the extension monitor directly. The React side declares the
+ * same names in src/App.css; these are the values to keep in step with it.
+ */
+:root {
+  color-scheme: dark;
+  --bg: #101014;
+  --surface: #1a1a21;
+  --border: #2a2a33;
+  --text: #e7e7ec;
+  --text-dim: #9a9aa6;
+  --text-faint: #6f6f7a;
+  --accent: #8b7cf6;
+  --accent-strong: #a89bff;
+  --accent-soft: rgba(139, 124, 246, 0.16);
+  --danger: #f85149;
+  --success: #3fb950;
+  --warning: #d29922;
+}

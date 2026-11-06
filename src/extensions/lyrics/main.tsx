@@ -99,9 +99,9 @@ function getTrackPool(store: RootState, trackIds: string[], extensionId: string)
   );
 }
 
-export default function runLyricsExtension(store: RootState, trackIds: string[]):
-  PromiseLike<LibraryInfo> {
-  const extensionId = shortid.generate();
+export default function runLyricsExtension(store: RootState, trackIds: string[],
+                                           sharedId?: string): PromiseLike<LibraryInfo> {
+  const extensionId = sharedId || shortid.generate();
   const tracks = {} as Record<string, TrackInfo>;
   let uncommitted = {} as Record<string, TrackInfo>;
   const commit = (): void => {

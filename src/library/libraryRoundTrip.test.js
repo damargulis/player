@@ -110,3 +110,50 @@ describe('loadLibrary keeps every field it was given', () => {
     expect(comparable(got)).toEqual(comparable(artist));
   });
 });
+
+/**
+ * Wikipedia's TemplateStyles leaked CSS into the genre list — `.mw-parser-output .hlist dl`
+ * and 38 more like it were stored as genres. The parser no longer reads them, but the stored
+ * ones have to go, and they go on load so the file repairs itself.
+ */
+describe('loadLibrary drops junk genres', () => {
+  function libraryWith(genres, trackGenreIds) {
+    const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mymusic-genres-')), 'library.json');
+    fs.writeFileSync(file, JSON.stringify({
+      albums: {},
+      artists: {},
+      genres,
+      newTracks: [],
+      playlists: [],
+      tracks: {'track-1': Object.assign({}, track, {genreIds: trackGenreIds || []})},
+    }));
+    return file;
+  }
+
+  it('removes css fragments nothing points at', async () => {
+    const state = await loadLibrary(libraryWith({
+      'g-1': {name: 'Shoegaze'},
+      'g-2': {name: '.mw-parser-output .hlist dl'},
+      'g-3': {name: '.mw-parser-output .hlist ul{margin:0;padding:0}'},
+    }));
+    expect(Object.keys(state.genres)).toEqual(['g-1']);
+  });
+
+  /** A dangling reference is worse than a visible wrong genre. */
+  it('keeps a junk genre that something still references', async () => {
+    const state = await loadLibrary(libraryWith({
+      'g-1': {name: 'Shoegaze'},
+      'g-2': {name: '.mw-parser-output .hlist dl'},
+    }, ['g-1', 'g-2']));
+    expect(Object.keys(state.genres).sort()).toEqual(['g-1', 'g-2']);
+  });
+
+  it('keeps real genres with punctuation in them', async () => {
+    const state = await loadLibrary(libraryWith({
+      'g-1': {name: 'Rock & Roll'},
+      'g-2': {name: 'Hip-Hop'},
+      'g-3': {name: 'Drum And Bass'},
+    }));
+    expect(Object.keys(state.genres).sort()).toEqual(['g-1', 'g-2', 'g-3']);
+  });
+});

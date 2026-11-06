@@ -1,6 +1,19 @@
 import {formatGenre} from '../../utils';
 
+/**
+ * Elements whose text is not content.
+ *
+ * Wikipedia injects **TemplateStyles** into the infobox — a `<style>` element sitting right
+ * inside the genre cell, carrying the Hlist stylesheet. Walking into it read the CSS as text
+ * and split it on commas, so `.mw-parser-output .hlist dl` and friends became genres: 39 of
+ * them are in this library, on most pages the extension has touched.
+ */
+const NON_CONTENT_TAGS = ['STYLE', 'SCRIPT', 'NOSCRIPT', 'TEMPLATE'];
+
 function getLeafNodes(rootNode: ChildNode): ChildNode[] {
+  if (NON_CONTENT_TAGS.includes(rootNode.nodeName)) {
+    return [];
+  }
   if (rootNode.childNodes.length > 0) {
     const children = [];
     for (const node of rootNode.childNodes) {
@@ -9,6 +22,21 @@ function getLeafNodes(rootNode: ChildNode): ChildNode[] {
     return children;
   }
   return [rootNode];
+}
+
+/**
+ * Rejects anything that is plainly not a genre name.
+ *
+ * A second line of defence rather than the fix: skipping `<style>` is what stops CSS arriving,
+ * but a stylesheet reaching this far once already cost 39 junk genres that then had to be
+ * cleaned out of the library, and a genre is cheap to sanity-check.
+ */
+function looksLikeGenre(genre: string): boolean {
+  if (genre.length > 40) {
+    return false;
+  }
+  // braces, semicolons and a leading dot are css, not music
+  return !/[{};<>]/.test(genre) && !genre.startsWith('.');
 }
 
 export function sanitize(str: string): string {
@@ -26,7 +54,7 @@ function getGenres(rootNode: ChildNode): string[] {
     .flat().filter(Boolean) as string[];
   const sanitized = text.map((genre) => sanitize(genre));
   return sanitized.map((genre) => formatGenre(genre)).filter(Boolean).filter(
-    (genre) => genre.length > 1);
+    (genre) => genre.length > 1).filter(looksLikeGenre);
 }
 
 export function getGenresByRow(rows: HTMLCollectionOf<HTMLTableRowElement>): string[] {

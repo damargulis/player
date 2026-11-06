@@ -1,47 +1,233 @@
 <html>
   <head>
-    <title>Extension Monitor</title>
+    <title>Extensions</title>
+    <link rel="stylesheet" href="theme.css">
+    <style>
+      body {
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        font-family: -apple-system, 'Helvetica Neue', sans-serif;
+        font-size: 13px;
+        gap: 10px;
+        height: 100vh;
+        margin: 0;
+        padding: 14px 16px;
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      /* ---- the step now running ---- */
+      #head {
+        align-items: baseline;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+      }
+      #step {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      #counter {
+        color: var(--text-dim);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      #bar {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        height: 8px;
+        overflow: hidden;
+      }
+      #fill {
+        background: var(--accent);
+        display: block;
+        height: 100%;
+        /* fast enough to feel live, slow enough not to jitter on every item */
+        transition: width 0.18s linear;
+        width: 0%;
+      }
+      #fill.done { background: var(--success); }
+
+      /*
+       * What is in flight. Capped and scrolled rather than growing the window: the pool runs
+       * seven items at once, and a sweep of 21,000 tracks would otherwise print a wall.
+       */
+      #log {
+        color: var(--text-dim);
+        flex: 1;
+        font-size: 11px;
+        line-height: 1.6;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      #log div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ---- finished steps ---- */
+      #summaries {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 55%;
+        overflow-y: auto;
+      }
+      .summary {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 2px solid var(--accent);
+        border-radius: 6px;
+        font-size: 12px;
+        line-height: 1.55;
+        padding: 7px 10px;
+      }
+      .summary.final {
+        border-left-color: var(--success);
+      }
+      .summary.failed {
+        border-left-color: var(--danger);
+      }
+      .summary b { font-weight: 600; }
+
+      #doneButton {
+        align-self: flex-end;
+        background: var(--accent);
+        border: none;
+        border-radius: 16px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 20px;
+      }
+      #doneButton:hover { background: var(--accent-strong); }
+    </style>
   </head>
   <body>
-    <div id="log"></div>
-    <div><span id="percent">0</span>% Complete</div>
-    <div style="height: 20px; border: solid black 1px" id="outer">
-      <span style="background-color: red; display: block; height: 20px; width: 0%" id="inner"></span>
+    <div id="summaries"></div>
+    <div id="head">
+      <span id="step">Starting…</span>
+      <span id="counter"></span>
     </div>
+    <div id="bar"><span id="fill"></span></div>
+    <div id="log"></div>
   <script>
-
+/*
+ * One window per run, even when a run is several extensions.
+ *
+ * `done` used to clear the whole body and replace it with that extension's summary. A Run All
+ * shares one extensionId across five extensions, so that wiped the progress elements the later
+ * steps needed and left only the last summary visible. Summaries now stack above a progress
+ * area that survives, and the Done button appears once, when the run is actually over.
+ */
 const electron = window.require('electron');
+const summaries = document.getElementById('summaries');
+const stepLabel = document.getElementById('step');
+const counter = document.getElementById('counter');
 const logDiv = document.getElementById('log');
-const percentSpan = document.getElementById('percent');
-const inner = document.getElementById('inner');
-const outer = document.getElementById('outer');
+const fill = document.getElementById('fill');
+const bar = document.getElementById('bar');
+const head = document.getElementById('head');
 
 const url = new URL(window.location.href);
 const extensionId = url.searchParams.get('extensionId');
 
 let totalItems = 0;
 let itemsFinished = 0;
+/**
+ * True once a grouped run has announced itself.
+ *
+ * It suppresses the per-step Done button, because a button offering to close after step one of
+ * five is a lie. The group sends `group-done` when it is actually finished — which is also why
+ * summaries are not counted: a step that throws never sends one, so counting them would leave
+ * the window with no way out.
+ */
+let grouped = false;
 
 function close() {
   electron.ipcRenderer.send('extension-close', {extensionId});
 }
 
-electron.ipcRenderer.on('done', (evt, arg) => {
-  document.body.innerHTML = '';
-  const msgText = document.createElement('div');
-  msgText.innerHTML = arg.msg;
-  document.body.appendChild(msgText);
-
+/** Added once, however many extensions report in. */
+function showDoneButton() {
+  if (document.getElementById('doneButton')) {
+    return;
+  }
   const button = document.createElement('button');
+  button.id = 'doneButton';
   button.textContent = 'Done';
-  button.addEventListener('click', () => {
-    close();
-  });
+  button.addEventListener('click', close);
   document.body.appendChild(button);
+}
+
+function addSummary(html, className) {
+  const msg = document.createElement('div');
+  msg.className = 'summary' + (className ? ' ' + className : '');
+  msg.innerHTML = html;
+  summaries.appendChild(msg);
+  // a long run stacks several; the newest is the one worth seeing
+  summaries.scrollTop = summaries.scrollHeight;
+}
+
+function hideProgress() {
+  head.style.display = 'none';
+  bar.style.display = 'none';
+  logDiv.style.display = 'none';
+}
+
+function resetProgress() {
+  totalItems = 0;
+  itemsFinished = 0;
+  logDiv.innerHTML = '';
+  counter.textContent = '';
+  fill.style.width = '0%';
+  fill.classList.remove('done');
+}
+
+electron.ipcRenderer.on('done', (evt, arg) => {
+  addSummary(arg.msg);
+  resetProgress();
+  if (grouped) {
+    stepLabel.textContent = 'Starting the next one…';
+  } else {
+    hideProgress();
+    showDoneButton();
+  }
+});
+
+/** A grouped run, announcing itself before its first step. */
+electron.ipcRenderer.on('group', () => {
+  grouped = true;
+});
+
+/** The group is finished, however its steps went. */
+electron.ipcRenderer.on('group-done', (evt, arg) => {
+  addSummary(arg.msg, arg.failed ? 'failed' : 'final');
+  hideProgress();
+  showDoneButton();
+});
+
+/** A heading for the step about to run, so one window stays readable across five of them. */
+electron.ipcRenderer.on('section', (evt, arg) => {
+  stepLabel.textContent = arg.msg;
+  head.style.display = 'flex';
+  bar.style.display = 'block';
+  logDiv.style.display = 'block';
 });
 
 electron.ipcRenderer.on('start-section', (evt, arg) => {
   totalItems += arg.items;
+  counter.textContent = itemsFinished + ' / ' + totalItems;
+  if (!grouped) {
+    stepLabel.textContent = 'Working…';
+  }
 });
 
 electron.ipcRenderer.on('start-item', (evt, arg) => {
@@ -53,11 +239,16 @@ electron.ipcRenderer.on('start-item', (evt, arg) => {
 
 electron.ipcRenderer.on('end-item', (evt, arg) => {
   const msg = document.getElementById(arg.id);
-  msg.remove();
+  if (msg) {
+    msg.remove();
+  }
   itemsFinished++;
-  const percent = (itemsFinished / totalItems) * 100;
-  percentSpan.textContent = percent.toFixed(4);
-  inner.style.width = percent + "%";
+  const percent = totalItems ? (itemsFinished / totalItems) * 100 : 0;
+  counter.textContent = itemsFinished.toLocaleString() + ' / ' + totalItems.toLocaleString();
+  fill.style.width = percent + '%';
+  if (percent >= 100) {
+    fill.classList.add('done');
+  }
 });
 
 electron.ipcRenderer.send('extension-monitor-ready', {extensionId});

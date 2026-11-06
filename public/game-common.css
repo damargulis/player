@@ -7,19 +7,7 @@
  * being written down more than once. Anything a game needs *only for itself* still belongs in
  * that game's own <style>; this file is what they all look like.
  */
-:root {
-  color-scheme: dark;
-  --bg: #101014;
-  --surface: #1a1a21;
-  --border: #2a2a33;
-  --text: #e7e7ec;
-  --text-dim: #9a9aa6;
-  --accent: #8b7cf6;
-  --accent-strong: #a89bff;
-  --accent-soft: rgba(139, 124, 246, 0.16);
-  --danger: #f85149;
-  --success: #3fb950;
-}
+@import url('theme.css');
 body {
   background: var(--bg);
   color: var(--text);

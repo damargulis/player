@@ -124,8 +124,9 @@ function getTrackPool(store: RootState, trackIds: string[], extensionId: string)
   );
 }
 
-export default function runGeniusExtension(store: RootState, trackIds: string[]): PromiseLike<LibraryInfo> {
-  const extensionId = shortid.generate();
+export default function runGeniusExtension(store: RootState, trackIds: string[],
+                                           sharedId?: string): PromiseLike<LibraryInfo> {
+  const extensionId = sharedId || shortid.generate();
   if (!getAccessToken()) {
     ipcRenderer.send('extension-update', {
       msg: `Genius extension skipped: no ${tokenName()} found in .env.local or ${DATA_DIR}/.env`,

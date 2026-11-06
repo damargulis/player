@@ -1,10 +1,12 @@
 import {Album, Artist, LibraryInfo, UPDATE_LIBRARY} from '../redux/actionTypes';
+import {ipcRenderer} from 'electron';
 import runCoverArtExtension from './coverart/main';
 import runGeniusExtension from './genius/main';
 import runLyricsExtension from './lyrics/main';
 import runMusicBrainzExtension from './musicbrainz/main';
 import runWikiExtension from './wiki/main';
 import {getAlbumById, getArtistById} from '../redux/selectors';
+import shortid from 'shortid';
 import reduxStore from '../redux/store';
 
 /**
@@ -24,29 +26,30 @@ import reduxStore from '../redux/store';
 
 export interface RunStep {
   name: string;
-  run(album: Album): PromiseLike<unknown>;
+  run(album: Album, extensionId: string): PromiseLike<unknown>;
 }
 
 const STEPS: RunStep[] = [
   {
     name: 'MusicBrainz',
-    run: (album) => runMusicBrainzExtension([album.id], /* artistIds= */ [], reduxStore.getState()),
+    run: (album, id) => runMusicBrainzExtension([album.id], /* artistIds= */ [],
+      reduxStore.getState(), id),
   },
   {
     name: 'Wikipedia',
-    run: (album) => runWikiExtension([album.id], /* artistIds= */ [], reduxStore.getState()),
+    run: (album, id) => runWikiExtension([album.id], /* artistIds= */ [], reduxStore.getState(), id),
   },
   {
     name: 'Cover art',
-    run: (album) => runCoverArtExtension(reduxStore.getState(), [album.id]),
+    run: (album, id) => runCoverArtExtension(reduxStore.getState(), [album.id], id),
   },
   {
     name: 'Genius',
-    run: (album) => runGeniusExtension(reduxStore.getState(), album.trackIds),
+    run: (album, id) => runGeniusExtension(reduxStore.getState(), album.trackIds, id),
   },
   {
     name: 'Lyrics',
-    run: (album) => runLyricsExtension(reduxStore.getState(), album.trackIds),
+    run: (album, id) => runLyricsExtension(reduxStore.getState(), album.trackIds, id),
   },
 ];
 
@@ -61,26 +64,28 @@ export function stepNames(): string[] {
  * their albums and all of their tracks — which for the biggest artist here is 253 tracks, so
  * the caller has to be honest with the listener about the size before starting.
  */
-const ARTIST_STEPS: Array<{name: string; run(artist: Artist): PromiseLike<unknown>}> = [
+const ARTIST_STEPS: Array<{name: string;
+  run(artist: Artist, extensionId: string): PromiseLike<unknown>; }> = [
   {
     name: 'MusicBrainz',
-    run: (artist) => runMusicBrainzExtension(/* albumIds= */ [], [artist.id], reduxStore.getState()),
+    run: (artist, id) => runMusicBrainzExtension(/* albumIds= */ [], [artist.id],
+      reduxStore.getState(), id),
   },
   {
     name: 'Wikipedia',
-    run: (artist) => runWikiExtension(/* albumIds= */ [], [artist.id], reduxStore.getState()),
+    run: (artist, id) => runWikiExtension(/* albumIds= */ [], [artist.id], reduxStore.getState(), id),
   },
   {
     name: 'Cover art',
-    run: (artist) => runCoverArtExtension(reduxStore.getState(), artist.albumIds),
+    run: (artist, id) => runCoverArtExtension(reduxStore.getState(), artist.albumIds, id),
   },
   {
     name: 'Genius',
-    run: (artist) => runGeniusExtension(reduxStore.getState(), artist.trackIds),
+    run: (artist, id) => runGeniusExtension(reduxStore.getState(), artist.trackIds, id),
   },
   {
     name: 'Lyrics',
-    run: (artist) => runLyricsExtension(reduxStore.getState(), artist.trackIds),
+    run: (artist, id) => runLyricsExtension(reduxStore.getState(), artist.trackIds, id),
   },
 ];
 
@@ -98,12 +103,17 @@ export function artistStepNames(): string[] {
  * being rate-limited is no reason to skip the lyrics. Failures are collected and returned.
  */
 function runSteps<T>(
-  steps: Array<{name: string; run(entity: T): PromiseLike<unknown>}>,
+  steps: Array<{name: string; run(entity: T, extensionId: string): PromiseLike<unknown>}>,
   lookup: () => T | undefined,
   onStep?: (name: string) => void,
 ): Promise<string[]> {
   const failed: string[] = [];
-  return steps.reduce((chain, step) => chain.then(() => {
+  // One id for the whole run, so the five extensions report into one monitor window instead
+  // of opening five. `group` tells the monitor how many summaries to expect before it offers
+  // the Done button.
+  const extensionId = shortid.generate();
+  ipcRenderer.send('extension-update', {extensionId, steps: steps.length, type: 'group'});
+  return steps.reduce((chain, step, index) => chain.then(() => {
     // read the entity fresh: an earlier step may have given it the id this one needs
     const entity = lookup();
     if (!entity) {
@@ -112,7 +122,12 @@ function runSteps<T>(
     if (onStep) {
       onStep(step.name);
     }
-    return Promise.resolve(step.run(entity)).then((updates) => {
+    ipcRenderer.send('extension-update', {
+      extensionId,
+      msg: `${step.name} (${index + 1} of ${steps.length})`,
+      type: 'section',
+    });
+    return Promise.resolve(step.run(entity, extensionId)).then((updates) => {
       if (updates) {
         // the literal action rather than the creator, whose `type` widens to string
         reduxStore.dispatch({payload: {library: updates as LibraryInfo}, type: UPDATE_LIBRARY});
@@ -120,7 +135,19 @@ function runSteps<T>(
     }, () => {
       failed.push(step.name);
     });
-  }), Promise.resolve()).then(() => failed);
+  }), Promise.resolve()).then(() => {
+    // Sent whatever happened: a step that threw never sends its own summary, so counting
+    // summaries would leave the window with no Done button at all.
+    ipcRenderer.send('extension-update', {
+      extensionId,
+      failed: failed.length > 0,
+      msg: failed.length
+        ? `<b>Finished.</b> ${failed.join(' and ')} failed; re-running retries them.`
+        : `<b>All ${steps.length} extensions finished.</b>`,
+      type: 'group-done',
+    });
+    return failed;
+  });
 }
 
 export default function runAllForAlbum(
