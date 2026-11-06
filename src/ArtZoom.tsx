@@ -206,11 +206,22 @@ export default class ArtZoom extends React.Component<OwnProps, State> {
     }
   }
 
-  /** A click closes; a drag does not, or panning would shut the panel every time. */
+  /**
+   * A click on the backdrop closes; a drag does not, or panning would shut the panel every
+   * time.
+   *
+   * It has to check that the press *started* on the backdrop, not just that no drag happened.
+   * The caption stops `mousedown` from bubbling so pressing a button cannot begin a pan — but
+   * `mouseup` still bubbles here, so a press on the + button released on the + button looked
+   * exactly like a click on the backdrop and shut the window. Requiring the press to have
+   * opened a drag covers any control added to the caption later, rather than needing each one
+   * to stop the event itself.
+   */
   private onMouseUp(): void {
+    const startedOnBackdrop = !!this.dragFrom;
     const wasDrag = this.dragged;
     this.endDrag();
-    if (!wasDrag) {
+    if (startedOnBackdrop && !wasDrag) {
       this.props.close();
     }
   }
