@@ -156,4 +156,12 @@ describe('loadLibrary drops junk genres', () => {
     }));
     expect(Object.keys(state.genres).sort()).toEqual(['g-1', 'g-2', 'g-3']);
   });
+
+  /** There is no length limit: it rejected none of the real junk and could discard a real name. */
+  it('keeps a long but genuine genre name', async () => {
+    const state = await loadLibrary(libraryWith({
+      'g-1': {name: 'Progressive Experimental Post-Hardcore Revival'},
+    }));
+    expect(Object.keys(state.genres)).toEqual(['g-1']);
+  });
 });

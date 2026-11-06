@@ -40,3 +40,10 @@ test('still finds nothing when there is no genre row', () => {
     '</table></body></html>';
   expect(genresOf(html)).toStrictEqual([]);
 });
+
+/** No length limit: the structural checks caught every real case, a limit caught none. */
+test('keeps a long but genuine genre name', () => {
+  const html = '<html><body><table class="infobox"><tr><th>Genres</th><td>' +
+    '<a href="#">Progressive Experimental Post-Hardcore Revival</a></td></tr></table></body></html>';
+  expect(genresOf(html)).toStrictEqual(['Progressive Experimental Post-Hardcore Revival']);
+});

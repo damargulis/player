@@ -13,7 +13,9 @@ import path from 'path';
  * stored, and they show up in every genre picker.
  */
 function looksLikeCss(name: string): boolean {
-  return name.length > 40 || /[{};<>]/.test(name) || name.startsWith('.');
+  // Structural only. All 39 in this library carry braces, semicolons or a leading dot, so a
+  // length limit rejected nothing real while risking a long genuine genre.
+  return /[{};<>]/.test(name) || name.startsWith('.');
 }
 
 /**

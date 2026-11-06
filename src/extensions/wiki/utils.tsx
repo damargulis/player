@@ -30,12 +30,12 @@ function getLeafNodes(rootNode: ChildNode): ChildNode[] {
  * A second line of defence rather than the fix: skipping `<style>` is what stops CSS arriving,
  * but a stylesheet reaching this far once already cost 39 junk genres that then had to be
  * cleaned out of the library, and a genre is cheap to sanity-check.
+ *
+ * Structural only — braces, semicolons, angle brackets and a leading dot are css, not music.
+ * There is no length limit: every one of those 39 was caught by these characters alone, so a
+ * limit rejected nothing real while standing ready to throw away a long genuine genre.
  */
 function looksLikeGenre(genre: string): boolean {
-  if (genre.length > 40) {
-    return false;
-  }
-  // braces, semicolons and a leading dot are css, not music
   return !/[{};<>]/.test(genre) && !genre.startsWith('.');
 }
 
