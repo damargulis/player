@@ -7,13 +7,25 @@
   gap: 12px;
   inset: 0;
   justify-content: center;
+  overflow: hidden;
   position: fixed;
+  user-select: none;
   z-index: 60;
 }
 
+/* Once zoomed, the backdrop is a viewport to drag rather than a thing to click away. */
+.artZoomBackdrop.zoomed {
+  cursor: grab;
+}
+
+.artZoomBackdrop.zoomed:active {
+  cursor: grabbing;
+}
+
 /*
- * Never larger than the file itself, so a 500px cover is shown at 500px rather than smeared
- * across the window — which is the whole point of being able to look at it.
+ * At scale 1 the limits make it fit the window; `transform` takes it past that. No transition
+ * on the transform: a wheel sends many events in a row and easing each one lags behind the
+ * cursor, which stops zoom-to-cursor feeling like it tracks.
  */
 .artZoomImage {
   border-radius: 4px;
@@ -21,14 +33,24 @@
   max-height: 82vh;
   max-width: 82vw;
   object-fit: contain;
+  transform-origin: center;
+  /* a zoomed cover should look like bigger pixels, not a smeared guess at them */
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .artZoomCaption {
   align-items: center;
+  /* above the image once it is larger than the window */
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 8px;
+  cursor: default;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 8px 14px;
+  position: relative;
   text-align: center;
+  z-index: 1;
 }
 
 .artZoomTitle {
@@ -46,6 +68,35 @@
   color: var(--text-faint, var(--text-dim));
   font-size: 11px;
   letter-spacing: 0.5px;
+}
+
+.artZoomControls {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.artZoomControls button {
+  background: var(--bg, #121216);
+  border: 1px solid var(--border, #33333a);
+  border-radius: 6px;
+  color: var(--text-dim, #9a9aa6);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  margin: 0;
+  min-width: 26px;
+  padding: 4px 8px;
+}
+
+.artZoomControls button:hover:enabled {
+  border-color: var(--accent, #8b7cf6);
+  color: var(--text, #e7e7ec);
+}
+
+.artZoomControls button:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 
 /* The thumbnails that open it; the cursor is the only affordance there is room for. */

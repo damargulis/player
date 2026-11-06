@@ -11,25 +11,51 @@ interface OwnProps {
   close(): void;
 }
 
+interface State {
+  /** Pixel dimensions of the file, read once on mount. */
+  size?: {width: number; height: number};
+  /** 1 means fitted to the window; above that is zoomed in. */
+  scale: number;
+  /** Pan offset from centre, in screen pixels. */
+  tx: number;
+  ty: number;
+  /** The fitted on-screen size at scale 1, measured once the image has laid out. */
+  fit?: {width: number; height: number};
+}
+
+/** Below this, the window is the limit rather than the file. */
+const MIN_SCALE = 1;
 /**
- * The full-size album or artist image, over a dimmed backdrop.
+ * Enough to inspect a 1200px cover's lettering without the controls becoming a microscope.
+ * At the top end a 1200px file is showing roughly a dozen source pixels per screen inch.
+ */
+const MAX_SCALE = 8;
+const STEP = 1.25;
+/** A pointer that moved less than this was a click, not a drag. */
+const DRAG_SLOP_PX = 4;
+
+/**
+ * The full-size album or artist image, zoomable.
  *
  * Worth having now that the Cover Art extension fetches at 1200px rather than 500 — the pages
  * show a 100px thumbnail, so before this there was no way to see the art you had.
  *
- * The real pixel size is read off the file and shown, because it is the one thing a viewer
- * cannot tell by looking: a 500px cover scaled up to fill the window looks much like a 1200px
- * one until you compare them, and it tells you whether a Cover Art run is still worth doing.
+ * It opens fitted to the window and zooms **past** that, because fitting is not the same as
+ * seeing: a 1200px cover on this display fits at roughly 80% of its own pixels, so even the
+ * detail the file already holds was unreachable. The caption gives the file's real dimensions
+ * and the percentage of them currently on screen, so passing 1:1 — the point beyond which it
+ * is upscaling rather than revealing — is visible rather than guessed at.
+ *
+ * Zooming follows the cursor, so the thing being looked at stays under it.
  */
-interface State {
-  /** Read once on mount: the renderer is the thread playing audio, so not in render(). */
-  size?: {width: number; height: number};
-}
-
 export default class ArtZoom extends React.Component<OwnProps, State> {
+  private container: HTMLDivElement | null = null;
+  private dragFrom?: {x: number; y: number; tx: number; ty: number};
+  private dragged = false;
+
   constructor(props: OwnProps) {
     super(props);
-    this.state = {};
+    this.state = {scale: 1, tx: 0, ty: 0};
   }
 
   public componentDidMount(): void {
@@ -42,24 +68,172 @@ export default class ArtZoom extends React.Component<OwnProps, State> {
   }
 
   public render(): JSX.Element {
-    const {size} = this.state;
+    const {scale} = this.state;
     return (
-      <div className="artZoomBackdrop" onClick={() => this.props.close()}>
-        {/* the image is deliberately not click-stopped: clicking the art again closes it,
-            which is what a viewer expects of a lightbox */}
-        <img alt={this.props.title} className="artZoomImage" src={getImgSrc(this.props.file)} />
-        <div className="artZoomCaption">
+      <div
+        className={`artZoomBackdrop${scale > 1 ? ' zoomed' : ''}`}
+        onMouseDown={(evt) => this.onMouseDown(evt)}
+        onMouseLeave={() => this.endDrag()}
+        onMouseMove={(evt) => this.onMouseMove(evt)}
+        onMouseUp={() => this.onMouseUp()}
+        onWheel={(evt) => this.onWheel(evt)}
+        ref={(el) => this.container = el}
+      >
+        <img
+          alt={this.props.title}
+          className="artZoomImage"
+          draggable={false}
+          onLoad={(evt) => this.measureFit(evt.currentTarget)}
+          src={getImgSrc(this.props.file)}
+          style={{transform: `translate(${this.state.tx}px, ${this.state.ty}px) scale(${scale})`}}
+        />
+        <div className="artZoomCaption" onMouseDown={(evt) => evt.stopPropagation()}>
           <span className="artZoomTitle">{this.props.title}</span>
           {this.props.subtitle && <span className="artZoomSubtitle">{this.props.subtitle}</span>}
-          {size && <span className="artZoomSize">{size.width} × {size.height}</span>}
+          <span className="artZoomSize">{this.describeSize()}</span>
+          <span className="artZoomControls">
+            <button disabled={scale <= MIN_SCALE} onClick={() => this.zoomBy(1 / STEP)}>−</button>
+            <button disabled={scale >= MAX_SCALE} onClick={() => this.zoomBy(STEP)}>+</button>
+            <button disabled={scale === 1} onClick={() => this.reset()}>Fit</button>
+          </span>
         </div>
       </div>
     );
   }
 
+  /**
+   * "1200 × 1200 · 94% of actual size".
+   *
+   * The percentage is of the file's own pixels, not of the window, because that is the number
+   * that says whether more detail is still available or the view has started upscaling.
+   */
+  private describeSize(): string {
+    const {size, fit, scale} = this.state;
+    if (!size) {
+      return '';
+    }
+    const dims = `${size.width} × ${size.height}`;
+    if (!fit || !fit.width) {
+      return dims;
+    }
+    const percent = Math.round(((fit.width * scale) / size.width) * 100);
+    return `${dims} · ${percent}% of actual size`;
+  }
+
+  /** The fitted size at scale 1, which every zoom is relative to. */
+  private measureFit(img: HTMLImageElement): void {
+    if (this.state.scale === 1) {
+      this.setState({fit: {height: img.clientHeight, width: img.clientWidth}});
+    }
+  }
+
+  private onWheel(evt: React.WheelEvent): void {
+    evt.preventDefault();
+    // trackpads report fractional deltas; the sign is all that matters here
+    this.zoomBy(evt.deltaY < 0 ? STEP : 1 / STEP, evt.clientX, evt.clientY);
+  }
+
+  /**
+   * Scales about a point, keeping whatever is under it in place.
+   *
+   * With no point given it zooms about the centre, which is what the buttons and keys want.
+   */
+  private zoomBy(factor: number, atX?: number, atY?: number): void {
+    const next = Math.min(MAX_SCALE, Math.max(MIN_SCALE, this.state.scale * factor));
+    if (next === this.state.scale) {
+      return;
+    }
+    if (next === 1) {
+      this.setState({scale: 1, tx: 0, ty: 0});
+      return;
+    }
+    const box = this.container && this.container.getBoundingClientRect();
+    const centreX = box ? box.left + box.width / 2 : 0;
+    const centreY = box ? box.top + box.height / 2 : 0;
+    const mouseX = atX === undefined ? centreX : atX;
+    const mouseY = atY === undefined ? centreY : atY;
+    // the cursor's offset from the container centre, in screen pixels
+    const fromCentreX = mouseX - centreX;
+    const fromCentreY = mouseY - centreY;
+    const ratio = next / this.state.scale;
+    this.setState({
+      scale: next,
+      ...this.clampPan(
+        fromCentreX - (fromCentreX - this.state.tx) * ratio,
+        fromCentreY - (fromCentreY - this.state.ty) * ratio,
+        next,
+      ),
+    });
+  }
+
+  /**
+   * Keeps the image overlapping the window.
+   *
+   * Without it the art can be flung off screen and the only way back is closing the panel.
+   */
+  private clampPan(tx: number, ty: number, scale: number): {tx: number; ty: number} {
+    const {fit} = this.state;
+    const box = this.container && this.container.getBoundingClientRect();
+    if (!fit || !box) {
+      return {tx, ty};
+    }
+    const limitX = Math.max(0, (fit.width * scale - box.width) / 2);
+    const limitY = Math.max(0, (fit.height * scale - box.height) / 2);
+    return {
+      tx: Math.min(limitX, Math.max(-limitX, tx)),
+      ty: Math.min(limitY, Math.max(-limitY, ty)),
+    };
+  }
+
+  private onMouseDown(evt: React.MouseEvent): void {
+    this.dragged = false;
+    this.dragFrom = {tx: this.state.tx, ty: this.state.ty, x: evt.clientX, y: evt.clientY};
+  }
+
+  private onMouseMove(evt: React.MouseEvent): void {
+    const from = this.dragFrom;
+    if (!from) {
+      return;
+    }
+    const dx = evt.clientX - from.x;
+    const dy = evt.clientY - from.y;
+    if (!this.dragged && Math.abs(dx) + Math.abs(dy) < DRAG_SLOP_PX) {
+      return;
+    }
+    this.dragged = true;
+    if (this.state.scale > 1) {
+      this.setState(this.clampPan(from.tx + dx, from.ty + dy, this.state.scale));
+    }
+  }
+
+  /** A click closes; a drag does not, or panning would shut the panel every time. */
+  private onMouseUp(): void {
+    const wasDrag = this.dragged;
+    this.endDrag();
+    if (!wasDrag) {
+      this.props.close();
+    }
+  }
+
+  private endDrag(): void {
+    this.dragFrom = undefined;
+  }
+
+  private reset(): void {
+    this.setState({scale: 1, tx: 0, ty: 0});
+  }
+
   private onKeyDown = (evt: KeyboardEvent): void => {
     if (evt.key === 'Escape') {
       this.props.close();
+      return;
+    }
+    if (evt.key === '+' || evt.key === '=') {
+      this.zoomBy(STEP);
+    } else if (evt.key === '-' || evt.key === '_') {
+      this.zoomBy(1 / STEP);
+    } else if (evt.key === '0') {
+      this.reset();
     }
   };
 }

@@ -213,6 +213,26 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
       });
   }
 
+  /**
+   * Drops one hint, leaving the track exactly as it is.
+   *
+   * The warnings are positional — index `n` is `album.trackIds[n]`, as `getWarningsFromAlbum`
+   * builds them — so the row maps straight back to a track. Clearing `warning` is the whole
+   * change: the suggested name is deliberately *not* applied, which is what separates this
+   * from Accept.
+   *
+   * It exists because Accept is all-or-nothing. One wrong suggestion on an album meant either
+   * taking it along with the right ones or leaving the lot, and there are 4,076 of these hints
+   * across the library.
+   */
+  private dismissTrackWarning(index: number): void {
+    const trackId = this.props.album.trackIds[index];
+    if (!trackId) {
+      return;
+    }
+    this.props.updateTrack(trackId, {warning: undefined});
+  }
+
   private acceptTrackWarnings(): void {
     const newArtistNamesToId = new Map();
     this.props.warnings.forEach((warning, index) => {
@@ -265,6 +285,17 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
                     <td>{index + 1}.</td>
                     {warning.name ? (<td>Title: {warning.name}</td>) : undefined}
                     {warning.featuring ? (<td>Featuring: {warning.featuring.join(', ')}</td>) : undefined}
+                    <td>
+                      {/* Accept applies every hint at once, so a single wrong one used to
+                          block the good ones; dismissing it clears the way. */}
+                      <button
+                        className="dismissWarning"
+                        onClick={() => this.dismissTrackWarning(index)}
+                        title="Dismiss this hint without changing the track"
+                      >
+                        ×
+                      </button>
+                    </td>
                   </tr>
                 );
               })

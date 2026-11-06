@@ -194,3 +194,21 @@ input[type="image"]:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Per-hint dismiss. Accept applies all of them, so one wrong hint needs its own way out. */
+.warningsContainer .dismissWarning {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  margin: 0;
+  padding: 1px 5px;
+}
+
+.warningsContainer .dismissWarning:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
