@@ -387,6 +387,48 @@ function pace() {
  * Best is per song, which is the whole point of this game — but the pace changes the clock
  * enough that a Relaxed run should not sit in the same column as a Blitz.
  */
+/**
+ * Distinct word count per track id, for marking a song finished in full.
+ *
+ * Derived rather than stored. The count is a property of the song, so it does not depend on
+ * the pace and one read serves every score on it — and only songs that have been *played* need
+ * one, which is a handful of files rather than the 9,000 with lyrics. That also means songs
+ * scored before this existed are marked correctly, with no stored total to migrate.
+ */
+const wordTotals = {};
+
+/**
+ * Reads word counts for every song that has a score, then redraws.
+ *
+ * Runs once when the saved scores arrive. Each lookup is one file read through the same IPC the
+ * game uses to start a round, so a player with twenty scored songs pays twenty reads at startup
+ * and none afterwards.
+ */
+function loadWordTotals() {
+  const ids = Object.keys(scores.all())
+    .filter((key) => !key.startsWith('__'))
+    .map((key) => key.split('|')[0])
+    .filter((id, index, all) => id && all.indexOf(id) === index && wordTotals[id] === undefined);
+  if (!ids.length) {
+    return;
+  }
+  Promise.all(ids.map((id) => Game.lyrics(id).then((text) => {
+    if (text) {
+      wordTotals[id] = buildSong(text).counts.size;
+    }
+  }, () => undefined))).then(() => {
+    renderResults();
+    updateHistoryLine();
+  });
+}
+
+/** True when every word of this song has been found at some point. */
+function isComplete(trackId) {
+  const entry = scores.entry(songKey(trackId));
+  const total = wordTotals[trackId];
+  return !!entry && !!total && entry.best >= total;
+}
+
 function songKey(trackId) {
   return `${trackId}|${pace()}`;
 }
@@ -402,11 +444,9 @@ function updateHistoryLine() {
     return;
   }
   const key = scoreKey();
-  const entry = scores.entry(key);
-  const total = (scores.all().__totals || {})[key];
-  if (entry && total && entry.best >= total) {
+  if (isComplete(selected.id)) {
     // the shared history line reads "best 84 · 3 games", which buries the thing that matters
-    historyLine.textContent = `★ Completed — every one of its ${total} words`;
+    historyLine.textContent = `★ Completed — every one of its ${wordTotals[selected.id]} words`;
     historyLine.className = 'perfectLine';
     return;
   }
@@ -458,13 +498,13 @@ function renderResults() {
     by.textContent = track.artist;
     const best = document.createElement('span');
     const entry = scores.entry(songKey(track.id));
-    const total = (scores.all().__totals || {})[songKey(track.id)];
-    const perfect = !!entry && !!total && entry.best >= total;
-    // a song finished in full is the one thing worth picking out of a list of numbers
+    const perfect = isComplete(track.id);
+    // a song finished in full is the one thing worth picking out of a column of numbers
     best.className = perfect ? 'song-best perfect' : 'song-best';
-    best.textContent = entry ? (perfect ? `★ all ${total}` : `best ${entry.best}`) : '';
+    best.textContent = entry ?
+      (perfect ? `★ all ${wordTotals[track.id]}` : `best ${entry.best}`) : '';
     if (perfect) {
-      best.title = `Every word of this song, all ${total} of them`;
+      best.title = `Every word of this song, all ${wordTotals[track.id]} of them`;
     }
     row.appendChild(name);
     row.appendChild(by);
@@ -546,6 +586,8 @@ Game.loadTracks({
 scores.load(() => {
   renderResults();
   updateHistoryLine();
+  // reads the word count for each scored song, then redraws with the completed ones marked
+  loadWordTotals();
 });
 searchInput.addEventListener('input', renderResults);
 paceGroup.addEventListener('change', onSettingsChange);
@@ -654,11 +696,9 @@ function fill(key, className) {
 /**
  * Tries a guess; returns the words it newly filled and how many blanks that was.
  *
- * Each word earns only itself — "cry" does not bring "crying" with it. That costs nothing even
- * though a complete word fills the instant it is typed: once "cry" is found it is no longer
- * fillable, so typing it again does not fill and does not clear the box, and the keystrokes
- * carry straight on to "crying". Typing "crying" from cold does cost the detour of filling
- * "cry" first and starting the word over, which is the price of never needing a space.
+ * Each word earns only itself — "cry" does not bring "crying" with it. Reaching the longer
+ * word means typing it, which works because "cry" is found by then and so no longer matches:
+ * the box fills up with "crying" and matches that instead.
  */
 function applyGuess(value) {
   const hits = [];
@@ -709,56 +749,18 @@ function submit(value) {
   feedback.className = 'bad';
 }
 
-/**
- * Credits a word typed into the box, leaving the box as it is.
- *
- * `submit` clears the box, which is right for Enter and for a space, but wrong here: the point
- * of anchored matching is that "be" can fill on the way to "believe", and clearing would strand
- * the rest of the word.
- */
-function creditFromBox(key) {
-  const result = applyGuess(key);
-  if (!result.hits.length) {
-    return;
-  }
-  updateProgress();
-  const blanks = result.blanks;
-  feedback.textContent = `✓ “${result.hits[0]}” — ${blanks} blank${blanks === 1 ? '' : 's'} filled`;
-  feedback.className = 'good';
-  if (found.size === song.counts.size) {
-    endGame(true);
-  }
-}
-
 /** A word that is in the song and not yet found. */
 function fillable(key) {
   return song.counts.has(key) && !found.has(key);
 }
 
-/** Whether any word still missing begins with this, so the box is still going somewhere. */
-function isViablePrefix(key) {
-  for (const other of song.counts.keys()) {
-    if (!found.has(other) && other.startsWith(key)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 /**
  * Every complete word fills the moment it is typed — no space, no Enter, short words included.
  *
- * Matching is **anchored to the start of what is being typed**: only the whole box is ever
- * compared against the song. Two earlier attempts were worse. Clearing the box on a fill left
- * the rest of the word behind, so typing "crying" filled "cry" and left "ing", and the retype
- * read "ingcrying" and matched nothing. Matching any tail of the box fixed that but let residue
- * match a word nobody typed: with "ing" still sitting there, typing "believe" filled "lie" —
- * and "lie" plainly is not what someone typing "believe" meant, because it does not start where
- * they started.
- *
- * So a fill no longer clears the box. Typing "believe" fills "be" on the way past and then
- * "believe", both earned because both were typed in full, and nothing else can match. The box
- * resets only when it stops being able to reach any missing word — see `onInput`.
+ * The whole rule: when what is in the box is a complete match for a word still missing, it
+ * counts and the box resets. That is the only thing that scores and the only thing that clears.
+ * Only the whole box is ever compared, never a piece of it, so "lie" cannot be picked out of
+ * the middle of something longer.
  */
 function onInput() {
   if (gameOver) {
@@ -771,27 +773,9 @@ function onInput() {
     return;
   }
   const key = wordKey(foldText(value));
-  if (!key) {
-    return;
-  }
-  if (fillable(key)) {
-    // credited, and the box is left alone so a longer word can still be reached through it
-    creditFromBox(key);
-    return;
-  }
-  if (isViablePrefix(key)) {
-    return;
-  }
-  /*
-   * The box can no longer reach anything, which almost always means the last keystroke began
-   * a new word on the end of a finished one. Keeping that keystroke and dropping the rest is
-   * the reset: after "believe" fills, typing "s" leaves "s" rather than "believes".
-   */
-  const last = value.slice(-1);
-  guessInput.value = last;
-  const restarted = wordKey(foldText(last));
-  if (restarted && fillable(restarted)) {
-    creditFromBox(restarted);
+  if (key && fillable(key)) {
+    // submit credits it and clears the box
+    submit(key);
   }
 }
 
@@ -826,15 +810,8 @@ function endGame(won) {
     'Every word. The whole song.' :
     `${missed} word${missed === 1 ? '' : 's'} in red were the ones you missed`;
   feedback.className = won ? 'good' : 'dim';
-  /*
-   * The total is recorded alongside the score so the picker can mark a perfect run.
-   * It cannot work this out itself: the row knows only the track, and the word count lives in
-   * the .lrc file — reading one per row on every keystroke in the search box is not worth it.
-   * Written before `save`, which persists the whole scores object.
-   */
-  const store = scores.all();
-  store.__totals = store.__totals || {};
-  store.__totals[gameKey] = total;
+  // the total for this song is now known for certain, so the picker can mark it
+  wordTotals[selected.id] = total;
   const saved = scores.save(gameKey, found.size);
   scoreLine.textContent = `${found.size} / ${total} words · ${percent}%`;
   if (saved.newBest && saved.entry.games.length > 1) {
