@@ -787,8 +787,10 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
       // every day in the window, including the silent ones: a gap is information
       days.push({label: dayOf(at).slice(5), value: byDay[dayOf(at)] || 0});
     }
+    // every hour is a column; only every third carries a tick, or they collide
     const hours = playsByHour(plays).map((value, hour) => ({
-      label: hour % 3 === 0 ? `${hour}` : '',
+      label: `${hour}`,
+      tick: hour % 3 === 0 ? `${hour}` : '',
       value,
     }));
     const total = plays.reduce((sum, entry) => sum + entry.count, 0);
@@ -809,9 +811,17 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     );
   }
 
+  /**
+   * A column chart.
+   *
+   * `label` identifies a bar — it is the React key and the tooltip — so it must be unique.
+   * `tick` is what is drawn underneath, for a chart that wants to label only some columns; the
+   * hour chart labels every third. Giving those bars an empty `label` instead left sixteen of
+   * the twenty-four sharing the same key.
+   */
   private barChart(
     title: string,
-    bars: Array<{label: string; value: number}>,
+    bars: Array<{label: string; value: number; tick?: string}>,
     unit: string = 'tracks',
     onBarClick?: (label: string) => void,
     selectedLabel?: string,
@@ -847,7 +857,9 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
                   </div>
                   <div className="columnBar" style={{height: `${(bar.value / max) * 100}%`}} />
                 </div>
-                <div className="columnLabel">{bar.label}</div>
+                <div className="columnLabel">
+                  {bar.tick === undefined ? bar.label : bar.tick}
+                </div>
               </div>
             );
           })}

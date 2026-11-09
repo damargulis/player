@@ -256,10 +256,18 @@
   font-weight: 600;
 }
 
+/*
+ * A fixed height, so a column with no tick reserves the same space as one with a tick.
+ * Letting an empty label collapse to its padding made the bar area taller for those columns,
+ * which pushed their bars down and made the labelled ones look like they started higher.
+ */
 .columnLabel {
   flex: 0 0 auto;
   text-align: center;
   font-size: 9.5px;
+  line-height: 12px;
+  height: 12px;
+  box-sizing: content-box;
   color: var(--text-faint);
   padding-top: 4px;
   white-space: nowrap;
