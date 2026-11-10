@@ -10,7 +10,7 @@ import {BACKUP_TIME, DATA_DIR} from './constants';
 import {logPlays} from './eventLog';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
-import {countsByTrack, latestPlayedAt, parseSyncedPlays} from './syncedPlays';
+import {countsByTrack, latestPlayedAt, ofType, parseSyncedPlays} from './syncedPlays';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
 const DJ_STATE_THROTTLE = 200;
@@ -181,27 +181,39 @@ class App extends React.Component<AppProps, AppState> {
       // The phone now sends a timestamp per play; a pre-timestamp build still sends a bare
       // {trackId: count} map, which parseSyncedPlays reads too.
       const syncedAt = Date.now();
-      const plays = parseSyncedPlays(payload);
-      const counts = countsByTrack(plays);
-      Object.keys(counts).forEach((trackId) => {
+      const events = parseSyncedPlays(payload);
+      const plays = ofType(events, 'play');
+      const playCounts = countsByTrack(plays);
+      Object.keys(playCounts).forEach((trackId) => {
         const track = this.props.getTrackById(trackId);
         if (!track) {
           return;
         }
         const playedAt = latestPlayedAt(plays, trackId);
         this.props.updateTrack(track.id, {
-          playCount: track.playCount + counts[trackId],
+          playCount: track.playCount + playCounts[trackId],
           // only move playDate forward: an old sync arriving late must not rewind it
           playDate: new Date(Math.max(playedAt || syncedAt,
             track.playDate ? track.playDate.getTime() : 0)),
         });
       });
-      logPlays(plays.map((play) => ({
-        at: play.at || syncedAt,
-        count: play.count,
-        estimated: play.at === undefined,
-        id: play.id,
+      // the phone counts a skip the same way the desktop does, so they mean the same thing
+      const skipCounts = countsByTrack(ofType(events, 'skip'));
+      Object.keys(skipCounts).forEach((trackId) => {
+        const track = this.props.getTrackById(trackId);
+        if (track) {
+          this.props.updateTrack(track.id, {
+            skipCount: (track.skipCount || 0) + skipCounts[trackId],
+          });
+        }
+      });
+      logPlays(events.map((event) => ({
+        at: event.at || syncedAt,
+        count: event.count,
+        estimated: event.at === undefined,
+        id: event.id,
         source: 'phone' as 'phone',
+        type: event.type,
       })));
       ipcRenderer.send('synced-playlists', {playlists: this.props.getSyncedPlaylists()});
     });

@@ -347,6 +347,14 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
 
     fun handleNextTrack() {
         val index = mCurrIndex ?: return
+        // Advancing before the track ends is a skip. onCompletion is the only natural finish,
+        // so every other way forward counts — the same rule the desktop applies.
+        val heard = try {
+            mPlayer?.currentPosition ?: 0
+        } catch (e: Exception) {
+            0
+        }
+        mCurrTrack?.let { playCounter.addSkip(it, heard) }
         when {
             index + 1 < curPlaylist.size -> setTrack(index + 1)
             PlaybackState.repeatEnabled && curPlaylist.isNotEmpty() -> setTrack(0)

@@ -9,7 +9,7 @@ import org.json.JSONObject
 
 const val appId = "com.music.playerapp"
 
-/** One play, with the moment it happened. */
+/** One event, with the moment it happened. */
 data class PlayRecord(val id: String, val at: Long)
 
 /**
@@ -29,18 +29,38 @@ class PlayTracker(context: Context) {
 
     companion object {
         private const val LOG_KEY = "$appId-playlog"
+        private const val SKIP_KEY = "$appId-skiplog"
         private const val LEGACY_PREFIX = "$appId-track-"
+        /** Under this the listener barely heard it: a mis-click rather than a verdict. */
+        private const val MIN_HEARD_MS = 2000
     }
 
     fun addPlay(track: TrackData) {
-        val records = stored().toMutableList()
-        records.add(PlayRecord(track.track.id, System.currentTimeMillis()))
-        write(records)
+        append(LOG_KEY, track.track.id)
     }
 
-    /** The log as stored, ignoring anything unparseable rather than losing the lot. */
-    private fun stored(): List<PlayRecord> {
-        val raw = preferences.getString(LOG_KEY, null) ?: return emptyList()
+    /**
+     * Records a skip, if the track was given a fair hearing.
+     *
+     * The desktop counts a skip the same way and with the same two-second floor, so a phone
+     * skip and a desktop skip mean the same thing. `heardMs` is how far in the player was.
+     */
+    fun addSkip(track: TrackData, heardMs: Int) {
+        if (heardMs < MIN_HEARD_MS) {
+            return
+        }
+        append(SKIP_KEY, track.track.id)
+    }
+
+    private fun append(key: String, id: String) {
+        val records = stored(key).toMutableList()
+        records.add(PlayRecord(id, System.currentTimeMillis()))
+        write(key, records)
+    }
+
+    /** One log as stored, ignoring anything unparseable rather than losing the lot. */
+    private fun stored(key: String): List<PlayRecord> {
+        val raw = preferences.getString(key, null) ?: return emptyList()
         val out = mutableListOf<PlayRecord>()
         try {
             val array = JSONArray(raw)
@@ -58,12 +78,16 @@ class PlayTracker(context: Context) {
         return out
     }
 
-    private fun write(records: List<PlayRecord>) {
+    private fun write(key: String, records: List<PlayRecord>) {
+        preferences.edit().putString(key, toJson(records)).apply()
+    }
+
+    private fun toJson(records: List<PlayRecord>): String {
         val array = JSONArray()
         records.forEach { record ->
             array.put(JSONObject().put("i", record.id).put("t", record.at))
         }
-        preferences.edit().putString(LOG_KEY, array.toString()).apply()
+        return array.toString()
     }
 
     /**
@@ -84,7 +108,13 @@ class PlayTracker(context: Context) {
     }
 
     /** What is waiting to be sent, so a sync can clear exactly this and nothing newer. */
-    fun pending(): Pair<List<PlayRecord>, Map<String, Int>> = Pair(stored(), legacyCounts())
+    data class Pending(
+        val plays: List<PlayRecord>,
+        val skips: List<PlayRecord>,
+        val legacy: Map<String, Int>,
+    )
+
+    fun pending(): Pending = Pending(stored(LOG_KEY), stored(SKIP_KEY), legacyCounts())
 
     /**
      * Removes the plays that were just sent, leaving anything recorded since.
@@ -92,37 +122,30 @@ class PlayTracker(context: Context) {
      * The old code cleared everything after the request, so a play that landed while the sync
      * was in flight was thrown away. Dropping by count keeps the tail.
      */
-    fun clearSent(sent: List<PlayRecord>, legacy: Map<String, Int>) {
-        val remaining = stored().drop(sent.size)
+    fun clearSent(sent: Pending) {
         val editor = preferences.edit()
-        legacy.keys.forEach { id -> editor.remove("$LEGACY_PREFIX$id") }
-        editor.putString(LOG_KEY, JSONArray().also { array ->
-            remaining.forEach { record ->
-                array.put(JSONObject().put("i", record.id).put("t", record.at))
-            }
-        }.toString())
+        sent.legacy.keys.forEach { id -> editor.remove("$LEGACY_PREFIX$id") }
+        // dropping by count keeps anything recorded while the sync was in flight
+        editor.putString(LOG_KEY, toJson(stored(LOG_KEY).drop(sent.plays.size)))
+        editor.putString(SKIP_KEY, toJson(stored(SKIP_KEY).drop(sent.skips.size)))
         editor.apply()
-    }
-
-    @Deprecated("Use pending() and clearSent() so a play during a sync is not lost")
-    fun clearPlays() {
-        clearSent(stored(), legacyCounts())
     }
 
     /**
      * The `plays=` query parameter.
      *
-     * Sends `{"v":2,"plays":[{"i":id,"t":epochMs}],"counts":{id:n}}`. The desktop accepts the
-     * old bare `{id: count}` map too, so an older phone against a newer desktop still syncs —
-     * and a newer phone against an older desktop degrades to no plays rather than an error,
-     * which is why this is a new shape rather than a changed one.
+     * Sends `{"v":3,"plays":[{"i":id,"t":ms}],"skips":[...],"counts":{id:n}}`. The desktop reads
+     * any numeric `v` as this structured shape and takes each field if present, so adding
+     * `skips` needs nothing of an older desktop beyond ignoring it. It still accepts the
+     * original bare `{id: count}` map, so an older phone against a newer desktop keeps syncing.
      */
-    fun getQueryString(records: List<PlayRecord>, legacy: Map<String, Int>): String {
+    fun getQueryString(sent: Pending): String {
         return try {
             val payload = mapOf(
-                "v" to 2,
-                "plays" to records.map { record -> mapOf("i" to record.id, "t" to record.at) },
-                "counts" to legacy,
+                "v" to 3,
+                "plays" to sent.plays.map { r -> mapOf("i" to r.id, "t" to r.at) },
+                "skips" to sent.skips.map { r -> mapOf("i" to r.id, "t" to r.at) },
+                "counts" to sent.legacy,
             )
             "plays=" + URLEncoder.encode(Gson().toJson(payload).toString(), "UTF-8")
         } catch (err: Exception) {

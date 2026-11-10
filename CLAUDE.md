@@ -251,9 +251,30 @@ verdict. Going *back* is not a skip: abandoning a song to replay the previous on
 about the song. `recordSkip` returns the delta instead of dispatching, so both callers (the
 transport button and the remote handlers) apply it identically.
 
+Phone skips come over the same protocol: `PlayTracker` keeps a second list, `/start-sync` sends
+`{v: 3, plays, skips, counts}`, and `syncedPlays.tsx` reads any numeric `v` as the structured
+shape and takes each field if present — so adding `skips` needed nothing of an older desktop
+beyond ignoring it. The phone applies the same two-second floor, so a phone skip and a desktop
+skip mean the same thing.
+
 Deliberately **not** logged: pausing, seeking and volume are moment-to-moment controls rather
 than opinions about music, and would bury the events that mean something; the DJ's queue churn
 is already tracked by `src/dj/activity.tsx` for the session it belongs to.
+
+The Stats page reads the log for last-28-days and by-hour plays, plays by weekday, most skipped
+and most played in the window, and **first heard** — tracks whose earliest logged play falls
+inside it, which `playCount` cannot answer at all. The recent skip list uses the log's own ratio
+rather than `skipCount`/`playCount`, whose totals are dominated by what iTunes imported years
+ago.
+
+The DJ's **`recent_plays`** is log-backed rather than reading `Track.playDate`, which holds one
+date per track and so cannot tell a song played once from one played four times — the difference
+that decides whether queueing it again is a repeat. It also now reports **skips** in the window,
+which is the only durable negative signal there is: in-session skips reach `activity.tsx` but
+are forgotten when the session ends. No new tool was added; the existing one gives better
+answers. It falls back to `playDate` when the log does not reach back far enough, which it will
+not for a while. `readPlaysCached` keys on mtime *and* size, since two appends in the same
+millisecond would otherwise look like no change.
 
 ### Concert tracker
 

@@ -3,6 +3,7 @@ import activity, {humanDuration} from './activity';
 import {Tool} from './api';
 import {artistShowMarker, describeShow, showsForArtist, showsForArtists} from './concertInfo';
 import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
+import {ofType, onlyPlays, playsByTrack, readPlaysCached, since} from '../eventLog';
 import {OWNER} from './owner';
 import RandomAlbumPlaylist from '../playlist/RandomAlbumPlaylist';
 import {currentReaction, describeReactions, Reaction} from '../reactions';
@@ -18,6 +19,8 @@ import store, {RootState} from '../redux/store';
 import {toTime} from '../utils';
 
 const DEFAULT_LIMIT = 30;
+/** Skips are a short list on purpose: DJ context is precious and ten is plenty of signal. */
+const SKIP_LINES = 10;
 const MAX_LIMIT = 150;
 
 export const DJ_TOOLS: Tool[] = [
@@ -745,19 +748,66 @@ export function recentlyPlayedBrief(state: RootState, days: number = 3, limit: n
 ${lines.join('\n')}${more}`;
 }
 
+/**
+ * What has been played and skipped lately.
+ *
+ * Backed by the event log rather than `Track.playDate`, which holds one date per track and so
+ * cannot tell a song played once from one played four times — the difference that decides
+ * whether queuing it again is a repeat. The log also carries **skips**, from the desktop and
+ * from either phone, which is the only durable negative signal there is: in-session skips are
+ * known to `activity.tsx` but forgotten the moment the session ends.
+ *
+ * Falls back to `playDate` when the log has nothing covering the window. It only started being
+ * written recently, so for a while that fallback is the honest answer rather than "nothing has
+ * been played".
+ */
 function recentPlays(state: RootState, input: Record<string, unknown>): ToolOutcome {
   const days = num(input, 'days') || 14;
   const limit = limitOf(input);
-  const played = getAllTracks(state)
-    .filter((track) => track.playCount > 0 && withinDays(track.playDate, days))
-    .sort((a, b) => b.playDate.getTime() - a.playDate.getTime());
-  if (!played.length) {
-    return {content: `Nothing has been played in the last ${days} days.`};
+  const window = since(readPlaysCached(), days);
+  const playCounts = playsByTrack(onlyPlays(window));
+  const skipCounts = playsByTrack(ofType(window, 'skip'));
+
+  if (!Object.keys(playCounts).length && !Object.keys(skipCounts).length) {
+    // the log does not reach back this far yet; playDate is all there is
+    const played = getAllTracks(state)
+      .filter((track) => track.playCount > 0 && withinDays(track.playDate, days))
+      .sort((a, b) => b.playDate.getTime() - a.playDate.getTime());
+    if (!played.length) {
+      return {content: `Nothing has been played in the last ${days} days.`};
+    }
+    const shown = played.slice(0, limit);
+    const header = `${played.length} track(s) played in the last ${days} days, newest first` +
+      `${played.length > limit ? `, showing ${limit}` : ''}` +
+      ' (from last-played dates; the play log does not reach back this far):';
+    return {content: `${header}\n${TRACK_LINE_LEGEND}\n${formatTracks(state, shown)}`};
   }
-  const shown = played.slice(0, limit);
-  const header = `${played.length} track(s) played in the last ${days} days, newest first` +
-    `${played.length > limit ? `, showing ${limit}` : ''}:`;
-  return {content: `${header}\n${TRACK_LINE_LEGEND}\n${formatTracks(state, shown)}`};
+
+  const byCount = (counts: Record<string, number>): Array<{track: Track; n: number}> =>
+    Object.keys(counts)
+      .map((id) => ({n: counts[id], track: getTrackById(state, id)}))
+      .filter((row) => !!row.track)
+      .sort((one, two) => two.n - one.n);
+
+  const plays = byCount(playCounts);
+  const skips = byCount(skipCounts);
+  const sections: string[] = [];
+  if (plays.length) {
+    const capped = plays.length > limit ? `, showing ${limit}` : '';
+    const lines = plays.slice(0, limit)
+      .map((row) => `${formatTracks(state, [row.track])} ·${row.n}x`).join('\n');
+    const header = `${plays.length} track(s) played in the last ${days} days, ` +
+      `most played first${capped}:`;
+    sections.push(`${header}\n${TRACK_LINE_LEGEND}\n${lines}`);
+  }
+  if (skips.length) {
+    // the point of listing these separately: a skip is an opinion, not an absence
+    const lines = skips.slice(0, SKIP_LINES).map((row) =>
+      `${formatTracks(state, [row.track])} ·${row.n} skip${row.n === 1 ? '' : 's'}`).join('\n');
+    sections.push('Skipped in the same window — treat as a dislike unless they were also ' +
+      `played through:\n${lines}`);
+  }
+  return {content: sections.join('\n\n')};
 }
 
 function topBy(counts: Record<string, number>, names: (id: string) => string, take: number): string {

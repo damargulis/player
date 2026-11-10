@@ -60,6 +60,12 @@ const MAX_MIN_TRACKS = 20;
 /** Days of listening history to chart. Four weeks reads as a habit; a year reads as noise. */
 const HISTORY_DAYS = 28;
 
+/** Sunday first, matching `Date.getDay()`. */
+/** Below this, a skip ratio is noise — the same floor the all-time skip list uses. */
+const MIN_RECENT_ENCOUNTERS = 3;
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 function formatDuration(ms: number): string {
   const hours = Math.floor(ms / 3600000);
   const days = Math.floor(hours / 24);
@@ -780,6 +786,7 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     // plays only: a skip or a favourite is not listening, and would inflate every bar
     const listened = log.onlyPlays(plays);
     const recent = log.since(listened, HISTORY_DAYS);
+    const recentAll = log.since(plays, HISTORY_DAYS);
     const byDay = log.playsByDay(recent);
     const days: Array<{label: string; value: number}> = [];
     for (let back = HISTORY_DAYS - 1; back >= 0; back--) {
@@ -800,13 +807,27 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
       .reduce((sum, entry) => sum + entry.count, 0);
     const skips = log.ofType(plays, 'skip').length;
     const favourites = log.ofType(plays, 'favorite').length;
+    const weekdays = log.playsByWeekday(listened)
+      .map((value: number, index: number) => ({label: WEEKDAYS[index], value}));
     return (
       <>
         <div className="statsColumns">
           {this.barChart(`Plays, Last ${HISTORY_DAYS} Days`, days, 'plays')}
           {this.barChart('Plays by Hour of Day', hours, 'plays')}
         </div>
+        <div className="statsColumns">
+          {this.barChart('Plays by Day of Week', weekdays, 'plays')}
+          {this.rankedList(`Most Skipped, Last ${HISTORY_DAYS} Days`,
+            this.getRecentSkips(recentAll))}
+        </div>
+        <div className="statsColumns">
+          {this.rankedList(`First Heard, Last ${HISTORY_DAYS} Days`,
+            this.getFirstHeard(plays, recent))}
+          {this.rankedList(`Most Played, Last ${HISTORY_DAYS} Days`,
+            this.getRecentFavourites(recent))}
+        </div>
         <div className="statsNote">
+          {log.activeDays(recent)} of the last {HISTORY_DAYS} days had listening ·{' '}
           {total.toLocaleString()} plays
           {skips ? `, ${skips.toLocaleString()} skips` : ''}
           {favourites ? `, ${favourites.toLocaleString()} favourites` : ''}
@@ -826,6 +847,73 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
    * hour chart labels every third. Giving those bars an empty `label` instead left sixteen of
    * the twenty-four sharing the same key.
    */
+  /**
+   * Tracks skipped most often in the window, by share of encounters.
+   *
+   * The library's own `skipCount`/`playCount` ratio answers this over all time, but those
+   * totals are dominated by what iTunes imported years ago. This is the period the log covers,
+   * which is the one that reflects how the listener feels now.
+   */
+  private getRecentSkips(entries: log.PlayEntry[]): RankedItem[] {
+    const rates = log.skipRate(entries);
+    return Object.keys(rates)
+      .map((id) => ({id, track: this.props.tracks[id], ...rates[id]}))
+      .filter(({track, skips, plays}) => track && skips > 0 && skips + plays >= MIN_RECENT_ENCOUNTERS)
+      .sort((one, two) => (two.skips / (two.skips + two.plays)) -
+        (one.skips / (one.skips + one.plays)) || two.skips - one.skips)
+      .slice(0, 10)
+      .map(({id, track, skips, plays}) => ({
+        detail: this.getArtistNames(track.artistIds),
+        id,
+        label: `${skips} of ${skips + plays}`,
+        name: track.name,
+        value: Math.round((skips / (skips + plays)) * 100),
+        goTo: this.props.goToTrack,
+      }));
+  }
+
+  /**
+   * Tracks whose first logged play falls inside the window.
+   *
+   * "What did I discover", which `playCount` cannot answer — it is a total with no sense of
+   * when any of it happened. Only as old as the log, so it is honest about being incomplete
+   * rather than claiming an import date is a discovery.
+   */
+  private getFirstHeard(all: log.PlayEntry[], window: log.PlayEntry[]): RankedItem[] {
+    const counts = log.playsByTrack(window);
+    return log.firstHeardIn(all, window)
+      .map((id) => ({id, plays: counts[id] || 0, track: this.props.tracks[id]}))
+      .filter(({track}) => !!track)
+      .sort((one, two) => two.plays - one.plays)
+      .slice(0, 10)
+      .map(({id, plays, track}) => ({
+        detail: this.getArtistNames(track.artistIds),
+        id,
+        label: `${plays} play${plays === 1 ? '' : 's'}`,
+        name: track.name,
+        value: plays,
+        goTo: this.props.goToTrack,
+      }));
+  }
+
+  /** Most played in the window, which is a different question from most played ever. */
+  private getRecentFavourites(window: log.PlayEntry[]): RankedItem[] {
+    const counts = log.playsByTrack(window);
+    return Object.keys(counts)
+      .map((id) => ({id, plays: counts[id], track: this.props.tracks[id]}))
+      .filter(({track}) => !!track)
+      .sort((one, two) => two.plays - one.plays)
+      .slice(0, 10)
+      .map(({id, plays, track}) => ({
+        detail: this.getArtistNames(track.artistIds),
+        id,
+        label: `${plays} play${plays === 1 ? '' : 's'}`,
+        name: track.name,
+        value: plays,
+        goTo: this.props.goToTrack,
+      }));
+  }
+
   private barChart(
     title: string,
     bars: Array<{label: string; value: number; tick?: string}>,

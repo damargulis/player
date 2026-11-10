@@ -173,7 +173,31 @@ export function parseEntry(line: string): PlayEntry | undefined {
   };
 }
 
-/** Every logged play, in the order written. Returns nothing when there is no log yet. */
+let cached: {mtimeMs: number; size: number; entries: PlayEntry[]} | undefined;
+
+/**
+ * The log, re-read only when the file has changed.
+ *
+ * For the DJ, which may ask more than once in a turn: the file is append-only and grows
+ * forever, so parsing it per call would get slower every month. Keyed on mtime **and** size,
+ * because two appends inside the same millisecond would otherwise look like no change.
+ */
+export function readPlaysCached(): PlayEntry[] {
+  let stat: {mtimeMs: number; size: number};
+  try {
+    stat = fs.statSync(LOG_FILE());
+  } catch (err) {
+    return [];
+  }
+  if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+    return cached.entries;
+  }
+  const entries = readPlays();
+  cached = {entries, mtimeMs: stat.mtimeMs, size: stat.size};
+  return entries;
+}
+
+/** Every logged event, in the order written. Returns nothing when there is no log yet. */
 export function readPlays(): PlayEntry[] {
   let text: string;
   try {
@@ -239,6 +263,64 @@ export function playsByTrack(entries: PlayEntry[]): Record<string, number> {
     byTrack[entry.id] = (byTrack[entry.id] || 0) + entry.count;
     return byTrack;
   }, {} as Record<string, number>);
+}
+
+/**
+ * Tracks played in the window that had not been played before it.
+ *
+ * "What did I actually discover" — which `playCount` cannot answer, since it is a total with no
+ * sense of when any of it happened. A track counts as new to the window if every logged play of
+ * it falls inside it.
+ */
+export function firstHeardIn(entries: PlayEntry[], window: PlayEntry[]): string[] {
+  const earliest = {} as Record<string, number>;
+  onlyPlays(entries).forEach((entry) => {
+    if (earliest[entry.id] === undefined || entry.at < earliest[entry.id]) {
+      earliest[entry.id] = entry.at;
+    }
+  });
+  const start = window.reduce((lowest, entry) => Math.min(lowest, entry.at), Infinity);
+  return Object.keys(earliest).filter((id) => earliest[id] >= start);
+}
+
+/**
+ * The share of encounters that ended in a skip, per track.
+ *
+ * `skipCount / (skipCount + playCount)` on the track says the same thing, but those totals
+ * include everything imported from iTunes years ago. This is the ratio for the period the log
+ * covers, which is the one that reflects how the listener feels now.
+ */
+export function skipRate(entries: PlayEntry[]): Record<string, {plays: number; skips: number}> {
+  const byTrack = {} as Record<string, {plays: number; skips: number}>;
+  entries.forEach((entry) => {
+    if (entry.type !== 'play' && entry.type !== 'skip') {
+      return;
+    }
+    const row = byTrack[entry.id] || {plays: 0, skips: 0};
+    if (entry.type === 'play') {
+      row.plays += entry.count;
+    } else {
+      row.skips += entry.count;
+    }
+    byTrack[entry.id] = row;
+  });
+  return byTrack;
+}
+
+/** Plays per weekday, Sunday first, for "when do I actually listen". */
+export function playsByWeekday(entries: PlayEntry[]): number[] {
+  const days = new Array(7).fill(0) as number[];
+  onlyPlays(entries).forEach((entry) => {
+    if (!entry.estimated) {
+      days[new Date(entry.at).getDay()] += entry.count;
+    }
+  });
+  return days;
+}
+
+/** How many separate days in the window had any listening at all. */
+export function activeDays(entries: PlayEntry[]): number {
+  return Object.keys(playsByDay(onlyPlays(entries))).length;
 }
 
 /** The entries from the last `days` days, counting today, by local midnight boundaries. */

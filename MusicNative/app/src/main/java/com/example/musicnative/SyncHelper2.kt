@@ -86,10 +86,10 @@ class SyncHelper2(private var context: Context, private var library: Library, va
         val tracker = PlayTracker(context)
         // Take a snapshot, send it, then clear exactly that. The old code cleared everything
         // after the request, so a play that landed while the sync was in flight was lost.
-        val (records, legacy) = tracker.pending()
-        val plays = tracker.getQueryString(records, legacy)
+        val pending = tracker.pending()
+        val plays = tracker.getQueryString(pending)
         val response = downloadJson("$base/start-sync?$plays")
-        tracker.clearSent(records, legacy)
+        tracker.clearSent(pending)
         val res = JSONObject(response)
         val playlistsObj = res.getJSONArray("playlists")
         val trackIds = mutableSetOf<String>()
