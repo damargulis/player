@@ -29,6 +29,8 @@ interface StatsPageState {
    * Read once, not in render — this component re-renders on every action.
    */
   plays?: log.PlayEntry[];
+  /** Window for the listening history, in days; 0 means everything the log covers. */
+  historyDays: number;
   // undefined = aggregate favorites over all years
   favoriteYear?: number;
   playMetric: 'sum' | 'median' | 'time';
@@ -57,8 +59,20 @@ interface RankedItem {
  */
 const MAX_MIN_TRACKS = 20;
 
-/** Days of listening history to chart. Four weeks reads as a habit; a year reads as noise. */
-const HISTORY_DAYS = 28;
+/**
+ * Ranges for the listening history.
+ *
+ * `days: 0` means everything the log covers, worked out from the earliest entry rather than
+ * guessed. Four weeks is the default because it reads as a habit where a year reads as noise.
+ */
+const HISTORY_RANGES: Array<{label: string; days: number}> = [
+  {days: 7, label: '7 days'},
+  {days: 28, label: '28 days'},
+  {days: 90, label: '90 days'},
+  {days: 365, label: '1 year'},
+  {days: 0, label: 'All time'},
+];
+const DEFAULT_HISTORY_DAYS = 28;
 
 /** Sunday first, matching `Date.getDay()`. */
 /** Below this, a skip ratio is noise — the same floor the all-time skip list uses. */
@@ -82,6 +96,7 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     this.state = {
       favMetric: 'count',
       favSource: 'tracks',
+      historyDays: DEFAULT_HISTORY_DAYS,
       minTracks: 1,
       playMetric: 'sum',
       skipMetric: 'count',
@@ -778,6 +793,34 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
    * nothing at all until there are plays, rather than showing an empty chart that reads as
    * broken — the log only starts filling from the build that introduced it.
    */
+  /** The range chips above the listening history. */
+  private getHistoryRanges(): JSX.Element {
+    return (
+      <div className="statsFilterRow">
+        <span className="statsFilterLabel">Range:</span>
+        {HISTORY_RANGES.map((range) => (
+          <button
+            className={this.state.historyDays === range.days ? 'yearChip yearChipActive' : 'yearChip'}
+            key={range.label}
+            onClick={() => this.setState({historyDays: range.days})}
+          >
+            {range.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  /**
+   * What the event log makes possible, and nothing else in the app can answer.
+   *
+   * `Track.playDate` is one date per song, so until this log existed there was no way to ask
+   * what a week of listening looked like or which hours anyone listens in. It renders nothing
+   * at all until there are events, rather than an empty chart that reads as broken.
+   *
+   * Everything here follows the chosen range, including the hour and weekday breakdowns — a
+   * visible range selector that some charts ignored would be worse than no selector.
+   */
   private getListeningHistory(): JSX.Element {
     const plays = this.state.plays;
     if (!plays || !plays.length) {
@@ -785,53 +828,58 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     }
     // plays only: a skip or a favourite is not listening, and would inflate every bar
     const listened = log.onlyPlays(plays);
-    const recent = log.since(listened, HISTORY_DAYS);
-    const recentAll = log.since(plays, HISTORY_DAYS);
-    const byDay = log.playsByDay(recent);
-    const days: Array<{label: string; value: number}> = [];
-    for (let back = HISTORY_DAYS - 1; back >= 0; back--) {
-      const when = new Date();
-      when.setHours(0, 0, 0, 0);
-      const at = when.getTime() - back * 86400000;
-      // every day in the window, including the silent ones: a gap is information
-      days.push({label: log.dayOf(at).slice(5), value: byDay[log.dayOf(at)] || 0});
-    }
+    // 0 means everything, worked out from the earliest entry rather than guessed
+    const days = this.state.historyDays || log.spanInDays(plays);
+    const label = this.rangeLabel(days);
+    const recent = log.since(listened, days);
+    const recentAll = log.since(plays, days);
+
+    const unit = log.bucketFor(days);
+    const buckets = log.playsByBucket(listened, days);
+    // ticks thin out as columns multiply, or the labels collide
+    const every = Math.max(1, Math.ceil(buckets.length / 10));
+    const periods = buckets.map((bucket, index) => ({
+      label: log.dayOf(bucket.at),
+      tick: index % every === 0 ? this.bucketTick(bucket.at, unit) : '',
+      value: bucket.value,
+    }));
+
     // every hour is a column; only every third carries a tick, or they collide
-    const hours = log.playsByHour(listened).map((value: number, hour: number) => ({
+    const hours = log.playsByHour(recent).map((value: number, hour: number) => ({
       label: `${hour}`,
       tick: hour % 3 === 0 ? `${hour}` : '',
       value,
     }));
-    const total = listened.reduce((sum, entry) => sum + entry.count, 0);
-    const estimated = listened.filter((entry) => entry.estimated)
-      .reduce((sum, entry) => sum + entry.count, 0);
-    const skips = log.ofType(plays, 'skip').length;
-    const favourites = log.ofType(plays, 'favorite').length;
-    const weekdays = log.playsByWeekday(listened)
+    const weekdays = log.playsByWeekday(recent)
       .map((value: number, index: number) => ({label: WEEKDAYS[index], value}));
+
+    const total = recent.reduce((sum, entry) => sum + entry.count, 0);
+    const estimated = recent.filter((entry) => entry.estimated)
+      .reduce((sum, entry) => sum + entry.count, 0);
+    const skips = log.ofType(recentAll, 'skip').length;
+    const favourites = log.ofType(recentAll, 'favorite').length;
+    const unitName = unit === 'day' ? 'Day' : unit === 'week' ? 'Week' : 'Month';
     return (
       <>
+        {this.getHistoryRanges()}
         <div className="statsColumns">
-          {this.barChart(`Plays, Last ${HISTORY_DAYS} Days`, days, 'plays')}
-          {this.barChart('Plays by Hour of Day', hours, 'plays')}
+          {this.barChart(`Plays by ${unitName}, ${label}`, periods, 'plays')}
+          {this.barChart(`Plays by Hour of Day, ${label}`, hours, 'plays')}
         </div>
         <div className="statsColumns">
-          {this.barChart('Plays by Day of Week', weekdays, 'plays')}
-          {this.rankedList(`Most Skipped, Last ${HISTORY_DAYS} Days`,
-            this.getRecentSkips(recentAll))}
+          {this.barChart(`Plays by Day of Week, ${label}`, weekdays, 'plays')}
+          {this.rankedList(`Most Skipped, ${label}`, this.getRecentSkips(recentAll))}
         </div>
         <div className="statsColumns">
-          {this.rankedList(`First Heard, Last ${HISTORY_DAYS} Days`,
-            this.getFirstHeard(plays, recent))}
-          {this.rankedList(`Most Played, Last ${HISTORY_DAYS} Days`,
-            this.getRecentFavourites(recent))}
+          {this.rankedList(`First Heard, ${label}`, this.getFirstHeard(plays, recent))}
+          {this.rankedList(`Most Played, ${label}`, this.getRecentFavourites(recent))}
         </div>
         <div className="statsNote">
-          {log.activeDays(recent)} of the last {HISTORY_DAYS} days had listening ·{' '}
+          {log.activeDays(recent)} of {days} days had listening ·{' '}
           {total.toLocaleString()} plays
           {skips ? `, ${skips.toLocaleString()} skips` : ''}
           {favourites ? `, ${favourites.toLocaleString()} favourites` : ''}
-          {' logged since the log began'}
+          {' in this range'}
           {estimated ? `; ${estimated.toLocaleString()} of them synced from a phone build that
             kept no times, so they count toward days but not hours` : ''}
         </div>
@@ -839,21 +887,23 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     );
   }
 
-  /**
-   * A column chart.
-   *
-   * `label` identifies a bar — it is the React key and the tooltip — so it must be unique.
-   * `tick` is what is drawn underneath, for a chart that wants to label only some columns; the
-   * hour chart labels every third. Giving those bars an empty `label` instead left sixteen of
-   * the twenty-four sharing the same key.
-   */
-  /**
-   * Tracks skipped most often in the window, by share of encounters.
-   *
-   * The library's own `skipCount`/`playCount` ratio answers this over all time, but those
-   * totals are dominated by what iTunes imported years ago. This is the period the log covers,
-   * which is the one that reflects how the listener feels now.
-   */
+  /** "Last 28 Days", or "All Time" when the range is everything the log covers. */
+  private rangeLabel(days: number): string {
+    if (!this.state.historyDays) {
+      return 'All Time';
+    }
+    return days === 365 ? 'Last Year' : `Last ${days} Days`;
+  }
+
+  /** A column's tick: the day for daily buckets, the month for anything coarser. */
+  private bucketTick(at: number, unit: log.Bucket): string {
+    const date = new Date(at);
+    if (unit === 'month') {
+      return date.toLocaleDateString(undefined, {month: 'short'});
+    }
+    return log.dayOf(at).slice(5);
+  }
+
   private getRecentSkips(entries: log.PlayEntry[]): RankedItem[] {
     const rates = log.skipRate(entries);
     return Object.keys(rates)

@@ -307,6 +307,95 @@ export function skipRate(entries: PlayEntry[]): Record<string, {plays: number; s
   return byTrack;
 }
 
+/**
+ * How finely to bucket a window of `days` for a column chart.
+ *
+ * A day per column stops working somewhere past a month — 365 columns in the width this chart
+ * gets is a grey smear — so a long range is grouped instead. The thresholds are about what
+ * stays readable at roughly 30-50 columns, not about anything in the data.
+ */
+export type Bucket = 'day' | 'week' | 'month';
+
+export function bucketFor(days: number): Bucket {
+  if (days <= 35) {
+    return 'day';
+  }
+  if (days <= 180) {
+    return 'week';
+  }
+  return 'month';
+}
+
+/** Local midnight of the day `at` falls in. */
+function startOfDay(at: number): Date {
+  const date = new Date(at);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+/** The start of the bucket `at` belongs to — Monday for a week, the 1st for a month. */
+export function bucketStart(at: number, unit: Bucket): number {
+  const date = startOfDay(at);
+  if (unit === 'week') {
+    // Monday, because a listening week reads better than one split across a weekend
+    const weekday = (date.getDay() + 6) % 7;
+    date.setDate(date.getDate() - weekday);
+  } else if (unit === 'month') {
+    date.setDate(1);
+  }
+  return date.getTime();
+}
+
+/** The next bucket along, which is how the chart walks a window without arithmetic on days. */
+export function nextBucket(at: number, unit: Bucket): number {
+  const date = new Date(at);
+  if (unit === 'day') {
+    date.setDate(date.getDate() + 1);
+  } else if (unit === 'week') {
+    date.setDate(date.getDate() + 7);
+  } else {
+    date.setMonth(date.getMonth() + 1);
+  }
+  return date.getTime();
+}
+
+/**
+ * Plays per bucket across a window, including the empty ones.
+ *
+ * Empty buckets are kept because a gap is information — a week with no listening says
+ * something, and dropping it would quietly compress the timeline.
+ */
+export function playsByBucket(entries: PlayEntry[], days: number,
+                              now: number = Date.now()): Array<{at: number; value: number}> {
+  const unit = bucketFor(days);
+  const windowed = since(onlyPlays(entries), days, now);
+  const counts = {} as Record<number, number>;
+  windowed.forEach((entry) => {
+    const key = bucketStart(entry.at, unit);
+    counts[key] = (counts[key] || 0) + entry.count;
+  });
+  const firstDay = startOfDay(now).getTime() - (days - 1) * 86400000;
+  const out: Array<{at: number; value: number}> = [];
+  let at = bucketStart(firstDay, unit);
+  const last = bucketStart(now, unit);
+  // bounded in case a bad unit would otherwise loop forever
+  for (let guard = 0; at <= last && guard < 1000; guard++) {
+    out.push({at, value: counts[at] || 0});
+    at = nextBucket(at, unit);
+  }
+  return out;
+}
+
+/** The whole span the log covers, in days, for an "all time" range. */
+export function spanInDays(entries: PlayEntry[], now: number = Date.now()): number {
+  if (!entries.length) {
+    return 1;
+  }
+  const earliest = entries.reduce((lowest, entry) => Math.min(lowest, entry.at), Infinity);
+  const days = Math.ceil((startOfDay(now).getTime() - startOfDay(earliest).getTime()) / 86400000);
+  return Math.max(1, days + 1);
+}
+
 /** Plays per weekday, Sunday first, for "when do I actually listen". */
 export function playsByWeekday(entries: PlayEntry[]): number[] {
   const days = new Array(7).fill(0) as number[];

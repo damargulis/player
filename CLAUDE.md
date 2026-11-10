@@ -261,9 +261,15 @@ Deliberately **not** logged: pausing, seeking and volume are moment-to-moment co
 than opinions about music, and would bury the events that mean something; the DJ's queue churn
 is already tracked by `src/dj/activity.tsx` for the session it belongs to.
 
-The Stats page reads the log for last-28-days and by-hour plays, plays by weekday, most skipped
+The Stats page reads the log for by-period and by-hour plays, plays by weekday, most skipped
 and most played in the window, and **first heard** — tracks whose earliest logged play falls
-inside it, which `playCount` cannot answer at all. The recent skip list uses the log's own ratio
+inside it, which `playCount` cannot answer at all. The window is chosen with chips — 7, 28, 90
+days, a year, or everything the log covers, worked out from the earliest entry — and **every
+section follows it**, including the hour and weekday breakdowns, since a visible range selector
+that some charts ignored would be worse than none. Column charts **re-bucket** as the range
+grows: a day per column past about a month is a grey smear, so 36-180 days groups by week
+(Monday) and longer by month, which keeps every range between 7 and 34 columns with 7-10 ticks.
+Empty buckets are kept because a gap is information. The recent skip list uses the log's own ratio
 rather than `skipCount`/`playCount`, whose totals are dominated by what iTunes imported years
 ago.
 

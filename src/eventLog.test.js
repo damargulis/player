@@ -1,5 +1,5 @@
-import {dayOf, ofType, onlyPlays, parseEntry, playsByDay, playsByHour, playsByTrack,
-  since} from "./eventLog";
+import {bucketFor, bucketStart, dayOf, nextBucket, ofType, onlyPlays, parseEntry, playsByBucket,
+  playsByDay, playsByHour, playsByTrack, since, spanInDays} from "./eventLog";
 
 /**
  * The log is the listening history `Track.playDate` cannot be — that holds one date per song.
@@ -134,5 +134,77 @@ describe("filtering by type", () => {
 
   it("does not let a skip count toward plays by day", () => {
     expect(playsByDay(onlyPlays(mixed))[dayOf(1)]).toEqual(2);
+  });
+});
+
+/**
+ * A day per column stops working past a month — 365 columns in the width this chart gets is a
+ * grey smear — so a long range groups instead. Empty buckets are kept because a gap is
+ * information: a week with no listening says something, and dropping it would quietly compress
+ * the timeline.
+ */
+describe("bucketing a window", () => {
+  const at = (y, m, d, h) => new Date(y, m - 1, d, h || 12).getTime();
+  const play = (when) => ({
+    at: when, count: 1, estimated: false, id: "t", source: "desktop",
+    subject: "track", type: "play",
+  });
+
+  it("picks a granularity that stays readable", () => {
+    expect(bucketFor(7)).toEqual("day");
+    expect(bucketFor(28)).toEqual("day");
+    expect(bucketFor(35)).toEqual("day");
+    expect(bucketFor(36)).toEqual("week");
+    expect(bucketFor(90)).toEqual("week");
+    expect(bucketFor(180)).toEqual("week");
+    expect(bucketFor(365)).toEqual("month");
+  });
+
+  it("starts a week on Monday", () => {
+    // 2026-11-10 is a Tuesday, so its week starts on the 9th
+    const start = new Date(bucketStart(at(2026, 11, 10), "week"));
+    expect(start.getDay()).toEqual(1);
+    expect(start.getDate()).toEqual(9);
+  });
+
+  it("starts a month on the first", () => {
+    expect(new Date(bucketStart(at(2026, 11, 17), "month")).getDate()).toEqual(1);
+  });
+
+  it("walks to the next bucket, over a month boundary", () => {
+    const jan31 = at(2026, 1, 31);
+    expect(new Date(nextBucket(bucketStart(jan31, "month"), "month")).getMonth()).toEqual(1);
+    expect(new Date(nextBucket(bucketStart(jan31, "day"), "day")).getDate()).toEqual(1);
+  });
+
+  it("returns one column per day for a short window, silent days included", () => {
+    const now = at(2026, 11, 10);
+    const buckets = playsByBucket([play(at(2026, 11, 10)), play(at(2026, 11, 8))], 7, now);
+    expect(buckets.length).toEqual(7);
+    // the window is Nov 4-10, so the play on the 8th is the fifth column
+    expect(buckets.map((b) => b.value)).toEqual([0, 0, 0, 0, 1, 0, 1]);
+  });
+
+  it("groups a long window, and the totals survive the grouping", () => {
+    const now = at(2026, 11, 10);
+    const entries = [];
+    for (let back = 0; back < 60; back++) {
+      entries.push(play(now - back * 86400000));
+    }
+    const weekly = playsByBucket(entries, 90, now);
+    expect(weekly.length).toBeLessThan(20);
+    expect(weekly.reduce((sum, b) => sum + b.value, 0)).toEqual(60);
+  });
+
+  it("counts a skip toward no bucket", () => {
+    const now = at(2026, 11, 10);
+    const skip = Object.assign(play(now), {type: "skip"});
+    expect(playsByBucket([skip], 7, now).reduce((sum, b) => sum + b.value, 0)).toEqual(0);
+  });
+
+  it("measures the span the log covers, for an all-time range", () => {
+    const now = at(2026, 11, 10);
+    expect(spanInDays([play(at(2026, 11, 8))], now)).toEqual(3);
+    expect(spanInDays([], now)).toEqual(1);
   });
 });
