@@ -7,9 +7,9 @@ import {publishCatalog} from './backup/catalog';
 import {runCloudBackup} from './backup/cloudBackup';
 import {djClue} from './dj/clue';
 import {BACKUP_TIME, DATA_DIR} from './constants';
+import {logPlays} from './eventLog';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
-import {logPlays} from './playLog';
 import {countsByTrack, latestPlayedAt, parseSyncedPlays} from './syncedPlays';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
@@ -227,6 +227,16 @@ class App extends React.Component<AppProps, AppState> {
       // pressing the same verdict again clears it, so one button both sets and unsets
       const next = toggleReaction(track, person, payload.reaction || 'none', year);
       this.props.updateTrack(trackId, {reactions: applyReaction(track, person, next, year)});
+      // reactions are keyed by person and year, so the moment and the person who changed their
+      // mind are only recoverable from the log
+      logPlays([{
+        at: Date.now(),
+        id: trackId,
+        source: 'desktop',
+        type: 'react',
+        value: next,
+        who: person,
+      }]);
       djSession.noteReaction(trackId, person, next);
     });
     ipcRenderer.on('dj-remove', (evt, payload: {trackIds?: string[]; albumId?: string; speaker?: string}) => {

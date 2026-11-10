@@ -11,15 +11,8 @@ import prevTrackImg from './resources/previous_track.png';
 import React, {ChangeEvent} from 'react';
 import Modal from 'react-modal';
 import {connect} from 'react-redux';
-import {
-  getCurrentTrack,
-  getIsPlaying,
-  getVolume,
-  hasNextAlbum,
-  hasNextTrack,
-  hasPrevAlbum,
-  hasPrevTrack,
-} from './redux/selectors';
+import {getCurrentTrack, getIsPlaying, getTime, getVolume, hasNextAlbum, hasNextTrack, hasPrevAlbum, hasPrevTrack} from './redux/selectors';
+import {recordSkip} from './skips';
 import {RootState} from './redux/store';
 import volumeButton from './resources/volume.png';
 
@@ -42,6 +35,8 @@ interface OwnProps {
 
 interface StateProps {
   volume: number;
+  /** Seconds into the current track, for telling a skip from a finish. */
+  elapsed: number;
   hasPrevAlbum: boolean;
   hasPrevTrack: boolean;
   currentTrack?: Track;
@@ -95,7 +90,7 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           alt="next track"
           className="control-button"
           disabled={!this.props.hasNextTrack}
-          onClick={this.props.nextTrack}
+          onClick={() => this.skipTrack()}
           src={nextTrackImg}
           type="image"
         />
@@ -107,9 +102,24 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
           src={nextAlbumImg}
           type="image"
         />
-        <LikeButton item={this.props.currentTrack} update={this.props.updateTrack} />
+        <LikeButton item={this.props.currentTrack} subject="track" update={this.props.updateTrack} />
       </div>
     );
+  }
+
+  /**
+   * The next button. Advancing before the track ends is a skip, and is recorded as one.
+   *
+   * The `ended` handler in App.tsx is the only natural finish, so this button is always a
+   * skip when something is playing.
+   */
+  private skipTrack(): void {
+    const track = this.props.currentTrack;
+    const update = recordSkip(track, this.props.elapsed * 1000);
+    if (track && update) {
+      this.props.updateTrack(track.id, update);
+    }
+    this.props.nextTrack();
   }
 
   private setVolume(evt: ChangeEvent<HTMLInputElement>): void {
@@ -173,6 +183,7 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
 function mapStateToProps(store: RootState): StateProps {
   return {
     currentTrack: getCurrentTrack(store),
+    elapsed: getTime(store),
     hasNextAlbum: hasNextAlbum(store),
     hasNextTrack: hasNextTrack(store),
     hasPrevAlbum: hasPrevAlbum(store),

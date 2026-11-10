@@ -201,9 +201,9 @@ title and album out of the reply rather than re-requesting: a leaked answer cost
 second call costs as much as the first. One Messages API call per round, which is why the clue game
 has few rounds, says so in its rules, and pre-fetches the next clue while the player works.
 
-### Play log
+### Event log
 
-`src/playLog.tsx` appends one line per play to `DATA_DIR/plays.jsonl`. `Track.playCount` and
+`src/eventLog.tsx` appends one line per event to `DATA_DIR/plays.jsonl`. `Track.playCount` and
 `Track.playDate` record how many times a song has been played and when it was played **last**,
 which makes the listening history one date per song — "what did I listen to in March", "what
 have I rediscovered", and any view of listening over time are all unanswerable from it. This is
@@ -231,6 +231,29 @@ hour the phone came home) while still counting toward days and totals. A sync on
 `playDate` forward, so a late sync cannot rewind it. `PlayTracker` also now clears **exactly
 what it sent** rather than the whole preferences file, so a play recorded while a sync is in
 flight is no longer thrown away.
+
+Plays were the first event and for a while the only one, which is why the file is still
+`plays.jsonl` and why **a line with no `type` is a play** — renaming would orphan the history
+already in it. Skips, favourites and reactions had the same problem plays did: `Track.skipCount`
+is a total, `Track.favorites` is a list of *years*, and un-favouriting removes the year and
+leaves no trace at all. `EventType` is `play | skip | favorite | unfavorite | react`, with
+`subject` (track or album) and, for a reaction, `who` and `value`. Everything is omitted at its
+default, so a play is the same short line it always was. `onlyPlays` is what the listening
+charts use — a skip is not listening and would inflate every bar.
+
+**`Track.skipCount` had been frozen since the iTunes import**: `library/itunes.tsx` reads
+"Skip Count" from the XML and nothing in the app ever incremented it, so all 17,140 skips across
+5,658 tracks are history from another program and the Stats "Most Skipped" list has shown the
+same answer for years. `src/skips.tsx` now records them. A skip is advancing away from a track
+that has not finished — the `ended` handler is the only natural finish, so every other way
+forward counts — and it ignores the first two seconds, which is a mis-click rather than a
+verdict. Going *back* is not a skip: abandoning a song to replay the previous one says nothing
+about the song. `recordSkip` returns the delta instead of dispatching, so both callers (the
+transport button and the remote handlers) apply it identically.
+
+Deliberately **not** logged: pausing, seeking and volume are moment-to-moment controls rather
+than opinions about music, and would bury the events that mean something; the DJ's queue churn
+is already tracked by `src/dj/activity.tsx` for the session it belongs to.
 
 ### Concert tracker
 

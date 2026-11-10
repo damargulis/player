@@ -1,5 +1,5 @@
 import {Album, Artist, Genre, Track} from './redux/actionTypes';
-import {dayOf, PlayEntry, playsByDay, playsByHour, readPlays, since} from './playLog';
+import * as log from './eventLog';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import './StatsPage.css';
@@ -28,7 +28,7 @@ interface StatsPageState {
    * care about, and it is append-only so it cannot go stale mid-session in a way that matters.
    * Read once, not in render — this component re-renders on every action.
    */
-  plays?: PlayEntry[];
+  plays?: log.PlayEntry[];
   // undefined = aggregate favorites over all years
   favoriteYear?: number;
   playMetric: 'sum' | 'median' | 'time';
@@ -83,7 +83,7 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
   }
 
   public componentDidMount(): void {
-    this.setState({plays: readPlays()});
+    this.setState({plays: log.readPlays()});
   }
 
   public render(): JSX.Element {
@@ -777,25 +777,29 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     if (!plays || !plays.length) {
       return <></>;
     }
-    const recent = since(plays, HISTORY_DAYS);
-    const byDay = playsByDay(recent);
+    // plays only: a skip or a favourite is not listening, and would inflate every bar
+    const listened = log.onlyPlays(plays);
+    const recent = log.since(listened, HISTORY_DAYS);
+    const byDay = log.playsByDay(recent);
     const days: Array<{label: string; value: number}> = [];
     for (let back = HISTORY_DAYS - 1; back >= 0; back--) {
       const when = new Date();
       when.setHours(0, 0, 0, 0);
       const at = when.getTime() - back * 86400000;
       // every day in the window, including the silent ones: a gap is information
-      days.push({label: dayOf(at).slice(5), value: byDay[dayOf(at)] || 0});
+      days.push({label: log.dayOf(at).slice(5), value: byDay[log.dayOf(at)] || 0});
     }
     // every hour is a column; only every third carries a tick, or they collide
-    const hours = playsByHour(plays).map((value, hour) => ({
+    const hours = log.playsByHour(listened).map((value: number, hour: number) => ({
       label: `${hour}`,
       tick: hour % 3 === 0 ? `${hour}` : '',
       value,
     }));
-    const total = plays.reduce((sum, entry) => sum + entry.count, 0);
-    const estimated = plays.filter((entry) => entry.estimated)
+    const total = listened.reduce((sum, entry) => sum + entry.count, 0);
+    const estimated = listened.filter((entry) => entry.estimated)
       .reduce((sum, entry) => sum + entry.count, 0);
+    const skips = log.ofType(plays, 'skip').length;
+    const favourites = log.ofType(plays, 'favorite').length;
     return (
       <>
         <div className="statsColumns">
@@ -803,7 +807,10 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
           {this.barChart('Plays by Hour of Day', hours, 'plays')}
         </div>
         <div className="statsNote">
-          {total.toLocaleString()} plays logged since the log began
+          {total.toLocaleString()} plays
+          {skips ? `, ${skips.toLocaleString()} skips` : ''}
+          {favourites ? `, ${favourites.toLocaleString()} favourites` : ''}
+          {' logged since the log began'}
           {estimated ? `; ${estimated.toLocaleString()} of them synced from a phone build that
             kept no times, so they count toward days but not hours` : ''}
         </div>

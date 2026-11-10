@@ -143,7 +143,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
           <div className="albumPageControls" >
             <button onClick={() => this.playAlbum()} className="playAlbum button-primary" >Play Album</button>
             <div className="likeButtonContainer">
-              <LikeButton item={this.props.album} update={this.props.updateAlbum}/>
+              <LikeButton item={this.props.album} subject="album" update={this.props.updateAlbum}/>
             </div>
             <button
               className="editAlbum"

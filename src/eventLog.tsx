@@ -2,7 +2,7 @@ import {DATA_DIR} from './constants';
 import fs from 'fs';
 
 /**
- * An append-only log of individual plays.
+ * An append-only log of what was done to the library, one line per event.
  *
  * `Track.playCount` and `Track.playDate` between them record how many times a song has been
  * played and when it was played **last** — so the listening history is one date per song and
@@ -17,6 +17,13 @@ import fs from 'fs';
  * JSONL rather than JSON so an append is a single write with nothing to re-serialise, and so a
  * line torn by a crash costs that line rather than the file.
  *
+ * Plays were the first event and for a while the only one, which is why the file is still
+ * called `plays.jsonl` and why a line with no `type` means a play — renaming the file would
+ * orphan the history already in it for no gain. Skips, favourites and reactions had the same
+ * problem plays did: `Track.skipCount` and `Track.favorites` record a total and a year, so
+ * "when did I start skipping this" and "what did I fall for in March" were unanswerable, and
+ * un-favouriting left no trace at all.
+ *
  * Phone plays carry their **own** timestamp, taken on the phone where it is known —
  * `PlayTracker` records the moment and `/start-sync` sends it. The one exception is plays left
  * over from a build that only kept counts, which have no time to give and are stamped with the
@@ -28,7 +35,25 @@ const LOG_FILE = (): string => `${DATA_DIR}/plays.jsonl`;
 
 export type PlaySource = 'desktop' | 'phone';
 
+/**
+ * What happened.
+ *
+ * Deliberately not everything the app can do: pausing, seeking and volume are moment-to-moment
+ * controls rather than opinions about music, and logging them would bury the events that say
+ * something. The DJ's queue churn is left out too — `src/dj/activity.tsx` already tracks it
+ * for the session it belongs to.
+ */
+export type EventType = 'play' | 'skip' | 'favorite' | 'unfavorite' | 'react';
+
+/** Which collection the id refers to. Tracks unless stated. */
+export type EventSubject = 'track' | 'album';
+
 export interface PlayEntry {
+  type: EventType;
+  subject: EventSubject;
+  /** For a reaction: whose it is, and what it became. */
+  who?: string;
+  value?: string;
   /** Epoch ms the play happened, unless `estimated`. */
   at: number;
   id: string;
@@ -39,13 +64,19 @@ export interface PlayEntry {
   estimated: boolean;
 }
 
-/** What goes on disk; keys are omitted at their defaults so a normal line is ~45 bytes. */
+/** What goes on disk; keys are omitted at their defaults so a normal play is ~45 bytes. */
 interface StoredEntry {
   at: number;
   id: string;
   n?: number;
   src?: PlaySource;
   est?: boolean;
+  /** Absent means a play, which is what every line written before other events existed is. */
+  type?: EventType;
+  /** Absent means a track. */
+  subject?: EventSubject;
+  who?: string;
+  value?: string;
 }
 
 export function logPath(): string {
@@ -59,6 +90,11 @@ export interface NewPlay {
   source: PlaySource;
   /** Set when `at` is a sync time rather than a play time. */
   estimated?: boolean;
+  /** Defaults to a play, so existing callers are unchanged. */
+  type?: EventType;
+  subject?: EventSubject;
+  who?: string;
+  value?: string;
 }
 
 /**
@@ -81,6 +117,19 @@ export function logPlays(plays: NewPlay[]): void {
       }
       if (play.estimated) {
         entry.est = true;
+      }
+      // omitted at their defaults, so a play stays the short line it has always been
+      if (play.type && play.type !== 'play') {
+        entry.type = play.type;
+      }
+      if (play.subject && play.subject !== 'track') {
+        entry.subject = play.subject;
+      }
+      if (play.who) {
+        entry.who = play.who;
+      }
+      if (play.value) {
+        entry.value = play.value;
       }
       return JSON.stringify(entry);
     });
@@ -116,6 +165,11 @@ export function parseEntry(line: string): PlayEntry | undefined {
     estimated: stored.est === true,
     id: stored.id,
     source: stored.src === 'phone' ? 'phone' : 'desktop',
+    subject: stored.subject === 'album' ? 'album' : 'track',
+    // a line with no type predates the other events and is a play
+    type: stored.type || 'play',
+    value: stored.value,
+    who: stored.who,
   };
 }
 
@@ -128,6 +182,16 @@ export function readPlays(): PlayEntry[] {
     return [];
   }
   return text.split('\n').map(parseEntry).filter(Boolean) as PlayEntry[];
+}
+
+/** Just the plays, which is what the listening charts mean. */
+export function onlyPlays(entries: PlayEntry[]): PlayEntry[] {
+  return entries.filter((entry) => entry.type === 'play');
+}
+
+/** Every entry of one type, for counting skips or favourites over time. */
+export function ofType(entries: PlayEntry[], type: EventType): PlayEntry[] {
+  return entries.filter((entry) => entry.type === type);
 }
 
 /** The local day an entry falls in, as `2026-11-05`. */
