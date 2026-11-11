@@ -2,6 +2,7 @@ import {deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, upda
 import {Album, AlbumInfo, Artist, ArtistInfo, Genre, LibraryInfo, Track, TrackInfo, TrackWarning} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
+import {removeAlbumArt} from './artRemoval';
 import ArtZoom from './ArtZoom';
 import CoverArtLabel from './CoverArtLabel';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
@@ -23,7 +24,7 @@ import {
   getAlbumById, getArtistByName, getArtistsByIds, getGenreById, getTrackById, getTracksByIds, getWarningsFromAlbum
 } from './redux/selectors';
 import shortid from 'shortid';
-import {RootState} from './redux/store';
+import reduxStore, {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 import {getImgSrc, toTime} from './utils';
 import WikiLabel from './WikiLabel';
@@ -96,6 +97,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
             coverArt={this.props.album.coverArt}
             close={() => this.setState({zooming: false})}
             file={file}
+            onRemove={() => this.removeArt()}
             onRun={() => this.runCoverArt()}
             subtitle={this.props.artists.map((artist) => artist.name).join(', ')}
             title={this.props.album.name}
@@ -190,6 +192,18 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
    * leaving a button that looks like it did nothing. The extension dispatches its own library
    * update as it goes, so this only has to apply the final delta.
    */
+  /**
+   * Takes the cover off this album and deletes the file.
+   *
+   * Only reachable from the zoom, so the picture has been looked at — which is how anyone finds
+   * out it is the wrong one. Nothing else in the app can remove an image: the extensions write
+   * one only when it is bigger than what is there, so art fetched against a bad MusicBrainz
+   * match used to be permanent even after the mbid was cleared.
+   */
+  private removeArt(): void {
+    this.props.updateAlbum(this.props.album.id, removeAlbumArt(reduxStore.getState(), this.props.album));
+  }
+
   private runCoverArt(): Promise<void> {
     return Promise.resolve(this.props.runCoverArtExtension([this.props.album.id]))
       .then((updates) => {

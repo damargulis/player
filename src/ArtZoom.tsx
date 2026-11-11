@@ -18,6 +18,13 @@ interface OwnProps {
    * behind a 100px thumbnail, so the button was an invitation with nothing to judge it by.
    */
   onRun?(): Promise<void>;
+  /**
+   * When given, a Remove button that deletes the picture.
+   *
+   * Here for the same reason Run is: this is the only place the picture can actually be looked
+   * at, and looking at it is how you find out it is the wrong one.
+   */
+  onRemove?(): void;
   close(): void;
 }
 
@@ -26,6 +33,8 @@ interface State {
   size?: {width: number; height: number};
   running?: boolean;
   message?: string;
+  /** Removal is a file deletion, so it asks first. */
+  confirmingRemove?: boolean;
   /** 1 means fitted to the window; above that is zoomed in. */
   scale: number;
   /** Pan offset from centre, in screen pixels. */
@@ -123,7 +132,22 @@ export default class ArtZoom extends React.Component<OwnProps, State> {
             <button disabled={scale <= MIN_SCALE} onClick={() => this.zoomBy(1 / STEP)}>−</button>
             <button disabled={scale >= MAX_SCALE} onClick={() => this.zoomBy(STEP)}>+</button>
             <button disabled={scale === 1} onClick={() => this.reset()}>Fit</button>
+            {this.props.onRemove && !this.state.confirmingRemove && (
+              <button
+                onClick={() => this.setState({confirmingRemove: true})}
+                title="Delete this picture"
+              >
+                Remove
+              </button>
+            )}
           </span>
+          {this.state.confirmingRemove && (
+            <span className="artZoomConfirm">
+              <span>Delete this picture?</span>
+              <button className="artZoomDanger" onClick={() => this.remove()}>Delete</button>
+              <button onClick={() => this.setState({confirmingRemove: false})}>Cancel</button>
+            </span>
+          )}
         </div>
       </div>
     );
@@ -165,6 +189,15 @@ export default class ArtZoom extends React.Component<OwnProps, State> {
       return false;
     }
     return Math.max(size.width, size.height) >= marker.maxPx;
+  }
+
+  /** Closes afterwards: the thing this window exists to show is gone. */
+  private remove(): void {
+    this.setState({confirmingRemove: false});
+    if (this.props.onRemove) {
+      this.props.onRemove();
+    }
+    this.props.close();
   }
 
   private run(): void {

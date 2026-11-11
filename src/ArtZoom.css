@@ -138,3 +138,43 @@
   font-size: 11px;
   font-style: italic;
 }
+
+.artZoomConfirm {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.artZoomConfirm span {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.artZoomConfirm button {
+  background: var(--bg, #121216);
+  border: 1px solid var(--border, #33333a);
+  border-radius: 6px;
+  color: var(--text-dim, #9a9aa6);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  margin: 0;
+  padding: 4px 8px;
+}
+
+.artZoomConfirm button:hover {
+  border-color: var(--accent, #8b7cf6);
+  color: var(--text, #e7e7ec);
+}
+
+.artZoomConfirm .artZoomDanger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.artZoomConfirm .artZoomDanger:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}

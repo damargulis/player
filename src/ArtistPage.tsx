@@ -5,6 +5,7 @@ import ArtistConcerts from './ArtistConcerts';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
 import ArtistPicLabel from './ArtistPicLabel';
+import {removeArtistArt} from './artRemoval';
 import ArtZoom from './ArtZoom';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
@@ -17,7 +18,7 @@ import Modal from 'react-modal';
 import {connect} from 'react-redux';
 import {artistStepNames, runAllForArtist} from './extensions/runAll';
 import {getAlbumsByIds, getArtistById, getGenreById, getTracksByIds} from './redux/selectors';
-import {RootState} from './redux/store';
+import reduxStore, {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
 import {getImgSrc} from './utils';
 import WikiLabel from './WikiLabel';
@@ -77,6 +78,7 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
           <ArtZoom
             close={() => this.setState({zooming: false})}
             file={file}
+            onRemove={() => this.removeArt()}
             title={this.props.artist.name}
           />
         )}
@@ -185,6 +187,17 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
 
   private closeEdit(): void {
     this.setState({editing: false});
+  }
+
+  /**
+   * Takes the picture off this artist and deletes the file.
+   *
+   * This is the case that asked for it: a MusicBrainz match that turned out to be the wrong
+   * artist leaves a picture behind, and clearing the mbid does not remove it — nothing in the
+   * app ever deleted an image, because every writer only replaces one with a bigger one.
+   */
+  private removeArt(): void {
+    this.props.updateArtist(this.props.artist.id, removeArtistArt(reduxStore.getState(), this.props.artist));
   }
 
   private runWiki(): void {
