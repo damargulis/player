@@ -11,6 +11,7 @@ import SearchBar from './SearchBar';
 import {getSelectedGenres} from './redux/selectors';
 import shortid from 'shortid';
 import {RootState} from './redux/store';
+import {matchesSearch} from './utils';
 import WrappedGrid from './WrappedGrid';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -107,12 +108,8 @@ class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState>
   }
 
   private sortArtists(artists: Artist[]): Artist[] {
-    return artists.filter((artist) => {
-      if (this.state.search) {
-        return artist.name.toLowerCase().includes(this.state.search.toLowerCase());
-      }
-      return true;
-    }).sort((artist1, artist2) => {
+    return artists.filter((artist) => matchesSearch(artist.name, this.state.search))
+      .sort((artist1, artist2) => {
       return artist1.name.localeCompare(artist2.name);
     });
   }

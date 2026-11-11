@@ -11,6 +11,7 @@ import SearchBar from './SearchBar';
 import {getArtistsByIds, getSelectedGenres} from './redux/selectors';
 import shortid from 'shortid';
 import {RootState} from './redux/store';
+import {matchesSearch} from './utils';
 import WrappedGrid from './WrappedGrid';
 
 import './App.css';
@@ -62,12 +63,8 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
   }
 
   public sortAlbums(albums: Album[]): Album[] {
-    return albums.filter((album) => {
-      if (!this.state.search) {
-        return true;
-      }
-      return album.name.includes(this.state.search);
-    }).sort((album1, album2) => {
+    return albums.filter((album) => matchesSearch(album.name, this.state.search || ''))
+      .sort((album1, album2) => {
       if (this.state.reverse) {
         return this.state.sortMethod(album2, album1);
       }

@@ -20,7 +20,7 @@ import {RootState} from './redux/store';
 import '../node_modules/react-virtualized/styles.css';
 import TrackEditor from './TrackEditor';
 import './TrackPicker.css';
-import {toTime} from './utils';
+import {matchesSearch, toTime} from './utils';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
 Modal.setAppElement('#root');
@@ -210,12 +210,9 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
   }
 
   private sortTracks(sortBy: string, sortDirection: string): Track[] {
-    let tracks = this.props.tracksToShow.slice().filter((track) => {
-      if (this.state && this.state.search) {
-        return track.name.toLowerCase().includes(this.state.search.toLowerCase());
-      }
-      return true;
-    });
+    const search = this.state ? this.state.search : '';
+    let tracks = this.props.tracksToShow.slice()
+      .filter((track) => matchesSearch(track.name, search));
     switch (sortBy) {
     case 'index':
       break;

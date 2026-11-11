@@ -8,6 +8,32 @@ function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+/**
+ * Folds text for searching: case and accents removed.
+ *
+ * Accents as well as case, because the obvious query failing is the same complaint either way
+ * — "bjork" finding nothing for Björk is no better than "radiohead" finding nothing for
+ * Radiohead. 14 artists and 15 albums in this library carry a non-ASCII letter, and the game
+ * windows had to learn this lesson separately.
+ */
+function foldForSearch(text: string): string {
+  return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036F]/g, '');
+}
+
+/**
+ * Whether `text` contains `query`, ignoring case and accents.
+ *
+ * One rule for every search box. The album, artist and track lists each had their own copy of
+ * this and the album one had drifted: it compared raw strings, so searching the album list for
+ * "abbey road" found nothing while the other two lists worked.
+ */
+export function matchesSearch(text: string, query: string): boolean {
+  if (!query) {
+    return true;
+  }
+  return foldForSearch(text).includes(foldForSearch(query));
+}
+
 export function formatGenre(genre: string): string {
   const genreString = genre.trim().split(' ').map(
     (word) => capitalize(word)).join(' ');
