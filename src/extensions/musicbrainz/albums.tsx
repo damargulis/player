@@ -15,7 +15,7 @@ import {
 } from './api';
 import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
-import {addError, ExtensionError, removeError, setError} from '../errors';
+import {addError, ExtensionError, MetaSource, recordSource, removeError, setError} from '../errors';
 import fs from 'fs';
 import {getArtistsByIds, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
@@ -91,17 +91,15 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     const year = parseInt((lookup['first-release-date'] || '').slice(0, 4), 10);
     if (year) {
       album.year = year;
-      removeError(album, ExtensionError.YEAR);
-    } else {
-      addError(album, ExtensionError.YEAR);
     }
     const genres = getGenreNames(lookup.genres);
     if (genres.length) {
       album.genreIds = getGenreIds(store, genres);
-      removeError(album, ExtensionError.GENRE);
-    } else {
-      addError(album, ExtensionError.GENRE);
     }
+    // Recorded against this source rather than added or removed outright: the wiki extension
+    // runs after this one, and a page with no genre row used to erase what MusicBrainz found.
+    recordSource(album, 'year', MetaSource.MUSICBRAINZ, Boolean(year));
+    recordSource(album, 'genres', MetaSource.MUSICBRAINZ, genres.length > 0);
     return wikiPage.then((page: string | undefined) => {
       if (page) {
         album.wikiPage = page;

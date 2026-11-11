@@ -1,7 +1,7 @@
 import {Album, AlbumInfo, Artist, Track} from '../../redux/actionTypes';
 import {downloadIfBigger} from '../artFile';
 import {BASE_URL} from './constants';
-import {addError, ExtensionError, removeError, setError} from '../errors';
+import {addError, ExtensionError, MetaSource, recordSource, removeError, setError} from '../errors';
 import moment from 'moment';
 import * as React from 'react';
 import {getArtistById, getGenreIds, getTracksByIds} from '../../redux/selectors';
@@ -264,17 +264,14 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     const year = getYearByRow(rows);
     if (year) {
       album.year = year;
-      removeError(album, ExtensionError.YEAR);
-    } else {
-      addError(album, ExtensionError.YEAR);
     }
     const genres = getGenresByRow(rows);
     if (genres && genres.length) {
       album.genreIds = getGenreIds(store, genres);
-      removeError(album, ExtensionError.GENRE);
-    } else {
-      addError(album, ExtensionError.GENRE);
     }
+    // This page's word alone, so an infobox with no genre row no longer overrides MusicBrainz.
+    recordSource(album, 'year', MetaSource.WIKIPEDIA, Boolean(year));
+    recordSource(album, 'genres', MetaSource.WIKIPEDIA, Boolean(genres && genres.length));
     const playlists = getTracks(doc);
     const regularPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.SIDE);
     const regularTracks = regularPlaylists.map((playlist) => playlist.tracks).flat();

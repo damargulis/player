@@ -123,6 +123,8 @@ export interface Artist {
   albumIds: string[];
   artFile?: string;
   errors: string[];
+  /** As `Album.metaSources`; artists only ever carry `genres`. */
+  metaSources?: {genres?: string[]; year?: string[]};
   wikiPage?: string;
   mbid?: string;
   genreIds: string[];
@@ -143,6 +145,16 @@ export interface Album {
    * it later retries every album, the same reason `Track.genius.missedBy` stores a version.
    */
   coverArt?: {maxPx: number; target: number};
+  /**
+   * Which real sources (MusicBrainz, Wikipedia) last found genres and the year.
+   *
+   * Not the same shape of claim as `albumArtFile`. Having a picture is a fact about the album,
+   * so "no album art" is derived from the file; genres arrive from the iTunes import as well,
+   * and an imported genre is not one a source stands behind. Storing the provenance is what
+   * lets "no genres found" mean "nothing that knows could find any" without each extension
+   * having to know what the other one managed.
+   */
+  metaSources?: {genres?: string[]; year?: string[]};
   artistIds: string[];
   name: string;
   trackIds: string[];
@@ -269,6 +281,7 @@ export interface AlbumInfo {
   errors?: string[];
   albumArtFile?: string;
   coverArt?: {maxPx: number; target: number};
+  metaSources?: {genres?: string[]; year?: string[]};
   artistIds?: string[];
   name?: string;
   trackIds?: string[];
@@ -286,6 +299,7 @@ export interface ArtistInfo {
   albumIds?: string[];
   artFile?: string;
   errors?: string[];
+  metaSources?: {genres?: string[]; year?: string[]};
   wikiPage?: string;
   mbid?: string;
   genreIds?: string[];

@@ -1,6 +1,6 @@
 import {Album, Artist, Genre, LibraryState, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
-import {ExtensionError, migrateLegacyErrors, withError} from '../extensions/errors';
+import {ExtensionError, migrateLegacyErrors, withError, withSourceErrors} from '../extensions/errors';
 import fs from 'fs';
 import path from 'path';
 
@@ -62,10 +62,15 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             // ALBUM_ART says "this album has no art", so it is derived from whether it has a
             // file rather than trusted from storage — 257 albums here were flagged despite
             // having art, and 34 without any were not flagged at all.
-            errors: withError(migrateLegacyErrors(albumData.errors),
-              ExtensionError.ALBUM_ART, !albumData.albumArtFile),
+            // GENRE and YEAR cannot be derived the same way (the iTunes import writes both),
+            // so they are re-derived from which sources have reported instead.
+            errors: withSourceErrors(
+              withError(migrateLegacyErrors(albumData.errors),
+                ExtensionError.ALBUM_ART, !albumData.albumArtFile),
+              albumData.metaSources),
             albumArtFile: albumData.albumArtFile,
             coverArt: albumData.coverArt,
+            metaSources: albumData.metaSources,
             artistIds: albumData.artistIds,
             name: albumData.name,
             trackIds: albumData.trackIds,
@@ -87,8 +92,11 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             albumIds: artistData.albumIds,
             artFile: artistData.artFile,
             // PIC is the same shape of claim as ALBUM_ART, and was wrong the same way
-            errors: withError(migrateLegacyErrors(artistData.errors),
-              ExtensionError.PIC, !artistData.artFile),
+            errors: withSourceErrors(
+              withError(migrateLegacyErrors(artistData.errors),
+                ExtensionError.PIC, !artistData.artFile),
+              artistData.metaSources),
+            metaSources: artistData.metaSources,
             wikiPage: artistData.wikiPage,
             mbid: artistData.mbid,
             genreIds: artistData.genreIds,
