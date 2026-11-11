@@ -93,7 +93,7 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
       <div className="main">
         {this.state.zooming && file && (
           <ArtZoom
-            archiveMaxPx={this.props.album.coverArt && this.props.album.coverArt.maxPx}
+            coverArt={this.props.album.coverArt}
             close={() => this.setState({zooming: false})}
             file={file}
             onRun={() => this.runCoverArt()}

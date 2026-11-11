@@ -8,13 +8,8 @@ interface OwnProps {
   file: string;
   title: string;
   subtitle?: string;
-  /**
-   * The largest the Cover Art Archive could supply, from `Album.coverArt`.
-   *
-   * Compared against the file to say "largest the Archive has", so a run that cannot improve
-   * anything is not presented as one that could.
-   */
-  archiveMaxPx?: number;
+  /** `Album.coverArt`: the largest CAA served, and the size that was asked for. */
+  coverArt?: {maxPx: number; target: number};
   /**
    * When given, a Run button beside the dimensions.
    *
@@ -153,11 +148,23 @@ export default class ArtZoom extends React.Component<OwnProps, State> {
     return `${dims} · ${percent}% of actual size`;
   }
 
-  /** True when the file already matches what the Archive gave, so a run cannot improve it. */
+  /**
+   * True when the Archive is the limit, which is only knowable **below** the target.
+   *
+   * `maxPx` is what CAA served for `front-1200`, and CAA does not upscale: under 1200 means the
+   * community's upload really is that small, so a re-run cannot help and saying so is worth a
+   * line. At 1200 it means only "the original is at least 1200" — the Archive may well hold a
+   * 2848px `front` that the extension deliberately does not ask for. Shown there, the note was
+   * both uninformative and untrue, and on this library that was 1,192 albums against the 798
+   * it actually tells you something about.
+   */
   private atArchiveBest(): boolean {
     const {size} = this.state;
-    const max = this.props.archiveMaxPx;
-    return !!size && !!max && Math.max(size.width, size.height) >= max;
+    const marker = this.props.coverArt;
+    if (!size || !marker || marker.maxPx >= marker.target) {
+      return false;
+    }
+    return Math.max(size.width, size.height) >= marker.maxPx;
   }
 
   private run(): void {
