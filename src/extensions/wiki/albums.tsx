@@ -7,6 +7,7 @@ import moment from 'moment';
 import * as React from 'react';
 import {getArtistById, getTracksByIds} from '../../redux/selectors';
 import {RootState} from '../../redux/store';
+import {getTracklists, TrackInfo, TracklistResult} from './tracklist';
 import {findAsync, getDoc, getGenresByRow, sanitize} from './utils';
 
 function getYear(rootNode: HTMLElement): number {
@@ -84,161 +85,6 @@ function searchForWikiPage(store: RootState, album: Album): Promise<string> {
   });
 }
 
-function getInsideOfQuotes(text: string): string {
-  const matches = text.match(/"(?<inner>.*?)"/);
-  return matches && matches.groups ? matches.groups.inner : '';
-}
-
-function getAllNodesInSection(doc: Document, headerText: string): Element[] {
-  const headerNodes = [...doc.querySelectorAll('h1, h2, h3, h4, h5, h6')];
-
-  const targetHeader = headerNodes.find((node) => node.textContent && node.textContent.includes(headerText));
-  if (!targetHeader) {
-    return [];
-  }
-  const targetIndex = headerNodes.indexOf(targetHeader);
-  const contentNodes = [];
-  let nextNode = targetHeader.nextElementSibling;
-  while (nextNode && nextNode.tagName !== targetHeader.tagName) {
-    contentNodes.push(nextNode);
-    nextNode = nextNode.nextElementSibling;
-  }
-  return contentNodes;
-}
-
-function getFeaturedText(text: string): string {
-  const matches = text.match(/\(featuring (?<inner>.*?)\)/);
-  return matches && matches.groups ? matches.groups.inner : '';
-}
-
-function getFeaturedArtists(text: string): string[] {
-  const featuredText = getFeaturedText(text);
-  const parts = featuredText.split(/, | and /);
-  return parts.filter((part) => part.length > 0);
-}
-
-enum TracklistType {
-  SIDE,
-  BONUS,
-}
-
-function classifyHeader(header: Element): TracklistType {
-  return classifyText(header.textContent && header.textContent.toLowerCase());
-}
-
-function classifyTable(table: HTMLTableElement): TracklistType {
-  return classifyText(table.caption && table.caption.textContent);
-}
-
-function classifyText(text: string | null): TracklistType {
-  if (!text) {
-    return TracklistType.SIDE;
-  } else if (text.includes('bonus')) {
-    return TracklistType.BONUS;
-  } else if (text.includes('Bonus')) {
-    return TracklistType.BONUS;
-  } else if (text.includes('Anniversary')) {
-    return TracklistType.BONUS;
-  }
-  return TracklistType.SIDE;
-}
-
-interface TrackInfo {
-  name: string;
-  featuring: string[];
-}
-
-function getTrackInfoFromString(str: string): TrackInfo | undefined {
-  const title = getInsideOfQuotes(str);
-  if (!title) {
-    return undefined;
-  }
-  return {
-    name: title,
-    featuring: getFeaturedArtists(str),
-  };
-}
-
-function getTracksFromList(list: HTMLOListElement): TrackInfo[] {
-  const items = list.getElementsByTagName('li');
-  const tracks = [];
-  for (const item of items) {
-    const text = item.textContent || '';
-    // 8211 = long hyphen character
-    let split = text.split(String.fromCharCode(8211));
-    let title = split[0];
-    // 45 = short hypen character
-    split = title.split(String.fromCharCode(45));
-    title = split[0] || '';
-    const info = getTrackInfoFromString(title.trim());
-    if (info) {
-      tracks.push(info);
-    }
-  }
-  return tracks;
-}
-
-function getTracksFromTable(table: HTMLTableElement): TrackInfo[] {
-  const header = table.rows[0];
-  const infos = [] as TrackInfo[];
-  const headerCells = [...header.cells];
-  const titleCell = headerCells.find((cell) => cell.textContent === 'Title');
-  const titleIndex = headerCells.indexOf(titleCell as HTMLTableHeaderCellElement);
-  for (const row of table.rows) {
-    if (row === header) {
-      continue;
-    }
-    const info = getTrackInfoFromString(row.cells[titleIndex].textContent || '');
-    if (info) {
-      infos.push(info);
-    }
-  }
-  return infos;
-}
-
-interface PlaylistInfo {
-  classification: TracklistType;
-  tracks: TrackInfo[];
-}
-
-export function getTracks(doc: Document): PlaylistInfo[] {
-  const tracklistSection = getAllNodesInSection(doc, 'Track listing');
-  const tables = tracklistSection.filter((ele) => ele instanceof HTMLTableElement) as HTMLTableElement[];
-  if (tables.length > 0) {
-    return tables.map((table) => {
-      return {
-        classification: classifyTable(table),
-        tracks: getTracksFromTable(table),
-      };
-    });
-  }
-  const headers = [] as Element[];
-  const lists = [] as HTMLOListElement[];
-  tracklistSection.forEach((section, index) => {
-    if (section instanceof HTMLOListElement) {
-      lists.push(section);
-      if (index > 0) {
-        headers.push(tracklistSection[index - 1]);
-      }
-    }
-  });
-  if (lists.length === 1 && headers.length === 0) {
-    return [{
-      classification: TracklistType.SIDE,
-      tracks: getTracksFromList(lists[0]),
-    }];
-  }
-  if (headers.length !== lists.length) {
-    return [];
-  }
-  return headers.map((header, index) => {
-    return {
-      classification: classifyHeader(header),
-      tracks: getTracksFromList(lists[index]),
-    };
-  });
-}
-
 function setTrackWarnings(track: Track, trackInfo: TrackInfo): void {
   const warning = track.warning || {};
   if (track.name !== trackInfo.name) {
@@ -249,6 +95,40 @@ function setTrackWarnings(track: Track, trackInfo: TrackInfo): void {
   }
   if (Object.keys(warning).length > 0) {
     track.warning = warning;
+  }
+}
+
+/**
+ * Sets the tracklist errors from what the page said.
+ *
+ * `TRACKLIST` is the new one and the reason this reads clearly at last: an unreadable page used
+ * to fall through to `TRACK`, so "wrong number of tracks" was being reported for every album
+ * with a Wikipedia page. When the tracklist cannot be read, `TRACK` is left exactly as it is —
+ * MusicBrainz may have a real verdict on it, and overwriting that with nothing is the drift
+ * that `metaSources` exists to stop elsewhere.
+ *
+ * Bonus tracks listed on the page are deliberately **not** an error. An album that matches the
+ * main release exactly is complete; that it was later reissued with three extra tracks is a
+ * fact about the reissue. The old code flagged it anyway, with a `TODO` asking whether it
+ * should be a warning — which mattered little while nothing parsed, and would have flagged
+ * most of the library the moment this started working.
+ */
+export function compareTracks(store: RootState, album: Album, parsed: TracklistResult): void {
+  setError(album, ExtensionError.TRACKLIST, !parsed.readable);
+  if (!parsed.readable) {
+    return;
+  }
+  const refTracks = getTracksByIds(store, album.trackIds);
+  const everything = [...parsed.main, ...parsed.alternate];
+  if (refTracks.length === parsed.main.length) {
+    refTracks.forEach((track, index) => setTrackWarnings(track, parsed.main[index]));
+    removeError(album, ExtensionError.TRACK);
+  } else if (refTracks.length === everything.length) {
+    // every edition's tracks, which is what owning a deluxe reissue looks like
+    refTracks.forEach((track, index) => setTrackWarnings(track, everything[index]));
+    removeError(album, ExtensionError.TRACK);
+  } else {
+    addError(album, ExtensionError.TRACK);
   }
 }
 
@@ -269,34 +149,7 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     // This page's word alone, so an infobox with no genre row no longer overrides MusicBrainz.
     recordYear(album, MetaSource.WIKIPEDIA, Boolean(year));
     applyGenres(store, album, MetaSource.WIKIPEDIA, getGenresByRow(rows) || []);
-    const playlists = getTracks(doc);
-    const regularPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.SIDE);
-    const regularTracks = regularPlaylists.map((playlist) => playlist.tracks).flat();
-    const bonusPlaylists = playlists.filter((playlist) => playlist.classification === TracklistType.BONUS);
-    const bonusTracks = bonusPlaylists.map((playlist) => playlist.tracks).flat();
-    const refTracks = getTracksByIds(store, album.trackIds);
-    removeError(album, ExtensionError.TRACK);
-    if (refTracks.length < regularTracks.length) {
-      addError(album, ExtensionError.TRACK);
-    } else if (refTracks.length === regularTracks.length) {
-      refTracks.forEach((track, index) => {
-        setTrackWarnings(track, regularTracks[index]);
-      });
-      // TODO: make this a warning?
-      if (bonusTracks.length > 0) {
-       addError(album, ExtensionError.TRACK);
-      }
-    } else if (refTracks.length < regularTracks.length + bonusTracks.length) {
-       addError(album, ExtensionError.TRACK);
-       // see if it matches just some bonus versions?
-    } else if (refTracks.length === regularTracks.length + bonusTracks.length) {
-     const totalTracks = [...regularTracks, ...bonusTracks];
-     refTracks.forEach((track, index) => {
-       setTrackWarnings(track, totalTracks[index]);
-     });
-    } else {
-     addError(album, ExtensionError.TRACK);
-    }
+    compareTracks(store, album, getTracklists(doc, album.name));
 
     const pics = infoBox.getElementsByTagName('img');
     // TODO: take multiple pictures (rotate them elsewhere in the app)

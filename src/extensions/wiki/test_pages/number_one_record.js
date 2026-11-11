@@ -1,442 +1,696 @@
-
 /**
- * Number 1 Record - Big Star
+ * #1 Record - Big Star
  * URL: https://en.wikipedia.org/wiki/Number_1_Record
  *
+ * Saved 2026-11-11. Trimmed to a real prefix of the page, ending at the close of the Track listing
+ * section, so the infobox and the Parsoid <section>/div.mw-heading wrappers are intact.
  */
-const doc = `<!DOCTYPE html>
-<html class="client-nojs" lang="en" dir="ltr">
-  <head>
-  <meta charset="UTF-8"/>
-  <title>Number 1 Record - Wikipedia</title>
-  <link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=ext.categoryTree.styles%7Cext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediaBadges%7Cjquery.makeCollapsible.styles%7Cskins.vector.styles.legacy%7Cwikibase.client.init&amp;only=styles&amp;skin=vector"/>
-  <script async="" src="/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector"></script>
-  <meta name="ResourceLoaderDynamicStyles" content=""/>
-  <link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector"/>
-  <meta name="generator" content="MediaWiki 1.36.0-wmf.22"/>
-  <meta name="referrer" content="origin"/>
-  <meta name="referrer" content="origin-when-crossorigin"/>
-  <meta name="referrer" content="origin-when-cross-origin"/>
-  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/en/5/57/Big_Star_-1_Record.jpg"/>
-  <link rel="preconnect" href="//upload.wikimedia.org"/>
-  <link rel="alternate" media="only screen and (max-width: 720px)" href="//en.m.wikipedia.org/wiki/Number_1_Record"/>
-  <link rel="alternate" type="application/x-wiki" title="Edit this page" href="/w/index.php?title=Number_1_Record&amp;action=edit"/>
-  <link rel="edit" title="Edit this page" href="/w/index.php?title=Number_1_Record&amp;action=edit"/>
-  <link rel="apple-touch-icon" href="/static/apple-touch/wikipedia.png"/>
-  <link rel="shortcut icon" href="/static/favicon/wikipedia.ico"/>
-  <link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Wikipedia (en)"/>
-  <link rel="EditURI" type="application/rsd+xml" href="//en.wikipedia.org/w/api.php?action=rsd"/>
-  <link rel="license" href="//creativecommons.org/licenses/by-sa/3.0/"/>
-  <link rel="canonical" href="https://en.wikipedia.org/wiki/Number_1_Record"/>
-  <link rel="dns-prefetch" href="//login.wikimedia.org"/>
-  <link rel="dns-prefetch" href="//meta.wikimedia.org" />
-  </head>
-  <body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject mw-editable page-Number_1_Record rootpage-Number_1_Record skin-vector action-view skin-vector-legacy"><div id="mw-page-base" class="noprint"></div>
-  <div id="mw-head-base" class="noprint"></div>
-  <div id="content" class="mw-body" role="main">
-      <a id="top"></a>
-      <div id="siteNotice" class="mw-body-content"><!-- CentralNotice --></div>
-      <div class="mw-indicators mw-body-content">
-      </div>
-      <h1 id="firstHeading" class="firstHeading" lang="en"><i>Number 1 Record</i></h1>
-      <div id="bodyContent" class="mw-body-content">
-          <div id="siteSub" class="noprint">From Wikipedia, the free encyclopedia</div>
-          <div id="contentSub"></div>
-          <div id="contentSub2"></div>
-          
-          <div id="jump-to-nav"></div>
-          <a class="mw-jump-link" href="#mw-head">Jump to navigation</a>
-          <a class="mw-jump-link" href="#searchInput">Jump to search</a>
-          <div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><div class="mw-parser-output"><p class="mw-empty-elt">
-  </p>
-  <div role="note" class="hatnote navigation-not-searchable"><div style="display:inline;" class="plainlinks selfreference noprint">The correct title of this article is <b>#1 Record</b>. The substitution of the <a href="/wiki/Number_sign" title="Number sign">#</a> is due to <a href="/wiki/Wikipedia:Naming_conventions_(technical_restrictions)" title="Wikipedia:Naming conventions (technical restrictions)">technical restrictions</a>.</div></div>
-  <div class="shortdescription nomobile noexcerpt noprint searchaux" style="display:none">1972 studio album&#32;by Big Star</div><table class="infobox vevent haudio" style="width:22em"><tbody><tr><th colspan="2" class="summary album" style="text-align:center;font-size:125%;font-weight:bold;font-style: italic; background-color: lightsteelblue">Number 1 Record</th></tr><tr><td colspan="2" style="text-align:center"><a href="/wiki/File:Big_Star_-1_Record.jpg" class="image" title="A white neon star with the word &quot;BIG&quot; in neon yellow in the middle"><img alt="A white neon star with the word &quot;BIG&quot; in neon yellow in the middle" src="//upload.wikimedia.org/wikipedia/en/thumb/5/57/Big_Star_-1_Record.jpg/220px-Big_Star_-1_Record.jpg" decoding="async" width="220" height="224" srcset="//upload.wikimedia.org/wikipedia/en/5/57/Big_Star_-1_Record.jpg 1.5x" data-file-width="313" data-file-height="318" /></a></td></tr><tr><th colspan="2" class="description" style="text-align:center;background-color: lightsteelblue"><a href="/wiki/Album" title="Album">Studio album</a>&#32;by <div class="contributor" style="display:inline"><a href="/wiki/Big_Star" title="Big Star">Big Star</a></div></th></tr><tr><th scope="row">Released</th><td class="published">August 1972</td></tr><tr><th scope="row">Recorded</th><td class="plainlist">1972</td></tr><tr><th scope="row">Studio</th><td class="plainlist">Ardent Studios, Memphis</td></tr><tr><th scope="row"><a href="/wiki/Music_genre" title="Music genre">Genre</a></th><td class="category hlist"><a href="/wiki/Power_pop" title="Power pop">Power pop</a><sup id="cite_ref-1" class="reference"><a href="#cite_note-1">&#91;1&#93;</a></sup></td></tr><tr><th scope="row">Length</th><td><span class="duration"><span class="min">37</span>:<span class="s">03</span></span></td></tr><tr><th scope="row"><a href="/wiki/Record_label" title="Record label">Label</a></th><td class="hlist"><a href="/wiki/Ardent_Records" title="Ardent Records">Ardent</a></td></tr><tr><th scope="row"><a href="/wiki/Record_producer" title="Record producer">Producer</a></th><td class="hlist"><a href="/wiki/John_Fry_(record_producer)" title="John Fry (record producer)">John Fry</a></td></tr><tr><th colspan="2" class="description" style="text-align:center;background-color: lightsteelblue"><a href="/wiki/Big_Star" title="Big Star">Big Star</a> chronology</th></tr><tr><td colspan="2" style="text-align:center">
-<table style="background: transparent; width: 100%; min-width: 100%; border-collapse: collapse">
+const doc = String.raw`<!DOCTYPE html>
+<html class="client-nojs vector-feature-language-in-header-enabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard skin-underline-clientpref-browser" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Number 1 Record - Wikipedia</title>
+<script>(function(){var className="client-js vector-feature-language-in-header-enabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard skin-underline-clientpref-browser";var cookie=document.cookie.match(/(?:^|; )enwikimwclientpreferences=([^;]+)/);if(cookie){cookie[1].split('%2C').forEach(function(pref){className=className.replace(new RegExp('(^| )'+pref.replace(/-clientpref-\w+$|[^\w-]+/g,'')+'-clientpref-\\w+( |$)'),'$1'+pref+'$2');});}document.documentElement.className=className;}());RLCONF={"wgBreakFrames":false,"wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgRequestId":"9b883dea-1a9f-4a8a-a9e3-7e80a272b0eb","wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Number_1_Record","wgTitle":"Number 1 Record","wgCurRevisionId":1376099667,"wgRevisionId":1376099667,"wgArticleId":3412884,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Use mdy dates from July 2017","Restricted titles (leading number sign)","Articles with short description","Short description is different from Wikidata","Articles with hAudio microformats","Big Star albums","1972 debut albums","Ardent Records albums","Stax Records albums","Albums produced by John Fry (record producer)"],"wgPageViewLanguage":"en","wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgRelevantPageName":"Number_1_Record","wgRelevantArticleId":3412884,"wgTempUserName":null,"wgIsProbablyEditable":true,"wgRelevantPageIsProbablyEditable":true,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgNoticeProject":"wikipedia","wgFlaggedRevsParams":{"tags":{"status":{"levels":1}},"namespaces":[0,4]},"wgConfirmEditCaptchaNeededForGenericEdit":"hcaptcha","wgConfirmEditForceShowCaptcha":false,"wgConfirmEditHCaptchaSiteKey":"5d0c670e-a5f4-4258-ad16-1f42792c9c62","wgMediaViewerOnClick":true,"wgMediaViewerEnabledByDefault":true,"wgMediaViewerDesktopVue":false,"wgPopupsFlags":0,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","pageVariantFallbacks":"en"},"wgWMESchemaEditAttemptStepOversample":false,"wgWMEPageLength":20000,"wgParsoidHtmlVersion":"2.8.0","parsermigration-parsoid":true,"wgPageAssessments":{"Albums":{"class":"C","importance":""},"Project-independent assessment":{"class":"C","importance":""}},"wgTestKitchenUserExperiments":{"overrides":[],"enrolled":[],"assigned":[],"subject_ids":[]},"wgEditSubmitButtonLabelPublish":true,"wgVisualEditorPageIsDisambiguation":false,"wgULSPosition":"interlanguage","wgULSisCompactLinksEnabled":false,"wgULSContentLanguageSelectorEnabled":true,"wgULSLanguageSelectorV2Enabled":true,"wgWikibaseItemId":"Q269307","wgCheckUserClientHintsHeadersJsApi":["brands","architecture","bitness","fullVersionList","mobile","model","platform","platformVersion"],"wgCheckUserClientHintsInEditRequest":true,"wgPersonalDashboardMenuVisible":false};
+RLSTATE={"ext.globalCssJs.user.styles":"ready","site.styles":"ready","user.styles":"ready","ext.globalCssJs.user":"ready","user":"ready","user.options":"loading","ext.cite.parsoid.styles":"ready","ext.cite.styles":"ready","ext.wikimediamessages.styles":"ready","skins.vector.search.codex.styles":"ready","skins.vector.styles":"ready","skins.vector.icons":"ready","jquery.makeCollapsible.styles":"ready","mediawiki.skins.legacy":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","wikibase.client.init":"ready","ext.readingLists.bookmark.icons":"ready","ext.readingLists.bookmark.styles":"ready"};RLPAGEMODULES=["ext.cite.ux-enhancements","ext.scribunto.logs","site","mediawiki.page.ready","jquery.makeCollapsible","mediawiki.toc","skins.vector.js","ext.centralNotice.geoIP","ext.centralNotice.startUp","ext.gadget.ReferenceTooltips","ext.gadget.switcher","ext.urlShortener.toolbar","ext.centralauth.centralautologin","ext.testKitchen","ext.wikimediaCustomizations.donorAccountCreation","mmv.bootstrap","ext.popups","ext.visualEditor.desktopArticleTarget.init","ext.echo.centralauth","ext.eventLogging","ext.wikimediaEvents","ext.navigationTiming","ext.uls.interface","ext.cx.eventlogging.campaigns","ext.cx.uls.quick.actions","wikibase.client.vector-2022","wikibase.databox.fromWikidata","ext.checkUser.clientHints","ext.readerExperiments/preferredSources","ext.readingLists.bookmark.anonymous"];</script>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.impl(function(){return["user.options@12s5i",function($,jQuery,require,module){mw.user.tokens.set({"patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});mw.user.options.set({"usecodemirror":1});
+}];});});</script>
+<link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=ext.cite.parsoid.styles%7Cext.cite.styles%7Cext.readingLists.bookmark.icons%2Cstyles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediamessages.styles%7Cjquery.makeCollapsible.styles%7Cmediawiki.skins.legacy%7Cskins.vector.icons%2Cstyles%7Cskins.vector.search.codex.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector-2022">
+<script async="" src="/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector-2022"></script>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector-2022">
+<meta name="generator" content="MediaWiki 1.48.0-wmf.3">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/en/5/57/Big_Star_-1_Record.jpg?utm_source=en.wikipedia.org&amp;utm_campaign=index&amp;utm_content=thumbnail_unscaled">
+<meta property="og:image:width" content="1181">
+<meta property="og:image:height" content="1200">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="Number 1 Record - Wikipedia">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="//thumb.wikimedia.org">
+<link rel="discord:component-embed" type="application/json" href="https://en.wikipedia.org/w/rest.php/discord/v0-internal/discord-preview?title=Number+1+Record&amp;db=enwiki&amp;lang=en">
+<link rel="alternate" type="application/x-wiki" title="Edit this page" href="/w/index.php?title=Number_1_Record&amp;action=edit">
+<link rel="apple-touch-icon" href="/static/apple-touch/wikipedia.png">
+<link rel="icon" href="/static/favicon/wikipedia.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="/w/rest.php/v1/search" title="Wikipedia (en)">
+<link rel="EditURI" type="application/rsd+xml" href="//en.wikipedia.org/w/api.php?action=rsd">
+<link rel="canonical" href="https://en.wikipedia.org/wiki/Number_1_Record">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.en">
+<link rel="alternate" type="application/atom+xml" title="Wikipedia Atom feed" href="/w/index.php?title=Special:RecentChanges&amp;feed=atom">
+<link rel="dns-prefetch" href="//meta.wikimedia.org" />
+<link rel="dns-prefetch" href="auth.wikimedia.org">
+</head>
+<body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt action-view skin-vector-2022 ns-0 ns-subject mw-editable page-Number_1_Record rootpage-Number_1_Record skin--responsive skin-vector skin-vector-search-vue">
+<div id="mw-aria-live-region" class="mw-aria-live-region" aria-live="polite"></div><a class="mw-jump-link" href="#bodyContent">Jump to content</a>
+<div class="vector-header-container">
+	<header class="vector-header mw-header no-font-mode-scale">
+		<div class="vector-header-start">
+			<nav class="vector-main-menu-landmark" aria-label="Site">
+				
+<div id="vector-main-menu-dropdown" class="vector-dropdown vector-main-menu-dropdown vector-button-flush-left vector-button-flush-right"  title="Main menu" >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-main-menu-dropdown" class="vector-dropdown-checkbox "  aria-label="Main menu"   >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-menu mw-ui-icon-wikimedia-menu cdx-button__icon"></span>
 
-  <tbody><tr style="line-height: 1.4em;">
-  <td style="width: 33%; text-align: center; vertical-align: top; padding: .2em .1em .2em 0"><span style="display:none"></span>
-  </td>
-  <td style="width: 33%; text-align: center; vertical-align: top; padding: .2em .1em"><i><b>Number 1 Record</b></i><br />(1972)
-</td>
-  <td style="width: 33%; text-align: center; vertical-align: top; padding: .2em 0 .2em .1em"><i><a href="/wiki/Radio_City_(album)" title="Radio City (album)">Radio City</a></i><br />(1974)
-</td></tr></tbody></table></td></tr></tbody></table>
-  <p><i><b>#1 Record</b></i> is the debut album by the American rock band <a href="/wiki/Big_Star" title="Big Star">Big Star</a>. It was released in August 1972 by <a href="/wiki/Memphis,_Tennessee" title="Memphis, Tennessee">Memphis</a>-based <a href="/wiki/Ardent_Records" title="Ardent Records">Ardent Records</a>.
-  </p><p>Many critics praised the album's vocal harmonies and songcraft but <i>#1 Record</i> suffered from poor distribution and sold fewer than 10,000 copies upon its initial release. However, <i>#1 Record</i> gained wider attention in the late '70s in the UK when EMI reissued it with <i>Radio City</i> as a double LP package due to increasing demand.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2">&#91;2&#93;</a></sup> The same combination was used when the album was released on CD in 1992.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3">&#91;3&#93;</a></sup> In 2012 it was ranked number 434 on <i><a href="/wiki/Rolling_Stone" title="Rolling Stone">Rolling Stone</a></i> magazine's list of <a href="/wiki/The_500_Greatest_Albums_of_All_Time" class="mw-redirect" title="The 500 Greatest Albums of All Time">the 500 greatest albums of all time</a>.<sup id="cite_ref-500-greatest_4-0" class="reference"><a href="#cite_note-500-greatest-4">&#91;4&#93;</a></sup> <i>Rolling Stone</i> also ranked the song "<a href="/wiki/Thirteen_(song)" title="Thirteen (song)">Thirteen</a>" as number 406 on its <a href="/wiki/Rolling_Stone%27s_500_Greatest_Songs_of_All_Time" title="Rolling Stone&#39;s 500 Greatest Songs of All Time">500 Greatest Songs of All Time</a>.<sup id="cite_ref-5" class="reference"><a href="#cite_note-5">&#91;5&#93;</a></sup> It was voted number 188 in the third edition of <a href="/wiki/Colin_Larkin" title="Colin Larkin">Colin Larkin</a>'s <i><a href="/wiki/All_Time_Top_1000_Albums" title="All Time Top 1000 Albums">All Time Top 1000 Albums</a></i> (2000).<sup id="cite_ref-Larkin_6-0" class="reference"><a href="#cite_note-Larkin-6">&#91;6&#93;</a></sup>
-  </p>
-  <div id="toc" class="toc" role="navigation" aria-labelledby="mw-toc-heading"><input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none" /><div class="toctitle" lang="en" dir="ltr"><h2 id="mw-toc-heading">Contents</h2><span class="toctogglespan"><label class="toctogglelabel" for="toctogglecheckbox"></label></span></div>
-  <ul>
-  <li class="toclevel-1 tocsection-1"><a href="#Composition_and_recording"><span class="tocnumber">1</span> <span class="toctext">Composition and recording</span></a></li>
-  <li class="toclevel-1 tocsection-2"><a href="#Reception"><span class="tocnumber">2</span> <span class="toctext">Reception</span></a></li>
-  <li class="toclevel-1 tocsection-3"><a href="#Track_listing"><span class="tocnumber">3</span> <span class="toctext">Track listing</span></a></li>
-  <li class="toclevel-1 tocsection-4"><a href="#Personnel"><span class="tocnumber">4</span> <span class="toctext">Personnel</span></a></li>
-  <li class="toclevel-1 tocsection-5"><a href="#References"><span class="tocnumber">5</span> <span class="toctext">References</span></a></li>
-  <li class="toclevel-1 tocsection-6"><a href="#External_links"><span class="tocnumber">6</span> <span class="toctext">External links</span></a></li>
-  </ul>
-  </div>
+<span class="vector-dropdown-label-text">Main menu</span>
+	</label>
+	<div class="vector-dropdown-content">
 
-  <h2><span class="mw-headline" id="Composition_and_recording">Composition and recording</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=1" title="Edit section: Composition and recording">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-  <p>Six years earlier in 1966, when their home town of <a href="/wiki/Memphis,_Tennessee" title="Memphis, Tennessee">Memphis, Tennessee</a> became a tour stop for <a href="/wiki/The_Beatles" title="The Beatles">The Beatles</a>, primary songwriters <a href="/wiki/Alex_Chilton" title="Alex Chilton">Alex Chilton</a> and <a href="/wiki/Chris_Bell_(musician)" class="mw-redirect" title="Chris Bell (musician)">Chris Bell</a> were fifteen years old. Heavily influenced by the UK band, the pair—Bell in particular—wanted to model their songwriting on the <a href="/wiki/Lennon%E2%80%93McCartney" title="Lennon–McCartney">Lennon–McCartney</a> partnership, with the result that they credited as many songs as possible on Big Star's debut album to "Bell/Chilton".<sup id="cite_ref-chilton_7-0" class="reference"><a href="#cite_note-chilton-7">&#91;7&#93;</a></sup> In practice, they developed material incrementally in the studio, each making changes to the other's recordings. Drummer <a href="/wiki/Jody_Stephens" title="Jody Stephens">Jody Stephens</a> recalled, "Alex would come in and put down something rough and edgy and Chris would come in and add some sweet-sounding background vocals to it."<sup id="cite_ref-jov89_8-0" class="reference"><a href="#cite_note-jov89-8">&#91;8&#93;</a></sup> Chilton once offered the following on Chris Bell's unique vocal contributions: "Chris and I did all the harmony vocals, and he had a brilliant mind that worked in a sort of contrapuntal way.  It wasn't based so much on 'Oh you're singing the root.  I should be singing the 3rd above,' he would just sing along with the line I was singing. He was a brilliant, instinctual maker of counterpoint."<sup id="cite_ref-:1_9-0" class="reference"><a href="#cite_note-:1-9">&#91;9&#93;</a></sup>
-  </p><p>The pair also each contributed songs to the album that were individually composed before Big Star was formed.  Chris Bell brought the songs "Feel", "My Life Is Right", and "Try Again" to the recording sessions, which he had previously recorded with a band called 'Rock City' (which featured Big Star drummer Jody Stephens and Steve Rhea), and Chilton brought "The Ballad of El Goodo", "<a href="/wiki/In_the_Street_(song)" title="In the Street (song)">In the Street</a>", and the acoustic ballads "<a href="/wiki/Thirteen_(song)" title="Thirteen (song)">Thirteen</a>" and "Watch the Sunrise".<sup id="cite_ref-thirt_10-0" class="reference"><a href="#cite_note-thirt-10">&#91;10&#93;</a></sup> "The India Song" was written and composed by Andy Hummel.<sup id="cite_ref-11" class="reference"><a href="#cite_note-11">&#91;11&#93;</a></sup>
-  </p><p><i>#1 Record</i> is the only Big Star album on which group founder <a href="/wiki/Chris_Bell_(musician)" class="mw-redirect" title="Chris Bell (musician)">Chris Bell</a> is officially credited as a member. Bell had a major hand in the record through songwriting, vocals, guitar work and the album's production. The polished sound of <i>#1 Record</i>, in contrast to the more raw styles of the band's subsequent albums, <i><a href="/wiki/Radio_City_(album)" title="Radio City (album)">Radio City</a></i> and <i><a href="/wiki/Third/Sister_Lovers" title="Third/Sister Lovers">Third/Sister Lovers</a></i>, is attributed by producer <a href="/wiki/John_Fry_(record_producer)" title="John Fry (record producer)">John Fry</a> to the presence of Bell:  "When Chris Bell was still in the band, he took more interest than anybody in the production and technology end of things. He had a good production mind...the reason why the second album is rougher, with fewer harmonies, is due to the absence of Chris's influence in the studio."<sup id="cite_ref-12" class="reference"><a href="#cite_note-12">&#91;12&#93;</a></sup> Bassist <a href="/wiki/Andy_Hummel" title="Andy Hummel">Andy Hummel</a> would also credit Bell with having a hand in the album's production: "Chris was in charge. I would pretty well credit him with recording and producing that LP [#1 Record]. Of course, he had a lot of artistic help from Alex [Chilton] but Chris was the technical brains behind it. He was the only one of us at that time who knew how to record."<sup id="cite_ref-13" class="reference"><a href="#cite_note-13">&#91;13&#93;</a></sup>  Alex Chilton would also acknowledge Bell's heavy role in the studio production: "Chris was really into recording. He didn't want the rest of us fooling around in the studio, that was his business."<sup id="cite_ref-:1_9-1" class="reference"><a href="#cite_note-:1-9">&#91;9&#93;</a></sup>  Chilton would also give producer John Fry credit for achieving the album's high level of production quality: "John Fry was a genius in his way of mixdowns. We didn't put things on tape much differently than was the standard method of doing things, but he just had such finesse and great ears, and he was just a great meticulous mixdown engineer and producer. [...] He's the one responsible for making those records sound so fucking great."<sup id="cite_ref-:1_9-2" class="reference"><a href="#cite_note-:1-9">&#91;9&#93;</a></sup> In 2014 the album was re-released through Stax Records with liner notes by <a href="/wiki/Mike_Mills" title="Mike Mills">Mike Mills</a>.<sup id="cite_ref-14" class="reference"><a href="#cite_note-14">&#91;14&#93;</a></sup>
-  </p>
-  <h2><span class="mw-headline" id="Reception">Reception</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=2" title="Edit section: Reception">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-  <table class="wikitable floatright" style="float:right;clear:right;width:24.2em;font-size:80%;text-align:center;margin:0.5em 0 0.5em 1em;padding:0;border-spacing:0"><caption style="font-size:120%">Professional ratings</caption><tbody><tr><th scope="col" colspan="2" style="text-align:center;background:#d1dbdf;font-size:120%">Review scores</th></tr><tr><th scope="col">Source</th><th scope="col">Rating</th></tr><tr><td style="text-align:center;vertical-align:middle"><a href="/wiki/AllMusic" title="AllMusic">AllMusic</a></td><td style="text-align:center;vertical-align:middle"><span role="img" style="white-space:nowrap" title="5/5 stars"><img alt="5/5 stars" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" title="5/5 stars" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /></span><sup id="cite_ref-15" class="reference"><a href="#cite_note-15">&#91;15&#93;</a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a href="/wiki/Christgau%27s_Record_Guide:_Rock_Albums_of_the_Seventies" title="Christgau&#39;s Record Guide: Rock Albums of the Seventies">Christgau's Record Guide</a></i></td><td style="text-align:center;vertical-align:middle">B+<sup id="cite_ref-16" class="reference"><a href="#cite_note-16">&#91;16&#93;</a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a href="/wiki/Classic_Rock_(magazine)" title="Classic Rock (magazine)">Classic Rock</a></i></td><td style="text-align:center;vertical-align:middle"><span role="img" style="white-space:nowrap" title="8/10 stars"><img alt="8/10 stars" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" title="8/10 stars" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/7px-Star_full.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/14px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/7px-Star_empty.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/11px-Star_empty.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/14px-Star_empty.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/7px-Star_empty.svg.png" decoding="async" width="7" height="7" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/11px-Star_empty.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/14px-Star_empty.svg.png 2x" data-file-width="108" data-file-height="110" /></span><sup id="cite_ref-classic_17-0" class="reference"><a href="#cite_note-classic-17">&#91;17&#93;</a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a href="/wiki/Encyclopedia_of_Popular_Music" title="Encyclopedia of Popular Music">Encyclopedia of Popular Music</a></i></td><td style="text-align:center;vertical-align:middle"><span role="img" style="white-space:nowrap" title="5/5 stars"><img alt="5/5 stars" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" title="5/5 stars" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/11px-Star_full.svg.png" decoding="async" width="11" height="11" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/17px-Star_full.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/22px-Star_full.svg.png 2x" data-file-width="108" data-file-height="110" /></span><sup id="cite_ref-18" class="reference"><a href="#cite_note-18">&#91;18&#93;</a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a href="/wiki/Rolling_Stone" title="Rolling Stone">Rolling Stone</a></i></td><td style="text-align:center;vertical-align:middle">favorable<sup id="cite_ref-19" class="reference"><a href="#cite_note-19">&#91;19&#93;</a></sup></td></tr></tbody></table>
-  <p>On its release in August 1972,<sup id="cite_ref-Jovanovic_20-0" class="reference"><a href="#cite_note-Jovanovic-20">&#91;20&#93;</a></sup> <i>#1&#160;Record</i> immediately received widespread acclaim, and continued to do so for six months, although the inability by <a href="/wiki/Stax_Records" title="Stax Records">Stax Records</a> to make the album available in stores meant it sold fewer than 10,000 copies upon its initial release.<sup id="cite_ref-21" class="reference"><a href="#cite_note-21">&#91;21&#93;</a></sup><sup id="cite_ref-22" class="reference"><a href="#cite_note-22">&#91;22&#93;</a></sup> <i><a href="/wiki/Record_World" title="Record World">Record World</a></i> called it "one of the best albums of the year", and <i><a href="/wiki/Billboard_(magazine)" title="Billboard (magazine)">Billboard</a></i> commented, "Every cut could be a single". <i><a href="/wiki/Cash_Box" class="mw-redirect" title="Cash Box">Cashbox</a></i> described it as one where "everything falls together as a total sound" and one that "should go to the top".<sup id="cite_ref-reviews_23-0" class="reference"><a href="#cite_note-reviews-23">&#91;23&#93;</a></sup> The <i>River City Review's</i> reaction to the album was to state that "Big Star will be around for many moons".<sup id="cite_ref-reviews_23-1" class="reference"><a href="#cite_note-reviews-23">&#91;23&#93;</a></sup>
-  </p>
-  <h2><span class="mw-headline" id="Track_listing">Track listing</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=3" title="Edit section: Track listing">edit</a><span class="mw-editsection-bracket">]</span></span></h2><p>
-  All tracks are written by <a href="/wiki/Chris_Bell_(musician)" class="mw-redirect" title="Chris Bell (musician)">Chris Bell</a> and <a href="/wiki/Alex_Chilton" title="Alex Chilton">Alex Chilton</a>, except where noted.</p><table class="tracklist" style="display:block;border-spacing:0px"><caption class="tlheader mbox-text" style="text-align:left;background-color:#fff;font-weight:700">Side one</caption><tbody><tr><th class="tlheader" scope="col" style="width:2em;padding-left:10px;padding-right:10px;text-align:right;background-color:#eee"><abbr title="Number">No.</abbr></th><th class="tlheader" scope="col" style="width:60%;text-align:left;background-color:#eee">Title</th><th class="tlheader" scope="col" style="width:40%;text-align:left;background-color:#eee">Lead vocals</th><th class="tlheader" scope="col" style="width:4em;padding-right:10px;text-align:right;background-color:#eee">Length</th></tr><tr style="background-color:#fff"><th id="track1" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">1.</th><td style="vertical-align:top">"Feel"</td><td style="vertical-align:top">Bell</td><td style="padding-right:10px;text-align:right;vertical-align:top">3:34</td></tr><tr style="background-color:#f7f7f7"><th id="track2" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">2.</th><td style="vertical-align:top">"The Ballad of El Goodo"</td><td style="vertical-align:top">Chilton</td><td style="padding-right:10px;text-align:right;vertical-align:top">4:21</td></tr><tr style="background-color:#fff"><th id="track3" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">3.</th><td style="vertical-align:top">"<a href="/wiki/In_the_Street_(song)" title="In the Street (song)">In the Street</a>"</td><td style="vertical-align:top">Bell</td><td style="padding-right:10px;text-align:right;vertical-align:top">2:55</td></tr><tr style="background-color:#f7f7f7"><th id="track4" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">4.</th><td style="vertical-align:top">"<a href="/wiki/Thirteen_(song)" title="Thirteen (song)">Thirteen</a>"</td><td style="vertical-align:top">Chilton</td><td style="padding-right:10px;text-align:right;vertical-align:top">2:34</td></tr><tr style="background-color:#fff"><th id="track5" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">5.</th><td style="vertical-align:top">"Don't Lie to Me"</td><td style="vertical-align:top">Bell</td><td style="padding-right:10px;text-align:right;vertical-align:top">3:07</td></tr><tr style="background-color:#f7f7f7"><th id="track6" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">6.</th><td style="vertical-align:top">"The India Song" <span>(Andy Hummel)</span></td><td style="vertical-align:top">Hummel</td><td style="padding-right:10px;text-align:right;vertical-align:top">2:20</td></tr><tr><th colspan="3" scope="row" style="padding:0"><span style="width:7.5em;float:right;padding-left:10px;background-color:#eee;margin-right:2px">Total length:</span></th><td style="padding:0 10px 0 0;text-align:right;background-color:#eee"><b>18:51</b></td></tr></tbody></table>
-  <table class="tracklist" style="display:block;border-spacing:0px"><caption class="tlheader mbox-text" style="text-align:left;background-color:#fff;font-weight:700">Side two</caption><tbody><tr><th class="tlheader" scope="col" style="width:2em;padding-left:10px;padding-right:10px;text-align:right;background-color:#eee"><abbr title="Number">No.</abbr></th><th class="tlheader" scope="col" style="width:60%;text-align:left;background-color:#eee">Title</th><th class="tlheader" scope="col" style="width:40%;text-align:left;background-color:#eee">Lead vocals</th><th class="tlheader" scope="col" style="width:4em;padding-right:10px;text-align:right;background-color:#eee">Length</th></tr><tr style="background-color:#fff"><th id="track1" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">1.</th><td style="vertical-align:top">"When My Baby's Beside Me"</td><td style="vertical-align:top">Chilton</td><td style="padding-right:10px;text-align:right;vertical-align:top">3:22</td></tr><tr style="background-color:#f7f7f7"><th id="track2" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">2.</th><td style="vertical-align:top">"My Life Is Right" <span>(Bell, Tom Eubanks)</span></td><td style="vertical-align:top">Bell</td><td style="padding-right:10px;text-align:right;vertical-align:top">3:07</td></tr><tr style="background-color:#fff"><th id="track3" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">3.</th><td style="vertical-align:top">"Give Me Another Chance"</td><td style="vertical-align:top">Chilton</td><td style="padding-right:10px;text-align:right;vertical-align:top">3:26</td></tr><tr style="background-color:#f7f7f7"><th id="track4" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">4.</th><td style="vertical-align:top">"Try Again"</td><td style="vertical-align:top">Bell</td><td style="padding-right:10px;text-align:right;vertical-align:top">3:31</td></tr><tr style="background-color:#fff"><th id="track5" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">5.</th><td style="vertical-align:top">"Watch the Sunrise"</td><td style="vertical-align:top">Chilton</td><td style="padding-right:10px;text-align:right;vertical-align:top">3:45</td></tr><tr style="background-color:#f7f7f7"><th id="track6" scope="row" style="padding-right:10px;text-align:right;vertical-align:top;font-weight:normal">6.</th><td style="vertical-align:top">"ST 100/6"</td><td style="vertical-align:top">Bell and Chilton</td><td style="padding-right:10px;text-align:right;vertical-align:top">1:01</td></tr><tr><th colspan="3" scope="row" style="padding:0"><span style="width:7.5em;float:right;padding-left:10px;background-color:#eee;margin-right:2px">Total length:</span></th><td style="padding:0 10px 0 0;text-align:right;background-color:#eee"><b>18:12</b></td></tr></tbody></table>
-  <h2><span class="mw-headline" id="Personnel">Personnel</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=4" title="Edit section: Personnel">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-  <p><b>Big Star</b>
-  </p>
-  <ul><li><a href="/wiki/Chris_Bell_(musician)" class="mw-redirect" title="Chris Bell (musician)">Chris Bell</a>&#160;– <a href="/wiki/Guitar" title="Guitar">guitar</a>, <a href="/wiki/Vocals" class="mw-redirect" title="Vocals">vocals</a></li>
-  <li><a href="/wiki/Alex_Chilton" title="Alex Chilton">Alex Chilton</a>&#160;– guitar, vocals</li>
-  <li><a href="/wiki/Andy_Hummel" title="Andy Hummel">Andy Hummel</a>&#160;– <a href="/wiki/Bass_guitar" title="Bass guitar">bass guitar</a>, vocals</li>
-  <li><a href="/wiki/Jody_Stephens" title="Jody Stephens">Jody Stephens</a>&#160;– <a href="/wiki/Drum_kit" title="Drum kit">drums</a></li></ul>
-  <p><b>Guest</b>
-  </p>
-  <ul><li><a href="/wiki/Terry_Manning" title="Terry Manning">Terry Manning</a>&#160;– <a href="/wiki/Electric_piano" title="Electric piano">electric piano</a>, harmony vocals</li></ul>
-  <h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=5" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-  <div class="reflist" style="list-style-type: decimal;">
-  <div class="mw-references-wrap mw-references-columns"><ol class="references">
-  <li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><cite id="CITEREFTangari2010" class="citation web cs1">Tangari, Joe (March 22, 2010). <a rel="nofollow" class="external text" href="http://pitchfork.com/features/articles/7779-the-life-and-music-of-alex-chilton/">"The Life and Music of Alex Chilton"</a>. <i><a href="/wiki/Pitchfork_(website)" title="Pitchfork (website)">Pitchfork</a></i><span class="reference-accessdate">. Retrieved <span class="nowrap">June 3,</span> 2015</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Pitchfork&amp;rft.atitle=The+Life+and+Music+of+Alex+Chilton&amp;rft.date=2010-03-22&amp;rft.aulast=Tangari&amp;rft.aufirst=Joe&amp;rft_id=http%3A%2F%2Fpitchfork.com%2Ffeatures%2Farticles%2F7779-the-life-and-music-of-alex-chilton%2F&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><style data-mw-deduplicate="TemplateStyles:r982806391">.mw-parser-output cite.citation{font-style:inherit}.mw-parser-output .citation q{quotes:"\"""\"""'""'"}.mw-parser-output .id-lock-free a,.mw-parser-output .citation .cs1-lock-free a{background:linear-gradient(transparent,transparent),url("//upload.wikimedia.org/wikipedia/commons/6/65/Lock-green.svg")right 0.1em center/9px no-repeat}.mw-parser-output .id-lock-limited a,.mw-parser-output .id-lock-registration a,.mw-parser-output .citation .cs1-lock-limited a,.mw-parser-output .citation .cs1-lock-registration a{background:linear-gradient(transparent,transparent),url("//upload.wikimedia.org/wikipedia/commons/d/d6/Lock-gray-alt-2.svg")right 0.1em center/9px no-repeat}.mw-parser-output .id-lock-subscription a,.mw-parser-output .citation .cs1-lock-subscription a{background:linear-gradient(transparent,transparent),url("//upload.wikimedia.org/wikipedia/commons/a/aa/Lock-red-alt-2.svg")right 0.1em center/9px no-repeat}.mw-parser-output .cs1-subscription,.mw-parser-output .cs1-registration{color:#555}.mw-parser-output .cs1-subscription span,.mw-parser-output .cs1-registration span{border-bottom:1px dotted;cursor:help}.mw-parser-output .cs1-ws-icon a{background:linear-gradient(transparent,transparent),url("//upload.wikimedia.org/wikipedia/commons/4/4c/Wikisource-logo.svg")right 0.1em center/12px no-repeat}.mw-parser-output code.cs1-code{color:inherit;background:inherit;border:none;padding:inherit}.mw-parser-output .cs1-hidden-error{display:none;font-size:100%}.mw-parser-output .cs1-visible-error{font-size:100%}.mw-parser-output .cs1-maint{display:none;color:#33aa33;margin-left:0.3em}.mw-parser-output .cs1-subscription,.mw-parser-output .cs1-registration,.mw-parser-output .cs1-format{font-size:95%}.mw-parser-output .cs1-kern-left,.mw-parser-output .cs1-kern-wl-left{padding-left:0.2em}.mw-parser-output .cs1-kern-right,.mw-parser-output .cs1-kern-wl-right{padding-right:0.2em}.mw-parser-output .citation .mw-selflink{font-weight:inherit}</style></span>
-  </li>
-  <li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><cite class="citation web cs1"><a rel="nofollow" class="external text" href="http://www.frontlinearts.net/bigstar/cgi-bin/bsrboard/bsrboard.cgi?board=general&amp;action=display&amp;num=1231216571">"Big Star Discussion Board - Alex Chilton, Chris Bell, The Box Tops"</a>. <i>www.frontlinearts.net</i><span class="reference-accessdate">. Retrieved <span class="nowrap">January 17,</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=www.frontlinearts.net&amp;rft.atitle=Big+Star+Discussion+Board+-+Alex+Chilton%2C+Chris+Bell%2C+The+Box+Tops&amp;rft_id=http%3A%2F%2Fwww.frontlinearts.net%2Fbigstar%2Fcgi-bin%2Fbsrboard%2Fbsrboard.cgi%3Fboard%3Dgeneral%26action%3Ddisplay%26num%3D1231216571&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><cite class="citation web cs1"><a rel="nofollow" class="external text" href="https://pitchfork.com/reviews/albums/13101-1-record-radio-city/">"Big Star: <i>#1 Record / Radio City</i> Album Review Pitchfork"</a>. <i>pitchfork.com</i><span class="reference-accessdate">. Retrieved <span class="nowrap">January 17,</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=pitchfork.com&amp;rft.atitle=Big+Star%3A+%231+Record+%2F+Radio+City+Album+Review+Pitchfork&amp;rft_id=https%3A%2F%2Fpitchfork.com%2Freviews%2Falbums%2F13101-1-record-radio-city%2F&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-500-greatest-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-500-greatest_4-0">^</a></b></span> <span class="reference-text"><cite class="citation magazine cs1"><a rel="nofollow" class="external text" href="https://www.rollingstone.com/music/music-lists/500-greatest-albums-of-all-time-156826/big-star-1-record-34517/">"500 Greatest Albums of All Time Rolling Stone's definitive list of the 500 greatest albums of all time"</a>. <i><a href="/wiki/Rolling_Stone" title="Rolling Stone">Rolling Stone</a></i>. 2012<span class="reference-accessdate">. Retrieved <span class="nowrap">September 2,</span> 2019</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=article&amp;rft.jtitle=Rolling+Stone&amp;rft.atitle=500+Greatest+Albums+of+All+Time+Rolling+Stone%27s+definitive+list+of+the+500+greatest+albums+of+all+time&amp;rft.date=2012&amp;rft_id=https%3A%2F%2Fwww.rollingstone.com%2Fmusic%2Fmusic-lists%2F500-greatest-albums-of-all-time-156826%2Fbig-star-1-record-34517%2F&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text"><cite class="citation web cs1"><a rel="nofollow" class="external text" href="https://www.rollingstone.com/music/music-lists/500-greatest-songs-of-all-time-151127/big-star-thirteen-169859/">"500 Greatest Songs of All Time"</a>. <i>Rolling Stone</i><span class="reference-accessdate">. Retrieved <span class="nowrap">July 9,</span> 2017</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Rolling+Stone&amp;rft.atitle=500+Greatest+Songs+of+All+Time&amp;rft_id=https%3A%2F%2Fwww.rollingstone.com%2Fmusic%2Fmusic-lists%2F500-greatest-songs-of-all-time-151127%2Fbig-star-thirteen-169859%2F&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-Larkin-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-Larkin_6-0">^</a></b></span> <span class="reference-text"><cite id="CITEREFColin_Larkin2006" class="citation book cs1"><a href="/wiki/Colin_Larkin" title="Colin Larkin">Colin Larkin</a>, ed. (2006). <i><a href="/wiki/All_Time_Top_1000_Albums" title="All Time Top 1000 Albums">All Time Top 1000 Albums</a></i> (3rd ed.). <a href="/wiki/Virgin_Books" title="Virgin Books">Virgin Books</a>. p.&#160;97. <a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/0-7535-0493-6" title="Special:BookSources/0-7535-0493-6"><bdi>0-7535-0493-6</bdi></a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=book&amp;rft.btitle=All+Time+Top+1000+Albums&amp;rft.pages=97&amp;rft.edition=3rd&amp;rft.pub=Virgin+Books&amp;rft.date=2006&amp;rft.isbn=0-7535-0493-6&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-chilton-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-chilton_7-0">^</a></b></span> <span class="reference-text"><a href="#CITEREFJovanovic2013">Jovanovic 2013</a>, pp.&#160;6–13, 100</span>
-  </li>
-  <li id="cite_note-jov89-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-jov89_8-0">^</a></b></span> <span class="reference-text"><a href="#CITEREFJovanovic2013">Jovanovic 2013</a>, p.&#160;89</span>
-  </li>
-  <li id="cite_note-:1-9"><span class="mw-cite-backlink">^ <a href="#cite_ref-:1_9-0"><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-:1_9-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-:1_9-2"><sup><i><b>c</b></i></sup></a></span> <span class="reference-text"><cite id="CITEREFGeorge-Warren2014" class="citation book cs1">George-Warren, Holly (March 20, 2014). <a rel="nofollow" class="external text" href="https://books.google.com/books?id=eWo2AAAAQBAJ&amp;pg=PT78"><i>A Man Called Destruction: The Life and Music of Alex Chilton, From Box Tops to Big Star to Backdoor Man</i></a>. Penguin. <a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/978-0698151420" title="Special:BookSources/978-0698151420"><bdi>978-0698151420</bdi></a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=book&amp;rft.btitle=A+Man+Called+Destruction%3A+The+Life+and+Music+of+Alex+Chilton%2C+From+Box+Tops+to+Big+Star+to+Backdoor+Man&amp;rft.pub=Penguin&amp;rft.date=2014-03-20&amp;rft.isbn=978-0698151420&amp;rft.aulast=George-Warren&amp;rft.aufirst=Holly&amp;rft_id=https%3A%2F%2Fbooks.google.com%2Fbooks%3Fid%3DeWo2AAAAQBAJ%26pg%3DPT78&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-thirt-10"><span class="mw-cite-backlink"><b><a href="#cite_ref-thirt_10-0">^</a></b></span> <span class="reference-text"><a href="#CITEREFJovanovic2013">Jovanovic 2013</a>, pp.&#160;83–87</span>
-  </li>
-  <li id="cite_note-11"><span class="mw-cite-backlink"><b><a href="#cite_ref-11">^</a></b></span> <span class="reference-text"><cite class="citation news cs1"><a rel="nofollow" class="external text" href="https://www.rollingstone.com/music/news/big-star-bassist-andy-hummel-dies-at-59-20100720">"Big Star Bassist Andy Hummel Dies at 59"</a>. <i>Rolling Stone</i><span class="reference-accessdate">. Retrieved <span class="nowrap">January 17,</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=article&amp;rft.jtitle=Rolling+Stone&amp;rft.atitle=Big+Star+Bassist+Andy+Hummel+Dies+at+59&amp;rft_id=https%3A%2F%2Fwww.rollingstone.com%2Fmusic%2Fnews%2Fbig-star-bassist-andy-hummel-dies-at-59-20100720&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-12"><span class="mw-cite-backlink"><b><a href="#cite_ref-12">^</a></b></span> <span class="reference-text"><cite class="citation web cs1"><a rel="nofollow" class="external text" href="http://www.soundonsound.com/sos/apr06/articles/classictracks_0406.htm">"CLASSIC TRACKS: Big Star 'September Gurls' -"</a>. <i>www.soundonsound.com</i><span class="reference-accessdate">. Retrieved <span class="nowrap">July 9,</span> 2017</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=www.soundonsound.com&amp;rft.atitle=CLASSIC+TRACKS%3A+Big+Star+%27September+Gurls%27+-&amp;rft_id=http%3A%2F%2Fwww.soundonsound.com%2Fsos%2Fapr06%2Farticles%2Fclassictracks_0406.htm&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-13"><span class="mw-cite-backlink"><b><a href="#cite_ref-13">^</a></b></span> <span class="reference-text"><cite class="citation web cs1"><a rel="nofollow" class="external text" href="http://www.furious.com/perfect/andyhummel.html">"Big Star - Andy Hummel interview"</a>. <i>www.furious.com</i><span class="reference-accessdate">. Retrieved <span class="nowrap">January 17,</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=www.furious.com&amp;rft.atitle=Big+Star+-+Andy+Hummel+interview&amp;rft_id=http%3A%2F%2Fwww.furious.com%2Fperfect%2Fandyhummel.html&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-14"><span class="mw-cite-backlink"><b><a href="#cite_ref-14">^</a></b></span> <span class="reference-text"><cite class="citation news cs1"><a rel="nofollow" class="external text" href="https://www.rollingstone.com/music/news/two-remastered-big-star-records-will-be-back-in-print-this-fall-20140729">"Big Star's First Two Records Are Coming Back in Print"</a>. <i>Rolling Stone</i><span class="reference-accessdate">. Retrieved <span class="nowrap">January 17,</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=article&amp;rft.jtitle=Rolling+Stone&amp;rft.atitle=Big+Star%27s+First+Two+Records+Are+Coming+Back+in+Print&amp;rft_id=https%3A%2F%2Fwww.rollingstone.com%2Fmusic%2Fnews%2Ftwo-remastered-big-star-records-will-be-back-in-print-this-fall-20140729&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-15"><span class="mw-cite-backlink"><b><a href="#cite_ref-15">^</a></b></span> <span class="reference-text">Ruhlmann, William.&#32;<a rel="nofollow" class="external text" href="https://www.allmusic.com/album/r1877">Number 1 Record</a> at <a href="/wiki/AllMusic" title="AllMusic">AllMusic</a>. Retrieved August 4, 2011.</span>
-  </li>
-  <li id="cite_note-16"><span class="mw-cite-backlink"><b><a href="#cite_ref-16">^</a></b></span> <span class="reference-text"><cite id="CITEREFChristgau1981" class="citation book cs1"><a href="/wiki/Robert_Christgau" title="Robert Christgau">Christgau, Robert</a> (1981). <a rel="nofollow" class="external text" href="https://www.robertchristgau.com/get_chap.php?k=B&amp;bk=70">"Consumer Guide '70s: B"</a>. <i><a href="/wiki/Christgau%27s_Record_Guide:_Rock_Albums_of_the_Seventies" title="Christgau&#39;s Record Guide: Rock Albums of the Seventies">Christgau's Record Guide: Rock Albums of the Seventies</a></i>. <a href="/wiki/Ticknor_%26_Fields" class="mw-redirect" title="Ticknor &amp; Fields">Ticknor &amp; Fields</a>. <a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/089919026X" title="Special:BookSources/089919026X"><bdi>089919026X</bdi></a><span class="reference-accessdate">. Retrieved <span class="nowrap">February 21,</span> 2019</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=bookitem&amp;rft.atitle=Consumer+Guide+%2770s%3A+B&amp;rft.btitle=Christgau%27s+Record+Guide%3A+Rock+Albums+of+the+Seventies&amp;rft.pub=Ticknor+%26+Fields&amp;rft.date=1981&amp;rft.isbn=089919026X&amp;rft.aulast=Christgau&amp;rft.aufirst=Robert&amp;rft_id=https%3A%2F%2Fwww.robertchristgau.com%2Fget_chap.php%3Fk%3DB%26bk%3D70&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
+
+				<div id="vector-main-menu-unpinned-container" class="vector-unpinned-container">
+		
+<div id="vector-main-menu" class="vector-main-menu vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-main-menu-pinnable-header vector-pinnable-header-unpinned"
+	data-feature-name="main-menu-pinned"
+	data-pinnable-element-id="vector-main-menu"
+	data-pinned-container-id="vector-main-menu-pinned-container"
+	data-unpinned-container-id="vector-main-menu-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Main menu</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-main-menu.pin" aria-label="Move Main menu to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-main-menu.unpin" aria-label="Hide Main menu">hide</button>
+</div>
+
+	
+<div id="p-navigation" class="vector-menu mw-portlet mw-portlet-navigation"  >
+	<div class="vector-menu-heading">
+		Navigation
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-mainpage-description" class="mw-list-item"><a href="/wiki/Main_Page" title="Visit the main page [z]" accesskey="z"><span>Main page</span></a></li><li id="n-contents" class="mw-list-item"><a href="/wiki/Wikipedia:Contents" title="Guides to browsing Wikipedia"><span>Contents</span></a></li><li id="n-currentevents" class="mw-list-item"><a href="/wiki/Portal:Current_events" title="Articles related to current events"><span>Current events</span></a></li><li id="n-randompage" class="mw-list-item"><a href="/wiki/Special:Random" title="Visit a randomly selected article [x]" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite" class="mw-list-item"><a href="/wiki/Wikipedia:About" title="Learn about Wikipedia and how it works"><span>About Wikipedia</span></a></li><li id="n-contactpage" class="mw-list-item"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us" title="How to contact Wikipedia"><span>Contact us</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-interaction" class="vector-menu mw-portlet mw-portlet-interaction"  >
+	<div class="vector-menu-heading">
+		Contribute
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-help" class="mw-list-item"><a href="/wiki/Help:Contents" title="Guidance on how to use and edit Wikipedia"><span>Help</span></a></li><li id="n-introduction" class="mw-list-item"><a href="/wiki/Help:Introduction" title="Learn how to edit Wikipedia"><span>Learn to edit</span></a></li><li id="n-portal" class="mw-list-item"><a href="/wiki/Wikipedia:Community_portal" title="The hub for editors"><span>Community portal</span></a></li><li id="n-recentchanges" class="mw-list-item"><a href="/wiki/Special:RecentChanges" title="A list of recent changes to Wikipedia [r]" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload" class="mw-list-item"><a href="/wiki/Wikipedia:File_upload_wizard" title="Add images or other media for use on Wikipedia"><span>Upload file</span></a></li><li id="n-specialpages" class="mw-list-item"><a href="/wiki/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+</div>
+
+				</div>
+
+	</div>
+</div>
+
+		</nav>
+			
+<a href="/wiki/Main_Page" class="mw-logo">
+	<img class="mw-logo-icon" src="/static/images/icons/enwiki-25.svg" alt="" aria-hidden="true" height="50" width="50">
+	<span class="mw-logo-container skin-invert">
+		<img class="mw-logo-wordmark" alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg" style="width: 8.75em; height: 1.375em;">
+		<img class="mw-logo-tagline" alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11" style="width: 8.75em; height: 0.6875em;">
+	</span>
+</a>
+
+		</div>
+		<div class="vector-header-end">
+			
+<div id="p-search" role="search" class="vector-search-box-vue  vector-search-box-collapses vector-search-box-show-thumbnail vector-search-box-auto-expand-width vector-search-box">
+	<a href="/wiki/Special:Search" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only search-toggle" title="Search Wikipedia [f]" accesskey="f"><span class="vector-icon mw-ui-icon-search mw-ui-icon-wikimedia-search cdx-button__icon"></span>
+
+<span>Search</span>
+	</a>
+	<div class="vector-typeahead-search-container">
+		<div class="cdx-typeahead-search cdx-typeahead-search--show-thumbnail cdx-typeahead-search--auto-expand-width">
+			<form action="/w/index.php" id="searchform" class="cdx-search-input cdx-search-input--has-end-button">
+				<div id="simpleSearch" class="cdx-search-input__input-wrapper"  data-search-loc="header-moved">
+					<div class="cdx-text-input cdx-text-input--has-start-icon">
+						<input
+							class="cdx-text-input__input mw-searchInput" autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" aria-label="Search Wikipedia" autocapitalize="none" spellcheck="false" title="Search Wikipedia [f]" accesskey="f" id="searchInput"
+							>
+						<span class="cdx-text-input__icon cdx-text-input__start-icon"></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button class="cdx-button cdx-search-input__end-button">Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+
+			<nav class="vector-user-links vector-user-links-wide" aria-label="Personal tools">
+	<div class="vector-user-links-main">
+	
+<div id="p-vector-user-menu-preferences" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-vector-user-menu-userpage" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	<nav class="vector-appearance-landmark" aria-label="Appearance">
+		
+<div id="vector-appearance-dropdown" class="vector-dropdown "  title="Change the appearance of the page&#039;s font size, width, and color" >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-appearance-dropdown" class="vector-dropdown-checkbox "  aria-label="Appearance"   >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-appearance mw-ui-icon-wikimedia-appearance cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Appearance</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+			<div id="vector-appearance-unpinned-container" class="vector-unpinned-container">
+				
+			</div>
+		
+	</div>
+</div>
+
+	</nav>
+	
+<div id="p-vector-user-menu-notifications" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-vector-user-menu-overflow" class="vector-menu mw-portlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="pt-sitesupport-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en" data-mw-donate-attempt="top_link" class=""><span>Donate</span></a>
 </li>
-  <li id="cite_note-classic-17"><span class="mw-cite-backlink"><b><a href="#cite_ref-classic_17-0">^</a></b></span> <span class="reference-text"><cite id="CITEREFLewis2009" class="citation magazine cs1">Lewis, Jonathan (November 2009). "Big Star - Reissues". <i><a href="/wiki/Classic_Rock_(magazine)" title="Classic Rock (magazine)">Classic Rock</a></i>. No.&#160;138. p.&#160;97.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=article&amp;rft.jtitle=Classic+Rock&amp;rft.atitle=Big+Star+-+Reissues&amp;rft.issue=138&amp;rft.pages=97&amp;rft.date=2009-11&amp;rft.aulast=Lewis&amp;rft.aufirst=Jonathan&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-18"><span class="mw-cite-backlink"><b><a href="#cite_ref-18">^</a></b></span> <span class="reference-text"><cite id="CITEREFLarkin2007" class="citation book cs1"><a href="/wiki/Colin_Larkin" title="Colin Larkin">Larkin, Colin</a> (2007). <a href="/wiki/Encyclopedia_of_Popular_Music" title="Encyclopedia of Popular Music"><i>Encyclopedia of Popular Music</i></a> (5th ed.). <a href="/wiki/Omnibus_Press" title="Omnibus Press">Omnibus Press</a>. <a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/978-0857125958" title="Special:BookSources/978-0857125958"><bdi>978-0857125958</bdi></a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=book&amp;rft.btitle=Encyclopedia+of+Popular+Music&amp;rft.edition=5th&amp;rft.pub=Omnibus+Press&amp;rft.date=2007&amp;rft.isbn=978-0857125958&amp;rft.aulast=Larkin&amp;rft.aufirst=Colin&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-19"><span class="mw-cite-backlink"><b><a href="#cite_ref-19">^</a></b></span> <span class="reference-text"><cite id="CITEREFScoppa1973" class="citation web cs1">Scoppa, Bud (February 1, 1973). <a rel="nofollow" class="external text" href="https://www.rollingstone.com/music/albumreviews/no-1-record-radio-city-19730201">"No. 1 Record/Radio City"</a>. <i>Rolling Stone</i><span class="reference-accessdate">. Retrieved <span class="nowrap">July 8,</span> 2017</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Rolling+Stone&amp;rft.atitle=No.+1+Record%2FRadio+City&amp;rft.date=1973-02-01&amp;rft.aulast=Scoppa&amp;rft.aufirst=Bud&amp;rft_id=https%3A%2F%2Fwww.rollingstone.com%2Fmusic%2Falbumreviews%2Fno-1-record-radio-city-19730201&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-Jovanovic-20"><span class="mw-cite-backlink"><b><a href="#cite_ref-Jovanovic_20-0">^</a></b></span> <span class="reference-text"><a href="#CITEREFJovanovic2013">Jovanovic 2013</a>, p.&#160;115</span>
-  </li>
-  <li id="cite_note-21"><span class="mw-cite-backlink"><b><a href="#cite_ref-21">^</a></b></span> <span class="reference-text"><cite id="CITEREFBorack2007" class="citation book cs1">Borack, John M. (2007). <a rel="nofollow" class="external text" href="https://books.google.com/books?id=pqtGTJgE4rEC&amp;pg=PA12"><i>Shake some action: the ultimate power pop guide</i></a>. Shake Some Action – PowerPop. p.&#160;12. <a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/9780979771408" title="Special:BookSources/9780979771408"><bdi>9780979771408</bdi></a><span class="reference-accessdate">. Retrieved <span class="nowrap">December 16,</span> 2011</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=book&amp;rft.btitle=Shake+some+action%3A+the+ultimate+power+pop+guide&amp;rft.pages=12&amp;rft.pub=Shake+Some+Action+%E2%80%93+PowerPop&amp;rft.date=2007&amp;rft.isbn=9780979771408&amp;rft.aulast=Borack&amp;rft.aufirst=John+M.&amp;rft_id=https%3A%2F%2Fbooks.google.com%2Fbooks%3Fid%3DpqtGTJgE4rEC%26pg%3DPA12&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-22"><span class="mw-cite-backlink"><b><a href="#cite_ref-22">^</a></b></span> <span class="reference-text"><cite id="CITEREFGulla1996" class="citation journal cs1">Gulla, Bob (July 1996). <a rel="nofollow" class="external text" href="https://books.google.com/books?id=HS0EAAAAMBAJ&amp;pg=PT16">"CMJ New Music Monthly"</a>. CMJ Network, Inc.: 16<span class="reference-accessdate">. Retrieved <span class="nowrap">December 16,</span> 2011</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=article&amp;rft.atitle=CMJ+New+Music+Monthly&amp;rft.pages=16&amp;rft.date=1996-07&amp;rft.aulast=Gulla&amp;rft.aufirst=Bob&amp;rft_id=https%3A%2F%2Fbooks.google.com%2Fbooks%3Fid%3DHS0EAAAAMBAJ%26pg%3DPT16&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span> <span class="cs1-hidden-error error citation-comment">Cite journal requires <code class="cs1-code">&#124;journal=</code> (<a href="/wiki/Help:CS1_errors#missing_periodical" title="Help:CS1 errors">help</a>)</span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></span>
-  </li>
-  <li id="cite_note-reviews-23"><span class="mw-cite-backlink">^ <a href="#cite_ref-reviews_23-0"><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-reviews_23-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><a href="#CITEREFJovanovic2013">Jovanovic 2013</a>, p.&#160;107</span>
-  </li>
-  </ol></div></div>
-  <p><b>Bibliography</b>
-  </p>
-  <ul><li>Jovanovic, Rob. <i>Big Star: The Story of Rock's Forgotten Band</i>. London: Fourth Estate, 2004. <link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/><a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/0-00-714908-5" title="Special:BookSources/0-00-714908-5">0-00-714908-5</a>.</li>
-  <li><cite id="CITEREFJovanovic2013" class="citation book cs1">Jovanovic, Rob (2013). <i>Big Star: The Story of Rock's Forgotten Band</i> (Revised and updated ed.). London: Jawbone. <a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/978-1-908279-36-1" title="Special:BookSources/978-1-908279-36-1"><bdi>978-1-908279-36-1</bdi></a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=book&amp;rft.btitle=Big+Star%3A+The+Story+of+Rock%27s+Forgotten+Band&amp;rft.place=London&amp;rft.edition=Revised+and+updated&amp;rft.pub=Jawbone&amp;rft.date=2013&amp;rft.isbn=978-1-908279-36-1&amp;rft.aulast=Jovanovic&amp;rft.aufirst=Rob&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ANumber+1+Record" class="Z3988"></span><span class="cs1-maint citation-comment">CS1 maint: ref=harv (<a href="/wiki/Category:CS1_maint:_ref%3Dharv" title="Category:CS1 maint: ref=harv">link</a>)</span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/></li>
-  <li>George-Warren, Holly. <i>A Man Called Destruction: The Life and Music of Alex Chilton, from Box Tops to Big Star to Backdoor Man.</i> New York: Viking, 2014. <link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r982806391"/><a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/978-0-670-02563-3" title="Special:BookSources/978-0-670-02563-3">978-0-670-02563-3</a>.</li></ul>
-  <h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=6" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-  <ul><li><a rel="nofollow" class="external text" href="https://www.allmusic.com/album/1-record-mw0000459534">Big Star - <i>#1 Record</i> (1972) album review by William Ruhlmann, credits &amp; releases</a> at <a href="/wiki/AllMusic" title="AllMusic">AllMusic</a></li>
-  <li><a rel="nofollow" class="external text" href="https://www.discogs.com/Big-Star-1-Record/release/1374615">Big Star - <i>#1 Record</i> (1972) album releases &amp; credits</a> at <a href="/wiki/Discogs" title="Discogs">Discogs.com</a></li>
-  <li><a rel="nofollow" class="external text" href="https://open.spotify.com/album/7c7fb4wBhQplfee6jWl4Ok">Big Star - <i>#1 Record</i> (1972) album to be listened</a> as stream at <a href="/wiki/Spotify" title="Spotify">Spotify.com</a></li></ul>
-  <div role="navigation" class="navbox" aria-labelledby="Big_Star" style="padding:3px"><table class="nowraplinks vcard hlist mw-collapsible autocollapse navbox-inner" style="border-spacing:0;background:transparent;color:inherit"><tbody><tr><th scope="col" class="navbox-title" colspan="2" style="background: #b0c4de;"><style data-mw-deduplicate="TemplateStyles:r992953826">.mw-parser-output .navbar{display:inline;font-size:88%;font-weight:normal}.mw-parser-output .navbar-collapse{float:left;text-align:left}.mw-parser-output .navbar-boxtext{word-spacing:0}.mw-parser-output .navbar ul{display:inline-block;white-space:nowrap;line-height:inherit}.mw-parser-output .navbar-brackets::before{margin-right:-0.125em;content:"[ "}.mw-parser-output .navbar-brackets::after{margin-left:-0.125em;content:" ]"}.mw-parser-output .navbar li{word-spacing:-0.125em}.mw-parser-output .navbar-mini abbr{font-variant:small-caps;border-bottom:none;text-decoration:none;cursor:inherit}.mw-parser-output .navbar-ct-full{font-size:114%;margin:0 7em}.mw-parser-output .navbar-ct-mini{font-size:114%;margin:0 4em}.mw-parser-output .infobox .navbar{font-size:100%}.mw-parser-output .navbox .navbar{display:block;font-size:100%}.mw-parser-output .navbox-title .navbar{float:left;text-align:left;margin-right:0.5em}</style><div class="navbar plainlinks hlist navbar-mini"><ul><li class="nv-view"><a href="/wiki/Template:Big_Star" title="Template:Big Star"><abbr title="View this template" style=";background: #b0c4de;;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">v</abbr></a></li><li class="nv-talk"><a href="/wiki/Template_talk:Big_Star" title="Template talk:Big Star"><abbr title="Discuss this template" style=";background: #b0c4de;;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">t</abbr></a></li><li class="nv-edit"><a class="external text" href="https://en.wikipedia.org/w/index.php?title=Template:Big_Star&amp;action=edit"><abbr title="Edit this template" style=";background: #b0c4de;;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">e</abbr></a></li></ul></div><div id="Big_Star" class="fn org" style="font-size:114%;margin:0 4em"><a href="/wiki/Big_Star" title="Big Star">Big Star</a></div></th></tr><tr><td class="navbox-abovebelow" colspan="2" style="background: #EEEEEE;"><div id="*_Jon_Auer_*_Chris_Bell_*_Alex_Chilton_*_John_Lightman_*_Andy_Hummel_*_Jody_Stephens_*_Ken_Stringfellow">
-<ul><li><a href="/wiki/Jon_Auer" title="Jon Auer">Jon Auer</a></li>
-  <li><a href="/wiki/Chris_Bell_(American_musician)" title="Chris Bell (American musician)">Chris Bell</a></li>
-  <li><a href="/wiki/Alex_Chilton" title="Alex Chilton">Alex Chilton</a></li>
-  <li>John Lightman</li>
-  <li><a href="/wiki/Andy_Hummel" title="Andy Hummel">Andy Hummel</a></li>
-  <li><a href="/wiki/Jody_Stephens" title="Jody Stephens">Jody Stephens</a></li>
-  <li><a href="/wiki/Ken_Stringfellow" title="Ken Stringfellow">Ken Stringfellow</a></li></ul>
-  </div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%;background: #EEEEEE;">Studio albums</th><td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
-  <ul><li><i><a class="mw-selflink selflink">#1 Record</a></i></li>
-  <li><i><a href="/wiki/Radio_City_(album)" title="Radio City (album)">Radio City</a></i></li>
-  <li><i><a href="/wiki/Third/Sister_Lovers" title="Third/Sister Lovers">Third/Sister Lovers</a></i></li>
-  <li><i><a href="/wiki/In_Space" title="In Space">In Space</a></i></li></ul>
-  </div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%;background: #EEEEEE;">Live albums</th><td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
-  <ul><li><i><a href="/wiki/Live_(Big_Star_album)" title="Live (Big Star album)">Live</a></i></li>
-  <li><i><a href="/wiki/Columbia:_Live_at_Missouri_University" title="Columbia: Live at Missouri University">Columbia: Live at Missouri University 4/25/93</a></i></li>
-  <li><i><a href="/wiki/Nobody_Can_Dance" class="mw-redirect" title="Nobody Can Dance">Nobody Can Dance</a></i></li></ul>
-  </div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%;background: #EEEEEE;">Compilations</th><td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
-  <ul><li><i><a href="/wiki/Biggest_(Big_Star_album)" class="mw-redirect" title="Biggest (Big Star album)">Biggest</a></i></li>
-  <li><i><a href="/wiki/The_Best_Of_(Big_Star_album)" class="mw-redirect" title="The Best Of (Big Star album)">The Best Of</a></i></li>
-  <li><i><a href="/wiki/Big_Star_Story" class="mw-redirect" title="Big Star Story">Big Star Story</a></i></li>
-  <li><i><a href="/wiki/Keep_an_Eye_on_the_Sky" title="Keep an Eye on the Sky">Keep an Eye on the Sky</a></i></li></ul>
-  </div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%;background: #EEEEEE;">Singles</th><td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
-  <ul><li>"<a href="/wiki/In_the_Street_(song)" title="In the Street (song)">In the Street</a>"</li>
-  <li>"<a href="/wiki/September_Gurls" title="September Gurls">September Gurls</a>"</li></ul>
-  </div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%;background: #EEEEEE;">Other songs</th><td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
-  <ul><li>"<a href="/wiki/Thirteen_(song)" title="Thirteen (song)">Thirteen</a>"</li></ul>
-  </div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%;background: #EEEEEE;">Films</th><td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
-  <ul><li><i><a href="/wiki/Big_Star:_Nothing_Can_Hurt_Me" title="Big Star: Nothing Can Hurt Me">Big Star: Nothing Can Hurt Me</a></i></li></ul>
-  </div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%;background: #EEEEEE;">Related articles</th><td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
-  <ul><li><a href="/wiki/Rock_City_(band)" class="mw-redirect" title="Rock City (band)">Rock City</a></li>
-  <li><a href="/wiki/The_Box_Tops" title="The Box Tops">The Box Tops</a></li>
-  <li><a href="/wiki/The_Posies" title="The Posies">The Posies</a></li></ul>
-  </div></td></tr></tbody></table></div>
-  <!-- 
-NewPP limit report
-Parsed by mw1269
-Cached time: 20201219190843
-Cache expiry: 2592000
-Dynamic content: false
-Complications: [vary‐revision‐sha1]
-CPU time usage: 0.616 seconds
-Real time usage: 0.803 seconds
-Preprocessor visited node count: 3467/1000000
-Post‐expand include size: 84807/2097152 bytes
-Template argument size: 4871/2097152 bytes
-Highest expansion depth: 16/40
-Expensive parser function count: 2/500
-Unstrip recursion depth: 1/20
-Unstrip post‐expand size: 62984/5000000 bytes
-Lua time usage: 0.304/10.000 seconds
-Lua memory usage: 8342789/52428800 bytes
-Number of Wikibase entities loaded: 0/400
--->
-  <!--
-Transclusion expansion time report (%,ms,calls,template)
-100.00%  722.544      1 -total
- 39.36%  284.394      1 Template:Reflist
- 24.79%  179.107      1 Template:Infobox_album
- 18.69%  135.051      7 Template:Cite_web
- 11.45%   82.723      1 Template:Infobox
-  7.26%   52.488      2 Template:ISBN
-  6.97%   50.332      1 Template:Short_description
-  6.81%   49.238      1 Template:Correct_title
-  5.76%   41.625      5 Template:Harvnb
-  5.71%   41.224      1 Template:Big_Star
--->
+<li id="pt-createaccount-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Number+1+Record" title="You are encouraged to create an account and log in; however, it is not mandatory" class=""><span>Create account</span></a>
+</li>
+<li id="pt-login-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Number+1+Record" title="You&#039;re encouraged to log in; however, it&#039;s not mandatory. [o]" accesskey="o" class=""><span>Log in</span></a>
+</li>
 
-  <!-- Saved in parser cache with key enwiki:pcache:idhash:3412884-0!canonical and timestamp 20201219190842 and revision id 995193786. Serialized with JSON.
-   -->
-  </div><noscript><img src="//en.wikipedia.org/wiki/Special:CentralAutoLogin/start?type=1x1" alt="" title="" width="1" height="1" style="border: none; position: absolute;" /></noscript>
-  <div class="printfooter">Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Number_1_Record&amp;oldid=995193786">https://en.wikipedia.org/w/index.php?title=Number_1_Record&amp;oldid=995193786</a>"</div></div>
-        <div id="catlinks" class="catlinks" data-mw="interface"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="/wiki/Help:Category" title="Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Big_Star_albums" title="Category:Big Star albums">Big Star albums</a></li><li><a href="/wiki/Category:1972_debut_albums" title="Category:1972 debut albums">1972 debut albums</a></li><li><a href="/wiki/Category:Ardent_Records_albums" title="Category:Ardent Records albums">Ardent Records albums</a></li><li><a href="/wiki/Category:Stax_Records_albums" title="Category:Stax Records albums">Stax Records albums</a></li><li><a href="/wiki/Category:Albums_produced_by_John_Fry_(record_producer)" title="Category:Albums produced by John Fry (record producer)">Albums produced by John Fry (record producer)</a></li></ul></div><div id="mw-hidden-catlinks" class="mw-hidden-catlinks mw-hidden-cats-hidden">Hidden categories: <ul><li><a href="/wiki/Category:CS1_errors:_missing_periodical" title="Category:CS1 errors: missing periodical">CS1 errors: missing periodical</a></li><li><a href="/wiki/Category:Use_mdy_dates_from_July_2017" title="Category:Use mdy dates from July 2017">Use mdy dates from July 2017</a></li><li><a href="/wiki/Category:Restricted_titles" title="Category:Restricted titles">Restricted titles</a></li><li><a href="/wiki/Category:Articles_with_short_description" title="Category:Articles with short description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata" title="Category:Short description is different from Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:Articles_with_hAudio_microformats" title="Category:Articles with hAudio microformats">Articles with hAudio microformats</a></li><li><a href="/wiki/Category:CS1_maint:_ref%3Dharv" title="Category:CS1 maint: ref=harv">CS1 maint: ref=harv</a></li></ul></div></div>
-      </div>
-  </div>
-  <div id='mw-data-after-content'>
-      <div class="read-more-container"></div>
-  </div>
+			
+		</ul>
+		
+	</div>
+</div>
 
-  <div id="mw-navigation">
-      <h2>Navigation menu</h2>
-      <div id="mw-head">
-          <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-personal" class="mw-portlet mw-portlet-personal vector-menu" aria-labelledby="p-personal-label" role="navigation" 
-     >
-      <h3 id="p-personal-label">
-          <span>Personal tools</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li id="pt-anonuserpage">Not logged in</li><li id="pt-anontalk"><a href="/wiki/Special:MyTalk" title="Discussion about edits from this IP address [n]" accesskey="n">Talk</a></li><li id="pt-anoncontribs"><a href="/wiki/Special:MyContributions" title="A list of edits made from this IP address [y]" accesskey="y">Contributions</a></li><li id="pt-createaccount"><a href="/w/index.php?title=Special:CreateAccount&amp;returnto=Number+1+Record" title="You are encouraged to create an account and log in; however, it is not mandatory">Create account</a></li><li id="pt-login"><a href="/w/index.php?title=Special:UserLogin&amp;returnto=Number+1+Record" title="You&#039;re encouraged to log in; however, it&#039;s not mandatory. [o]" accesskey="o">Log in</a></li></ul>
-          
-      </div>
-  </nav>
+	</div>
+	
+<div id="vector-user-links-dropdown" class="vector-dropdown vector-user-menu vector-button-flush-right vector-user-menu-logged-out vector-user-links-dropdown--collapsible"  title="Log in and more options" >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-user-links-dropdown" class="vector-dropdown-checkbox "  aria-label="Personal tools"   >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-userAvatar mw-ui-icon-wikimedia-userAvatar cdx-button__icon"></span>
 
-          <div id="left-navigation">
-              <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-namespaces" class="mw-portlet mw-portlet-namespaces vector-menu vector-menu-tabs" aria-labelledby="p-namespaces-label" role="navigation" 
-     >
-      <h3 id="p-namespaces-label">
-          <span>Namespaces</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li id="ca-nstab-main" class="selected"><a href="/wiki/Number_1_Record" title="View the content page [c]" accesskey="c">Article</a></li><li id="ca-talk"><a href="/wiki/Talk:Number_1_Record" rel="discussion" title="Discuss improvements to the content page [t]" accesskey="t">Talk</a></li></ul>
-          
-      </div>
-  </nav>
+<span class="vector-dropdown-label-text">Personal tools</span>
+	</label>
+	<div class="vector-dropdown-content">
 
-              <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-variants" class="mw-portlet mw-portlet-variants emptyPortlet vector-menu vector-menu-dropdown" aria-labelledby="p-variants-label" role="navigation" 
-     >
-      <input type="checkbox" class="vector-menu-checkbox" aria-labelledby="p-variants-label" />
-      <h3 id="p-variants-label">
-          <span>Variants</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"></ul>
-          
-      </div>
-  </nav>
 
-          </div>
-          <div id="right-navigation">
-              <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-views" class="mw-portlet mw-portlet-views vector-menu vector-menu-tabs" aria-labelledby="p-views-label" role="navigation" 
-     >
-      <h3 id="p-views-label">
-          <span>Views</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li id="ca-view" class="selected"><a href="/wiki/Number_1_Record">Read</a></li><li id="ca-edit"><a href="/w/index.php?title=Number_1_Record&amp;action=edit" title="Edit this page [e]" accesskey="e">Edit</a></li><li id="ca-history"><a href="/w/index.php?title=Number_1_Record&amp;action=history" title="Past revisions of this page [h]" accesskey="h">View history</a></li></ul>
-          
-      </div>
-  </nav>
+		
+<div id="p-personal" class="vector-menu mw-portlet mw-portlet-personal"  title="User menu" >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="pt-sitesupport" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en" data-mw-donate-attempt="top_link" class=""><span class="vector-icon mw-ui-icon-heart mw-ui-icon-wikimedia-heart cdx-button__icon"></span>
 
-              <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-cactions" class="mw-portlet mw-portlet-cactions emptyPortlet vector-menu vector-menu-dropdown" aria-labelledby="p-cactions-label" role="navigation" 
-     >
-      <input type="checkbox" class="vector-menu-checkbox" aria-labelledby="p-cactions-label" />
-      <h3 id="p-cactions-label">
-          <span>More</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"></ul>
-          
-      </div>
-  </nav>
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Number+1+Record" title="You are encouraged to create an account and log in; however, it is not mandatory" class=""><span class="vector-icon mw-ui-icon-userAvatar mw-ui-icon-wikimedia-userAvatar cdx-button__icon"></span>
 
-              <div id="p-search" role="search">
-      <h3 >
-          <label for="searchInput">Search</label>
-      </h3>
-      <form action="/w/index.php" id="searchform">
-          <div id="simpleSearch" data-search-loc="header-navigation">
-              <input type="search" name="search" placeholder="Search Wikipedia" autocapitalize="sentences" title="Search Wikipedia [f]" accesskey="f" id="searchInput"/>
-              <input type="hidden" name="title" value="Special:Search">
-              <input type="submit" name="fulltext" value="Search" title="Search Wikipedia for this text" id="mw-searchButton" class="searchButton mw-fallbackSearchButton"/>
-              <input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton"/>
-          </div>
-      </form>
-  </div>
+<span>Create account</span></a>
+</li>
+<li id="pt-login" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Number+1+Record" title="You&#039;re encouraged to log in; however, it&#039;s not mandatory. [o]" accesskey="o" class=""><span class="vector-icon mw-ui-icon-logIn mw-ui-icon-wikimedia-logIn cdx-button__icon"></span>
 
-          </div>
-      </div>
-      
-  <div id="mw-panel">
-      <div id="p-logo" role="banner">
-          <a  title="Visit the main page" class="mw-wiki-logo" href="/wiki/Main_Page"></a>
-      </div>
-      <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-navigation" class="mw-portlet mw-portlet-navigation vector-menu vector-menu-portal portal portal-first" aria-labelledby="p-navigation-label" role="navigation" 
-     >
-      <h3 id="p-navigation-label">
-          <span>Navigation</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li id="n-mainpage-description"><a href="/wiki/Main_Page" title="Visit the main page [z]" accesskey="z">Main page</a></li><li id="n-contents"><a href="/wiki/Wikipedia:Contents" title="Guides to browsing Wikipedia">Contents</a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events" title="Articles related to current events">Current events</a></li><li id="n-randompage"><a href="/wiki/Special:Random" title="Visit a randomly selected article [x]" accesskey="x">Random article</a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About" title="Learn about Wikipedia and how it works">About Wikipedia</a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us" title="How to contact Wikipedia">Contact us</a></li><li id="n-sitesupport"><a href="https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&amp;utm_medium=sidebar&amp;utm_campaign=C13_en.wikipedia.org&amp;uselang=en" title="Support us by donating to the Wikimedia Foundation">Donate</a></li></ul>
-          
-      </div>
-  </nav>
+<span>Log in</span></a>
+</li>
 
-      <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-interaction" class="mw-portlet mw-portlet-interaction vector-menu vector-menu-portal portal" aria-labelledby="p-interaction-label" role="navigation" 
-     >
-      <h3 id="p-interaction-label">
-          <span>Contribute</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li id="n-help"><a href="/wiki/Help:Contents" title="Guidance on how to use and edit Wikipedia">Help</a></li><li id="n-introduction"><a href="/wiki/Help:Introduction" title="Learn how to edit Wikipedia">Learn to edit</a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal" title="The hub for editors">Community portal</a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" title="A list of recent changes to Wikipedia [r]" accesskey="r">Recent changes</a></li><li id="n-upload"><a href="/wiki/Wikipedia:File_Upload_Wizard" title="Add images or other media for use on Wikipedia">Upload file</a></li></ul>
-          
-      </div>
-  </nav>
-  <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-tb" class="mw-portlet mw-portlet-tb vector-menu vector-menu-portal portal" aria-labelledby="p-tb-label" role="navigation" 
-     >
-      <h3 id="p-tb-label">
-          <span>Tools</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Number_1_Record" title="List of all English Wikipedia pages containing links to this page [j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Number_1_Record" rel="nofollow" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li><li id="t-upload"><a href="/wiki/Wikipedia:File_Upload_Wizard" title="Upload files [u]" accesskey="u">Upload file</a></li><li id="t-specialpages"><a href="/wiki/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a></li><li id="t-permalink"><a href="/w/index.php?title=Number_1_Record&amp;oldid=995193786" title="Permanent link to this revision of this page">Permanent link</a></li><li id="t-info"><a href="/w/index.php?title=Number_1_Record&amp;action=info" title="More information about this page">Page information</a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Number_1_Record&amp;id=995193786&amp;wpFormIdentifier=titleform" title="Information on how to cite this page">Cite this page</a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q269307" title="Structured data on this page hosted by Wikidata [g]" accesskey="g">Wikidata item</a></li></ul>
-          
-      </div>
-  </nav>
-  <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-coll-print_export" class="mw-portlet mw-portlet-coll-print_export vector-menu vector-menu-portal portal" aria-labelledby="p-coll-print_export-label" role="navigation" 
-     >
-      <h3 id="p-coll-print_export-label">
-          <span>Print/export</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li id="coll-download-as-rl"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Number_1_Record&amp;action=show-download-screen" title="Download this page as a PDF file">Download as PDF</a></li><li id="t-print"><a href="/w/index.php?title=Number_1_Record&amp;printable=yes" title="Printable version of this page [p]" accesskey="p">Printable version</a></li></ul>
-          
-      </div>
-  </nav>
+			
+		</ul>
+		
+	</div>
+</div>
 
-      <!-- Please do not use role attribute as CSS selector, it is deprecated. -->
-  <nav id="p-lang" class="mw-portlet mw-portlet-lang vector-menu vector-menu-portal portal" aria-labelledby="p-lang-label" role="navigation" 
-     >
-      <h3 id="p-lang-label">
-          <span>Languages</span>
-      </h3>
-      <div class="vector-menu-content">
-          <ul class="vector-menu-content-list"><li class="interlanguage-link interwiki-de"><a href="https://de.wikipedia.org/wiki/No._1_Record" title="No. 1 Record – German" lang="de" hreflang="de" class="interlanguage-link-target">Deutsch</a></li><li class="interlanguage-link interwiki-es"><a href="https://es.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – Spanish" lang="es" hreflang="es" class="interlanguage-link-target">Español</a></li><li class="interlanguage-link interwiki-fr"><a href="https://fr.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – French" lang="fr" hreflang="fr" class="interlanguage-link-target">Français</a></li><li class="interlanguage-link interwiki-it"><a href="https://it.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – Italian" lang="it" hreflang="it" class="interlanguage-link-target">Italiano</a></li><li class="interlanguage-link interwiki-hu"><a href="https://hu.wikipedia.org/wiki/No._1_Record" title="No. 1 Record – Hungarian" lang="hu" hreflang="hu" class="interlanguage-link-target">Magyar</a></li><li class="interlanguage-link interwiki-sv"><a href="https://sv.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – Swedish" lang="sv" hreflang="sv" class="interlanguage-link-target">Svenska</a></li></ul>
-          <div class="after-portlet after-portlet-lang"><span class="wb-langlinks-edit wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q269307#sitelinks-wikipedia" title="Edit interlanguage links" class="wbc-editpage">Edit links</a></span></div>
-      </div>
-  </nav>
+	
+	</div>
+</div>
 
-  </div>
+</nav>
 
-  </div>
-  <footer id="footer" class="mw-footer" role="contentinfo" >
-      <ul id="footer-info" >
-      <li id="footer-info-lastmod"> This page was last edited on 19 December 2020, at 19:08<span class="anonymous-show">&#160;(UTC)</span>.</li>
-      <li id="footer-info-copyright">Text is available under the <a rel="license" href="//en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License">Creative Commons Attribution-ShareAlike License</a><a rel="license" href="//creativecommons.org/licenses/by-sa/3.0/" style="display:none;"></a>;
-additional terms may apply.  By using this site, you agree to the <a href="//foundation.wikimedia.org/wiki/Terms_of_Use">Terms of Use</a> and <a href="//foundation.wikimedia.org/wiki/Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a href="//www.wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+		</div>
+	</header>
+</div>
+<div class="mw-page-container">
+	<div class="mw-page-container-inner">
+		<div class="vector-sitenotice-container">
+			<div id="siteNotice"><!-- CentralNotice --></div>
+		</div>
+		<div class="vector-column-start">
+			<div class="vector-main-menu-container">
+		<div id="mw-navigation">
+			<nav id="mw-panel" class="vector-main-menu-landmark" aria-label="Site">
+				<div id="vector-main-menu-pinned-container" class="vector-pinned-container">
+				
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div class="vector-sticky-pinned-container">
+				<nav id="mw-panel-toc" aria-label="Contents" data-event-name="ui.sidebar-toc" class="mw-table-of-contents-container vector-toc-landmark">
+					<div id="vector-toc-pinned-container" class="vector-pinned-container">
+					<div id="vector-toc" class="vector-toc vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-toc-pinnable-header vector-pinnable-header-pinned"
+	data-feature-name="toc-pinned"
+	data-pinnable-element-id="vector-toc"
+	data-pinned-container-id="vector-toc-pinned-container"
+	data-unpinned-container-id="vector-toc-unpinned-container"
+>
+	<h2 class="vector-pinnable-header-label">Contents</h2>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-toc.pin" aria-label="Move Contents to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-toc.unpin" aria-label="Hide Contents">hide</button>
+</div>
+
+
+	<ul class="vector-toc-contents" id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+			class="vector-toc-list-item vector-toc-level-1">
+			<a href="#" class="vector-toc-link">
+				<div class="vector-toc-text">(Top)</div>
+			</a>
+		</li>
+		<li id="toc-Composition_and_recording"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Composition_and_recording">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">1</span>
+				<span>Composition and recording</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Composition_and_recording-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-Reception_and_legacy"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Reception_and_legacy">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">2</span>
+				<span>Reception and legacy</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Reception_and_legacy-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-Track_listing"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Track_listing">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">3</span>
+				<span>Track listing</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Track_listing-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-Personnel"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Personnel">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">4</span>
+				<span>Personnel</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Personnel-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-References"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#References">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">5</span>
+				<span>References</span>
+			</div>
+		</a>
+		
+		<ul id="toc-References-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#External_links">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">6</span>
+				<span>External links</span>
+			</div>
+		</a>
+		
+		<ul id="toc-External_links-sublist" class="vector-toc-list">
+		</ul>
+	</li>
 </ul>
+</div>
 
-      <ul id="footer-places" >
-      <li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Privacy_policy" class="extiw" title="wmf:Privacy policy">Privacy policy</a></li>
-      <li id="footer-places-about"><a href="/wiki/Wikipedia:About" title="Wikipedia:About">About Wikipedia</a></li>
-      <li id="footer-places-disclaimer"><a href="/wiki/Wikipedia:General_disclaimer" title="Wikipedia:General disclaimer">Disclaimers</a></li>
-      <li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
-      <li id="footer-places-mobileview"><a href="//en.m.wikipedia.org/w/index.php?title=Number_1_Record&amp;mobileaction=toggle_view_mobile" class="noprint stopMobileRedirectToggle">Mobile view</a></li>
-      <li id="footer-places-developers"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/How_to_contribute">Developers</a></li>
-      <li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
-      <li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Cookie_statement">Cookie statement</a></li>
-  </ul>
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div class="mw-content-container">
+			<main id="content" class="mw-body">
+				<header class="mw-body-header vector-page-titlebar no-font-mode-scale">
+					<nav aria-label="Contents" class="vector-toc-landmark">
+						
+<div id="vector-page-titlebar-toc" class="vector-dropdown vector-page-titlebar-toc vector-button-flush-left"  title="Table of Contents" >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-page-titlebar-toc" class="vector-dropdown-checkbox "  aria-label="Toggle the table of contents"   >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-listBullet mw-ui-icon-wikimedia-listBullet cdx-button__icon"></span>
 
-      <ul id="footer-icons" class="noprint">
-      <li id="footer-copyrightico"><a href="https://wikimediafoundation.org/"><img src="/static/images/footer/wikimedia-button.png" srcset="/static/images/footer/wikimedia-button-1.5x.png 1.5x, /static/images/footer/wikimedia-button-2x.png 2x" width="88" height="31" alt="Wikimedia Foundation" loading="lazy" /></a></li>
-      <li id="footer-poweredbyico"><a href="https://www.mediawiki.org/"><img src="/static/images/footer/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/static/images/footer/poweredby_mediawiki_132x47.png 1.5x, /static/images/footer/poweredby_mediawiki_176x62.png 2x" width="88" height="31" loading="lazy"/></a></li>
-  </ul>
-
-      <div style="clear: both;"></div>
-  </footer>
+<span class="vector-dropdown-label-text">Toggle the table of contents</span>
+	</label>
+	<div class="vector-dropdown-content">
 
 
-  <script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgPageParseReport":{"limitreport":{"cputime":"0.616","walltime":"0.803","ppvisitednodes":{"value":3467,"limit":1000000},"postexpandincludesize":{"value":84807,"limit":2097152},"templateargumentsize":{"value":4871,"limit":2097152},"expansiondepth":{"value":16,"limit":40},"expensivefunctioncount":{"value":2,"limit":500},"unstrip-depth":{"value":1,"limit":20},"unstrip-size":{"value":62984,"limit":5000000},"entityaccesscount":{"value":0,"limit":400},"timingprofile":["100.00%  722.544      1 -total"," 39.36%  284.394      1 Template:Reflist"," 24.79%  179.107      1 Template:Infobox_album"," 18.69%  135.051      7 Template:Cite_web"," 11.45%   82.723      1 Template:Infobox","  7.26%   52.488      2 Template:ISBN","  6.97%   50.332      1 Template:Short_description","  6.81%   49.238      1 Template:Correct_title","  5.76%   41.625      5 Template:Harvnb","  5.71%   41.224      1 Template:Big_Star"]},"scribunto":{"limitreport-timeusage":{"value":"0.304","limit":"10.000"},"limitreport-memusage":{"value":8342789,"limit":52428800},"limitreport-logs":"anchor_id_list = table#1 {\n  [\"CITEREFBorack2007\"] = 1,\n  [\"CITEREFChristgau1981\"] = 1,\n  [\"CITEREFColin_Larkin2006\"] = 1,\n  [\"CITEREFGeorge-Warren2014\"] = 1,\n  [\"CITEREFGulla1996\"] = 1,\n  [\"CITEREFJovanovic2013\"] = 1,\n  [\"CITEREFLarkin2007\"] = 1,\n  [\"CITEREFLewis2009\"] = 1,\n  [\"CITEREFScoppa1973\"] = 1,\n  [\"CITEREFTangari2010\"] = 1,\n}\ntemplate_list = table#1 {\n  [\"Album ratings\"] = 1,\n  [\"AllMusic\"] = 1,\n  [\"Big Star\"] = 1,\n  [\"Cite book\"] = 6,\n  [\"Cite journal\"] = 1,\n  [\"Cite magazine\"] = 2,\n  [\"Cite news\"] = 2,\n  [\"Cite web\"] = 7,\n  [\"Correct title\"] = 1,\n  [\"Duration\"] = 1,\n  [\"Harvnb\"] = 5,\n  [\"ISBN\"] = 2,\n  [\"Infobox album\"] = 1,\n  [\"Rating\"] = 3,\n  [\"Reflist\"] = 1,\n  [\"Track listing\"] = 2,\n  [\"Use mdy dates\"] = 1,\n}\narticle_whitelist = table#1 {\n}\n"},"cachereport":{"origin":"mw1269","timestamp":"20201219190843","ttl":2592000,"transientcontent":false}}});});</script>
-  <script type="application/ld+json">{"@context":"https:\/\/schema.org","@type":"Article","name":"Number 1 Record","url":"https:\/\/en.wikipedia.org\/wiki\/Number_1_Record","sameAs":"http:\/\/www.wikidata.org\/entity\/Q269307","mainEntity":"http:\/\/www.wikidata.org\/entity\/Q269307","author":{"@type":"Organization","name":"Contributors to Wikimedia projects"},"publisher":{"@type":"Organization","name":"Wikimedia Foundation, Inc.","logo":{"@type":"ImageObject","url":"https:\/\/www.wikimedia.org\/static\/images\/wmf-hor-googpub.png"}},"datePublished":"2005-12-14T01:33:34Z","dateModified":"2020-12-19T19:08:24Z","image":"https:\/\/upload.wikimedia.org\/wikipedia\/en\/5\/57\/Big_Star_-1_Record.jpg","headline":"album by Big Star"}</script>
-  <script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":137,"wgHostname":"mw1322"});});</script>
-  </body></html>`;
-const tracklist = [{
-  classification: 0,
-  tracks: [
-    {name: "Feel"},
-    {name: "The Ballad of El Goodo"},
-    {name: "In the Street"},
-    {name: "Thirteen"},
-    {name: "Don't Lie to Me"},
-    {name: "The India Song"},
-  ]}, {
-    classification: 0,
-    tracks: [
-    {name: "When My Baby's Beside Me"},
-    {name: "My Life Is Right"},
-    {name: "Give Me Another Chance"},
-    {name: "Try Again"},
-    {name: "Watch the Sunrise"},
-    {name: "ST 100/6"},
-  ]
-}];
+							<div id="vector-page-titlebar-toc-unpinned-container" class="vector-unpinned-container">
+			</div>
+		
+	</div>
+</div>
 
-module.exports = {
-  doc: doc,
-  tracklist: tracklist,
-}
+					</nav>
+					<h1 id="firstHeading" class="firstHeading mw-first-heading"><i>Number 1 Record</i></h1>
+			
+<div id="p-lang-btn" class="vector-dropdown mw-portlet mw-portlet-lang"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-p-lang-btn" class="vector-dropdown-checkbox mw-interlanguage-selector"  aria-label="7 languages" aria-description="Go to an article in another language. Available in 7 languages"  >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--action-progressive mw-portlet-lang-heading-7" aria-hidden="true"  ><span class="vector-icon mw-ui-icon-language-progressive mw-ui-icon-wikimedia-language-progressive cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">7 languages</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+		<div class="vector-menu-content">
+			
+			<ul class="vector-menu-content-list">
+				
+				<li class="interlanguage-link interwiki-de mw-list-item"><a href="https://de.wikipedia.org/wiki/No._1_Record" title="No. 1 Record – German" lang="de" hreflang="de" data-title="No. 1 Record" data-language-autonym="Deutsch" data-language-local-name="German" class="interlanguage-link-target"><span>Deutsch</span></a></li><li class="interlanguage-link interwiki-es mw-list-item"><a href="https://es.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – Spanish" lang="es" hreflang="es" data-title="Number 1 Record" data-language-autonym="Español" data-language-local-name="Spanish" class="interlanguage-link-target"><span>Español</span></a></li><li class="interlanguage-link interwiki-fr mw-list-item"><a href="https://fr.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – French" lang="fr" hreflang="fr" data-title="Number 1 Record" data-language-autonym="Français" data-language-local-name="French" class="interlanguage-link-target"><span>Français</span></a></li><li class="interlanguage-link interwiki-hu mw-list-item"><a href="https://hu.wikipedia.org/wiki/No._1_Record" title="No. 1 Record – Hungarian" lang="hu" hreflang="hu" data-title="No. 1 Record" data-language-autonym="Magyar" data-language-local-name="Hungarian" class="interlanguage-link-target"><span>Magyar</span></a></li><li class="interlanguage-link interwiki-it mw-list-item"><a href="https://it.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – Italian" lang="it" hreflang="it" data-title="Number 1 Record" data-language-autonym="Italiano" data-language-local-name="Italian" class="interlanguage-link-target"><span>Italiano</span></a></li><li class="interlanguage-link interwiki-ko mw-list-item"><a href="https://ko.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – Korean" lang="ko" hreflang="ko" data-title="Number 1 Record" data-language-autonym="한국어" data-language-local-name="Korean" class="interlanguage-link-target"><span>한국어</span></a></li><li class="interlanguage-link interwiki-sv mw-list-item"><a href="https://sv.wikipedia.org/wiki/Number_1_Record" title="Number 1 Record – Swedish" lang="sv" hreflang="sv" data-title="Number 1 Record" data-language-autonym="Svenska" data-language-local-name="Swedish" class="interlanguage-link-target"><span>Svenska</span></a></li>
+			</ul>
+			<div class="after-portlet after-portlet-lang"><span class="wb-langlinks-edit wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q269307#sitelinks-wikipedia" title="Edit interlanguage links" class="wbc-editpage">Edit links</a></span></div>
+		</div>
+
+	</div>
+</div>
+</header>
+				<div class="vector-page-toolbar">
+					<div class="vector-page-toolbar-container">
+						<div id="left-navigation">
+							<nav aria-label="Namespaces">
+								
+<div id="p-associated-pages" class="vector-menu vector-menu-tabs mw-portlet mw-portlet-associated-pages"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-nstab-main" class="selected mw-list-item vector-tab-noicon"><a data-mw-interface  href="/wiki/Number_1_Record" title="View the content page [c]" accesskey="c" class=""><span>Article</span></a>
+</li>
+<li id="ca-talk" class="mw-list-item vector-tab-noicon"><a data-mw-interface  href="/wiki/Talk:Number_1_Record" rel="discussion" title="Discuss improvements to the content page [t]" accesskey="t" class=""><span>Talk</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+								
+<div id="vector-variants-dropdown" class="vector-dropdown emptyPortlet"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-variants-dropdown" class="vector-dropdown-checkbox " aria-label="Change language variant"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet" aria-hidden="true"  ><span class="vector-dropdown-label-text">English</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+					
+<div id="p-variants" class="vector-menu mw-portlet mw-portlet-variants emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+				
+	</div>
+</div>
+
+							</nav>
+						</div>
+						<div id="right-navigation" class="vector-collapsible">
+							<nav aria-label="Views">
+			    
+<div id="p-views" class="vector-menu vector-menu-tabs mw-portlet mw-portlet-views"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-view" class="selected mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/wiki/Number_1_Record" class=""><span>Read</span></a>
+</li>
+<li id="ca-edit" class="mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/w/index.php?title=Number_1_Record&amp;action=edit" title="Edit the source code of this page [e]" accesskey="e" class=""><span>Edit</span></a>
+</li>
+<li id="ca-history" class="mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/w/index.php?title=Number_1_Record&amp;action=history" title="Past revisions of this page [h]" accesskey="h" class=""><span>View history</span></a>
+</li>
+<li id="ca-bookmark" class="mw-list-item vector-menu-item--collapsible"><a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only reading-lists-bookmark" id="" title="Add this page to your saved items"><span class="vector-icon mw-ui-icon-bookmarkOutline mw-ui-icon-wikimedia-bookmarkOutline cdx-button__icon"></span>
+
+<span>Save</span>
+</a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+			</nav>
+
+							<nav class="vector-page-tools-landmark" aria-label="Page tools">
+								
+<div id="vector-page-tools-dropdown" class="vector-dropdown vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-page-tools-dropdown" class="vector-dropdown-checkbox "  aria-label="Tools"   >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-verticalEllipsis mw-ui-icon-wikimedia-verticalEllipsis cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Tools</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+									<div id="vector-page-tools-unpinned-container" class="vector-unpinned-container">
+						
+<div id="vector-page-tools" class="vector-page-tools vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-page-tools-pinnable-header vector-pinnable-header-unpinned"
+	data-feature-name="page-tools-pinned"
+	data-pinnable-element-id="vector-page-tools"
+	data-pinned-container-id="vector-page-tools-pinned-container"
+	data-unpinned-container-id="vector-page-tools-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Tools</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-page-tools.pin" aria-label="Move Tools to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-page-tools.unpin" aria-label="Hide Tools">hide</button>
+</div>
+
+	
+<div id="p-cactions" class="vector-menu mw-portlet mw-portlet-cactions emptyPortlet vector-has-collapsible-items"  >
+	<div class="vector-menu-heading">
+		Actions
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-view-more" class="selected mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/wiki/Number_1_Record" class=""><span class="vector-icon mw-ui-icon-eye mw-ui-icon-wikimedia-eye cdx-button__icon"></span>
+
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Number_1_Record&amp;action=edit" title="Edit the source code of this page [e]" accesskey="e" class=""><span class="vector-icon mw-ui-icon-edit mw-ui-icon-wikimedia-edit cdx-button__icon"></span>
+
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Number_1_Record&amp;action=history" title="Past revisions of this page [h]" accesskey="h" class=""><span class="vector-icon mw-ui-icon-history mw-ui-icon-wikimedia-history cdx-button__icon"></span>
+
+<span>View history</span></a>
+</li>
+<li id="ca-bookmark-more" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="#" class="reading-lists-bookmark" title="Add this page to your saved items"><span class="vector-icon mw-ui-icon-bookmarkOutline mw-ui-icon-wikimedia-bookmarkOutline cdx-button__icon"></span>
+
+<span>Save</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-tb" class="vector-menu mw-portlet mw-portlet-tb"  >
+	<div class="vector-menu-heading">
+		General
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="t-whatlinkshere" class="mw-list-item"><a href="/wiki/Special:WhatLinksHere/Number_1_Record" title="List of all English Wikipedia pages containing links to this page [j]" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked" class="mw-list-item"><a href="/wiki/Special:RecentChangesLinked/Number_1_Record" rel="nofollow" title="Recent changes in pages linked from this page [k]" accesskey="k"><span>Related changes</span></a></li><li id="t-upload" class="mw-list-item"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" title="Upload files [u]" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink" class="mw-list-item"><a href="/w/index.php?title=Number_1_Record&amp;oldid=1376099667" title="Permanent link to this revision of this page"><span>Permanent link</span></a></li><li id="t-info" class="mw-list-item"><a href="/w/index.php?title=Number_1_Record&amp;action=info" title="More information about this page"><span>Page information</span></a></li><li id="t-cite" class="mw-list-item"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Number_1_Record&amp;id=1376099667&amp;wpFormIdentifier=titleform" title="Information on how to cite this page"><span>Cite this page</span></a></li><li id="t-urlshortener" class="mw-list-item"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FNumber_1_Record"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy" class="mw-list-item"><a href="/w/index.php?title=Number_1_Record&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-coll-print_export" class="vector-menu mw-portlet mw-portlet-coll-print_export"  >
+	<div class="vector-menu-heading">
+		Print/export
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="coll-download-as-rl" class="mw-list-item"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Number_1_Record&amp;action=show-download-screen" title="Download this page as a PDF file"><span>Download as PDF</span></a></li><li id="t-print" class="mw-list-item"><a href="javascript:print();" rel="alternate" title="Printable version of this page [p]" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-wikibase-otherprojects" class="vector-menu mw-portlet mw-portlet-wikibase-otherprojects"  >
+	<div class="vector-menu-heading">
+		In other projects
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="t-wikibase" class="wb-otherproject-link wb-otherproject-wikibase-dataitem mw-list-item"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q269307" title="Structured data on this page hosted by Wikidata [g]" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+</div>
+
+									</div>
+				
+	</div>
+</div>
+
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div class="vector-column-end no-font-mode-scale">
+					<div class="vector-sticky-pinned-container">
+						<nav class="vector-page-tools-landmark" aria-label="Page tools">
+							<div id="vector-page-tools-pinned-container" class="vector-pinned-container">
+				
+							</div>
+		</nav>
+						<nav class="vector-appearance-landmark" aria-label="Appearance">
+							<div id="vector-appearance-pinned-container" class="vector-pinned-container">
+				<div id="vector-appearance" class="vector-appearance vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-appearance-pinnable-header vector-pinnable-header-pinned"
+	data-feature-name="appearance-pinned"
+	data-pinnable-element-id="vector-appearance"
+	data-pinned-container-id="vector-appearance-pinned-container"
+	data-unpinned-container-id="vector-appearance-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Appearance</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-appearance.pin" aria-label="Move Appearance to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-appearance.unpin" aria-label="Hide Appearance">hide</button>
+</div>
+
+
+</div>
+
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" class="vector-body" aria-labelledby="firstHeading" data-mw-ve-target-container>
+					<div class="vector-body-before-content">
+							<div class="mw-indicators">
+		</div>
+
+						<div id="siteSub" class="noprint">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"></div></div>
+						
+					</div>
+					
+					<div id="mw-content-text" class="mw-body-content"><div class="mw-content-ltr mw-parser-output" lang="en" dir="ltr" data-mw-parsoid-version="0.25.0.0-alpha1" data-mw-html-version="2.8.0"><section data-mw-section-id="0" id="mwAQ"><p class="mw-empty-elt" id="mwAg"><span typeof="mw:Nowiki mw:Transclusion" about="#mwt1" id="mwAw" data-mw='{"parts":[{"template":{"target":{"wt":"Use mdy dates","href":"./Template:Use_mdy_dates"},"params":{"date":{"wt":"July 2017"}},"i":0}}]}'></span><link rel="mw:PageProp/Category" href="./Category:Use_mdy_dates_from_July_2017" about="#mwt1" id="mwBA"/></p>
+<span class="mw-empty-elt" about="#mwt2" typeof="mw:Transclusion" id="mwBQ" data-mw='{"parts":[{"template":{"target":{"wt":"Correct title","href":"./Template:Correct_title"},"params":{"title":{"wt":"#1 Record"},"reason":{"wt":"hash"}},"i":0}}]}'><style data-mw-deduplicate="TemplateStyles:r1368532237" typeof="mw:Extension/templatestyles" about="#mwt3" data-mw='{"name":"templatestyles","attrs":{"src":"Module:Hatnote/styles.css"},"body":{"extsrc":""}}'>.mw-parser-output .hatnote{font-style:italic}.mw-parser-output div.hatnote{padding-left:1.6em;margin-bottom:0.5em}.mw-parser-output .hatnote i{font-style:normal}.mw-parser-output .hatnote+.mw-empty-elt+.hatnote{margin-top:-0.5em}@media print{body.ns-0 .mw-parser-output .hatnote{display:none!important}}</style></span><div role="note" class="hatnote navigation-not-searchable plainlinks selfreference noprint" about="#mwt2">The correct title of this article is <b>#1 Record</b>. The substitution of the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Number_sign" title="Number sign">#</a> is due to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wikipedia:Naming_conventions_(technical_restrictions)#Clashes_with_wiki_markup/HTML_syntax" title="Wikipedia:Naming conventions (technical restrictions)">technical restrictions</a>.</div><span class="mw-empty-elt" about="#mwt2"><link rel="mw:PageProp/Category" href="./Category:Restricted_titles_(leading_number_sign)"/></span>
+<div class="shortdescription nomobile noexcerpt noprint searchaux" style="display:none" about="#mwt4" typeof="mw:Transclusion" id="mwBg" data-mw='{"parts":[{"template":{"target":{"wt":"Infobox album\n","href":"./Template:Infobox_album"},"params":{"name":{"wt":"&lt;nowiki>#&lt;/nowiki>1 Record"},"type":{"wt":"[[Album]]"},"artist":{"wt":"[[Big Star]]"},"cover":{"wt":"Big Star -1 Record.jpg"},"alt":{"wt":"A white neon star with the word \"BIG\" in neon yellow in the middle"},"released":{"wt":"April 24, 1972"},"recorded":{"wt":"May 1971 – February 1972"},"studio":{"wt":"Ardent Studios, Memphis"},"genre":{"wt":"* [[Power pop]]&lt;ref>{{cite web|first= Joe |last= Tangari |title= The Life and Music of Alex Chilton |website= [[Pitchfork (website)|Pitchfork]] |date= March 22, 2010 |access-date= June 3, 2015 |url= http://pitchfork.com/features/articles/7779-the-life-and-music-of-alex-chilton/}}&lt;/ref>&lt;ref>{{cite magazine|url=https://www.spinmagazine.com/2022/04/best-albums-of-1972/|title=The 50 Best Albums of 1972|first=John Paul|last=Bullock|date=April 22, 2022|magazine=[[Spin (magazine)|Spin]]|access-date=April 9, 2026|quote=This definitive power-pop classic escaped obscurity through word-of-mouth and has stayed relevant because the songs are so damn good.}}&lt;/ref>\n* [[hard rock]]&lt;ref>{{cite magazine| url=https://www.rollingstone.com/music/music-lists/best-albums-of-all-time-1062063/big-star-1-record-2-1062759/| year=2020| title=The 500 Greatest Albums of All Time| magazine=[[Rolling Stone]]| access-date= August 4, 2023|quote= They mixed British Invasion pop finesse with all-American hard rock, from the surging “Feel” to the acoustic heartbreaker “Thirteen.}}&lt;/ref>\n* [[folk rock]]&lt;ref name=\"Larkin\">{{cite book|title=[[All Time Top 1000 Albums]]|editor=Colin Larkin|editor-link=Colin Larkin|publisher=[[Virgin Books]]|date=2006|edition=3rd|isbn=0-7535-0493-6|page=97}}&lt;/ref>\n*[[Southern rock]]&lt;ref>{{cite web|url=https://www.pastemagazine.com/music/best-albums/southern-rock-albums-of-all-time-allman-brothers-j|title= The 50 Best Southern Rock Albums of All Time|first=Loren|last=DiBlasi|date= 23 July 2020|website=[[Paste (magazine)|Paste]]|access-date= 30 September 2024}}&lt;/ref>"},"length":{"wt":"{{Duration|m=37|s=03}}"},"label":{"wt":"[[Ardent Records|Ardent]]"},"producer":{"wt":"[[John Fry (record producer)|John Fry]]"},"prev_title":{"wt":""},"prev_year":{"wt":""},"next_title":{"wt":"[[Radio City (album)|Radio City]]"},"next_year":{"wt":"1974"},"misc":{"wt":"{{Singles\n | name        = &lt;nowiki>#&lt;/nowiki>1 Record\n | type        = studio\n | single1     = [[Thirteen (song)|Thirteen]]\" / \"Watch the Sunrise\n | single1date = March 1972\n | single2     = When My Baby&apos;s Beside Me\" / \"[[In the Street (song)|In the Street]]\n | single2date = April 1972\n | single3     = Don&apos;t Lie to Me\" / \"Watch the Sunrise\n | single3date = July 1972\n}}"}},"i":0}}]}'>1972 studio album<span typeof="mw:Entity"> </span>by Big Star</div><span class="mw-empty-elt" about="#mwt4"><link rel="mw:PageProp/Category" href="./Category:Articles_with_short_description"/><link rel="mw:PageProp/Category" href="./Category:Short_description_is_different_from_Wikidata"/><style data-mw-deduplicate="TemplateStyles:r1374427404" typeof="mw:Extension/templatestyles" about="#mwt5" data-mw='{"name":"templatestyles","attrs":{"src":"Hlist/styles.css"},"body":{"extsrc":""}}'>.mw-parser-output .hlist dl,.mw-parser-output .hlist ol,.mw-parser-output .hlist ul{margin:0;padding:0}.mw-parser-output .hlist dd,.mw-parser-output .hlist dt,.mw-parser-output .hlist li{margin:0;display:inline}.mw-parser-output .hlist.inline,.mw-parser-output .hlist.inline dl,.mw-parser-output .hlist.inline ol,.mw-parser-output .hlist.inline ul,.mw-parser-output .hlist dl dl,.mw-parser-output .hlist dl ol,.mw-parser-output .hlist dl ul,.mw-parser-output .hlist ol dl,.mw-parser-output .hlist ol ol,.mw-parser-output .hlist ol ul,.mw-parser-output .hlist ul dl,.mw-parser-output .hlist ul ol,.mw-parser-output .hlist ul ul{display:inline}.mw-parser-output .hlist .mw-empty-li{display:none}.mw-parser-output .hlist dt::after{content:": "}.mw-parser-output .hlist dd::after,.mw-parser-output .hlist li::after{content:"\a0 · ";font-weight:bold}.mw-parser-output .hlist dd:last-child::after,.mw-parser-output .hlist dt:last-child::after,.mw-parser-output .hlist li:last-child::after{content:none}.mw-parser-output .hlist dd dd:first-child::before,.mw-parser-output .hlist dd dt:first-child::before,.mw-parser-output .hlist dd li:first-child::before,.mw-parser-output .hlist dt dd:first-child::before,.mw-parser-output .hlist dt dt:first-child::before,.mw-parser-output .hlist dt li:first-child::before,.mw-parser-output .hlist li dd:first-child::before,.mw-parser-output .hlist li dt:first-child::before,.mw-parser-output .hlist li li:first-child::before{content:" (";font-weight:normal}.mw-parser-output .hlist dd dd:last-child::after,.mw-parser-output .hlist dd dt:last-child::after,.mw-parser-output .hlist dd li:last-child::after,.mw-parser-output .hlist dt dd:last-child::after,.mw-parser-output .hlist dt dt:last-child::after,.mw-parser-output .hlist dt li:last-child::after,.mw-parser-output .hlist li dd:last-child::after,.mw-parser-output .hlist li dt:last-child::after,.mw-parser-output .hlist li li:last-child::after{content:")";font-weight:normal}.mw-parser-output .hlist ol{counter-reset:listitem}.mw-parser-output .hlist ol>li{counter-increment:listitem}.mw-parser-output .hlist ol>li::before{content:" "counter(listitem)"\a0 "}.mw-parser-output .hlist dd ol>li:first-child::before,.mw-parser-output .hlist dt ol>li:first-child::before,.mw-parser-output .hlist li ol>li:first-child::before{content:" ("counter(listitem)"\a0 "}</style><style data-mw-deduplicate="TemplateStyles:r1126788409" typeof="mw:Extension/templatestyles" about="#mwt6" data-mw='{"name":"templatestyles","attrs":{"src":"Plainlist/styles.css"},"body":{"extsrc":""}}'>.mw-parser-output .plainlist ol,.mw-parser-output .plainlist ul{line-height:inherit;list-style:none;margin:0;padding:0}.mw-parser-output .plainlist ol li,.mw-parser-output .plainlist ul li{margin-bottom:0}</style><style data-mw-deduplicate="TemplateStyles:r1358620234" typeof="mw:Extension/templatestyles" about="#mwt7" data-mw='{"name":"templatestyles","attrs":{"src":"Module:Infobox/styles.css"},"body":{"extsrc":""}}'>@media(min-width:640px){.mw-parser-output .infobox{margin-left:1em;float:right;clear:right;width:22em}}.mw-parser-output .infobox-subbox{padding:0;border:none;margin:-3px;width:auto;min-width:100%;font-size:100%;clear:none;float:none;background-color:transparent;color:inherit}.mw-parser-output .infobox-3cols-child{margin:-3px}.mw-parser-output .infobox .navbar{font-size:100%}.mw-parser-output .infobox-hiddenrow,body.skin--responsive.skin--responsive .mw-parser-output .infobox .infobox-hiddenrow{display:none}@media screen{html.skin-theme-clientpref-night .mw-parser-output .infobox-full-data:not(.notheme)>div:not(.notheme)[style]{background:#1f1f23!important;color:#f8f9fa}}@media screen and (prefers-color-scheme:dark){html.skin-theme-clientpref-os .mw-parser-output .infobox-full-data:not(.notheme)>div:not(.notheme)[style]{background:#1f1f23!important;color:#f8f9fa}}@media(min-width:640px){body.skin--responsive .mw-parser-output .infobox-table{display:table!important}body.skin--responsive .mw-parser-output .infobox-table>caption{display:table-caption!important}body.skin--responsive .mw-parser-output .infobox-table>tbody{display:table-row-group}body.skin--responsive .mw-parser-output .infobox-table th,body.skin--responsive .mw-parser-output .infobox-table td{padding-left:inherit;padding-right:inherit}}</style></span><table class="infobox width: 25em; vevent haudio" about="#mwt4"><tbody><tr><th colspan="2" class="infobox-above summary album" style="font-style: italic; color: inherit; background-color: lightsteelblue; font-size: 125%;">#1 Record</th></tr><tr><td colspan="2" class="infobox-image"><span class="mw-default-size" typeof="mw:File/Frameless" data-mw='{"caption":"A white neon star with the word \"BIG\" in neon yellow in the middle"}'><a href="https://en.wikipedia.org/wiki/File:Big_Star_-1_Record.jpg" class="mw-file-description" title='A white neon star with the word "BIG" in neon yellow in the middle'><img resource="https://en.wikipedia.org/wiki/File:Big_Star_-1_Record.jpg" src="//thumb.wikimedia.org/wikipedia/en/thumb/5/57/Big_Star_-1_Record.jpg/250px-Big_Star_-1_Record.jpg?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//upload.wikimedia.org/wikipedia/en/5/57/Big_Star_-1_Record.jpg?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail_unscaled 2x" alt='A white neon star with the word "BIG" in neon yellow in the middle' data-file-width="313" data-file-height="318" data-file-type="bitmap" height="254" width="250" class="mw-file-element"/></a></span></td></tr><tr><th colspan="2" class="infobox-header description" style="color: #202122;background-color: lightsteelblue"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Album" title="Album">Studio album</a><span typeof="mw:Entity"> </span>by <div class="contributor" style="display:inline"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Big_Star" title="Big Star">Big Star</a></div></th></tr><tr><th scope="row" class="infobox-label">Released</th><td class="infobox-data published">April 24, 1972</td></tr><tr><th scope="row" class="infobox-label">Recorded</th><td class="infobox-data plainlist">May 1971 – February 1972</td></tr><tr><th scope="row" class="infobox-label">Studios</th><td class="infobox-data plainlist">Ardent Studios, Memphis</td></tr><tr><th scope="row" class="infobox-label">Genres</th><td class="infobox-data category hlist">
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Power_pop" title="Power pop">Power pop</a><sup about="#mwt10" class="mw-ref reference" id="cite_ref-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-1"}}'><a href="#cite_note-1" id="mwBw"><span class="mw-reflink-text" id="mwCA"><span class="cite-bracket" id="mwCQ">[</span>1<span class="cite-bracket" id="mwCg">]</span></span></a></sup><sup about="#mwt15" class="mw-ref reference" id="cite_ref-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-2"}}'><a href="#cite_note-2" id="mwCw"><span class="mw-reflink-text" id="mwDA"><span class="cite-bracket" id="mwDQ">[</span>2<span class="cite-bracket" id="mwDg">]</span></span></a></sup></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hard_rock" title="Hard rock">hard rock</a><sup about="#mwt20" class="mw-ref reference" id="cite_ref-3" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-3"}}'><a href="#cite_note-3" id="mwDw"><span class="mw-reflink-text" id="mwEA"><span class="cite-bracket" id="mwEQ">[</span>3<span class="cite-bracket" id="mwEg">]</span></span></a></sup></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Folk_rock" title="Folk rock">folk rock</a><sup about="#mwt25" class="mw-ref reference" id="cite_ref-Larkin_4-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Larkin"},"body":{"id":"mw-reference-text-cite_note-Larkin-4"}}'><a href="#cite_note-Larkin-4" id="mwEw"><span class="mw-reflink-text" id="mwFA"><span class="cite-bracket" id="mwFQ">[</span>4<span class="cite-bracket" id="mwFg">]</span></span></a></sup></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Southern_rock" title="Southern rock">Southern rock</a><sup about="#mwt30" class="mw-ref reference" id="cite_ref-5" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-5"}}'><a href="#cite_note-5" id="mwFw"><span class="mw-reflink-text" id="mwGA"><span class="cite-bracket" id="mwGQ">[</span>5<span class="cite-bracket" id="mwGg">]</span></span></a></sup></li></ul>
+</td></tr><tr><th scope="row" class="infobox-label">Length</th><td class="infobox-data"><span class="duration"><span class="min">37</span>:<span class="s">03</span></span></td></tr><tr><th scope="row" class="infobox-label">Label</th><td class="infobox-data hlist"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ardent_Records" title="Ardent Records">Ardent</a></td></tr><tr><th scope="row" class="infobox-label">Producer</th><td class="infobox-data hlist"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/John_Fry_(record_producer)" title="John Fry (record producer)" class="mw-redirect">John Fry</a></td></tr><tr><th colspan="2" class="infobox-header description" style="color: #202122;background-color: lightsteelblue"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Big_Star" title="Big Star">Big Star</a> chronology</th></tr><tr><td colspan="2" class="infobox-full-data">
+<table role="presentation" style="color:inherit; background: transparent; width: 100%; min-width: 100%; border-collapse: collapse; display: inline-table;">
+<tbody><tr style="line-height: 1.4em;">
+<td style="width: 33%; text-align: center; vertical-align: top; padding: .2em .1em .2em 0"></td>
+<td style="width: 33%; text-align: center; vertical-align: top; padding: .2em .1em"><i><b>#1 Record</b></i><br/>(1972)</td>
+<td style="width: 33%; text-align: center; vertical-align: top; padding: .2em 0 .2em .1em"><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Radio_City_(album)" title="Radio City (album)">Radio City</a></i><br/>(1974)</td></tr>
+</tbody></table></td></tr><tr class="infobox-hiddenrow"><td colspan="2" class="infobox-below"><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r1358620234" about="#mwt33" typeof="mw:Extension/templatestyles" data-mw='{"name":"templatestyles","attrs":{"src":"Module:Infobox/styles.css"},"body":{"extsrc":""}}'/></td></tr><tr><th colspan="2" class="infobox-header" style="background: lightsteelblue;color:inherit;"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Single_(music)" title="Single (music)">Singles</a> from <i> #1 Record </i></th></tr><tr><td colspan="2" class="infobox-full-data"><div style="text-align:left">
+<ol><li><span class="item"><span class="fn">"<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thirteen_(song)" title="Thirteen (song)">Thirteen</a>" / "Watch the Sunrise"</span><br/>Released: March 1972</span></li>
+<li><span class="item"><span class="fn">"When My Baby's Beside Me" / "<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/In_the_Street_(song)" title="In the Street (song)">In the Street</a>"</span><br/>Released: April 1972</span></li>
+<li><span class="item"><span class="fn">"Don't Lie to Me" / "Watch the Sunrise"</span><br/>Released: July 1972</span></li></ol>
+</div></td></tr><tr style="display:none"><td colspan="2">
+</td></tr></tbody></table><span class="mw-empty-elt" about="#mwt4"><link rel="mw:PageProp/Category" href="./Category:Articles_with_hAudio_microformats"/><link rel="mw:PageProp/Category" href="./Category:Articles_with_hAudio_microformats"/></span>
+
+<p id="mwGw"><i id="mwHA"><b id="mwHQ">#1 Record</b></i> is the debut studio album by the American rock band <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Big_Star" title="Big Star" id="mwHg">Big Star</a>. It was released on April 24, 1972, by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Memphis,_Tennessee" title="Memphis, Tennessee" id="mwHw">Memphis</a>-based <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ardent_Records" title="Ardent Records" id="mwIA">Ardent Records</a>.</p>
+
+<p id="mwIQ">Many critics praised the album's vocal harmonies and songcraft but <i id="mwIg">#1 Record</i> suffered from poor distribution and sold fewer than 10,000 copies upon its initial release. However, <i id="mwIw">#1 Record</i> gained wider attention in the late 1970s in the UK when <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/EMI" title="EMI" id="mwJA">EMI</a> reissued it with <i id="mwJQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Radio_City_(album)" title="Radio City (album)" id="mwJg">Radio City</a></i> as a double LP package due to increasing demand.<sup about="#mwt36" class="mw-ref reference" id="cite_ref-6" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-6"}}'><a href="#cite_note-6" id="mwJw"><span class="mw-reflink-text" id="mwKA"><span class="cite-bracket" id="mwKQ">[</span>6<span class="cite-bracket" id="mwKg">]</span></span></a></sup> The same combination was used when the album was released on CD in 1992.<sup about="#mwt39" class="mw-ref reference" id="cite_ref-7" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-7"}}'><a href="#cite_note-7" id="mwKw"><span class="mw-reflink-text" id="mwLA"><span class="cite-bracket" id="mwLQ">[</span>7<span class="cite-bracket" id="mwLg">]</span></span></a></sup> It is now widely-regarded as a seminal work in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pop_rock" title="Pop rock" id="mwLw">pop rock</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Power_pop" title="Power pop" id="mwMA">power pop</a>. In 2020 it was ranked number 474 on <i id="mwMQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rolling_Stone" title="Rolling Stone" id="mwMg">Rolling Stone</a></i> magazine's list of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rolling_Stone's_500_Greatest_Albums_of_All_Time" title="Rolling Stone's 500 Greatest Albums of All Time" id="mwMw">the 500 greatest albums of all time</a>.<sup about="#mwt42" class="mw-ref reference" id="cite_ref-500-greatest_8-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"500-greatest"},"body":{"id":"mw-reference-text-cite_note-500-greatest-8"}}'><a href="#cite_note-500-greatest-8" id="mwNA"><span class="mw-reflink-text" id="mwNQ"><span class="cite-bracket" id="mwNg">[</span>8<span class="cite-bracket" id="mwNw">]</span></span></a></sup> <i id="mwOA">Rolling Stone</i> also ranked the song "<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thirteen_(song)" title="Thirteen (song)" id="mwOQ">Thirteen</a>" as number 406 on its <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rolling_Stone's_500_Greatest_Songs_of_All_Time" title="Rolling Stone's 500 Greatest Songs of All Time" id="mwOg">500 Greatest Songs of All Time</a>.<sup about="#mwt45" class="mw-ref reference" id="cite_ref-9" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-9"}}'><a href="#cite_note-9" id="mwOw"><span class="mw-reflink-text" id="mwPA"><span class="cite-bracket" id="mwPQ">[</span>9<span class="cite-bracket" id="mwPg">]</span></span></a></sup> It was voted number 188 in the third edition of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Colin_Larkin" title="Colin Larkin" id="mwPw">Colin Larkin</a>'s <i id="mwQA"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/All_Time_Top_1000_Albums" title="All Time Top 1000 Albums" id="mwQQ">All Time Top 1000 Albums</a></i> (2000).<sup about="#mwt46" class="mw-ref reference" id="cite_ref-Larkin_4-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Larkin"}}'><a href="#cite_note-Larkin-4" id="mwQg"><span class="mw-reflink-text" id="mwQw"><span class="cite-bracket" id="mwRA">[</span>4<span class="cite-bracket" id="mwRQ">]</span></span></a></sup></p>
+
+<meta property="mw:PageProp/toc" id="mwRg" data-mw='{"autoGenerated":true}'/></section><section data-mw-section-id="1" id="mwRw" aria-labelledby="Composition_and_recording"><div class="mw-heading mw-heading2"><h2 id="Composition_and_recording">Composition and recording</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=1" title="Edit section: Composition and recording"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p id="mwSA">Six years earlier, in 1966, when their hometown of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Memphis,_Tennessee" title="Memphis, Tennessee" id="mwSQ">Memphis, Tennessee</a>, became a tour stop for <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/The_Beatles" title="The Beatles" id="mwSg">The Beatles</a>, primary songwriters <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Alex_Chilton" title="Alex Chilton" id="mwSw">Alex Chilton</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Chris_Bell_(American_musician)" title="Chris Bell (American musician)" id="mwTA">Chris Bell</a> were 15 years old. Heavily influenced by the UK band, the pair—Bell in particular—wanted to model their songwriting on the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lennon–McCartney" title="Lennon–McCartney" id="mwTQ">Lennon–McCartney</a> partnership, with the result that they credited as many songs as possible on Big Star's debut album to "Bell/Chilton".<sup about="#mwt48" class="mw-ref reference" id="cite_ref-chilton_10-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"chilton"},"body":{"id":"mw-reference-text-cite_note-chilton-10"}}'><a href="#cite_note-chilton-10" id="mwTg"><span class="mw-reflink-text" id="mwTw"><span class="cite-bracket" id="mwUA">[</span>10<span class="cite-bracket" id="mwUQ">]</span></span></a></sup> In practice, they developed material incrementally in the studio, each making changes to the other's recordings. Drummer <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Jody_Stephens" title="Jody Stephens" id="mwUg">Jody Stephens</a> recalled, "Alex would come in and put down something rough and edgy and Chris would come in and add some sweet-sounding background vocals to it."<sup about="#mwt50" class="mw-ref reference" id="cite_ref-jov89_11-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"jov89"},"body":{"id":"mw-reference-text-cite_note-jov89-11"}}'><a href="#cite_note-jov89-11" id="mwUw"><span class="mw-reflink-text" id="mwVA"><span class="cite-bracket" id="mwVQ">[</span>11<span class="cite-bracket" id="mwVg">]</span></span></a></sup> On Chris Bell's unique vocal contributions, Chilton said: "Chris and I did all the harmony vocals, and he had a brilliant mind that worked in a sort of contrapuntal way.  It wasn't based so much on 'Oh you're singing the root.  I should be singing the 3rd above,' he would just sing along with the line I was singing. He was a brilliant, instinctual maker of counterpoint."<sup about="#mwt51" class="mw-ref reference" id="cite_ref-:1_12-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":":1"}}'><a href="#cite_note-:1-12" id="mwVw"><span class="mw-reflink-text" id="mwWA"><span class="cite-bracket" id="mwWQ">[</span>12<span class="cite-bracket" id="mwWg">]</span></span></a></sup></p>
+
+<p id="mwWw">The pair also contributed songs to the album that were individually composed before Big Star was formed.  Chris Bell brought the songs "Feel", "My Life Is Right", and "Try Again" to the recording sessions, which he had previously recorded with a band called 'Rock City' (which featured Big Star drummer Jody Stephens and Steve Rhea), and Chilton brought "The Ballad of El Goodo" and the acoustic ballads "<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thirteen_(song)" title="Thirteen (song)" id="mwXA">Thirteen</a>" and "Watch the Sunrise".<sup about="#mwt53" class="mw-ref reference" id="cite_ref-thirt_13-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"thirt"},"body":{"id":"mw-reference-text-cite_note-thirt-13"}}'><a href="#cite_note-thirt-13" id="mwXQ"><span class="mw-reflink-text" id="mwXg"><span class="cite-bracket" id="mwXw">[</span>13<span class="cite-bracket" id="mwYA">]</span></span></a></sup> "The India Song" was written and composed by Andy Hummel.<sup about="#mwt56" class="mw-ref reference" id="cite_ref-14" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-14"}}'><a href="#cite_note-14" id="mwYQ"><span class="mw-reflink-text" id="mwYg"><span class="cite-bracket" id="mwYw">[</span>14<span class="cite-bracket" id="mwZA">]</span></span></a></sup></p>
+
+<p id="mwZQ"><i id="mwZg">#1 Record</i> is the only Big Star album on which group founder <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Chris_Bell_(American_musician)" title="Chris Bell (American musician)" id="mwZw">Chris Bell</a> is officially credited as a member. Bell had a major hand in the record through songwriting, vocals, guitar work, and the album's production. The polished sound of <i id="mwaA">#1 Record</i>, in contrast to the more raw styles of the band's subsequent albums, <i id="mwaQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Radio_City_(album)" title="Radio City (album)" id="mwag">Radio City</a></i> and <i id="mwaw"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Third/Sister_Lovers" title="Third/Sister Lovers" id="mwbA">Third/Sister Lovers</a></i>, is attributed by producer <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/John_Fry_(record_producer)" title="John Fry (record producer)" class="mw-redirect" id="mwbQ">John Fry</a> to the presence of Bell:  "When Chris Bell was still in the band, he took more interest than anybody in the production and technology end of things. He had a good production mind...the reason why the second album is rougher, with fewer harmonies, is due to the absence of Chris's influence in the studio."<sup about="#mwt59" class="mw-ref reference" id="cite_ref-15" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-15"}}'><a href="#cite_note-15" id="mwbg"><span class="mw-reflink-text" id="mwbw"><span class="cite-bracket" id="mwcA">[</span>15<span class="cite-bracket" id="mwcQ">]</span></span></a></sup> Bassist <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Andy_Hummel" title="Andy Hummel" id="mwcg">Andy Hummel</a> would also credit Bell with having a hand in the album's production: "Chris was in charge. I would pretty well credit him with recording and producing that LP [#1 Record]. Of course, he had a lot of artistic help from Alex [Chilton] but Chris was the technical brains behind it. He was the only one of us at that time who knew how to record."<sup about="#mwt62" class="mw-ref reference" id="cite_ref-16" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-16"}}'><a href="#cite_note-16" id="mwcw"><span class="mw-reflink-text" id="mwdA"><span class="cite-bracket" id="mwdQ">[</span>16<span class="cite-bracket" id="mwdg">]</span></span></a></sup>  Alex Chilton would also acknowledge Bell's heavy role in the studio production: "Chris was really into recording. He didn't want the rest of us fooling around in the studio, that was his business."<sup about="#mwt65" class="mw-ref reference" id="cite_ref-:1_12-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":":1"},"body":{"id":"mw-reference-text-cite_note-:1-12"}}'><a href="#cite_note-:1-12" id="mwdw"><span class="mw-reflink-text" id="mweA"><span class="cite-bracket" id="mweQ">[</span>12<span class="cite-bracket" id="mweg">]</span></span></a></sup>  Chilton would also give producer John Fry credit for achieving the album's high level of production quality: "John Fry was a genius in his way of mixdowns. We didn't put things on tape much differently than was the standard method of doing things, but he just had such finesse and great ears, and he was just a great meticulous mixdown engineer and producer. [...] He's the one responsible for making those records sound so fucking great."<sup about="#mwt66" class="mw-ref reference" id="cite_ref-:1_12-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":":1"}}'><a href="#cite_note-:1-12" id="mwew"><span class="mw-reflink-text" id="mwfA"><span class="cite-bracket" id="mwfQ">[</span>12<span class="cite-bracket" id="mwfg">]</span></span></a></sup> In 2014 the album was re-released through Stax Records with liner notes by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Mike_Mills" title="Mike Mills" id="mwfw">Mike Mills</a>.<sup about="#mwt69" class="mw-ref reference" id="cite_ref-17" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-17"}}'><a href="#cite_note-17" id="mwgA"><span class="mw-reflink-text" id="mwgQ"><span class="cite-bracket" id="mwgg">[</span>17<span class="cite-bracket" id="mwgw">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="2" id="mwhA" aria-labelledby="Reception_and_legacy"><div class="mw-heading mw-heading2"><h2 id="Reception_and_legacy">Reception and legacy</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=2" title="Edit section: Reception and legacy"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<table class="wikitable floatright" style="width:24.2em;font-size:88%;text-align:center;margin:0.5em 0 0.5em 1em;padding:0;border-spacing:0" about="#mwt70" typeof="mw:Transclusion" id="mwhQ" data-mw='{"parts":[{"template":{"target":{"wt":"Album ratings\n","href":"./Template:Album_ratings"},"params":{"rev1":{"wt":"[[AllMusic]]"},"rev1Score":{"wt":"{{Rating|5|5}}&lt;ref>{{AllMusic|class=album|id=r1877|first=William|last=Ruhlmann|access-date=August 4, 2011}}&lt;/ref>"},"rev2":{"wt":"&apos;&apos;[[Christgau&apos;s Record Guide: Rock Albums of the Seventies|Christgau&apos;s Record Guide]]&apos;&apos;"},"rev2Score":{"wt":"B+&lt;ref>{{cite book|last=Christgau|first=Robert|author-link=Robert Christgau|year=1981|title=[[Christgau&apos;s Record Guide: Rock Albums of the Seventies]]|publisher=[[Ticknor &amp; Fields]]|isbn=0-89919-026-X|chapter=Consumer Guide &apos;70s: B|chapter-url=https://www.robertchristgau.com/get_chap.php?k=B&amp;bk=70|access-date=February 21, 2019}}&lt;/ref>"},"rev3":{"wt":"&apos;&apos;[[Classic Rock (magazine)|Classic Rock]]&apos;&apos;"},"rev3score":{"wt":"{{Rating|8|10}}&lt;ref name=\"classic\">{{cite magazine |title=Big Star – Reissues |magazine=[[Classic Rock (magazine)|Classic Rock]] |date=November 2009 |last=Lewis |first=Jonathan |issue=138 |page=97}}&lt;/ref>"},"rev4":{"wt":"&apos;&apos;[[Encyclopedia of Popular Music]]&apos;&apos;"},"rev4Score":{"wt":"{{Rating|5|5}}&lt;ref>{{cite book|last=Larkin|first=Colin|author-link=Colin Larkin|title=Encyclopedia of Popular Music|year=2007|publisher=[[Omnibus Press]]|edition=5th|isbn=978-0-85712-595-8|title-link=Encyclopedia of Popular Music}}&lt;/ref>"},"rev5":{"wt":"&apos;&apos;[[Rolling Stone]]&apos;&apos;"},"rev5Score":{"wt":"favorable&lt;ref>{{cite magazine|last1=Scoppa|first1=Bud|title=No. 1 Record/Radio City|url=https://www.rollingstone.com/music/albumreviews/no-1-record-radio-city-19730201|magazine=[[Rolling Stone]]|access-date=July 8, 2017|date=February 1, 1973}}&lt;/ref>"},"rev6":{"wt":"&apos;&apos;[[Spin Alternative Record Guide]]&apos;&apos;"},"rev6score":{"wt":"8/10&lt;ref>{{cite book|chapter=Big Star|last=Weisbard|first=Eric|title=Spin Alternative Record Guide|title-link=Spin Alternative Record Guide|editor1-first=Eric|editor1-last=Weisbard|editor2-first=Craig|editor2-last=Marks|publisher=[[Vintage Books]]|year=1995|isbn=0-679-75574-8|pages=40-41}}&lt;/ref>"}},"i":0}}]}'><caption style="font-size:115%">Professional ratings</caption><tbody><tr><th scope="col" colspan="2" style="text-align:center;color:#202122;background:#d1dbdf;font-size:100%">Review scores</th></tr><tr><th scope="col">Source</th><th scope="col">Rating</th></tr><tr><td style="text-align:center;vertical-align:middle"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/AllMusic" title="AllMusic">AllMusic</a></td><td style="text-align:center;vertical-align:middle"><span style="white-space:nowrap" title="5/5 stars"><span typeof="mw:File" data-mw='{"caption":"5/5&lt;span typeof=\"mw:Entity\" id=\"mwhg\"> &lt;/span>stars"}'><span title="5/5 stars"><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span></span><sup about="#mwt72" class="mw-ref reference" id="cite_ref-18" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-18"}}'><a href="#cite_note-18" id="mwhw"><span class="mw-reflink-text" id="mwiA"><span class="cite-bracket" id="mwiQ">[</span>18<span class="cite-bracket" id="mwig">]</span></span></a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Christgau's_Record_Guide:_Rock_Albums_of_the_Seventies" title="Christgau's Record Guide: Rock Albums of the Seventies">Christgau's Record Guide</a></i></td><td style="text-align:center;vertical-align:middle">B+<sup about="#mwt76" class="mw-ref reference" id="cite_ref-19" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-19"}}'><a href="#cite_note-19" id="mwiw"><span class="mw-reflink-text" id="mwjA"><span class="cite-bracket" id="mwjQ">[</span>19<span class="cite-bracket" id="mwjg">]</span></span></a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Classic_Rock_(magazine)" title="Classic Rock (magazine)">Classic Rock</a></i></td><td style="text-align:center;vertical-align:middle"><span style="white-space:nowrap" title="8/10 stars"><span typeof="mw:File" data-mw='{"caption":"8/10&lt;span typeof=\"mw:Entity\" id=\"mwjw\"> &lt;/span>stars"}'><span title="8/10 stars"><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_empty.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/20px-Star_empty.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_empty.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/20px-Star_empty.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" alt="" data-file-width="108" data-file-height="110" data-file-type="drawing" height="7" width="7" class="mw-file-element"/></span></span></span><sup about="#mwt81" class="mw-ref reference" id="cite_ref-classic_20-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"classic"},"body":{"id":"mw-reference-text-cite_note-classic-20"}}'><a href="#cite_note-classic-20" id="mwkA"><span class="mw-reflink-text" id="mwkQ"><span class="cite-bracket" id="mwkg">[</span>20<span class="cite-bracket" id="mwkw">]</span></span></a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Encyclopedia_of_Popular_Music" title="Encyclopedia of Popular Music" class="mw-redirect">Encyclopedia of Popular Music</a></i></td><td style="text-align:center;vertical-align:middle"><span style="white-space:nowrap" title="5/5 stars"><span typeof="mw:File" data-mw='{"caption":"5/5&lt;span typeof=\"mw:Entity\" id=\"mwlA\"> &lt;/span>stars"}'><span title="5/5 stars"><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Star_full.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/20px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/40px-Star_full.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" alt="Star" data-file-width="108" data-file-height="110" data-file-type="drawing" height="11" width="11" class="mw-file-element"/></span></span></span><sup about="#mwt86" class="mw-ref reference" id="cite_ref-21" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-21"}}'><a href="#cite_note-21" id="mwlQ"><span class="mw-reflink-text" id="mwlg"><span class="cite-bracket" id="mwlw">[</span>21<span class="cite-bracket" id="mwmA">]</span></span></a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rolling_Stone" title="Rolling Stone">Rolling Stone</a></i></td><td style="text-align:center;vertical-align:middle">favorable<sup about="#mwt91" class="mw-ref reference" id="cite_ref-22" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-22"}}'><a href="#cite_note-22" id="mwmQ"><span class="mw-reflink-text" id="mwmg"><span class="cite-bracket" id="mwmw">[</span>22<span class="cite-bracket" id="mwnA">]</span></span></a></sup></td></tr><tr><td style="text-align:center;vertical-align:middle"><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Spin_Alternative_Record_Guide" title="Spin Alternative Record Guide">Spin Alternative Record Guide</a></i></td><td style="text-align:center;vertical-align:middle">8/10<sup about="#mwt96" class="mw-ref reference" id="cite_ref-23" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-23"}}'><a href="#cite_note-23" id="mwnQ"><span class="mw-reflink-text" id="mwng"><span class="cite-bracket" id="mwnw">[</span>23<span class="cite-bracket" id="mwoA">]</span></span></a></sup></td></tr></tbody></table>
+<p id="mwoQ">On its release in August 1972,<sup about="#mwt100" class="mw-ref reference" id="cite_ref-Jovanovic_24-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Jovanovic"},"body":{"id":"mw-reference-text-cite_note-Jovanovic-24"}}'><a href="#cite_note-Jovanovic-24" id="mwog"><span class="mw-reflink-text" id="mwow"><span class="cite-bracket" id="mwpA">[</span>24<span class="cite-bracket" id="mwpQ">]</span></span></a></sup> <i id="mwpg">#1<span typeof="mw:Entity" id="mwpw"> </span>Record</i> immediately received widespread acclaim, and continued to do so for six months, although the inability by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Stax_Records" title="Stax Records" id="mwqA">Stax Records</a> to make the album available in stores meant it sold fewer than 10,000 copies upon its initial release.<sup about="#mwt103" class="mw-ref reference" id="cite_ref-25" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-25"}}'><a href="#cite_note-25" id="mwqQ"><span class="mw-reflink-text" id="mwqg"><span class="cite-bracket" id="mwqw">[</span>25<span class="cite-bracket" id="mwrA">]</span></span></a></sup><sup about="#mwt106" class="mw-ref reference" id="cite_ref-26" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-26"}}'><a href="#cite_note-26" id="mwrQ"><span class="mw-reflink-text" id="mwrg"><span class="cite-bracket" id="mwrw">[</span>26<span class="cite-bracket" id="mwsA">]</span></span></a></sup> <i id="mwsQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Record_World" title="Record World" id="mwsg">Record World</a></i> called it "one of the best albums of the year", and <i id="mwsw"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Billboard_(magazine)" title="Billboard (magazine)" id="mwtA">Billboard</a></i> commented, "Every cut could be a single". <i id="mwtQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Cash_Box" title="Cash Box" class="mw-redirect" id="mwtg">Cashbox</a></i> described it as one where "everything falls together as a total sound" and one that "should go to the top".<sup about="#mwt108" class="mw-ref reference" id="cite_ref-reviews_27-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"reviews"},"body":{"id":"mw-reference-text-cite_note-reviews-27"}}'><a href="#cite_note-reviews-27" id="mwtw"><span class="mw-reflink-text" id="mwuA"><span class="cite-bracket" id="mwuQ">[</span>27<span class="cite-bracket" id="mwug">]</span></span></a></sup> The <i id="mwuw">River City Review's</i> reaction to the album was to state that "Big Star will be around for many moons".<sup about="#mwt109" class="mw-ref reference" id="cite_ref-reviews_27-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"reviews"}}'><a href="#cite_note-reviews-27" id="mwvA"><span class="mw-reflink-text" id="mwvQ"><span class="cite-bracket" id="mwvg">[</span>27<span class="cite-bracket" id="mwvw">]</span></span></a></sup></p>
+
+<p id="mwwA">The album's reputation and influence have continued since then. As William Ruhlmann wrote in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/AllMusic" title="AllMusic" id="mwwQ">AllMusic</a>, "The problem with coming in late on an artwork lauded as 'influential' is that you've probably encountered the work it influenced first, so its truly innovative qualities are lost. Thus, if you are hearing Big Star's debut album for the first time decades after its release (as, inevitably, most people must), you may be reminded of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Tom_Petty_and_the_Heartbreakers" title="Tom Petty and the Heartbreakers" id="mwwg">Tom Petty &amp; the Heartbreakers</a> or <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/R.E.M." title="R.E.M." id="mwww">R.E.M.</a>, who came after—that is, if you don't think of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/The_Byrds" title="The Byrds" id="mwxA">The Byrds</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/The_Beatles" title="The Beatles" id="mwxQ">The Beatles</a> circa 1965. What was remarkable about <i id="mwxg">#1 Record</i> in 1972 was that nobody except Big Star (and maybe <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Badfinger" title="Badfinger" id="mwxw">Badfinger</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/The_Raspberries" title="The Raspberries" class="mw-redirect" id="mwyA">The Raspberries</a>) wanted to sound like this—simple, light pop with sweet harmonies and jangly guitars."<sup about="#mwt112" class="mw-ref reference" id="cite_ref-28" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-28"}}'><a href="#cite_note-28" id="mwyQ"><span class="mw-reflink-text" id="mwyg"><span class="cite-bracket" id="mwyw">[</span>28<span class="cite-bracket" id="mwzA">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="3" id="mwzQ" aria-labelledby="Track_listing"><div class="mw-heading mw-heading2"><h2 id="Track_listing">Track listing</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Number_1_Record&amp;action=edit&amp;section=3" title="Edit section: Track listing"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<span class="mw-empty-elt" about="#mwt113" typeof="mw:Transclusion" id="mwzg" data-mw='{"parts":[{"template":{"target":{"wt":"Track listing\n","href":"./Template:Track_listing"},"params":{"headline":{"wt":"Side one"},"all_writing":{"wt":"[[Chris Bell (American musician)|Chris Bell]] and [[Alex Chilton]], except where noted"},"extra_column":{"wt":"Lead vocals"},"title1":{"wt":"Feel"},"extra1":{"wt":"Bell"},"length1":{"wt":"3:34"},"title2":{"wt":"The Ballad of El Goodo"},"extra2":{"wt":"Chilton"},"length2":{"wt":"4:21"},"title3":{"wt":"[[In the Street (song)|In the Street]]"},"extra3":{"wt":"Bell"},"length3":{"wt":"2:55"},"title4":{"wt":"[[Thirteen (song)|Thirteen]]"},"extra4":{"wt":"Chilton"},"length4":{"wt":"2:34"},"title5":{"wt":"Don&apos;t Lie to Me"},"extra5":{"wt":"Bell"},"length5":{"wt":"3:07"},"title6":{"wt":"The India Song"},"writer6":{"wt":"[[Andy Hummel]]"},"extra6":{"wt":"Hummel"},"length6":{"wt":"2:20"},"total_length":{"wt":"18:51"}},"i":0}}]}'><style data-mw-deduplicate="TemplateStyles:r1236635009" typeof="mw:Extension/templatestyles" about="#mwt114" data-mw='{"name":"templatestyles","attrs":{"src":"Module:Track listing/styles.css"},"body":{"extsrc":""}}'>.mw-parser-output .tracklist{border-spacing:0}.mw-parser-output .tracklist tr{background-color:var(--background-color-base,#fff)}.mw-parser-output .tracklist tr:nth-child(2n-1){background-color:var(--background-color-neutral-subtle,#f8f9fa)}.mw-parser-output .tracklist caption{text-align:left;font-weight:bold}.mw-parser-output .tracklist td,.mw-parser-output .tracklist th[scope="row"]{vertical-align:top}.mw-parser-output .tracklist th[scope="col"]{text-align:left;background-color:var(--background-color-neutral,#eaecf0)}.mw-parser-output .tracklist th.tracklist-length-header,.mw-parser-output .tracklist th.tracklist-number-header,.mw-parser-output .tracklist th[scope="row"],.mw-parser-output .tracklist-length,.mw-parser-output .tracklist-total-length td{padding-right:10px;text-align:right}.mw-parser-output .tracklist th[scope="row"]{font-weight:normal}.mw-parser-output .tracklist-number-header{width:2em;padding-left:10px}.mw-parser-output .tracklist-length-header{width:4em}.mw-parser-output .tracklist tr.tracklist-total-length{background-color:transparent}.mw-parser-output .tracklist .tracklist-total-length th{padding:0;font-weight:bold}.mw-parser-output .tracklist-total-length th>span{float:right;padding:0 10px;background-color:var(--background-color-neutral,#eaecf0)}.mw-parser-output .tracklist-total-length td{background-color:var(--background-color-neutral,#eaecf0);font-weight:bold;padding:0 10px 0 0}</style></span><div class="track-listing" about="#mwt113" id="mwzw"><p>All tracks are written by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Chris_Bell_(American_musician)" title="Chris Bell (American musician)">Chris Bell</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Alex_Chilton" title="Alex Chilton">Alex Chilton</a>, except where noted.</p><table class="tracklist"><caption>Side one</caption><tbody><tr><th class="tracklist-number-header" scope="col"><abbr title="Number">No.</abbr></th><th scope="col" style="width:40%">Title</th><th scope="col" style="width:30%">Writer(s)</th><th scope="col" style="width:30%">Lead vocals</th><th class="tracklist-length-header" scope="col">Length</th></tr><tr><th id="track1" scope="row">1.</th><td>"Feel"</td><td><span typeof="mw:Entity"> </span></td><td>Bell</td><td class="tracklist-length">3:34</td></tr><tr><th id="track2" scope="row">2.</th><td>"The Ballad of El Goodo"</td><td><span typeof="mw:Entity"> </span></td><td>Chilton</td><td class="tracklist-length">4:21</td></tr><tr><th id="track3" scope="row">3.</th><td>"<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/In_the_Street_(song)" title="In the Street (song)">In the Street</a>"</td><td><span typeof="mw:Entity"> </span></td><td>Bell</td><td class="tracklist-length">2:55</td></tr><tr><th id="track4" scope="row">4.</th><td>"<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thirteen_(song)" title="Thirteen (song)">Thirteen</a>"</td><td><span typeof="mw:Entity"> </span></td><td>Chilton</td><td class="tracklist-length">2:34</td></tr><tr><th id="track5" scope="row">5.</th><td>"Don't Lie to Me"</td><td><span typeof="mw:Entity"> </span></td><td>Bell</td><td class="tracklist-length">3:07</td></tr><tr><th id="track6" scope="row">6.</th><td>"The India Song"</td><td><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Andy_Hummel" title="Andy Hummel">Andy Hummel</a></td><td>Hummel</td><td class="tracklist-length">2:20</td></tr><tr class="tracklist-total-length"><th colspan="4" scope="row"><span>Total length:</span></th><td>18:51</td></tr></tbody></table></div>
+<span class="mw-empty-elt" about="#mwt115" typeof="mw:Transclusion" id="mw0A" data-mw='{"parts":[{"template":{"target":{"wt":"Track listing\n","href":"./Template:Track_listing"},"params":{"headline":{"wt":"Side two"},"extra_column":{"wt":"Lead vocals"},"title1":{"wt":"When My Baby&apos;s Beside Me"},"extra1":{"wt":"Chilton"},"length1":{"wt":"3:22"},"title2":{"wt":"My Life Is Right"},"writer2":{"wt":"Bell, Chilton, Tom Eubanks"},"extra2":{"wt":"Bell"},"length2":{"wt":"3:07"},"title3":{"wt":"Give Me Another Chance"},"extra3":{"wt":"Chilton"},"length3":{"wt":"3:26"},"title4":{"wt":"Try Again"},"extra4":{"wt":"Bell"},"length4":{"wt":"3:31"},"title5":{"wt":"Watch the Sunrise"},"extra5":{"wt":"Chilton"},"length5":{"wt":"3:45"},"title6":{"wt":"ST 100/6"},"extra6":{"wt":"Bell"},"length6":{"wt":"1:01"},"total_length":{"wt":"18:12"}},"i":0}}]}'><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r1236635009" about="#mwt116" typeof="mw:Extension/templatestyles" data-mw='{"name":"templatestyles","attrs":{"src":"Module:Track listing/styles.css"},"body":{"extsrc":""}}'/></span><div class="track-listing" about="#mwt115" id="mw0Q"><table class="tracklist"><caption>Side two</caption><tbody><tr><th class="tracklist-number-header" scope="col"><abbr title="Number">No.</abbr></th><th scope="col" style="width:40%">Title</th><th scope="col" style="width:30%">Writer(s)</th><th scope="col" style="width:30%">Lead vocals</th><th class="tracklist-length-header" scope="col">Length</th></tr><tr><th id="track1" scope="row">1.</th><td>"When My Baby's Beside Me"</td><td><span typeof="mw:Entity"> </span></td><td>Chilton</td><td class="tracklist-length">3:22</td></tr><tr><th id="track2" scope="row">2.</th><td>"My Life Is Right"</td><td>Bell, Chilton, Tom Eubanks</td><td>Bell</td><td class="tracklist-length">3:07</td></tr><tr><th id="track3" scope="row">3.</th><td>"Give Me Another Chance"</td><td><span typeof="mw:Entity"> </span></td><td>Chilton</td><td class="tracklist-length">3:26</td></tr><tr><th id="track4" scope="row">4.</th><td>"Try Again"</td><td><span typeof="mw:Entity"> </span></td><td>Bell</td><td class="tracklist-length">3:31</td></tr><tr><th id="track5" scope="row">5.</th><td>"Watch the Sunrise"</td><td><span typeof="mw:Entity"> </span></td><td>Chilton</td><td class="tracklist-length">3:45</td></tr><tr><th id="track6" scope="row">6.</th><td>"ST 100/6"</td><td><span typeof="mw:Entity"> </span></td><td>Bell</td><td class="tracklist-length">1:01</td></tr><tr class="tracklist-total-length"><th colspan="4" scope="row"><span>Total length:</span></th><td>18:12</td></tr></tbody></table></div>
+
+
+</body></html>`;
+
+module.exports = {album: "#1 Record", doc};

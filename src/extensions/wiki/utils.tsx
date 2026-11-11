@@ -10,6 +10,36 @@ import {formatGenre} from '../../utils';
  */
 const NON_CONTENT_TAGS = ['STYLE', 'SCRIPT', 'NOSCRIPT', 'TEMPLATE'];
 
+/**
+ * The text of an element, with the parts that are not text taken out.
+ *
+ * The same TemplateStyles problem the genre cell has: a tracklist `<caption>` carries one too,
+ * so the caption of Third Eye Blind's tracklist reads
+ * `Third Eye Blind .mw-parser-output .nobold{font-weight:normal}` — and a caption is how a
+ * bonus-edition table is told from the album's own. `<sup>` goes as well, because footnote
+ * markers render inside the title cell: Back in Black's track 4 is
+ * `"Givin the Dog a Bone" ([note 1])`.
+ */
+const NON_TEXT_TAGS = NON_CONTENT_TAGS.concat(['SUP']);
+
+export function contentText(element: Element | null | undefined): string {
+  if (!element) {
+    return '';
+  }
+  const clone = element.cloneNode(true) as Element;
+  NON_TEXT_TAGS.forEach((tag) => {
+    const nodes = clone.getElementsByTagName(tag.toLowerCase());
+    // live collection, so take them from the end
+    for (let index = nodes.length - 1; index >= 0; index--) {
+      const node = nodes[index];
+      if (node.parentNode) {
+        node.parentNode.removeChild(node);
+      }
+    }
+  });
+  return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
 function getLeafNodes(rootNode: ChildNode): ChildNode[] {
   if (NON_CONTENT_TAGS.includes(rootNode.nodeName)) {
     return [];

@@ -12,6 +12,13 @@ export enum ExtensionError {
   PARSER = 'Parser error.',
   PIC = 'No picture found.',
   TRACK = 'Wrong number of tracks found.',
+  /**
+   * Separate from TRACK on purpose: "I could not read the tracklist" and "you are missing
+   * tracks" are different facts, and reporting the first as the second is what made TRACK
+   * useless. It was set on all 1,968 albums with a Wikipedia page, because the parser had
+   * stopped finding tracklists at all and an empty parse looked like a count mismatch.
+   */
+  TRACKLIST = 'Could not read the tracklist.',
   YEAR = 'No year found.',
 }
 
@@ -192,6 +199,7 @@ const LEGACY_ERRORS: Record<string, ExtensionError> = {
   'No year found.': ExtensionError.YEAR,
   'Parser error.': ExtensionError.PARSER,
   'Wrong number of tracks found.': ExtensionError.TRACK,
+  'Could not read the tracklist.': ExtensionError.TRACKLIST,
 };
 
 export function migrateLegacyErrors(errors?: string[]): string[] {
