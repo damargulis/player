@@ -93,8 +93,10 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
       <div className="main">
         {this.state.zooming && file && (
           <ArtZoom
+            archiveMaxPx={this.props.album.coverArt && this.props.album.coverArt.maxPx}
             close={() => this.setState({zooming: false})}
             file={file}
+            onRun={() => this.runCoverArt()}
             subtitle={this.props.artists.map((artist) => artist.name).join(', ')}
             title={this.props.album.name}
           />
@@ -138,7 +140,9 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
               entityType="release-group"
               onRun={() => this.runMusicBrainz()}
             />
-            <CoverArtLabel album={this.props.album} onRun={() => this.runCoverArt()} />
+            {/* only when there is nothing to click: the resolution and the Run button live in
+                the zoom now, where the size is what makes them worth pressing */}
+            {!file && <CoverArtLabel onRun={() => this.runCoverArt()} />}
           </div>
           <div className="albumPageControls" >
             <button onClick={() => this.playAlbum()} className="playAlbum button-primary" >Play Album</button>

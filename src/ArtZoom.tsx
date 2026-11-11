@@ -8,12 +8,29 @@ interface OwnProps {
   file: string;
   title: string;
   subtitle?: string;
+  /**
+   * The largest the Cover Art Archive could supply, from `Album.coverArt`.
+   *
+   * Compared against the file to say "largest the Archive has", so a run that cannot improve
+   * anything is not presented as one that could.
+   */
+  archiveMaxPx?: number;
+  /**
+   * When given, a Run button beside the dimensions.
+   *
+   * It belongs here rather than on the page: the size is what decides whether fetching a better
+   * cover is worth anything, and the size is only shown here now. A 220px cover is invisible
+   * behind a 100px thumbnail, so the button was an invitation with nothing to judge it by.
+   */
+  onRun?(): Promise<void>;
   close(): void;
 }
 
 interface State {
-  /** Pixel dimensions of the file, read once on mount. */
+  /** Pixel dimensions of the file, re-read after a run, which overwrites it in place. */
   size?: {width: number; height: number};
+  running?: boolean;
+  message?: string;
   /** 1 means fitted to the window; above that is zoomed in. */
   scale: number;
   /** Pan offset from centre, in screen pixels. */
@@ -90,7 +107,23 @@ export default class ArtZoom extends React.Component<OwnProps, State> {
         <div className="artZoomCaption" onMouseDown={(evt) => evt.stopPropagation()}>
           <span className="artZoomTitle">{this.props.title}</span>
           {this.props.subtitle && <span className="artZoomSubtitle">{this.props.subtitle}</span>}
-          <span className="artZoomSize">{this.describeSize()}</span>
+          <span className="artZoomSizeRow">
+            <span className="artZoomSize">{this.describeSize()}</span>
+            {this.props.onRun && (
+              <button
+                className="artZoomRun"
+                disabled={this.state.running}
+                onClick={() => this.run()}
+                title="Fetch the largest cover the Cover Art Archive has for this album"
+              >
+                {this.state.running ? '…' : 'Run'}
+              </button>
+            )}
+            {this.state.message && <span className="artZoomNote">{this.state.message}</span>}
+            {!this.state.message && this.atArchiveBest() && (
+              <span className="artZoomNote">largest the Archive has</span>
+            )}
+          </span>
           <span className="artZoomControls">
             <button disabled={scale <= MIN_SCALE} onClick={() => this.zoomBy(1 / STEP)}>−</button>
             <button disabled={scale >= MAX_SCALE} onClick={() => this.zoomBy(STEP)}>+</button>
@@ -118,6 +151,28 @@ export default class ArtZoom extends React.Component<OwnProps, State> {
     }
     const percent = Math.round(((fit.width * scale) / size.width) * 100);
     return `${dims} · ${percent}% of actual size`;
+  }
+
+  /** True when the file already matches what the Archive gave, so a run cannot improve it. */
+  private atArchiveBest(): boolean {
+    const {size} = this.state;
+    const max = this.props.archiveMaxPx;
+    return !!size && !!max && Math.max(size.width, size.height) >= max;
+  }
+
+  private run(): void {
+    const onRun = this.props.onRun;
+    if (!onRun) {
+      return;
+    }
+    this.setState({message: undefined, running: true});
+    onRun().then(() => {
+      // the file is overwritten in place, so re-measure rather than trust the old dimensions;
+      // getImgSrc's mtime cache-buster is what makes the <img> pick up the new bytes
+      this.setState({running: false, size: imageSize(this.props.file)});
+    }, (err: Error) => {
+      this.setState({message: err.message, running: false});
+    });
   }
 
   /** The fitted size at scale 1, which every zoom is relative to. */

@@ -103,3 +103,38 @@
 .zoomableArt {
   cursor: zoom-in;
 }
+
+/* the dimensions, and what you would do about them, on one line */
+.artZoomSizeRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.artZoomRun {
+  background: var(--bg, #121216);
+  border: 1px solid var(--border, #33333a);
+  border-radius: 6px;
+  color: var(--text-dim, #9a9aa6);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  margin: 0;
+  padding: 3px 7px;
+}
+
+.artZoomRun:hover:enabled {
+  border-color: var(--accent, #8b7cf6);
+  color: var(--text, #e7e7ec);
+}
+
+.artZoomRun:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.artZoomNote {
+  color: var(--text-faint, var(--text-dim));
+  font-size: 11px;
+  font-style: italic;
+}
