@@ -90,6 +90,8 @@ export interface AnthropicTool {
   type: string;
   name: string;
   max_uses?: number;
+  /** Truncates a fetched page. Server tool results are never elided, so this is the only cap on one. */
+  max_content_tokens?: number;
 }
 
 export type ToolDefinition = Tool | AnthropicTool;
