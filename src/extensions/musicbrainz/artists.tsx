@@ -11,9 +11,9 @@ import {
 } from './api';
 import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
-import {addError, ExtensionError, MetaSource, recordSource, removeError, setError} from '../errors';
+import {addError, ExtensionError, MetaSource, removeError, setError} from '../errors';
 import fs from 'fs';
-import {getGenreIds} from '../../redux/selectors';
+import {applyGenres} from '../genreSources';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 
@@ -45,11 +45,7 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     const wikiPage = artist.wikiPage
       ? Promise.resolve(artist.wikiPage)
       : getWikiPageUrl(lookup.relations);
-    const genres = getGenreNames(lookup.genres);
-    if (genres.length) {
-      artist.genreIds = getGenreIds(store, genres);
-    }
-    recordSource(artist, 'genres', MetaSource.MUSICBRAINZ, genres.length > 0);
+    applyGenres(store, artist, MetaSource.MUSICBRAINZ, getGenreNames(lookup.genres));
     return wikiPage.then((page: string | undefined) => {
       if (page) {
         artist.wikiPage = page;

@@ -15,9 +15,10 @@ import {
 } from './api';
 import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
-import {addError, ExtensionError, MetaSource, recordSource, removeError, setError} from '../errors';
+import {addError, ExtensionError, MetaSource, recordYear, removeError, setError} from '../errors';
 import fs from 'fs';
-import {getArtistsByIds, getGenreIds, getTracksByIds} from '../../redux/selectors';
+import {applyGenres} from '../genreSources';
+import {getArtistsByIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 
@@ -92,14 +93,10 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
     if (year) {
       album.year = year;
     }
-    const genres = getGenreNames(lookup.genres);
-    if (genres.length) {
-      album.genreIds = getGenreIds(store, genres);
-    }
-    // Recorded against this source rather than added or removed outright: the wiki extension
-    // runs after this one, and a page with no genre row used to erase what MusicBrainz found.
-    recordSource(album, 'year', MetaSource.MUSICBRAINZ, Boolean(year));
-    recordSource(album, 'genres', MetaSource.MUSICBRAINZ, genres.length > 0);
+    // Recorded against this source rather than assigned outright: the wiki extension runs
+    // after this one, and a page with no genre row used to erase what MusicBrainz found.
+    recordYear(album, MetaSource.MUSICBRAINZ, Boolean(year));
+    applyGenres(store, album, MetaSource.MUSICBRAINZ, getGenreNames(lookup.genres));
     return wikiPage.then((page: string | undefined) => {
       if (page) {
         album.wikiPage = page;

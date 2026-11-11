@@ -32,24 +32,26 @@ export enum MetaSource {
   WIKIPEDIA = 'wikipedia',
 }
 
-/** Which real sources last found each field. Absent means nothing has reported yet. */
+/**
+ * What each real source last found. Absent means nothing has reported yet.
+ *
+ * The two fields are deliberately different shapes, because the questions are. Genres are a
+ * set and the album's genres are the *union* of what the sources say, so each source's answer
+ * has to be kept separately — the whole point is that neither replaces the other. A year is a
+ * single number with nothing to merge: two sources disagreeing needs a winner, not a union, so
+ * recording which ones found one is enough.
+ */
 export interface MetaSources {
-  genres?: string[];
+  genres?: Partial<Record<MetaSource, string[]>>;
   year?: string[];
 }
-
-export type MetaField = keyof MetaSources;
 
 interface Sourced extends Errorable {
   metaSources?: MetaSources;
 }
 
-const FIELD_ERRORS: Record<MetaField, ExtensionError> = {
-  genres: ExtensionError.GENRE,
-  year: ExtensionError.YEAR,
-};
-
-const FIELDS = Object.keys(FIELD_ERRORS) as MetaField[];
+/** Union order, so the genres of an album read the same whichever extension ran last. */
+const SOURCE_ORDER: MetaSource[] = [MetaSource.MUSICBRAINZ, MetaSource.WIKIPEDIA];
 
 export function removeError(item: Errorable, err: string): void {
   const index = item.errors.indexOf(err);
@@ -95,31 +97,69 @@ export function withError(errors: string[], err: string, missing: boolean): stri
 }
 
 /**
- * Records what one source found, and re-derives the error from every source's last word.
+ * Records which sources found a year, and re-derives `YEAR` from all of them.
  *
  * `GENRE` and `YEAR` were written the way `ALBUM_ART` used to be — each extension added the
  * error on failure and removed it on success — so the extension that ran *last* decided, and
- * MusicBrainz runs before Wikipedia. A page whose infobox has no genre row therefore erased a
- * perfectly good MusicBrainz answer: 57 of the 82 albums flagged "No genres found" in this
- * library have genres, while 17 albums with none are flagged with nothing.
+ * MusicBrainz runs before Wikipedia. A page whose infobox has no year row therefore erased a
+ * perfectly good MusicBrainz answer: all 5 albums flagged "No year found" in this library have
+ * a year, and 57 of the 82 flagged "No genres found" have genres.
  *
  * Art could be fixed by deriving the error from the file on disk, because having a picture is a
- * fact about the album. Genres are not: the iTunes import writes them too, and an imported
- * genre is not one a source stands behind. So the provenance is what gets stored, and the error
+ * fact about the album. Neither of these is: the iTunes import writes both, and an imported
+ * value is not one a source stands behind. So the provenance is what gets stored, and the error
  * is "every source that has reported came up empty" — which makes "either of them found it"
  * fall out without the two extensions having to know about each other.
  *
  * Only call this when a source actually answered. A failed lookup is not a statement about the
  * data, and recording one would bring back the same drift in a new place.
  */
-export function recordSource(item: Sourced, field: MetaField, source: MetaSource, found: boolean): void {
+export function recordYear(item: Sourced, source: MetaSource, found: boolean): void {
   const sources = Object.assign({}, item.metaSources) as MetaSources;
-  const previous = sources[field] || [];
-  sources[field] = found
+  const previous = sources.year || [];
+  sources.year = found
     ? (previous.indexOf(source) >= 0 ? previous : previous.concat([source]))
     : previous.filter((name) => name !== source);
   item.metaSources = sources;
-  setError(item, FIELD_ERRORS[field], (sources[field] as string[]).length === 0);
+  setError(item, ExtensionError.YEAR, sources.year.length === 0);
+}
+
+/**
+ * Records the genres one source found, and returns the union across every source.
+ *
+ * A union rather than a replacement because the two sources are describing the same record
+ * from different angles and are both right: MusicBrainz gives the community's tags for the
+ * release group, Wikipedia gives whatever the infobox editor wrote. Replacing meant the answer
+ * depended on run order, and the order is fixed (MusicBrainz, then Wikipedia), so Wikipedia
+ * always won — including when it had nothing to say.
+ *
+ * Names are stored rather than genre ids because they are the source's actual answer; ids are
+ * our own interning, and `loadLibrary` deletes ones nothing points at. Deduplicated without
+ * regard to case so the two spellings of an acronym ("R&B" and "R&b", of which this library
+ * has five pairs) do not both survive, keeping whichever was seen first.
+ */
+export function recordGenres(item: Sourced, source: MetaSource, found: string[]): string[] {
+  const sources = Object.assign({}, item.metaSources) as MetaSources;
+  sources.genres = Object.assign({}, sources.genres, {[source]: found});
+  item.metaSources = sources;
+  const union = unionGenres(sources.genres);
+  setError(item, ExtensionError.GENRE, union.length === 0);
+  return union;
+}
+
+/** Every source's genres in a fixed order, deduplicated case-insensitively. */
+export function unionGenres(genres?: Partial<Record<MetaSource, string[]>>): string[] {
+  const seen = {} as Record<string, boolean>;
+  return SOURCE_ORDER.reduce((all, source) => {
+    return all.concat((genres && genres[source]) || []);
+  }, [] as string[]).filter((genre) => {
+    const key = genre.trim().toLowerCase();
+    if (!key || seen[key]) {
+      return false;
+    }
+    seen[key] = true;
+    return true;
+  });
 }
 
 /**
@@ -131,10 +171,12 @@ export function recordSource(item: Sourced, field: MetaField, source: MetaSource
  * time any extension touches that album.
  */
 export function withSourceErrors(errors: string[], sources?: MetaSources): string[] {
-  return FIELDS.reduce((result, field) => {
-    const reported = sources && sources[field];
-    return reported ? withError(result, FIELD_ERRORS[field], reported.length === 0) : result;
-  }, errors);
+  const year = sources && sources.year;
+  const genres = sources && sources.genres;
+  const withYear = year ? withError(errors, ExtensionError.YEAR, year.length === 0) : errors;
+  return genres
+    ? withError(withYear, ExtensionError.GENRE, unionGenres(genres).length === 0)
+    : withYear;
 }
 
 // Errors written by older versions were prefixed per extension; map them onto

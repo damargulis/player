@@ -1,4 +1,13 @@
-import {ExtensionError, MetaSource, recordSource, setError, withError, withSourceErrors} from './errors';
+import {
+  ExtensionError,
+  MetaSource,
+  recordGenres,
+  recordYear,
+  setError,
+  unionGenres,
+  withError,
+  withSourceErrors,
+} from './errors';
 
 /**
  * ALBUM_ART and PIC state a fact about the entity — it has a picture or it does not — but were
@@ -56,73 +65,118 @@ describe('setError', () => {
   });
 });
 
-describe('recordSource', () => {
-  /**
-   * The point of the per-source record: genres arrive from the iTunes import too, so the error
-   * cannot be derived from whether `genreIds` is populated the way the art one is. It has to
-   * mean "no source that actually knows could find any".
-   */
-  it('clears the error once either source finds genres', () => {
-    const album = {errors: [], genreIds: ['imported-rock']};
-    recordSource(album, 'genres', MetaSource.MUSICBRAINZ, false);
-    expect(album.errors).toEqual([ExtensionError.GENRE]);
-    recordSource(album, 'genres', MetaSource.WIKIPEDIA, true);
-    expect(album.errors).toEqual([]);
-  });
-
+describe('recordYear', () => {
   /** The bug this replaces: MusicBrainz runs first, so a bare page used to erase its answer. */
   it('does not let a later source erase what an earlier one found', () => {
     const album = {errors: []};
-    recordSource(album, 'genres', MetaSource.MUSICBRAINZ, true);
-    recordSource(album, 'genres', MetaSource.WIKIPEDIA, false);
+    recordYear(album, MetaSource.MUSICBRAINZ, true);
+    recordYear(album, MetaSource.WIKIPEDIA, false);
     expect(album.errors).toEqual([]);
-    expect(album.metaSources.genres).toEqual([MetaSource.MUSICBRAINZ]);
+    expect(album.metaSources.year).toEqual([MetaSource.MUSICBRAINZ]);
+  });
+
+  it('flags the year once every source that reported came up empty', () => {
+    const album = {errors: []};
+    recordYear(album, MetaSource.MUSICBRAINZ, false);
+    expect(album.errors).toEqual([ExtensionError.YEAR]);
   });
 
   it('brings the error back when the source that had it stops finding it', () => {
     const album = {errors: []};
-    recordSource(album, 'genres', MetaSource.MUSICBRAINZ, true);
-    recordSource(album, 'genres', MetaSource.MUSICBRAINZ, false);
-    expect(album.errors).toEqual([ExtensionError.GENRE]);
+    recordYear(album, MetaSource.MUSICBRAINZ, true);
+    recordYear(album, MetaSource.MUSICBRAINZ, false);
+    expect(album.errors).toEqual([ExtensionError.YEAR]);
   });
 
   it('records a source once however often it reports', () => {
     const album = {errors: []};
-    recordSource(album, 'genres', MetaSource.WIKIPEDIA, true);
-    recordSource(album, 'genres', MetaSource.WIKIPEDIA, true);
-    expect(album.metaSources.genres).toEqual([MetaSource.WIKIPEDIA]);
+    recordYear(album, MetaSource.WIKIPEDIA, true);
+    recordYear(album, MetaSource.WIKIPEDIA, true);
+    expect(album.metaSources.year).toEqual([MetaSource.WIKIPEDIA]);
+  });
+});
+
+describe('recordGenres', () => {
+  /**
+   * The genres of an album are the union of what the sources say, not whichever spoke last.
+   * The run order is fixed (MusicBrainz, then Wikipedia), so replacing meant Wikipedia always
+   * won — including when its infobox had no genre row.
+   */
+  it('unions the two sources rather than replacing', () => {
+    const album = {errors: []};
+    recordGenres(album, MetaSource.MUSICBRAINZ, ['Alternative Rock', 'Shoegaze']);
+    const union = recordGenres(album, MetaSource.WIKIPEDIA, ['Dream Pop', 'Shoegaze']);
+    expect(union).toEqual(['Alternative Rock', 'Shoegaze', 'Dream Pop']);
+    expect(album.errors).toEqual([]);
   });
 
-  it('keeps genres and year apart', () => {
+  it('keeps the union stable whichever order the sources report in', () => {
+    const one = {errors: []};
+    recordGenres(one, MetaSource.WIKIPEDIA, ['Dream Pop']);
+    const first = recordGenres(one, MetaSource.MUSICBRAINZ, ['Shoegaze']);
+    const two = {errors: []};
+    recordGenres(two, MetaSource.MUSICBRAINZ, ['Shoegaze']);
+    const second = recordGenres(two, MetaSource.WIKIPEDIA, ['Dream Pop']);
+    expect(first).toEqual(second);
+  });
+
+  it('lets a source withdraw its own genres without touching the other', () => {
     const album = {errors: []};
-    recordSource(album, 'genres', MetaSource.MUSICBRAINZ, true);
-    recordSource(album, 'year', MetaSource.MUSICBRAINZ, false);
-    expect(album.errors).toEqual([ExtensionError.YEAR]);
-    expect(album.metaSources).toEqual({genres: [MetaSource.MUSICBRAINZ], year: []});
+    recordGenres(album, MetaSource.MUSICBRAINZ, ['Shoegaze']);
+    recordGenres(album, MetaSource.WIKIPEDIA, ['Dream Pop']);
+    expect(recordGenres(album, MetaSource.WIKIPEDIA, [])).toEqual(['Shoegaze']);
+    expect(album.errors).toEqual([]);
+  });
+
+  it('flags the album once no source has any', () => {
+    const album = {errors: []};
+    recordGenres(album, MetaSource.MUSICBRAINZ, []);
+    expect(album.errors).toEqual([ExtensionError.GENRE]);
+    recordGenres(album, MetaSource.WIKIPEDIA, ['Shoegaze']);
+    expect(album.errors).toEqual([]);
+  });
+
+  /** This library holds five pairs of acronyms differing only in case ("R&B" / "R&b"). */
+  it('does not keep two spellings of the same genre', () => {
+    const album = {errors: []};
+    recordGenres(album, MetaSource.MUSICBRAINZ, ['R&B']);
+    expect(recordGenres(album, MetaSource.WIKIPEDIA, ['R&b', 'Soul'])).toEqual(['R&B', 'Soul']);
+  });
+});
+
+describe('unionGenres', () => {
+  it('is empty when nothing has reported', () => {
+    expect(unionGenres(undefined)).toEqual([]);
+    expect(unionGenres({})).toEqual([]);
+  });
+
+  it('drops blank names', () => {
+    expect(unionGenres({musicbrainz: ['', '  ', 'Jazz']})).toEqual(['Jazz']);
   });
 });
 
 describe('withSourceErrors', () => {
-  it('re-derives a stale flag from the stored provenance', () => {
+  it('re-derives a stale genre flag from the stored provenance', () => {
     // 57 of the 82 albums flagged "No genres found" in this library have genres
-    expect(withSourceErrors([ExtensionError.GENRE], {genres: [MetaSource.MUSICBRAINZ]}))
+    expect(withSourceErrors([ExtensionError.GENRE], {genres: {musicbrainz: ['Rock']}}))
       .toEqual([]);
   });
 
   it('adds the flag when every source that reported came up empty', () => {
-    expect(withSourceErrors([], {genres: []})).toEqual([ExtensionError.GENRE]);
+    expect(withSourceErrors([], {genres: {musicbrainz: [], wikipedia: []}}))
+      .toEqual([ExtensionError.GENRE]);
+    expect(withSourceErrors([], {year: []})).toEqual([ExtensionError.YEAR]);
   });
 
   /** Before the first run there is no provenance, so the stored flag is left exactly as it is. */
   it('says nothing about a field no source has reported on', () => {
     expect(withSourceErrors([ExtensionError.GENRE], undefined)).toEqual([ExtensionError.GENRE]);
-    expect(withSourceErrors([], {year: []})).toEqual([ExtensionError.YEAR]);
     expect(withSourceErrors([ExtensionError.GENRE], {year: ['wikipedia']}))
       .toEqual([ExtensionError.GENRE]);
   });
 
   it('leaves unrelated errors alone', () => {
-    expect(withSourceErrors([ExtensionError.NO_MATCH], {genres: [MetaSource.WIKIPEDIA]}))
+    expect(withSourceErrors([ExtensionError.NO_MATCH], {genres: {wikipedia: ['Rock']}}))
       .toEqual([ExtensionError.NO_MATCH]);
   });
 });

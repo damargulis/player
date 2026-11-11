@@ -1,8 +1,8 @@
 import {Artist, ArtistInfo} from '../../redux/actionTypes';
 import {downloadIfBigger} from '../artFile';
 import {BASE_URL} from './constants';
-import {addError, ExtensionError, MetaSource, recordSource, removeError, setError} from '../errors';
-import {getGenreIds} from '../../redux/selectors';
+import {addError, ExtensionError, MetaSource, removeError, setError} from '../errors';
+import {applyGenres} from '../genreSources';
 import {RootState} from '../../redux/store';
 import {findAsync, getDoc, getGenresByRow} from './utils';
 
@@ -55,11 +55,7 @@ function modifyArtist(store: RootState, artist: Artist): Promise<void> {
     const infoBoxes = doc.getElementsByClassName('infobox');
     const infoBox = infoBoxes[0];
     const rows = infoBox.getElementsByTagName('tr');
-    const genres = getGenresByRow(rows);
-    if (genres && genres.length) {
-      artist.genreIds = getGenreIds(store, genres);
-    }
-    recordSource(artist, 'genres', MetaSource.WIKIPEDIA, Boolean(genres && genres.length));
+    applyGenres(store, artist, MetaSource.WIKIPEDIA, getGenresByRow(rows) || []);
     const pics = infoBox.getElementsByTagName('img');
     // TODO: take multiple pictures (rotate them elsewhere in the app)
     const pic = pics[0];

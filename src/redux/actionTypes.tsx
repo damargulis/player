@@ -124,7 +124,7 @@ export interface Artist {
   artFile?: string;
   errors: string[];
   /** As `Album.metaSources`; artists only ever carry `genres`. */
-  metaSources?: {genres?: string[]; year?: string[]};
+  metaSources?: {genres?: {musicbrainz?: string[]; wikipedia?: string[]}; year?: string[]};
   wikiPage?: string;
   mbid?: string;
   genreIds: string[];
@@ -154,7 +154,7 @@ export interface Album {
    * lets "no genres found" mean "nothing that knows could find any" without each extension
    * having to know what the other one managed.
    */
-  metaSources?: {genres?: string[]; year?: string[]};
+  metaSources?: {genres?: {musicbrainz?: string[]; wikipedia?: string[]}; year?: string[]};
   artistIds: string[];
   name: string;
   trackIds: string[];
@@ -281,7 +281,7 @@ export interface AlbumInfo {
   errors?: string[];
   albumArtFile?: string;
   coverArt?: {maxPx: number; target: number};
-  metaSources?: {genres?: string[]; year?: string[]};
+  metaSources?: {genres?: {musicbrainz?: string[]; wikipedia?: string[]}; year?: string[]};
   artistIds?: string[];
   name?: string;
   trackIds?: string[];
@@ -299,7 +299,7 @@ export interface ArtistInfo {
   albumIds?: string[];
   artFile?: string;
   errors?: string[];
-  metaSources?: {genres?: string[]; year?: string[]};
+  metaSources?: {genres?: {musicbrainz?: string[]; wikipedia?: string[]}; year?: string[]};
   wikiPage?: string;
   mbid?: string;
   genreIds?: string[];
