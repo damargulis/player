@@ -16,10 +16,11 @@ import {
   selectedModel,
   selectModel,
 } from './dj/models';
+import {DJ_NAME, OWNER} from './dj/owner';
 import React from 'react';
 import {connect} from 'react-redux';
 import {getAlbumById, getArtistsByIds, getCurrentTrackId, getQueueVersion, getTrackById} from './redux/selectors';
-import session, {DJSessionState, OWNER, TranscriptEntry, VERBOSE_ROLES} from './dj/session';
+import session, {DJSessionState, TranscriptEntry, VERBOSE_ROLES} from './dj/session';
 import {speakerColor, speakerTint} from './dj/speakerColor';
 import {RootState} from './redux/store';
 import {clockTime} from './utils';
@@ -193,17 +194,22 @@ class DJPage extends React.Component<DJPageProps, DJPageState> {
   }
 
   private renderEntry(entry: TranscriptEntry, showSpeaker: boolean): JSX.Element {
+    // The DJ is named on every message. Everyone else is a person who may or may not need
+    // labelling; it is the one voice always in the conversation, and leaving it as the only
+    // unlabelled speaker made its replies look like captions rather than someone talking.
+    const speaker = entry.role === 'dj' ? DJ_NAME : entry.speaker;
+    const named = entry.role === 'dj' || (showSpeaker && Boolean(entry.speaker));
     // Each person keeps the same colour everywhere, derived from their name.
     const tinted = entry.role === 'user' && entry.speaker
       ? {background: speakerTint(entry.speaker), borderColor: speakerColor(entry.speaker)}
       : undefined;
     return (
       <div key={entry.id} className={`dj-entry ${entry.role}`} style={tinted}>
-        {(showSpeaker && entry.speaker) || entry.at ? (
+        {(named && speaker) || entry.at ? (
           <div className="dj-entry-meta">
-            {showSpeaker && entry.speaker && (
-              <span className="dj-entry-speaker" style={{color: speakerColor(entry.speaker)}}>
-                {entry.speaker}
+            {named && speaker && (
+              <span className="dj-entry-speaker" style={{color: speakerColor(speaker)}}>
+                {speaker}
               </span>
             )}
             <span className="dj-entry-time">{clockTime(entry.at)}</span>

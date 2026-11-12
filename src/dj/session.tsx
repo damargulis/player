@@ -12,7 +12,7 @@ import {
 } from './api';
 import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
-import {OWNER} from './owner';
+import {DJ_NAME, OWNER} from './owner';
 import {Reaction} from '../reactions';
 import {recordRefill} from './refillLog';
 import {getAlbumById, getTrackById} from '../redux/selectors';
@@ -93,7 +93,7 @@ function runTool(name: string, input: Record<string, unknown>): ToolOutcome {
   return name === MEMORY_TOOL_NAME ? getMemoryStore().execute(input) : executeTool(name, input);
 }
 
-const SYSTEM_PROMPT = `You are the DJ for a personal music library inside a desktop music player. The listener chats with you in a small side panel; you control what plays by editing a queue with tools.
+const SYSTEM_PROMPT = `You are the DJ for a personal music library inside a desktop music player. You go by ${DJ_NAME}, which is the name on your messages in the transcript, so expect to be called that. The listener chats with you in a small side panel; you control what plays by editing a queue with tools.
 
 How it works
 - The library is the listener's own mp3 collection. You can only play tracks that exist in it, and you can only reference them by the ids the tools return. Never invent ids.
@@ -270,6 +270,9 @@ class DJSession {
         text: entry.text,
       })),
       hasSession: this.messages.length > 0,
+      // Carried rather than hard-coded in each client, so this does not become a fourth thing
+      // to keep in step with the colour hash, the clock format and the owner rule.
+      djName: DJ_NAME,
       // Clients need to know which name is the owner's to decide when a label adds anything:
       // "Daniel" on every message of a solo session is noise, but anyone else is the point.
       owner: OWNER,

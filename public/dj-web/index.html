@@ -478,6 +478,8 @@
   var speaker = null;
   // who the desktop is; sent with every dj-state so clients can tell a guest from the owner
   var owner = null;
+  // what the DJ is called, also sent with every dj-state rather than written in here
+  var djName = null;
   // Keep in step with src/dj/speakerColor.tsx and DJChatScreen.kt so a person's colour
   // is the same on every client.
   var SPEAKER_COLORS = ['#8b7cf6', '#12a594', '#e0557a', '#b9740f', '#3fa45c', '#4a86f0'];
@@ -607,8 +609,14 @@
       if (entry.role === 'user' && entry.speaker) {
         el.style.background = speakerColor(entry.speaker);
       }
-      var named = entry.speaker && (manySpeakers || entry.speaker !== owner);
-      var label = (named ? entry.speaker : '') +
+      // The DJ is named on every message: it is the one voice always in the conversation, and
+      // being the only unlabelled speaker made its replies read as captions rather than someone
+      // talking. Everyone else follows the owner rule above.
+      var who = entry.role === 'dj' ? djName : entry.speaker;
+      var named = entry.role === 'dj'
+        ? Boolean(djName)
+        : Boolean(entry.speaker && (manySpeakers || entry.speaker !== owner));
+      var label = (named ? who : '') +
         (entry.at ? (named ? ' · ' : '') + clockTime(entry.at) : '');
       if (metaEl.textContent !== label) {
         metaEl.textContent = label;
@@ -793,6 +801,9 @@
     }
     if (state.owner) {
       owner = state.owner;
+    }
+    if (state.djName) {
+      djName = state.djName;
     }
     renderEntries(state.entries || []);
     renderQueue(state.queue);

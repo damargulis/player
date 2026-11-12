@@ -70,6 +70,7 @@ fun DJChatScreen(onClose: () -> Unit) {
     var queueOpen by remember { mutableStateOf(false) }
     val configured by DJChatState.configured.observeAsState(true)
     val owner by DJChatState.owner.observeAsState(null)
+    val djName by DJChatState.djName.observeAsState(null)
     val connected by ServerConnection.connected.observeAsState(false)
     var draft by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -209,7 +210,11 @@ fun DJChatScreen(onClose: () -> Unit) {
                 // second speaker left a guest chatting alone looking anonymous.
                 val multipleSpeakers = entries.mapNotNull { it.speaker }.distinct().size > 1
                 items(entries, key = { it.id }) { entry ->
-                    ChatBubble(entry, multipleSpeakers || (entry.speaker != null && entry.speaker != owner))
+                    ChatBubble(
+                        entry,
+                        multipleSpeakers || (entry.speaker != null && entry.speaker != owner),
+                        djName,
+                    )
                 }
                 if (busy) {
                     item {
@@ -388,7 +393,7 @@ private fun DropButton(description: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ChatBubble(entry: ChatEntry, showSpeaker: Boolean = false) {
+private fun ChatBubble(entry: ChatEntry, showSpeaker: Boolean = false, djName: String? = null) {
     val isUser = entry.role == "user"
     val isNote = entry.role == "status"
     val isError = entry.role == "error"
@@ -412,12 +417,16 @@ private fun ChatBubble(entry: ChatEntry, showSpeaker: Boolean = false) {
                 .background(if (isUser) speakerColor(entry.speaker) else SurfaceLight)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            val named = showSpeaker && entry.speaker != null
+            // The DJ is named on every message: it is the one voice always in the
+            // conversation, and being the only unlabelled speaker made its replies read as
+            // captions rather than someone talking. Everyone else follows the owner rule.
+            val who = if (entry.role == "dj") djName else entry.speaker
+            val named = if (entry.role == "dj") who != null else showSpeaker && who != null
             val stamp = clockTime(entry.at)
             if (named || stamp.isNotEmpty()) {
                 Text(
                     listOfNotNull(
-                        entry.speaker?.uppercase()?.takeIf { named },
+                        who?.uppercase()?.takeIf { named },
                         stamp.takeIf { it.isNotEmpty() },
                     ).joinToString("  ·  "),
                     color = if (isUser) Color.White.copy(alpha = 0.75f) else TextSecondary,

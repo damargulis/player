@@ -50,6 +50,9 @@ object DJChatState {
     /** Whose name counts as the owner's, so a guest can be told apart from the desktop. */
     val owner = MutableLiveData<String?>(null)
 
+    /** What the DJ is called. Sent with every dj-state rather than written in here. */
+    val djName = MutableLiveData<String?>(null)
+
     /** What the desktop is playing and what it has queued. */
     val queue = MutableLiveData<QueueInfo?>(null)
 
@@ -104,6 +107,7 @@ object DJChatState {
         configured.postValue(state.optBoolean("configured", true))
         hasSession.postValue(state.optBoolean("hasSession", false))
         owner.postValue(state.optString("owner", "").ifEmpty { null })
+        djName.postValue(state.optString("djName", "").ifEmpty { null })
         queue.postValue(parseQueue(state.optJSONObject("queue")))
     }
 }
