@@ -95,8 +95,13 @@ interface DispatchProps {
 
 type AppProps = DispatchProps & StateProps;
 
+/** How long a failed-track notice stays up. Long enough to read, short enough not to nag. */
+const ERROR_NOTICE_MS = 6000;
+
 interface AppState {
   mini: boolean;
+  /** A track that would not play, shown briefly rather than failing in silence. */
+  playbackError?: string;
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -120,6 +125,11 @@ class App extends React.Component<AppProps, AppState> {
     this.state = {
       mini: false,
     };
+    // Answering proves this thread is running tasks, which is the one thing the main process
+    // cannot work out on its own. See public/watchdog.js.
+    ipcRenderer.on('watchdog-ping', () => {
+      ipcRenderer.send('watchdog-pong');
+    });
     ipcRenderer.on('minimize-reply', () => {
       this.onMinimize();
     });
@@ -413,6 +423,22 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
       this.loadedPath = undefined;
       this.props.nextTrack();
     });
+    /**
+     * A track that will not load used to fail in total silence.
+     *
+     * There was no `error` listener at all and `play()`'s rejection was swallowed, so a file
+     * that had moved — 55 of them have — simply stopped playback dead with nothing on screen
+     * and nothing in the log. Moving on is almost always right: the queue is the point, and one
+     * unreadable file should not end the evening.
+     */
+    this.audio.addEventListener('error', () => {
+      const track = this.props.track;
+      const name = track ? track.name : 'this track';
+      this.setState({playbackError: `Could not play ${name} — skipping it.`});
+      window.setTimeout(() => this.setState({playbackError: undefined}), ERROR_NOTICE_MS);
+      this.loadedPath = undefined;
+      this.props.nextTrack();
+    });
   }
 
   sendControllerUpdate(): void {
@@ -485,6 +511,11 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
     // fix this better?
     return (
       <div>
+        {this.state.playbackError && (
+          <div className="playbackError" onClick={() => this.setState({playbackError: undefined})}>
+            {this.state.playbackError}
+          </div>
+        )}
         <div style={{display: mini ? 'initial' : 'none'}}>
           <MiniWindow />
         </div>

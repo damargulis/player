@@ -19,6 +19,7 @@ const defaultMenu = require("electron-default-menu");
 const fs = require("fs");
 const os = require("os");
 const systemVolumeControl = require("./systemVolume");
+const watchdog = require("./watchdog");
 
 app.whenReady().then(() => {
   // This app only ever loads its own content (localhost in dev, file:// when packaged), so
@@ -328,6 +329,21 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
   mainWindow.on("closed", () => mainWindow = null);
+
+  // After the watchdog kills a wedged renderer, bring it straight back. Without this the
+  // window is left blank, which is a worse place to be than frozen.
+  mainWindow.webContents.on("render-process-gone", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.reload();
+    }
+  });
+
+  // Watches the renderer from out here, because a renderer that has deadlocked cannot watch
+  // itself. See public/watchdog.js for what happened that made this worth having.
+  watchdog.start(
+    () => mainWindow && mainWindow.webContents,
+    (seconds) => reportWedgedRenderer(seconds),
+  );
   const menu = defaultMenu(app, shell);
   menu.push(new MenuItem({
     label: "Library",
@@ -469,6 +485,40 @@ io.on("connection", (socket) => {
     extEvt.reply(action.type, action.data);
   });
 });
+
+ipcMain.on("watchdog-pong", () => watchdog.pong());
+
+/**
+ * Tells the listener the player has stopped responding, and offers the only thing that fixes it.
+ *
+ * Reloading is destructive enough to ask about: it drops the DJ's in-memory conversation, which
+ * is the one piece of state that does not live on disk. Everything else is safe — the library
+ * reducer saves on every mutating action and the event log is appended synchronously, so the
+ * files were complete and valid when this was diagnosed.
+ *
+ * `forcefullyCrashRenderer` rather than `reload`, because a reload is itself a task for the
+ * blocked thread to run. Killing the process and letting `render-process-gone` reload it is
+ * what works on a renderer that is genuinely stuck.
+ */
+function reportWedgedRenderer(seconds) {
+  if (!mainWindow) {
+    return;
+  }
+  dialog.showMessageBox(mainWindow, {
+    buttons: ["Reload player", "Leave it"],
+    cancelId: 1,
+    defaultId: 0,
+    detail: `The player has not answered for ${Math.round(seconds)} seconds, so the window and `
+      + "playback are frozen. Your library is safe — it is saved after every change.\n\n"
+      + "Reloading fixes it. The current DJ conversation will be lost; nothing else will.",
+    message: "MyMusic has stopped responding",
+    type: "warning",
+  }).then((result) => {
+    if (result.response === 0 && mainWindow) {
+      mainWindow.webContents.forcefullyCrashRenderer();
+    }
+  }).catch(() => undefined);
+}
 
 ipcMain.on("controller-state", (evt, state) => {
   // Merged from this process's cache rather than read per update: controller-state fires on

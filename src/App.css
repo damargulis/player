@@ -212,3 +212,23 @@ input[type="image"]:disabled {
   border-color: var(--danger);
   color: var(--danger);
 }
+
+/*
+ * A track that would not play. Previously this failed in total silence: there was no `error`
+ * listener on the audio element and play()'s rejection was swallowed, so a moved file stopped
+ * playback dead with nothing on screen.
+ */
+.playbackError {
+  background: var(--danger-soft);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  left: 50%;
+  padding: 6px 12px;
+  position: fixed;
+  top: 8px;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
