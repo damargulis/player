@@ -20,6 +20,7 @@ const fs = require("fs");
 const os = require("os");
 const systemVolumeControl = require("./systemVolume");
 const watchdog = require("./watchdog");
+const windowSize = require("./windowSize");
 
 app.whenReady().then(() => {
   // This app only ever loads its own content (localhost in dev, file:// when packaged), so
@@ -106,7 +107,7 @@ ipcMain.on("goToAlbum", (evt, data) => {
 });
 
 ipcMain.on("minimize", (evt) => {
-  mainWindow.setSize(320, 120);
+  windowSize.toMini(mainWindow);
   evt.reply("minimize-reply");
 });
 
@@ -115,9 +116,9 @@ ipcMain.on("maximize", (evt) => {
   evt.reply("maximize-reply");
 });
 
-/** Maximize the main window. */
+/** Back to the full browser, at whatever size it was last given. See public/windowSize.js. */
 function maximize() {
-  mainWindow.setSize(1430, 800);
+  windowSize.toMax(mainWindow);
 }
 ipcMain.on("extension-ready", (evt) => {
   extEvt = evt;
@@ -313,14 +314,14 @@ function runExtension(type) {
 function createWindow() {
   mainWindow = new BrowserWindow({
     frame: false,
-    height: 800,
+    height: windowSize.DEFAULT_MAX.height,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       enableRemoteModule: true,
       webSecurity: false,
     },
-    width: 1430,
+    width: windowSize.DEFAULT_MAX.width,
   });
   mainWindow.loadURL(isDev
     ? "http://localhost:3000"
