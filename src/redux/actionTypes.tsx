@@ -30,10 +30,7 @@ export interface Playlist {
   trackIds: string[];
 }
 
-export interface PlaylistInfo {
-  name?: string;
-  trackIds?: string[];
-}
+export type PlaylistInfo = Partial<Playlist>;
 
 // TODO: should be able to use from metadata import, not here
 export interface Metadata {
@@ -171,9 +168,7 @@ export interface Genre {
   name: string;
 }
 
-export interface GenreInfo {
-  name?: string;
-}
+export type GenreInfo = Partial<Genre>;
 
 export interface LibraryState {
   tracks: Record<string, Track>;
@@ -277,58 +272,27 @@ interface SetTimeAction {
   payload: {time: number};
 }
 
-export interface AlbumInfo {
-  errors?: string[];
-  albumArtFile?: string;
-  coverArt?: {maxPx: number; target: number};
-  metaSources?: {genres?: {musicbrainz?: string[]; wikipedia?: string[]}; year?: string[]};
-  artistIds?: string[];
-  name?: string;
-  trackIds?: string[];
-  year?: number;
-  wikiPage?: string;
-  mbid?: string;
-  genreIds?: string[];
-  playCount?: number;
-  skipCount?: number;
-  favorites?: number[];
-}
+/**
+ * The partial twins used for updates.
+ *
+ * Derived rather than written out, so they cannot drift from the entities they update. They
+ * were four hand-maintained copies, and a field present on the entity but missing from its
+ * twin is silently unupdatable — the same shape of trap as `loadLibrary` rebuilding entities
+ * field by field, which is what quietly erased 18,949 lyrics markers.
+ *
+ * `id` is omitted because it is the thing being updated, not part of the update.
+ */
+export type AlbumInfo = Partial<Omit<Album, 'id'>>;
 
-export interface ArtistInfo {
-  name?: string;
-  albumIds?: string[];
-  artFile?: string;
-  errors?: string[];
-  metaSources?: {genres?: {musicbrainz?: string[]; wikipedia?: string[]}; year?: string[]};
-  wikiPage?: string;
-  mbid?: string;
-  genreIds?: string[];
-  trackIds?: string[];
-}
+export type ArtistInfo = Partial<Omit<Artist, 'id'>>;
 
-export interface TrackInfo {
-  duration?: number;
-  playCount?: number;
-  playDate?: Date;
-  reactions?: Record<string, TrackReaction>;
-  filePath?: string;
-  artistIds?: string[];
-  albumIds?: string[];
-  name?: string;
-  year?: number;
-  genreIds?: string[];
-  skipCount?: number;
-  dateAdded?: Date;
-  favorites?: number[];
-  genius?: {
-    id?: string;
-    page?: string;
-    errors?: string[];
-    missedBy?: number;
-  };
-  lyrics?: TrackLyrics;
-  warning?: TrackWarning;
-}
+/**
+ * `genius` is partial inside as well: a miss records only `missedBy`, so its inner fields
+ * cannot all be required the way they are on the track itself.
+ */
+export type TrackInfo = Partial<Omit<Track, 'id' | 'genius'>> & {
+  genius?: Partial<NonNullable<Track['genius']>>;
+};
 
 interface UpdateAlbum {
   type: typeof UPDATE_ALBUM;
