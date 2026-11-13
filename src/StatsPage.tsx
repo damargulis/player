@@ -864,6 +864,7 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
         </div>
         <div className="statsColumns">
           {this.rankedList(`Top Genres by Time Listened, ${label}`, this.getTopGenres(recent))}
+          {this.rankedList(`Albums Skipped, ${label}`, this.getSkippedAlbums(recentAll))}
         </div>
         <div className="statsNote">
           {log.activeDays(recent)} of {days} days had listening ·{' '}
@@ -907,6 +908,33 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
    * The floors differ for the same reason. Lifetime counts are large, so 10 encounters keeps a
    * once-skipped track out of a 100%-skipped slot; a 7-day window would never clear that bar.
    */
+  /**
+   * Albums the listener stepped past, most-rejected first.
+   *
+   * There is no rate here, only a count: nothing logs an album *play*, so there is no
+   * denominator to divide by. All time reads `Album.skipCount`, which until now no code had
+   * ever incremented — 0 of 2,182 albums carried one.
+   */
+  private getSkippedAlbums(entries: log.PlayEntry[]): RankedItem[] {
+    const lifetime = this.state.historyDays === 0;
+    const counts = lifetime
+      ? undefined
+      : log.countsById(log.ofType(log.aboutAlbums(entries), 'skip'));
+    return Object.values(this.props.albums)
+      .map((album) => ({album, skips: counts ? (counts[album.id] || 0) : album.skipCount}))
+      .filter(({skips}) => skips > 0)
+      .sort((one, two) => two.skips - one.skips)
+      .slice(0, 10)
+      .map(({album, skips}) => ({
+        detail: this.getArtistNames(album.artistIds),
+        goTo: this.props.goToAlbum,
+        id: album.id,
+        label: `${skips.toLocaleString()} time${skips === 1 ? '' : 's'}`,
+        name: album.name,
+        value: skips,
+      }));
+  }
+
   private lifetimeSkipRows(): SkipRow[] {
     return Object.values(this.props.tracks)
       .map((track) => ({id: track.id, plays: track.playCount, skips: track.skipCount, track}));

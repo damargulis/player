@@ -218,6 +218,30 @@ export function ofType(entries: PlayEntry[], type: EventType): PlayEntry[] {
   return entries.filter((entry) => entry.type === type);
 }
 
+/**
+ * Entries about albums rather than tracks.
+ *
+ * Skipping the rest of a record is a verdict on the record, so it is logged against the album
+ * — which also keeps it out of the per-track helpers below, since they key on `id` and an album
+ * id in the track rates would describe a track that does not exist.
+ */
+export function aboutAlbums(entries: PlayEntry[]): PlayEntry[] {
+  return entries.filter((entry) => entry.subject === 'album');
+}
+
+/** Entries about tracks, which is everything that does not say otherwise. */
+export function aboutTracks(entries: PlayEntry[]): PlayEntry[] {
+  return entries.filter((entry) => entry.subject !== 'album');
+}
+
+/** How many times each album id appears, for "most skipped albums". */
+export function countsById(entries: PlayEntry[]): Record<string, number> {
+  return entries.reduce((byId, entry) => {
+    byId[entry.id] = (byId[entry.id] || 0) + entry.count;
+    return byId;
+  }, {} as Record<string, number>);
+}
+
 /** The local day an entry falls in, as `2026-11-05`. */
 export function dayOf(at: number): string {
   const date = new Date(at);
@@ -294,6 +318,10 @@ export function skipRate(entries: PlayEntry[]): Record<string, {plays: number; s
   const byTrack = {} as Record<string, {plays: number; skips: number}>;
   entries.forEach((entry) => {
     if (entry.type !== 'play' && entry.type !== 'skip') {
+      return;
+    }
+    // an album skip is not a track skip; its id is an album's
+    if (entry.subject === 'album') {
       return;
     }
     const row = byTrack[entry.id] || {plays: 0, skips: 0};

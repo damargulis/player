@@ -33,7 +33,7 @@ import {
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import fs from 'fs';
 import mm from 'musicmetadata';
-import {noteRewind} from '../skips';
+import {noteAlbumSkip, noteRewind} from '../skips';
 
 export const updateTime = (time: number) => ({
   payload: {time},
@@ -69,7 +69,8 @@ export const setPlaylist = (playlist: EmptyPlaylist, play: boolean) => ({
   type: SET_PLAYLIST,
 });
 
-export const nextAlbum = () => ({
+// Stepping past a record is a verdict on the record, not on each unheard track. See skips.tsx.
+export const nextAlbum = () => (noteAlbumSkip(), {
   type: NEXT_ALBUM,
 });
 

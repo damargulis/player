@@ -16,7 +16,7 @@ import {DJ_NAME, OWNER} from './owner';
 import {Reaction} from '../reactions';
 import {recordRefill} from './refillLog';
 import {getAlbumById, getTrackById} from '../redux/selectors';
-import {recordRemovals} from '../skips';
+import {recordAlbumSkip, recordRemovals} from '../skips';
 import store, {RootState} from '../redux/store';
 import {
   describeQueue,
@@ -361,16 +361,27 @@ class DJSession {
   public noteListenerRemoval(trackIds: string[], albumId?: string, actor: string = OWNER): void {
     const state = store.getState();
     activity.noteListenerInput();
-    // A removal is a rejection, so it is a skip — the same judgement as pressing next, made
-    // before hearing it. The lines below only reach the DJ's own context, which is gone when
-    // the session ends; this is what gets it into the log and the skip counts.
-    const removed = trackIds.map((id) => getTrackById(state, id)).filter(Boolean);
-    const updates = recordRemovals(removed);
-    if (Object.keys(updates).length) {
-      // one dispatch, so an album dropped costs one save rather than one per track
-      store.dispatch({payload: {library: {tracks: updates}}, type: UPDATE_LIBRARY});
-    }
     const album = albumId ? getAlbumById(state, albumId) : undefined;
+    // A removal is a rejection, so it is a skip — the same judgement as pressing next, made
+    // before hearing the track. The lines below only reach the DJ's own context, which is gone
+    // when the session ends; this is what gets it into the log and the skip counts.
+    //
+    // A whole album is one verdict on the album, not one per unheard track: logging it per
+    // track would fill "most skipped" with songs that merely sit late on records the listener
+    // often drops. The same rule as the next-album button.
+    if (album) {
+      const update = recordAlbumSkip(album);
+      if (update) {
+        store.dispatch({payload: {library: {albums: {[album.id]: update}}}, type: UPDATE_LIBRARY});
+      }
+    } else {
+      const removed = trackIds.map((id) => getTrackById(state, id)).filter(Boolean);
+      const updates = recordRemovals(removed);
+      if (Object.keys(updates).length) {
+        // one dispatch, so several tracks dropped at once cost one save rather than one each
+        store.dispatch({payload: {library: {tracks: updates}}, type: UPDATE_LIBRARY});
+      }
+    }
     if (album) {
       this.playbackEvents.push(`${actor} dropped the rest of "${album.name}" from the queue ` +
         `(${trackIds.length} track(s)) — they don't want that record right now.`);

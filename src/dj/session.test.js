@@ -256,15 +256,18 @@ describe('a removal counts as a skip', () => {
   const {DATA_DIR} = require('../constants');
   const LOG = `${DATA_DIR}/plays.jsonl`;
 
-  function loggedSkips() {
+  function logged(subject) {
     if (!fs.existsSync(LOG)) {
       return [];
     }
     return fs.readFileSync(LOG, 'utf8').split('\n').filter(Boolean)
       .map((line) => JSON.parse(line))
-      .filter((entry) => entry.type === 'skip')
+      .filter((entry) => entry.type === 'skip' && (entry.subject || 'track') === subject)
       .map((entry) => entry.id);
   }
+
+  const loggedSkips = () => logged('track');
+  const loggedAlbumSkips = () => logged('album');
 
   beforeEach(() => {
     if (fs.existsSync(LOG)) {
@@ -288,17 +291,22 @@ describe('a removal counts as a skip', () => {
     expect(store.getState().library.tracks.t3.skipCount).toBe(1);
   });
 
-  /** One gesture, but the skip list is per track, so each queued track of the album counts. */
-  it('logs every track of a dropped album', () => {
+  /**
+   * One verdict, on the record — not one per unheard track. Logging it per track would fill
+   * "most skipped" with songs that merely sit late on albums the listener often drops.
+   */
+  it('records a dropped album against the album, not its tracks', () => {
     const playlist = new DJPlaylist('t1');
     playlist.addAlbum(['t2', 't3'], 'al1', 'end');
     store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
 
     session.removeFromQueue([], 'al1');
 
-    expect(loggedSkips().sort()).toStrictEqual(['t2', 't3']);
-    expect(store.getState().library.tracks.t2.skipCount).toBe(1);
-    expect(store.getState().library.tracks.t3.skipCount).toBe(1);
+    expect(loggedAlbumSkips()).toStrictEqual(['al1']);
+    expect(loggedSkips()).toStrictEqual([]);
+    expect(store.getState().library.albums.al1.skipCount).toBe(1);
+    expect(store.getState().library.tracks.t2.skipCount).toBe(0);
+    expect(store.getState().library.tracks.t3.skipCount).toBe(0);
   });
 
   it('records nothing when the DJ queue is not active', () => {

@@ -1,6 +1,7 @@
-import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack, resetLibrary, setPlaylist,
-  updateLibrary, updateTime, updateTrack} from './redux/actions';
-import {Album, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track, TrackInfo} from './redux/actionTypes';
+import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack,
+  resetLibrary, setPlaylist, updateAlbum, updateLibrary, updateTime, updateTrack} from './redux/actions';
+import {Album, AlbumInfo, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track,
+  TrackInfo} from './redux/actionTypes';
 import djActivity from './dj/activity';
 import './App.css';
 import {publishCatalog} from './backup/catalog';
@@ -10,7 +11,7 @@ import {BACKUP_TIME, DATA_DIR} from './constants';
 import {logPlays} from './eventLog';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
-import {noteNaturalFinish, recordTrackChange} from './skips';
+import {noteNaturalFinish, recordAlbumSkip, recordTrackChange} from './skips';
 import {countsByTrack, latestPlayedAt, ofType, parseSyncedPlays} from './syncedPlays';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
@@ -91,6 +92,7 @@ interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
   playPause(): void;
   nextAlbum(): void;
+  updateAlbum(id: string, info: AlbumInfo): void;
   updateTrack(id: string, info: TrackInfo): void;
 }
 
@@ -548,9 +550,18 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
    * the single funnel for every route that goes back.
    */
   private noteTrackChange(previous?: Track): void {
-    const update = recordTrackChange(previous);
-    if (previous && update) {
-      this.props.updateTrack(previous.id, update);
+    const {track, albumId} = recordTrackChange(previous);
+    if (previous && track) {
+      this.props.updateTrack(previous.id, track);
+    }
+    if (albumId) {
+      // The whole record was stepped past, so nothing is recorded against the track that
+      // happened to be playing — one verdict, on the album.
+      const album = this.props.getAlbumsByIds([albumId])[0];
+      const update = recordAlbumSkip(album);
+      if (update) {
+        this.props.updateAlbum(albumId, update);
+      }
     }
   }
 
@@ -689,4 +700,4 @@ function mapStateToProps(store: RootState): StateProps {
 }
 
 export default connect(mapStateToProps, {changeVolume, updateTime, playPause, updateLibrary, resetLibrary, nextTrack,
-  prevAlbum, prevTrack, setPlaylist, updateTrack, nextAlbum, createBackup})(App);
+  prevAlbum, prevTrack, setPlaylist, updateAlbum, updateTrack, nextAlbum, createBackup})(App);

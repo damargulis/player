@@ -1,4 +1,7 @@
-import {noteNaturalFinish, noteRewind, recordSkip, recordTrackChange, takeRewind} from "./skips";
+import {
+  noteAlbumSkip, noteNaturalFinish, noteRewind, recordAlbumSkip, recordSkip,
+  recordTrackChange, takeAlbumSkip, takeRewind,
+} from "./skips";
 
 /**
  * `Track.skipCount` has been frozen since the iTunes import — 17,140 skips across 5,658 tracks,
@@ -82,6 +85,7 @@ describe("the backwards action creators mark a rewind", () => {
 describe("recordTrackChange", () => {
   beforeEach(() => {
     takeRewind();
+    takeAlbumSkip();
     noteNaturalFinish(undefined);
   });
 
@@ -91,12 +95,12 @@ describe("recordTrackChange", () => {
    * skip_current logged nothing.
    */
   it("counts advancing away from an unfinished track", () => {
-    expect(recordTrackChange(track())).toEqual({skipCount: 3});
+    expect(recordTrackChange(track())).toEqual({track: {skipCount: 3}});
   });
 
   it("does not count the track that reached its own end", () => {
     noteNaturalFinish("t1");
-    expect(recordTrackChange(track({id: "t1"}))).toBeUndefined();
+    expect(recordTrackChange(track({id: "t1"}))).toEqual({});
   });
 
   /**
@@ -106,28 +110,28 @@ describe("recordTrackChange", () => {
    */
   it("still counts a different track leaving after one finished", () => {
     noteNaturalFinish("t1");
-    expect(recordTrackChange(track({id: "t2"}))).toEqual({skipCount: 3});
+    expect(recordTrackChange(track({id: "t2"}))).toEqual({track: {skipCount: 3}});
   });
 
   it("does not count going back", () => {
     noteRewind();
-    expect(recordTrackChange(track())).toBeUndefined();
+    expect(recordTrackChange(track())).toEqual({});
   });
 
   it("consumes the rewind, so the next forward change still counts", () => {
     noteRewind();
     recordTrackChange(track());
-    expect(recordTrackChange(track())).toEqual({skipCount: 3});
+    expect(recordTrackChange(track())).toEqual({track: {skipCount: 3}});
   });
 
   it("does nothing on the first track, where there is no previous one", () => {
-    expect(recordTrackChange(undefined)).toBeUndefined();
+    expect(recordTrackChange(undefined)).toEqual({});
   });
 
   it("clears the finish marker so it cannot excuse a later departure", () => {
     noteNaturalFinish("t1");
-    expect(recordTrackChange(track({id: "t1"}))).toBeUndefined();
-    expect(recordTrackChange(track({id: "t1"}))).toEqual({skipCount: 3});
+    expect(recordTrackChange(track({id: "t1"}))).toEqual({});
+    expect(recordTrackChange(track({id: "t1"}))).toEqual({track: {skipCount: 3}});
   });
 });
 
@@ -139,7 +143,8 @@ describe("recordRemovals", () => {
     expect(recordRemovals([track()])).toEqual({t1: {skipCount: 3}});
   });
 
-  it("counts each track of a dropped album", () => {
+  /** Several tracks X-ed out at once. A whole album goes through recordAlbumSkip instead. */
+  it("counts each of several tracks removed together", () => {
     const updates = recordRemovals([track({id: "a"}), track({id: "b"}), track({id: "c"})]);
     expect(Object.keys(updates).sort()).toEqual(["a", "b", "c"]);
     expect(updates.a).toEqual({skipCount: 3});
@@ -156,5 +161,74 @@ describe("recordRemovals", () => {
 
   it("does nothing for an empty removal", () => {
     expect(recordRemovals([])).toEqual({});
+  });
+});
+
+describe("stepping past a whole album", () => {
+  const album = (extra) => Object.assign({
+    artistIds: [], errors: [], favorites: [], genreIds: [], id: "al1",
+    name: "Album", playCount: 0, skipCount: 0, trackIds: [], year: 2000,
+  }, extra || {});
+
+  beforeEach(() => {
+    takeRewind();
+    takeAlbumSkip();
+    noteNaturalFinish(undefined);
+  });
+
+  /**
+   * One verdict, on the record. Logging it per track would fill "most skipped" with songs that
+   * merely sit late on albums the listener often drops — songs they never judged at all.
+   */
+  it("records the album instead of the track that was playing", () => {
+    noteAlbumSkip();
+    expect(recordTrackChange(track({albumIds: ["al1"]}))).toEqual({albumId: "al1"});
+  });
+
+  it("raises the album's skip count, which nothing had ever done", () => {
+    expect(recordAlbumSkip(album())).toEqual({skipCount: 1});
+    expect(recordAlbumSkip(album({skipCount: 4}))).toEqual({skipCount: 5});
+  });
+
+  it("does nothing without an album", () => {
+    expect(recordAlbumSkip(undefined)).toBeUndefined();
+  });
+
+  /** No album to name, so there is nothing to record — not a track skip by the back door. */
+  it("records nothing when the track belongs to no album", () => {
+    noteAlbumSkip();
+    expect(recordTrackChange(track({albumIds: []}))).toEqual({});
+  });
+
+  it("is consumed, so the next plain skip is a track skip again", () => {
+    noteAlbumSkip();
+    recordTrackChange(track({albumIds: ["al1"]}));
+    expect(recordTrackChange(track())).toEqual({track: {skipCount: 3}});
+  });
+
+  it("a finished album still records nothing", () => {
+    noteAlbumSkip();
+    noteNaturalFinish("t1");
+    expect(recordTrackChange(track({albumIds: ["al1"]}))).toEqual({});
+  });
+});
+
+describe("nextAlbum marks an album skip", () => {
+  const actions = require("./redux/actions");
+
+  beforeEach(() => takeAlbumSkip());
+
+  it("marks it", () => {
+    actions.nextAlbum();
+    expect(takeAlbumSkip()).toBe(true);
+  });
+
+  it("nextTrack does not", () => {
+    actions.nextTrack();
+    expect(takeAlbumSkip()).toBe(false);
+  });
+
+  it("still returns the action it always did", () => {
+    expect(actions.nextAlbum().type).toBe("NEXT_ALBUM");
   });
 });

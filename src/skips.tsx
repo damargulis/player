@@ -1,4 +1,4 @@
-import {Track, TrackInfo} from './redux/actionTypes';
+import {Album, AlbumInfo, Track, TrackInfo} from './redux/actionTypes';
 import {logPlays} from './eventLog';
 
 /**
@@ -37,6 +37,32 @@ export function noteRewind(): void {
   rewinding = true;
 }
 
+/**
+ * Set when the next track change is the listener stepping past a whole record.
+ *
+ * Skipping the rest of an album is a verdict on the album, not on each of its unheard tracks —
+ * logging it per track would slowly fill "most skipped" with whatever happens to sit late on
+ * records you often bail out of, songs you have never formed an opinion about. So this replaces
+ * the track skip rather than adding to it: one album skip, and nothing against the track that
+ * happened to be playing.
+ *
+ * Marked by the `nextAlbum` action creator, the single funnel for every route that does it.
+ * A marker left unconsumed would downgrade a later track skip to an album one, which is the
+ * same shape of risk the rewind marker carries and no worse.
+ */
+let skippingAlbum = false;
+
+export function noteAlbumSkip(): void {
+  skippingAlbum = true;
+}
+
+/** True once, for the change the album skip causes. Exported for the tests. */
+export function takeAlbumSkip(): boolean {
+  const was = skippingAlbum;
+  skippingAlbum = false;
+  return was;
+}
+
 /** True once, for the change the rewind causes. Exported for the tests. */
 export function takeRewind(): boolean {
   const was = rewinding;
@@ -57,6 +83,21 @@ export function recordSkip(track?: Track): TrackInfo | undefined {
   }
   logPlays([{at: Date.now(), id: track.id, source: 'desktop', type: 'skip'}]);
   return {skipCount: (track.skipCount || 0) + 1};
+}
+
+/**
+ * Records that a whole album was rejected.
+ *
+ * `Album.skipCount` has existed since the iTunes import and nothing has ever incremented it —
+ * 0 of 2,182 albums here carry one — so this is the first thing to write it. The log entry is
+ * `subject: 'album'`, which it has always been able to express and nothing has ever used.
+ */
+export function recordAlbumSkip(album?: Album): AlbumInfo | undefined {
+  if (!album) {
+    return undefined;
+  }
+  logPlays([{at: Date.now(), id: album.id, source: 'desktop', subject: 'album', type: 'skip'}]);
+  return {skipCount: (album.skipCount || 0) + 1};
 }
 
 /**
@@ -81,14 +122,28 @@ export function noteNaturalFinish(trackId?: string): void {
  * got, and whether `ended` fired — and this consumes the rewind marker, which is why that
  * marker does not need to be handled by the caller at all.
  */
-export function recordTrackChange(previous?: Track): TrackInfo | undefined {
+export interface TrackChange {
+  /** The update for the outgoing track, when the track itself was rejected. */
+  track?: TrackInfo;
+  /** The album to record instead, when the listener stepped past the whole record. */
+  albumId?: string;
+}
+
+export function recordTrackChange(previous?: Track): TrackChange {
   const finished = naturallyFinished;
   naturallyFinished = undefined;
   const rewound = takeRewind();
+  const album = takeAlbumSkip();
   if (!previous || rewound || finished === previous.id) {
-    return undefined;
+    return {};
   }
-  return recordSkip(previous);
+  if (album) {
+    // the album instead of the track: see noteAlbumSkip. albumIds[0] because that is the album
+    // a track is shown under everywhere else in the app.
+    const albumId = (previous.albumIds || [])[0];
+    return albumId ? {albumId} : {};
+  }
+  return {track: recordSkip(previous)};
 }
 
 /**
