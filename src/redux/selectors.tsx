@@ -19,6 +19,14 @@ export function getAlbumsByIds(store: RootState, albumIds: string[]): Album[] {
   return albumIds.map((id) => getAlbumById(store, id));
 }
 
+export function getAllAlbums(store: RootState): Album[] {
+  return Object.values(store.library.albums);
+}
+
+export function getAllArtists(store: RootState): Artist[] {
+  return Object.values(store.library.artists);
+}
+
 export function getAllAlbumIds(store: RootState): string[] {
   return Object.keys(store.library.albums);
 }
@@ -102,29 +110,10 @@ export function getArtFilesByArtist(store: RootState, artist: Artist): string[] 
   ].filter(Boolean) as string[];
 }
 
-export function getAlbumsByGenres(store: RootState, genres: string[]): Album[] {
-  return genres.length ? Object.values(store.library.albums).filter((album) => {
-    return album.genreIds.some((genreId) => {
-      return genres.includes(genreId);
-    });
-  }) : Object.values(store.library.albums);
-}
-
-export function getArtistsByGenres(store: RootState, genres: string[]): Artist[] {
-  return genres.length ? Object.values(store.library.artists).filter((artist) => {
-    return artist.genreIds.some((genreId) => {
-      return genres.includes(genreId);
-    });
-  }) : Object.values(store.library.artists);
-}
-
-export function getTracksByGenres(store: RootState, genres: string[]): Track[] {
-  return genres.length ? getAllTracks(store).filter((track) => {
-    return track.genreIds.some((genreId) => {
-      return genres.includes(genreId);
-    });
-  }) : getAllTracks(store);
-}
+// The genre-filtered variants of these used to live here, called by MaxWindow with a genre list
+// that was always empty — the picked genres live in `settings`, which each picker reads for
+// itself through its own memoised filter. MaxWindow now asks for everything and the pickers
+// narrow it.
 
 export function getPlaylists(store: RootState): Playlist[] {
   return Object.values(store.library.playlists);

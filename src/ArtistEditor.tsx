@@ -1,5 +1,5 @@
 import {updateArtist} from './redux/actions';
-import {Artist} from './redux/actionTypes';
+import {Artist, ArtistInfo} from './redux/actionTypes';
 import AlbumAttributeEditor from './AlbumAttributeEditor';
 import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import AttributeEditor from './AttributeEditor';
@@ -18,7 +18,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  updateArtist(id: string, info: object): void;
+  updateArtist(id: string, info: ArtistInfo): void;
 }
 
 type ArtistEditorProps = OwnProps & StateProps & DispatchProps;
@@ -64,16 +64,17 @@ class ArtistEditor extends React.Component<ArtistEditorProps, ArtistEditorState>
     );
   }
 
+  /** As in AlbumEditor: an absent ref keeps the current value rather than writing null. */
   private save(): void {
-    this.props.updateArtist(this.props.artist.id, {
-      name: this.name.current && this.name.current.value,
-      genreIds: this.state.genreIds,
+    const artist = this.props.artist;
+    this.props.updateArtist(artist.id, {
       albumIds: this.state.albumIds,
+      errors: artist.errors,
+      genreIds: this.state.genreIds,
+      mbid: this.mbid.current ? parseMbid(this.mbid.current.value) : artist.mbid,
+      name: this.name.current ? this.name.current.value : artist.name,
       trackIds: this.state.trackIds,
-      wikiPage: this.wikiPage.current && this.wikiPage.current.value,
-      mbid: this.mbid.current ? parseMbid(this.mbid.current.value) : this.props.artist.mbid,
-      id: this.props.artist.id,
-      errors: this.props.artist.errors,
+      wikiPage: this.wikiPage.current ? this.wikiPage.current.value : artist.wikiPage,
     });
     this.props.exit();
   }

@@ -1,5 +1,5 @@
 import {updateAlbum} from './redux/actions';
-import {Album, Artist, Track} from './redux/actionTypes';
+import {Album, AlbumInfo, Artist, Track} from './redux/actionTypes';
 import {musicBrainzUrl, parseMbid} from './extensions/musicbrainz/api';
 import ArtistAttributeEditor from './ArtistAttributeEditor';
 import AttributeEditor from './AttributeEditor';
@@ -22,7 +22,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  updateAlbum(id: string, info: object): void;
+  updateAlbum(id: string, info: AlbumInfo): void;
 }
 
 type AlbumEditorProps = OwnProps & StateProps & DispatchProps;
@@ -76,20 +76,29 @@ class AlbumEditor extends React.Component<AlbumEditorProps, AlbumEditorState> {
     );
   }
 
+  /**
+   * Falls back to what the album already holds when a ref is missing.
+   *
+   * It used to be `this.name.current && this.name.current.value`, which yields **null** for an
+   * absent ref — and the reducer spreads the update over the album, so that would have written
+   * `null` into a field typed `string | undefined`. The refs are attached whenever this renders,
+   * so it never fired; keeping the current value is the right answer if it ever does, and
+   * `undefined` would not be, because a key present and undefined clobbers just as well.
+   */
   private save(): void {
-    this.props.updateAlbum(this.props.album.id, {
-      name: this.name.current && this.name.current.value,
-      year: this.year.current && parseInt(this.year.current.value, 10),
-      playCount: this.playCount.current && parseInt(this.playCount.current.value, 10),
+    const album = this.props.album;
+    this.props.updateAlbum(album.id, {
+      artistIds: this.state.artistIds,
+      errors: album.errors,
       favorites: this.state.yearsFavorited,
       genreIds: this.state.genreIds,
-      artistIds: this.state.artistIds,
-      wikiPage: this.wikiPage.current && this.wikiPage.current.value,
-      mbid: this.mbid.current ? parseMbid(this.mbid.current.value) : this.props.album.mbid,
+      mbid: this.mbid.current ? parseMbid(this.mbid.current.value) : album.mbid,
+      name: this.name.current ? this.name.current.value : album.name,
+      playCount: this.playCount.current ? parseInt(this.playCount.current.value, 10) : album.playCount,
+      skipCount: album.skipCount,
       trackIds: this.state.trackIds,
-      errors: this.props.album.errors,
-      id: this.props.album.id,
-      skipCount: this.props.album.skipCount,
+      wikiPage: this.wikiPage.current ? this.wikiPage.current.value : album.wikiPage,
+      year: this.year.current ? parseInt(this.year.current.value, 10) : album.year,
     });
     this.props.exit();
   }

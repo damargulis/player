@@ -18,7 +18,7 @@ import React from 'react';
 import Dropzone from 'react-dropzone';
 import {connect} from 'react-redux';
 import {
-  getAlbumById, getAlbumsByGenres, getArtistById, getArtistsByGenres, getTracksByGenres,
+  getAlbumById, getAllAlbums, getAllArtists, getAllTracks, getArtistById,
 } from './redux/selectors';
 import StatsPage from './StatsPage';
 import {RootState} from './redux/store';
@@ -27,9 +27,9 @@ import TrackPicker from './TrackPicker';
 interface StateProps {
   getAlbumById(id: string): Album;
   getArtistById(id: string): Artist;
-  getTracksByGenres(genres: string[]): Track[];
-  getAlbumsByGenres(genres: string[]): Album[];
-  getArtistsByGenres(genres: string[]): Artist[];
+  getAllTracks(): Track[];
+  getAllAlbums(): Album[];
+  getAllArtists(): Artist[];
 }
 
 interface DispatchProps {
@@ -40,7 +40,6 @@ type MaxWindowProps = StateProps & DispatchProps;
 
 interface MaxWindowState {
   curScene: number;
-  genres: string[];
   scenes: JSX.Element[];
   scrollPosition: number;
 }
@@ -52,7 +51,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     // TODO: set first scene on update library
     this.state = {
       curScene: -1,
-      genres: [],
       scenes: [],
       scrollPosition: -1,
     };
@@ -115,7 +113,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     case 'album':
       return (
         <AlbumPicker
-          albums={this.props.getAlbumsByGenres(this.state.genres)}
+          albums={this.props.getAllAlbums()}
           goToAlbum={(albumId) => this.goToAlbum(albumId)}
           scrollPosition={this.state.scrollPosition}
         />
@@ -123,13 +121,13 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     case 'artist':
       return (
         <ArtistPicker
-          artists={this.props.getArtistsByGenres(this.state.genres)}
+          artists={this.props.getAllArtists()}
           goToArtist={(artistId) => this.goToArtist(artistId)}
           scrollPosition={this.state.scrollPosition}
         />
       );
     case 'track':
-      return <TrackPicker tracks={this.props.getTracksByGenres(this.state.genres)} />;
+      return <TrackPicker tracks={this.props.getAllTracks()} />;
     case 'playlist':
     return <PlaylistPicker goToPlaylist={(playlist) => this.goToPlaylist(playlist)} />;
     case 'new':
@@ -179,7 +177,7 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     scenes.push(
       <TrackPicker
         scrollToTrackId={trackId}
-        tracks={this.props.getTracksByGenres(this.state.genres)}
+        tracks={this.props.getAllTracks()}
       />
     );
     const curScene = this.state.curScene + 1;
@@ -223,7 +221,6 @@ class MaxWindow extends React.Component<MaxWindowProps, MaxWindowState> {
     scenes.push(
       <PlaylistPage
         canGoForward={this.canGoForward()}
-        genres={[]}
         goBack={() => this.goBack()}
         goForward={() => this.goForward()}
         playlist={playlist}
@@ -258,10 +255,10 @@ function mapStateToProps(store: RootState): StateProps {
   const library = store.library;
   return {
     getAlbumById: boundTo(library, store, getAlbumById),
-    getAlbumsByGenres: boundTo(library, store, getAlbumsByGenres),
+    getAllAlbums: boundTo(library, store, getAllAlbums),
     getArtistById: boundTo(library, store, getArtistById),
-    getArtistsByGenres: boundTo(library, store, getArtistsByGenres),
-    getTracksByGenres: boundTo(library, store, getTracksByGenres),
+    getAllArtists: boundTo(library, store, getAllArtists),
+    getAllTracks: boundTo(library, store, getAllTracks),
   };
 }
 

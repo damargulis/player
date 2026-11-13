@@ -61,7 +61,7 @@ interface DispatchProps {
   updateTrack(id: string, info: TrackInfo): void;
   updateAlbum(id: string, info: AlbumInfo): void;
   deleteAlbum(id: string): void;
-  updateArtist(id: string, info: object): void;
+  updateArtist(id: string, info: ArtistInfo): void;
 }
 
 interface AlbumPageState {
@@ -268,7 +268,6 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
         const newId = shortid.generate();
         newArtistNamesToId.set(artistName, newId);
         this.props.updateArtist(newId, {
-          id: newId,
           name: artistName,
           genreIds: [],
           albumIds: [],

@@ -1,5 +1,6 @@
 import {setPlaylist, updateAlbum} from './redux/actions';
-import {Album, Artist, TrackInfo} from './redux/actionTypes';
+// aliased because the component in this file is also called AlbumInfo
+import {Album, AlbumInfo as AlbumInfoUpdate, Artist, TrackInfo} from './redux/actionTypes';
 import AlbumEditor from './AlbumEditor';
 import './AlbumInfo.css';
 import ArtImg from './ArtImg';
@@ -34,7 +35,7 @@ interface AlbumInfoState {
 
 interface DispatchProps {
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
-  updateAlbum(id: string, info: object): void;
+  updateAlbum(id: string, info: AlbumInfoUpdate): void;
 }
 
 type AlbumInfoProps = OwnProps & StateProps & DispatchProps;

@@ -11,7 +11,7 @@ import {RootState} from './store';
  *
  * Measured against this library, the selector work alone inside those calls is ~2.9ms per
  * action — the album filter 0.34ms over 2,176 albums, the artist filter 0.12ms over 1,102, and
- * `getTracksByGenres` 2.47ms over 21,078 tracks — so roughly 12ms of wasted work per second
+ * the track filter 2.47ms over 21,078 tracks — so roughly 12ms of wasted work per second
  * before counting the React reconciliation it forces.
  *
  * The fix is to return the *same* values when nothing the component reads has changed.
@@ -35,7 +35,7 @@ function cacheFor(slice: object): Cache {
  *
  * **Only for a selector that reads nothing but `slice`.** The wrapper closes over the `store`
  * it was built with, so if the selector read another slice it would answer from a stale one.
- * Every selector used this way — `getAlbumById`, `getTracksByIds`, `getTracksByGenres`,
+ * Every selector used this way — `getAlbumById`, `getTracksByIds`, `getAllTracks`,
  * `getPlaylists` and the rest — touches only `store.library`, which was checked rather than
  * assumed; `getTime` and `getCurrentTrackId` read `currentlyPlaying` and are passed as values
  * instead, where a changed value is the point.

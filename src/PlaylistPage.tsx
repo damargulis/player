@@ -10,7 +10,6 @@ import {toTime} from './utils';
 interface OwnProps {
   playlist: Playlist;
   canGoForward: boolean;
-  genres: string[];
   goBack(): void;
   goForward(): void;
 }
@@ -25,15 +24,9 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
 
   public render(): JSX.Element {
     const src = '';
-    const allPlaylistTracks = this.props.tracks;
-    const tracks = allPlaylistTracks.filter((track) => {
-      if (this.props.genres.length) {
-        return track.genreIds.some((genreId) => {
-          return this.props.genres.includes(genreId);
-        });
-      }
-      return true;
-    });
+    // No genre filter here: MaxWindow only ever passed an empty list, and TrackPicker narrows
+    // by the picked genres itself, reading them from `settings`.
+    const tracks = this.props.tracks;
     return (
       <div className="main">
         <div className="playlistPageHeader" style={{display: 'flex'}}>

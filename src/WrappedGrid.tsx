@@ -51,7 +51,7 @@ export default class WrappedGrid extends React.Component<WrappedGridProps> {
 
   private cellRenderer(
     {columnIndex, key, rowIndex, style}:
-    {columnIndex: number; key: string; rowIndex: number; style: object},
+    {columnIndex: number; key: string; rowIndex: number; style: React.CSSProperties},
   ): JSX.Element {
     return this.props.cellRenderer(rowIndex * this.numCols + columnIndex, key, style);
   }
