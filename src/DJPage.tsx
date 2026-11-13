@@ -6,6 +6,7 @@ import './DJPage.css';
 import DJPlaylist, {QueueEntry} from './playlist/DJPlaylist';
 import {shell} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import {boundTo} from './redux/memo';
 import {getMemoryStore, MemoryFile} from './dj/memory';
 import defaultAlbum from './resources/missing_album.png';
 import {
@@ -441,12 +442,24 @@ function readMemoryFiles(): MemoryFile[] {
   }
 }
 
+function artistNames(store: RootState, ids: string[]): string {
+  return getArtistsByIds(store, ids).filter(Boolean).map((artist) => artist.name).join(', ');
+}
+
+/**
+ * The three lookups are bound to the library rather than rebuilt per call.
+ *
+ * Fresh closures meant the props were never shallow-equal, so this page re-rendered its whole
+ * transcript on every action — four times a second throughout playback. All three read nothing
+ * but `store.library`, which is what makes `boundTo` valid here; `currentTrackId`,
+ * `queueVersion` and `playlist` are passed as values, where a change is the point.
+ */
 function mapStateToProps(store: RootState): StateProps {
   return {
     currentTrackId: getCurrentTrackId(store),
-    getAlbumById: (id: string) => getAlbumById(store, id),
-    getArtistNames: (ids: string[]) => getArtistsByIds(store, ids).filter(Boolean).map((a) => a.name).join(', '),
-    getTrackById: (id: string) => getTrackById(store, id),
+    getAlbumById: boundTo(store.library, store, getAlbumById),
+    getArtistNames: boundTo(store.library, store, artistNames),
+    getTrackById: boundTo(store.library, store, getTrackById),
     playlist: store.currentlyPlaying.playlist,
     queueVersion: getQueueVersion(store),
   };
