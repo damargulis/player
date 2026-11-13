@@ -29,3 +29,106 @@ describe("recordSkip", () => {
     expect(recordSkip(undefined, 30000)).toBeUndefined();
   });
 });
+
+describe("rewind marker", () => {
+  const {noteRewind, takeRewind} = require("./skips");
+
+  /**
+   * Going back is not a skip — abandoning a song to replay the previous one says nothing about
+   * the song. The track-change recorder in App cannot see the direction, so the two backwards
+   * action creators mark it.
+   */
+  it("reports a rewind once and then clears", () => {
+    noteRewind();
+    expect(takeRewind()).toBe(true);
+    expect(takeRewind()).toBe(false);
+  });
+
+  it("is false when nothing marked it, so a forward change still counts", () => {
+    takeRewind();
+    expect(takeRewind()).toBe(false);
+  });
+
+  /** Marking twice must not leak into a later, genuine skip. */
+  it("does not stack", () => {
+    noteRewind();
+    noteRewind();
+    expect(takeRewind()).toBe(true);
+    expect(takeRewind()).toBe(false);
+  });
+});
+
+describe("the backwards action creators mark a rewind", () => {
+  const actions = require("./redux/actions");
+  const {takeRewind} = require("./skips");
+
+  beforeEach(() => takeRewind());
+
+  it("prevTrack marks it", () => {
+    actions.prevTrack();
+    expect(takeRewind()).toBe(true);
+  });
+
+  it("prevAlbum marks it", () => {
+    actions.prevAlbum();
+    expect(takeRewind()).toBe(true);
+  });
+
+  /** The forward ones must not, or every skip would be discarded as a rewind. */
+  it("nextTrack and nextAlbum do not", () => {
+    actions.nextTrack();
+    expect(takeRewind()).toBe(false);
+    actions.nextAlbum();
+    expect(takeRewind()).toBe(false);
+  });
+
+  it("still returns the action it always did", () => {
+    expect(actions.prevTrack().type).toBe("PREV_TRACK");
+    expect(actions.prevAlbum().type).toBe("PREV_ALBUM");
+  });
+});
+
+describe("recordTrackChange", () => {
+  const {noteRewind, recordTrackChange, takeRewind} = require("./skips");
+
+  beforeEach(() => takeRewind());
+
+  /**
+   * This is the rule every route now goes through. Before it, only the on-screen next-track
+   * button recorded anything, so Cmd+0, both phones, the next-album button and the DJ's own
+   * skip_current logged nothing — five days of listening produced 388 plays and zero skips.
+   */
+  it("counts advancing away from an unfinished track", () => {
+    expect(recordTrackChange(track(), 30000, false)).toEqual({skipCount: 3});
+  });
+
+  it("does not count a track that finished on its own", () => {
+    expect(recordTrackChange(track(), 30000, true)).toBeUndefined();
+  });
+
+  it("does not count going back", () => {
+    noteRewind();
+    expect(recordTrackChange(track(), 30000, false)).toBeUndefined();
+  });
+
+  it("consumes the rewind, so the next forward change still counts", () => {
+    noteRewind();
+    recordTrackChange(track(), 30000, false);
+    expect(recordTrackChange(track(), 30000, false)).toEqual({skipCount: 3});
+  });
+
+  it("keeps the two-second floor", () => {
+    expect(recordTrackChange(track(), 1999, false)).toBeUndefined();
+  });
+
+  it("does nothing on the first track, where there is no previous one", () => {
+    expect(recordTrackChange(undefined, 30000, false)).toBeUndefined();
+  });
+
+  /** A natural finish must clear the marker too, or it would leak into the next change. */
+  it("clears a rewind even when the track finished naturally", () => {
+    noteRewind();
+    expect(recordTrackChange(track(), 30000, true)).toBeUndefined();
+    expect(takeRewind()).toBe(false);
+  });
+});

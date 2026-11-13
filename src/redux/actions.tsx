@@ -33,6 +33,7 @@ import {
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import fs from 'fs';
 import mm from 'musicmetadata';
+import {noteRewind} from '../skips';
 
 export const updateTime = (time: number) => ({
   payload: {time},
@@ -72,11 +73,13 @@ export const nextAlbum = () => ({
   type: NEXT_ALBUM,
 });
 
-export const prevTrack = () => ({
+// Going back is not a skip, and these two creators are the single funnel for every route that
+// does it — the transport buttons, Cmd+8 and either phone. See skips.tsx.
+export const prevTrack = () => (noteRewind(), {
   type: PREV_TRACK,
 });
 
-export const prevAlbum = () => ({
+export const prevAlbum = () => (noteRewind(), {
   type: PREV_ALBUM,
 });
 

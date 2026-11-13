@@ -75,8 +75,23 @@ const HISTORY_RANGES: Array<{label: string; days: number}> = [
 const DEFAULT_HISTORY_DAYS = 28;
 
 /** Sunday first, matching `Date.getDay()`. */
-/** Below this, a skip ratio is noise — the same floor the all-time skip list uses. */
+/** One track's skips and plays, from the log for a window or from the entity for all time. */
+interface SkipRow {
+  id: string;
+  track: Track;
+  skips: number;
+  plays: number;
+}
+
+/** Below this, a skip ratio in a window is noise. */
 const MIN_RECENT_ENCOUNTERS = 3;
+/**
+ * The same floor for all time, where the counts are far larger.
+ *
+ * Lifetime totals include everything the iTunes import brought in, so three encounters is
+ * nothing: without this a track skipped once and played twice would outrank a real one.
+ */
+const MIN_LIFETIME_ENCOUNTERS = 10;
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -182,23 +197,11 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
         {this.getListeningHistory()}
 
         <div className="statsColumns">
+          {/* The all-time "Most Skipped Tracks" list used to sit here. It is the same list as
+              "Most Skipped" with the range set to All time, which now reads the lifetime
+              counts rather than the log, so there is one skip list instead of two. */}
           {this.rankedList('Top Genres by Time Listened', this.getTopGenres())}
-          {this.rankedList('Most Skipped Tracks', this.getTopSkipped(), (
-            <div className="statsChipGroup">
-              <button
-                className={this.state.skipMetric === 'count' ? 'yearChip yearChipActive' : 'yearChip'}
-                onClick={() => this.setState({skipMetric: 'count'})}
-              >
-                Count
-              </button>
-              <button
-                className={this.state.skipMetric === 'rate' ? 'yearChip yearChipActive' : 'yearChip'}
-                onClick={() => this.setState({skipMetric: 'rate'})}
-              >
-                Skip Rate
-              </button>
-            </div>
-          ))}
+
         </div>
 
         {this.renderCoverage()}
@@ -446,42 +449,6 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
         detail: '',
         value: listenByGenre[genreId],
         label: formatDuration(listenByGenre[genreId]),
-      }));
-  }
-
-  private getTopSkipped(): RankedItem[] {
-    if (this.state.skipMetric === 'rate') {
-      // skips as a share of encounters; a floor keeps rarely-seen tracks out
-      const MIN_ENCOUNTERS = 10;
-      return Object.values(this.props.tracks)
-        .map((track) => ({
-          track,
-          encounters: track.skipCount + track.playCount,
-          rate: track.skipCount / ((track.skipCount + track.playCount) || 1),
-        }))
-        .filter(({track, encounters}) => track.skipCount > 0 && encounters >= MIN_ENCOUNTERS)
-        .sort((entry1, entry2) => entry2.rate - entry1.rate || entry2.track.skipCount - entry1.track.skipCount)
-        .slice(0, 10)
-        .map(({track, rate}) => ({
-          id: track.id,
-          name: track.name,
-          detail: `${this.getArtistNames(track.artistIds)} — ${track.skipCount} skips, ${track.playCount} plays`,
-          value: rate,
-          label: `${Math.round(rate * 100)}% skipped`,
-          goTo: this.props.goToTrack,
-        }));
-    }
-    return Object.values(this.props.tracks)
-      .filter((track) => track.skipCount > 0)
-      .sort((track1, track2) => track2.skipCount - track1.skipCount)
-      .slice(0, 10)
-      .map((track) => ({
-        id: track.id,
-        name: track.name,
-        detail: this.getArtistNames(track.artistIds),
-        value: track.skipCount,
-        label: `${track.skipCount} skips`,
-        goTo: this.props.goToTrack,
       }));
   }
 
@@ -868,7 +835,22 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
         </div>
         <div className="statsColumns">
           {this.barChart(`Plays by Day of Week, ${label}`, weekdays, 'plays')}
-          {this.rankedList(`Most Skipped, ${label}`, this.getRecentSkips(recentAll))}
+          {this.rankedList(`Most Skipped, ${label}`, this.getSkipList(recentAll), (
+            <div className="statsChipGroup">
+              <button
+                className={this.state.skipMetric === 'rate' ? 'yearChip yearChipActive' : 'yearChip'}
+                onClick={() => this.setState({skipMetric: 'rate'})}
+              >
+                Skip Rate
+              </button>
+              <button
+                className={this.state.skipMetric === 'count' ? 'yearChip yearChipActive' : 'yearChip'}
+                onClick={() => this.setState({skipMetric: 'count'})}
+              >
+                Count
+              </button>
+            </div>
+          ))}
         </div>
         <div className="statsColumns">
           {this.rankedList(`First Heard, ${label}`, this.getFirstHeard(plays, recent))}
@@ -904,21 +886,49 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
     return log.dayOf(at).slice(5);
   }
 
-  private getRecentSkips(entries: log.PlayEntry[]): RankedItem[] {
+  /**
+   * The skip list for the chosen range — the only one, now that it covers all time too.
+   *
+   * All time reads `Track.skipCount`/`playCount`, not the log, because those are the complete
+   * picture: the 17,140 skips the iTunes import brought in plus every one recorded since. The
+   * log only reaches back to when it was first written, so an "all time" list built from it
+   * would quietly mean "since the log started". Any shorter range has to read the log, which is
+   * the only thing that knows *when* a skip happened.
+   *
+   * The floors differ for the same reason. Lifetime counts are large, so 10 encounters keeps a
+   * once-skipped track out of a 100%-skipped slot; a 7-day window would never clear that bar.
+   */
+  private lifetimeSkipRows(): SkipRow[] {
+    return Object.values(this.props.tracks)
+      .map((track) => ({id: track.id, plays: track.playCount, skips: track.skipCount, track}));
+  }
+
+  private loggedSkipRows(entries: log.PlayEntry[]): SkipRow[] {
     const rates = log.skipRate(entries);
-    return Object.keys(rates)
-      .map((id) => ({id, track: this.props.tracks[id], ...rates[id]}))
-      .filter(({track, skips, plays}) => track && skips > 0 && skips + plays >= MIN_RECENT_ENCOUNTERS)
-      .sort((one, two) => (two.skips / (two.skips + two.plays)) -
-        (one.skips / (one.skips + one.plays)) || two.skips - one.skips)
+    return Object.keys(rates).map((id) => ({id, track: this.props.tracks[id], ...rates[id]}));
+  }
+
+  private getSkipList(entries: log.PlayEntry[]): RankedItem[] {
+    const lifetime = this.state.historyDays === 0;
+    const rows = lifetime ? this.lifetimeSkipRows() : this.loggedSkipRows(entries);
+    const floor = lifetime ? MIN_LIFETIME_ENCOUNTERS : MIN_RECENT_ENCOUNTERS;
+    const byCount = this.state.skipMetric === 'count';
+    return rows
+      .filter(({track, skips, plays}) => track && skips > 0 && skips + plays >= floor)
+      .sort((one, two) => byCount
+        ? two.skips - one.skips
+        : (two.skips / (two.skips + two.plays)) - (one.skips / (one.skips + one.plays)) ||
+          two.skips - one.skips)
       .slice(0, 10)
       .map(({id, track, skips, plays}) => ({
         detail: this.getArtistNames(track.artistIds),
-        id,
-        label: `${skips} of ${skips + plays}`,
-        name: track.name,
-        value: Math.round((skips / (skips + plays)) * 100),
         goTo: this.props.goToTrack,
+        id,
+        label: byCount
+          ? `${skips.toLocaleString()} skip${skips === 1 ? '' : 's'}`
+          : `${skips} of ${skips + plays}`,
+        name: track.name,
+        value: byCount ? skips : Math.round((skips / (skips + plays)) * 100),
       }));
   }
 

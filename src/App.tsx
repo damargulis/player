@@ -10,6 +10,7 @@ import {BACKUP_TIME, DATA_DIR} from './constants';
 import {logPlays} from './eventLog';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
+import {recordTrackChange} from './skips';
 import {countsByTrack, latestPlayedAt, ofType, parseSyncedPlays} from './syncedPlays';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
@@ -108,6 +109,21 @@ class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
   private djStateTimer?: number;
   private backupTimer?: number;
+  /**
+   * How far into the outgoing track we were, and whether it got there on its own.
+   *
+   * A skip is advancing away from a track that has not finished, which is a fact about the
+   * track *changing* rather than about which control was pressed. Recording it here is what
+   * makes that true of every route: the transport button, the Cmd+0 shortcut, either phone,
+   * the next-album button and the DJ's own skip_current. Only `ControlPanel` used to do it, so
+   * the other five logged nothing — 388 plays and 3 favourites reached the log over five days
+   * and not one skip.
+   *
+   * `elapsed` is kept here rather than read off the audio element on the change, because by
+   * then `ended` may already have blanked `src` and reset `currentTime` to 0.
+   */
+  private elapsedMs = 0;
+  private finishedNaturally = false;
   /**
    * The file currently loaded into the audio element.
    *
@@ -405,6 +421,7 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
       previous: () => this.props.prevTrack(),
     });
     this.audio.addEventListener('timeupdate', () => {
+      this.elapsedMs = this.audio.currentTime * 1000;
       this.props.updateTime(this.audio.currentTime);
       this.sendControllerUpdate();
     });
@@ -419,6 +436,8 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
         // the log is the history; playCount and playDate stay as the running totals
         logPlays([{at, id: track.id, source: 'desktop'}]);
       }
+      // the one natural finish, so the track change it causes is not a skip
+      this.finishedNaturally = true;
       this.audio.src = '';
       this.loadedPath = undefined;
       this.props.nextTrack();
@@ -484,6 +503,7 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
       this.audio.volume = this.props.volume;
     }
     if (prevProps.track !== this.props.track) {
+      this.noteTrackChange(prevProps.track);
       this.updateNowPlayingCard();
     }
     if (prevProps.playing !== this.props.playing) {
@@ -524,6 +544,24 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
         </div>
       </div>
     );
+  }
+
+  /**
+   * Records a skip when the outgoing track did not finish on its own.
+   *
+   * Going *back* is excluded through `takeRewind`, because abandoning a song to replay the
+   * previous one says nothing about the song — the two backwards action creators mark it, being
+   * the single funnel for every route that goes back.
+   */
+  private noteTrackChange(previous?: Track): void {
+    const finished = this.finishedNaturally;
+    this.finishedNaturally = false;
+    const heardMs = this.elapsedMs;
+    this.elapsedMs = 0;
+    const update = recordTrackChange(previous, heardMs, finished);
+    if (previous && update) {
+      this.props.updateTrack(previous.id, update);
+    }
   }
 
   /**
