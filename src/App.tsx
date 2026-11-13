@@ -10,7 +10,7 @@ import {BACKUP_TIME, DATA_DIR} from './constants';
 import {logPlays} from './eventLog';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
-import {recordTrackChange} from './skips';
+import {noteNaturalFinish, recordTrackChange} from './skips';
 import {countsByTrack, latestPlayedAt, ofType, parseSyncedPlays} from './syncedPlays';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
@@ -109,21 +109,7 @@ class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
   private djStateTimer?: number;
   private backupTimer?: number;
-  /**
-   * How far into the outgoing track we were, and whether it got there on its own.
-   *
-   * A skip is advancing away from a track that has not finished, which is a fact about the
-   * track *changing* rather than about which control was pressed. Recording it here is what
-   * makes that true of every route: the transport button, the Cmd+0 shortcut, either phone,
-   * the next-album button and the DJ's own skip_current. Only `ControlPanel` used to do it, so
-   * the other five logged nothing — 388 plays and 3 favourites reached the log over five days
-   * and not one skip.
-   *
-   * `elapsed` is kept here rather than read off the audio element on the change, because by
-   * then `ended` may already have blanked `src` and reset `currentTime` to 0.
-   */
-  private elapsedMs = 0;
-  private finishedNaturally = false;
+
   /**
    * The file currently loaded into the audio element.
    *
@@ -421,13 +407,16 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
       previous: () => this.props.prevTrack(),
     });
     this.audio.addEventListener('timeupdate', () => {
-      this.elapsedMs = this.audio.currentTime * 1000;
       this.props.updateTime(this.audio.currentTime);
       this.sendControllerUpdate();
     });
     this.audio.addEventListener('ended', () => {
       const track = this.props.track;
       if (track) {
+        // Marked first, before anything dispatches: the play-count update below replaces the
+        // track object, and this has to be recorded against the track before any change is
+        // observed or the real departure looks like a skip.
+        noteNaturalFinish(track.id);
         const at = Date.now();
         this.props.updateTrack(track.id, {
           playCount: track.playCount + 1,
@@ -436,8 +425,6 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
         // the log is the history; playCount and playDate stay as the running totals
         logPlays([{at, id: track.id, source: 'desktop'}]);
       }
-      // the one natural finish, so the track change it causes is not a skip
-      this.finishedNaturally = true;
       this.audio.src = '';
       this.loadedPath = undefined;
       this.props.nextTrack();
@@ -503,8 +490,15 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
       this.audio.volume = this.props.volume;
     }
     if (prevProps.track !== this.props.track) {
-      this.noteTrackChange(prevProps.track);
       this.updateNowPlayingCard();
+    }
+    // By **id**, not object identity: a play-count or favourite update replaces the track
+    // object without the track changing, and treating that as a departure recorded a skip for
+    // a track that was still playing — then another for the update that recorded, and so on.
+    const wasId = prevProps.track && prevProps.track.id;
+    const nowId = this.props.track && this.props.track.id;
+    if (wasId !== nowId) {
+      this.noteTrackChange(prevProps.track);
     }
     if (prevProps.playing !== this.props.playing) {
       setPlaybackState(this.props.playing);
@@ -554,11 +548,7 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
    * the single funnel for every route that goes back.
    */
   private noteTrackChange(previous?: Track): void {
-    const finished = this.finishedNaturally;
-    this.finishedNaturally = false;
-    const heardMs = this.elapsedMs;
-    this.elapsedMs = 0;
-    const update = recordTrackChange(previous, heardMs, finished);
+    const update = recordTrackChange(previous);
     if (previous && update) {
       this.props.updateTrack(previous.id, update);
     }

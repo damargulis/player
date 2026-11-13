@@ -911,8 +911,12 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
   private getSkipList(entries: log.PlayEntry[]): RankedItem[] {
     const lifetime = this.state.historyDays === 0;
     const rows = lifetime ? this.lifetimeSkipRows() : this.loggedSkipRows(entries);
-    const floor = lifetime ? MIN_LIFETIME_ENCOUNTERS : MIN_RECENT_ENCOUNTERS;
     const byCount = this.state.skipMetric === 'count';
+    // The encounter floor is only for the rate view, which needs a denominator it can trust:
+    // one skip and no plays is "100% skipped" and would top the list off a single press.
+    // Ranking by the number of skips needs no such defence — one skip is one skip — and the
+    // floor there just hid everything while the log was young.
+    const floor = byCount ? 1 : (lifetime ? MIN_LIFETIME_ENCOUNTERS : MIN_RECENT_ENCOUNTERS);
     return rows
       .filter(({track, skips, plays}) => track && skips > 0 && skips + plays >= floor)
       .sort((one, two) => byCount

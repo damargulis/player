@@ -11,12 +11,15 @@ import {logPlays} from './eventLog';
  *
  * A skip is advancing away from a track that has not finished. The `ended` handler is the only
  * natural finish, so every other way forward is a skip: the transport buttons, the global
- * shortcuts, and either phone. Going *back* is not counted — abandoning a song to hear the
- * previous one again says nothing about the song.
+ * shortcuts, either phone and the DJ. Going *back* is not counted — abandoning a song to hear
+ * the previous one again says nothing about the song.
+ *
+ * There is deliberately no minimum listening time and no upper bound. A two-second floor used
+ * to discard anything heard for less, on the theory that it was a mis-click rather than a
+ * verdict, but it also discarded every quick rejection — and it made the feature impossible to
+ * observe, since skipping through a few tracks to see it work recorded nothing at all. Leaving
+ * a track late counts too: a skip is a skip however much of it you heard.
  */
-
-/** Under this, the listener barely heard it — a mis-click rather than a verdict. */
-const MIN_HEARD_MS = 2000;
 
 /**
  * Set when the next track change is a rewind rather than a skip.
@@ -48,12 +51,26 @@ export function takeRewind(): boolean {
  * and both callers (the transport in `ControlPanel` and the remote handlers in `App`) apply it
  * the same way.
  */
-export function recordSkip(track: Track | undefined, heardMs: number): TrackInfo | undefined {
-  if (!track || heardMs < MIN_HEARD_MS) {
+export function recordSkip(track?: Track): TrackInfo | undefined {
+  if (!track) {
     return undefined;
   }
   logPlays([{at: Date.now(), id: track.id, source: 'desktop', type: 'skip'}]);
   return {skipCount: (track.skipCount || 0) + 1};
+}
+
+/**
+ * The track that reached its own end, so the change it causes is not a skip.
+ *
+ * Keyed on the id rather than a bare flag. `ended` dispatches a play-count update before it
+ * advances, which replaces the track object, and anything watching object identity sees that as
+ * a change — a boolean would be read and cleared by the wrong one, leaving the real change
+ * looking like a skip. Naming the track means only that track's departure can be excused.
+ */
+let naturallyFinished: string | undefined;
+
+export function noteNaturalFinish(trackId?: string): void {
+  naturallyFinished = trackId;
 }
 
 /**
@@ -64,14 +81,12 @@ export function recordSkip(track: Track | undefined, heardMs: number): TrackInfo
  * got, and whether `ended` fired — and this consumes the rewind marker, which is why that
  * marker does not need to be handled by the caller at all.
  */
-export function recordTrackChange(
-  previous: Track | undefined,
-  heardMs: number,
-  finishedNaturally: boolean,
-): TrackInfo | undefined {
+export function recordTrackChange(previous?: Track): TrackInfo | undefined {
+  const finished = naturallyFinished;
+  naturallyFinished = undefined;
   const rewound = takeRewind();
-  if (finishedNaturally || rewound) {
+  if (!previous || rewound || finished === previous.id) {
     return undefined;
   }
-  return recordSkip(previous, heardMs);
+  return recordSkip(previous);
 }
