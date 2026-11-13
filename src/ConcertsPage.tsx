@@ -17,7 +17,7 @@ import {
 } from './concerts/store';
 import {RootState} from './redux/store';
 import {Concert, ConcertCache, emptyCache, milesBetween} from './concerts/types';
-import {dayKey, localDate} from './utils';
+import {dayKey, localDate, localDayKey} from './utils';
 
 type Filter = ConcertFilter;
 type Sort = 'date' | 'plays';
@@ -367,7 +367,8 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     for (let i = 0; i < first.getDay(); i++) {
       cells.push(<div className="cal-day blank" key={`b${i}`} />);
     }
-    const todayKey = dayKey(new Date().toISOString());
+    // the day keys below are built from local parts, so today has to be as well
+    const todayKey = localDayKey();
     for (let day = 1; day <= daysInMonth; day++) {
       const key = `${cursor.getFullYear()}-${pad(cursor.getMonth() + 1)}-${pad(day)}`;
       cells.push(this.renderDay(key, day, byDay[key] || [], key === todayKey));

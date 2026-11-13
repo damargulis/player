@@ -91,6 +91,23 @@ export function dayKey(isoDate: string): string {
 }
 
 /**
+ * The local calendar day a moment falls on, as `YYYY-MM-DD`.
+ *
+ * `date.toISOString().slice(0, 10)` looks like this and is not: it gives the **UTC** day, which
+ * west of Greenwich is already tomorrow for the last hours of every evening. That is the same
+ * mistake as `new Date("2027-01-14")` in the other direction, and it was live in three places —
+ * the DJ's concert window returned two days of shows for "the next day" after 7pm, the concerts
+ * calendar highlighted tomorrow as today, and the JamBase sweep asked for events starting
+ * tomorrow, so an evening refresh dropped tonight's shows.
+ *
+ * Built from the local parts, so no conversion happens at all.
+ */
+export function localDayKey(date: Date = new Date()): string {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/**
  * Parses an ISO date in local time.
  *
  * Reach for this instead of `new Date(string)` whenever the value might be date-only. The

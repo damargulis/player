@@ -16,7 +16,7 @@ import {
   getTrackById,
 } from '../redux/selectors';
 import store, {RootState} from '../redux/store';
-import {toTime} from '../utils';
+import {localDayKey, toTime} from '../utils';
 
 const DEFAULT_LIMIT = 30;
 /** Skips are a short list on purpose: DJ context is precious and ten is plenty of signal. */
@@ -876,9 +876,11 @@ function upcomingConcerts(state: RootState, input: Record<string, unknown>): Too
   const artistQuery = str(input, 'artist');
   const days = num(input, 'days');
   const favoritesOnly = bool(input, 'favorites_only');
+  // localDayKey, not toISOString: the UTC day is already tomorrow through the evening here, so
+  // this window was a day wider than asked for every night.
   const cutoff = days === undefined
     ? undefined
-    : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    : localDayKey(new Date(Date.now() + days * 24 * 60 * 60 * 1000));
   const all = showsForArtists(Object.keys(state.library.artists));
   const shows = all.filter((concert) => {
     if (cutoff !== undefined && concert.date.slice(0, 10) > cutoff) {

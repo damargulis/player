@@ -1,5 +1,6 @@
 import {readEnvValue} from '../envFile';
 import {Concert, ConcertLocation} from './types';
+import {localDayKey} from '../utils';
 
 // JamBase Data API. The Developer tier is free for non-commercial use but allows only 1000
 // calls a month, so everything here is built around one cheap location sweep rather than a
@@ -75,8 +76,14 @@ export interface SweepResult {
   totalItems: number;
 }
 
+/**
+ * The query range is in local days, as the events are.
+ *
+ * `toISOString()` would make an evening sweep ask for events from tomorrow, quietly dropping
+ * tonight's shows from the cache.
+ */
 function iso(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return localDayKey(date);
 }
 
 function mbidsOf(performers: Performer[]): string[] {

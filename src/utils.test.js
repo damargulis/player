@@ -1,4 +1,4 @@
-import {dayKey, localDate, toTime} from "./utils";
+import {dayKey, localDate, localDayKey, toTime} from "./utils";
 
 describe("localDate", () => {
   it("keeps a date-only value on the right day, whatever the timezone", () => {
@@ -40,4 +40,37 @@ describe("dayKey", () => {
 
 test("toTime still formats durations", () => {
   expect(toTime(90000)).toBe("1:30");
+});
+
+describe("localDayKey", () => {
+  /**
+   * The bug it exists for: `toISOString().slice(0, 10)` gives the UTC day, which west of
+   * Greenwich is already tomorrow for the last hours of every evening. It was live in three
+   * places — the DJ's concert window, the concerts calendar's "today", and the JamBase sweep's
+   * start date.
+   */
+  it("gives the local day, not the UTC one", () => {
+    // 2026-11-12 20:48 local. In any negative-offset zone the UTC instant is already the 13th.
+    const evening = new Date(2026, 10, 12, 20, 48);
+    expect(localDayKey(evening)).toBe("2026-11-12");
+    if (evening.getTimezoneOffset() > 0) {
+      // only meaningful west of Greenwich, which is where this machine is
+      expect(evening.toISOString().slice(0, 10)).toBe("2026-11-13");
+    }
+  });
+
+  it("pads single-digit months and days", () => {
+    expect(localDayKey(new Date(2026, 0, 5, 12, 0))).toBe("2026-01-05");
+  });
+
+  it("is stable across the whole of a local day", () => {
+    const start = localDayKey(new Date(2026, 10, 12, 0, 0));
+    const end = localDayKey(new Date(2026, 10, 12, 23, 59));
+    expect(start).toBe("2026-11-12");
+    expect(end).toBe(start);
+  });
+
+  it("defaults to now", () => {
+    expect(localDayKey()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
 });
