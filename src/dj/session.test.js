@@ -250,3 +250,60 @@ describe('speaker labelling', () => {
     expect(shouldLabel({speaker: null}, ['Daniel', 'Chloe'], 'Daniel')).toBe(false);
   });
 });
+
+describe('a removal counts as a skip', () => {
+  const fs = require('fs');
+  const {DATA_DIR} = require('../constants');
+  const LOG = `${DATA_DIR}/plays.jsonl`;
+
+  function loggedSkips() {
+    if (!fs.existsSync(LOG)) {
+      return [];
+    }
+    return fs.readFileSync(LOG, 'utf8').split('\n').filter(Boolean)
+      .map((line) => JSON.parse(line))
+      .filter((entry) => entry.type === 'skip')
+      .map((entry) => entry.id);
+  }
+
+  beforeEach(() => {
+    if (fs.existsSync(LOG)) {
+      fs.unlinkSync(LOG);
+    }
+  });
+
+  /**
+   * X-ing a track out of the queue is the same judgement as pressing next, made before hearing
+   * it. The DJ already heard about removals, but only in its own context, which is gone when
+   * the session ends — so none of it reached the stats.
+   */
+  it('logs the track and raises its skip count', () => {
+    const playlist = new DJPlaylist();
+    playlist.setUpcoming(['t1', 't2', 't3']);
+    store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+
+    session.removeFromQueue(['t3']);
+
+    expect(loggedSkips()).toStrictEqual(['t3']);
+    expect(store.getState().library.tracks.t3.skipCount).toBe(1);
+  });
+
+  /** One gesture, but the skip list is per track, so each queued track of the album counts. */
+  it('logs every track of a dropped album', () => {
+    const playlist = new DJPlaylist('t1');
+    playlist.addAlbum(['t2', 't3'], 'al1', 'end');
+    store.dispatch({payload: {play: true, playlist}, type: SET_PLAYLIST});
+
+    session.removeFromQueue([], 'al1');
+
+    expect(loggedSkips().sort()).toStrictEqual(['t2', 't3']);
+    expect(store.getState().library.tracks.t2.skipCount).toBe(1);
+    expect(store.getState().library.tracks.t3.skipCount).toBe(1);
+  });
+
+  it('records nothing when the DJ queue is not active', () => {
+    store.dispatch({payload: {play: false, playlist: new EmptyPlaylist()}, type: SET_PLAYLIST});
+    session.removeFromQueue(['t1']);
+    expect(loggedSkips()).toStrictEqual([]);
+  });
+});

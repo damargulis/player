@@ -130,3 +130,31 @@ describe("recordTrackChange", () => {
     expect(recordTrackChange(track({id: "t1"}))).toEqual({skipCount: 3});
   });
 });
+
+describe("recordRemovals", () => {
+  const {recordRemovals} = require("./skips");
+
+  /** X-ing a track out of the queue is the same judgement as pressing next, made earlier. */
+  it("counts a removed track as a skip", () => {
+    expect(recordRemovals([track()])).toEqual({t1: {skipCount: 3}});
+  });
+
+  it("counts each track of a dropped album", () => {
+    const updates = recordRemovals([track({id: "a"}), track({id: "b"}), track({id: "c"})]);
+    expect(Object.keys(updates).sort()).toEqual(["a", "b", "c"]);
+    expect(updates.a).toEqual({skipCount: 3});
+  });
+
+  /** A queue can hold the same track twice, and removing both is two rejections. */
+  it("counts duplicates rather than collapsing them", () => {
+    expect(recordRemovals([track(), track()])).toEqual({t1: {skipCount: 4}});
+  });
+
+  it("starts from zero on a track the import left unskipped", () => {
+    expect(recordRemovals([track({skipCount: 0})])).toEqual({t1: {skipCount: 1}});
+  });
+
+  it("does nothing for an empty removal", () => {
+    expect(recordRemovals([])).toEqual({});
+  });
+});

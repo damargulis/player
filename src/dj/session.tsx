@@ -1,4 +1,4 @@
-import {DJ_QUEUE_UPDATED} from '../redux/actionTypes';
+import {DJ_QUEUE_UPDATED, UPDATE_LIBRARY} from '../redux/actionTypes';
 import activity from './activity';
 import {
   ContentBlock,
@@ -16,6 +16,7 @@ import {DJ_NAME, OWNER} from './owner';
 import {Reaction} from '../reactions';
 import {recordRefill} from './refillLog';
 import {getAlbumById, getTrackById} from '../redux/selectors';
+import {recordRemovals} from '../skips';
 import store, {RootState} from '../redux/store';
 import {
   describeQueue,
@@ -360,6 +361,15 @@ class DJSession {
   public noteListenerRemoval(trackIds: string[], albumId?: string, actor: string = OWNER): void {
     const state = store.getState();
     activity.noteListenerInput();
+    // A removal is a rejection, so it is a skip — the same judgement as pressing next, made
+    // before hearing it. The lines below only reach the DJ's own context, which is gone when
+    // the session ends; this is what gets it into the log and the skip counts.
+    const removed = trackIds.map((id) => getTrackById(state, id)).filter(Boolean);
+    const updates = recordRemovals(removed);
+    if (Object.keys(updates).length) {
+      // one dispatch, so an album dropped costs one save rather than one per track
+      store.dispatch({payload: {library: {tracks: updates}}, type: UPDATE_LIBRARY});
+    }
     const album = albumId ? getAlbumById(state, albumId) : undefined;
     if (album) {
       this.playbackEvents.push(`${actor} dropped the rest of "${album.name}" from the queue ` +

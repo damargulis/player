@@ -90,3 +90,34 @@ export function recordTrackChange(previous?: Track): TrackInfo | undefined {
   }
   return recordSkip(previous);
 }
+
+/**
+ * Taking queued tracks out by hand counts as a skip too.
+ *
+ * It is the same judgement as pressing next, made a little earlier — arguably a stronger one,
+ * since the listener rejected the track on sight rather than after hearing it. The DJ already
+ * heard about removals through `session.noteListenerRemoval`, but that is in-memory and gone
+ * when the session ends, so none of it reached the stats.
+ *
+ * Dropping a whole album logs each of its queued tracks, unlike the line the DJ is given, which
+ * deliberately reports one rejection rather than a wall of tracks. Different purposes: the DJ
+ * needs to know a record was refused, the skip list is per track.
+ *
+ * Counts duplicates: a queue can hold the same track twice, and removing both is two rejections.
+ * One log write for the batch, and the deltas come back for the caller to dispatch together —
+ * the library reducer rewrites the whole file per action, so an album should not cost twelve.
+ */
+export function recordRemovals(tracks: Track[]): Record<string, TrackInfo> {
+  if (!tracks.length) {
+    return {};
+  }
+  const at = Date.now();
+  logPlays(tracks.map((track) => ({at, id: track.id, source: 'desktop' as const, type: 'skip' as const})));
+  const updates = {} as Record<string, TrackInfo>;
+  tracks.forEach((track) => {
+    const alreadyCounted = updates[track.id];
+    const from = alreadyCounted ? (alreadyCounted.skipCount || 0) : (track.skipCount || 0);
+    updates[track.id] = {skipCount: from + 1};
+  });
+  return updates;
+}
