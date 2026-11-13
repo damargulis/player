@@ -1,6 +1,6 @@
 import {DATA_DIR} from '../constants';
 import fs from 'fs';
-import {imageSize, sizeFromBuffer} from './imageSize';
+import {longerSide, sizeFromBuffer} from './imageSize';
 import shortid from 'shortid';
 
 /**
@@ -21,14 +21,6 @@ export interface ArtWrite {
   /** Where the art lives now — the existing file when nothing was written. */
   path: string;
   wrote: boolean;
-}
-
-function longerSide(filePath?: string): number {
-  if (!filePath) {
-    return 0;
-  }
-  const size = imageSize(filePath);
-  return size ? Math.max(size.width, size.height) : 0;
 }
 
 /**

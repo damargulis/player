@@ -173,14 +173,16 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
     );
   }
 
-  private runWiki(): void {
-    this.props.runWikiExtension([this.props.album.id]).then((updates) => {
+  /** Returns the promise so the row can show it running and report a failure. */
+  private runWiki(): PromiseLike<void> {
+    return this.props.runWikiExtension([this.props.album.id]).then((updates) => {
       this.props.updateLibrary(updates);
     });
   }
 
-  private runMusicBrainz(): void {
-    this.props.runMusicBrainzExtension([this.props.album.id]).then((updates) => {
+  /** Returns the promise so the row can show it running and report a failure. */
+  private runMusicBrainz(): PromiseLike<void> {
+    return this.props.runMusicBrainzExtension([this.props.album.id]).then((updates) => {
       this.props.updateLibrary(updates);
     });
   }

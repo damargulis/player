@@ -122,3 +122,19 @@ export function shorterSide(filePath: string): number {
   const size = imageSize(filePath);
   return size ? Math.min(size.width, size.height) : 0;
 }
+
+/**
+ * The longer of an image's two sides, 0 when there is no file or it will not parse.
+ *
+ * The dimension to compare against, because that is the one the Cover Art Archive scales:
+ * `front-1200` on a 1400x1160 cover comes back 1200x994, so judging by the shorter side calls
+ * art already at the Archive's maximum too small. Defined here rather than twice, which is what
+ * artFile.tsx and coverart/main.tsx each had.
+ */
+export function longerSide(filePath?: string): number {
+  if (!filePath) {
+    return 0;
+  }
+  const size = imageSize(filePath);
+  return size ? Math.max(size.width, size.height) : 0;
+}

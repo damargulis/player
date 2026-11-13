@@ -1,5 +1,6 @@
 import {Artist} from './redux/actionTypes';
 import {imageSize} from './extensions/imageSize';
+import MetaRow from './MetaRow';
 import React from 'react';
 
 interface OwnProps {
@@ -35,12 +36,7 @@ export default class ArtistPicLabel extends React.Component<OwnProps, State> {
   }
 
   public render(): JSX.Element {
-    return (
-      <div className="metaRow">
-        <label>Picture: </label>
-        <span className="metaValue">{this.describe()}</span>
-      </div>
-    );
+    return <MetaRow label="Picture" value={this.describe()} />;
   }
 
   private describe(): string {

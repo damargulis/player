@@ -1,43 +1,31 @@
 import {musicBrainzUrl} from './extensions/musicbrainz/api';
-import {shell} from 'electron';
+import MetaRow from './MetaRow';
 import React from 'react';
 
 interface OwnProps {
   mbid?: string;
   entityType: 'release-group' | 'artist';
-  /** When given, renders a small Run button inline with the field. */
-  onRun?(): void;
+  /**
+   * When given, renders a small Run button inline with the field.
+   *
+   * Return the promise: `MetaRow` then shows a pending state and puts a failure beside the row.
+   * These two used to take a plain `void` and the callers dropped the promise, so a failed run
+   * was entirely silent and the button never looked busy.
+   */
+  onRun?(): void | PromiseLike<void>;
 }
 
-type MusicBrainzLabelProps = OwnProps;
-
-export default class MusicBrainzLabel extends React.Component<MusicBrainzLabelProps> {
-  render(): JSX.Element {
+export default class MusicBrainzLabel extends React.Component<OwnProps> {
+  public render(): JSX.Element {
+    const url = musicBrainzUrl(this.props.entityType, this.props.mbid);
     return (
-      <div className="metaRow">
-        <label>MusicBrainz: </label>
-        <span className="link metaValue" onClick={() => this.openMusicBrainz()}>{this.getUrl()}</span>
-        {this.props.onRun && (
-          <button
-            className="runExtension"
-            onClick={this.props.onRun}
-            title="Run the MusicBrainz extension for this item"
-          >
-            Run
-          </button>
-        )}
-      </div>
+      <MetaRow
+        label="MusicBrainz"
+        link={url}
+        onRun={this.props.onRun}
+        runTitle="Run the MusicBrainz extension for this item"
+        value={url}
+      />
     );
-  }
-
-  private getUrl(): string {
-    return musicBrainzUrl(this.props.entityType, this.props.mbid);
-  }
-
-  private openMusicBrainz(): void {
-    const url = this.getUrl();
-    if (url) {
-      shell.openExternal(url);
-    }
   }
 }

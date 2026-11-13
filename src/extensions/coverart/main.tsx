@@ -4,7 +4,7 @@ import {writeIfBigger} from '../artFile';
 import {ipcRenderer} from 'electron';
 import {ExtensionError, withError} from '../errors';
 import PromisePool from 'es6-promise-pool';
-import {imageSize, sizeFromBuffer} from '../imageSize';
+import {longerSide, sizeFromBuffer} from '../imageSize';
 import {getAlbumsByIds, getArtistsByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import reduxStore, {RootState} from '../../redux/store';
@@ -75,12 +75,6 @@ export function shouldFetch(album: Album, currentPx: number): boolean {
   // is what stops a second run re-downloading every cover whose original is under 1200px.
   const mark = album.coverArt;
   return !(mark && mark.target >= TARGET_PX && currentPx >= mark.maxPx);
-}
-
-/** The dimension CAA scales, so the one to compare its sizes against. */
-function longerSide(filePath: string): number {
-  const size = imageSize(filePath);
-  return size ? Math.max(size.width, size.height) : 0;
 }
 
 /**
