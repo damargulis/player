@@ -8,9 +8,16 @@ import {UPDATE_LIBRARY} from '../redux/actionTypes';
  * say between them, which is also how a genre that came in from the iTunes import goes away.
  */
 
+/**
+ * One throwaway track, not an empty library.
+ *
+ * The reducer persists on every mutating action and refuses to write a library with no tracks
+ * over a non-trivial one — correctly, since that is how a failed load used to become permanent
+ * loss. Dispatching an empty library from a test walked straight into that guard.
+ */
 function state() {
   store.dispatch({
-    payload: {library: {albums: {}, artists: {}, genres: {}, tracks: {}}},
+    payload: {library: {albums: {}, artists: {}, genres: {}, tracks: {keep: {id: 'keep'}}}},
     type: UPDATE_LIBRARY,
   });
   return store.getState();

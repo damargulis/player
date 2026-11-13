@@ -20,7 +20,7 @@ export const IS_DEV = isDev;
 
 // Unit tests dispatch real library actions, and the library reducer persists on every one of
 // them (see reducers/library.tsx), so tests must never resolve DATA_DIR to a real library.
-const IS_TEST = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
+export const IS_TEST = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
 
 function testDataDir(): string {
   const dir = path.join(os.tmpdir(), `mymusic-test-${process.pid}`);

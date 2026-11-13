@@ -196,14 +196,9 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
 
         {this.getListeningHistory()}
 
-        <div className="statsColumns">
-          {/* The all-time "Most Skipped Tracks" list used to sit here. It is the same list as
-              "Most Skipped" with the range set to All time, which now reads the lifetime
-              counts rather than the log, so there is one skip list instead of two. */}
-          {this.rankedList('Top Genres by Time Listened', this.getTopGenres())}
-
-        </div>
-
+        {/* "Most Skipped Tracks" and "Top Genres" used to sit here, outside the range. Both
+            follow the range chips now, which is where everything derived from listening
+            belongs — a visible range selector that some charts ignored was worse than none. */}
         {this.renderCoverage()}
       </div>
     );
@@ -429,10 +424,21 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
       }));
   }
 
-  private getTopGenres(): RankedItem[] {
+  /**
+   * Time listened per genre, over the chosen range.
+   *
+   * All time multiplies `playCount`, which carries the whole history including what the iTunes
+   * import brought in; a shorter range counts only the plays the log actually saw in it. The
+   * same split as the skip list, and for the same reason — an "all time" figure derived from
+   * the log would quietly mean "since the log started".
+   */
+  private getTopGenres(window: log.PlayEntry[]): RankedItem[] {
+    const lifetime = this.state.historyDays === 0;
+    const counts = lifetime ? undefined : log.playsByTrack(window);
     const listenByGenre = {} as Record<string, number>;
     Object.values(this.props.tracks).forEach((track) => {
-      const ms = track.duration * track.playCount;
+      const plays = counts ? (counts[track.id] || 0) : track.playCount;
+      const ms = track.duration * plays;
       if (!ms) {
         return;
       }
@@ -855,6 +861,9 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
         <div className="statsColumns">
           {this.rankedList(`First Heard, ${label}`, this.getFirstHeard(plays, recent))}
           {this.rankedList(`Most Played, ${label}`, this.getRecentFavourites(recent))}
+        </div>
+        <div className="statsColumns">
+          {this.rankedList(`Top Genres by Time Listened, ${label}`, this.getTopGenres(recent))}
         </div>
         <div className="statsNote">
           {log.activeDays(recent)} of {days} days had listening ·{' '}

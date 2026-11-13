@@ -21,7 +21,7 @@ import {
   UPLOAD_FILES
 } from '../actionTypes';
 import {atomicSave} from '../../library/atomicSave';
-import {DATA_DIR} from '../../constants';
+import {DATA_DIR, IS_TEST} from '../../constants';
 import fs from 'fs';
 import shortid from 'shortid';
 import {formatGenre, inverse} from '../../utils';
@@ -135,7 +135,14 @@ function save(library: LibraryState): Promise<void> {
       `${DATA_DIR}/backups.`;
     // tslint:disable-next-line no-console
     console.error(message);
-    alert(message);
+    // Not under test. `alert` blocks the renderer, and the tests run *inside* one — so a suite
+    // that dispatched an empty library stopped the whole run dead behind a modal nobody was
+    // watching, and the run only finished if someone happened to dismiss it. The refusal above
+    // is the part that matters and still happens; `wouldDestroyLibrary` is what the tests
+    // assert on.
+    if (!IS_TEST) {
+      alert(message);
+    }
     return Promise.resolve();
   }
   return atomicSave(fileName, JSON.stringify(library));
