@@ -6,6 +6,13 @@ interface OwnProps {
   ids: string[];
   /** "album" or "artist", for the wording. */
   noun: string;
+  /**
+   * Replaces the "{n} {noun}s" phrase when the run is not all one kind of thing.
+   *
+   * The New Tracks sweep covers both the albums a drop landed on and the artists credited on
+   * it, and "3 albums" would be a lie about half of it.
+   */
+  describe?: string;
   run(ids: string[], onProgress: (progress: BatchProgress) => void,
       stop: () => boolean): Promise<{done: number; failed: string[]}>;
 }
@@ -57,8 +64,8 @@ export default class RunExtensionsButton extends React.Component<OwnProps, State
       return (
         <span className="runBatch">
           <span className="runBatchStatus">
-            Run all extensions over {this.props.ids.length} {this.props.noun}
-            {this.props.ids.length === 1 ? '' : 's'}?
+            Run all extensions over {this.props.describe || `${this.props.ids.length} `
+              + `${this.props.noun}${this.props.ids.length === 1 ? '' : 's'}`}?
           </span>
           <button onClick={() => this.start()}>Yes</button>
           <button onClick={() => this.setState({confirming: false})}>No</button>

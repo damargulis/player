@@ -211,6 +211,83 @@ export function runAllForAlbums(
   }), Promise.resolve()).then(() => ({done, failed}));
 }
 
+/**
+ * A mixed run over albums and artists, described as `album:<id>` / `artist:<id>`.
+ *
+ * One list rather than two calls because the New Tracks page wants a single action over
+ * whatever a drop brought in — the albums it landed on and the artists credited on it — and the
+ * button that drives it counts, captures and reports progress over exactly one list. Two lists
+ * would mean two confirmations and two progress lines for one conceptual thing.
+ *
+ * Albums are expected first: an artist run covers its albums' cover art and all its tracks, so
+ * doing the albums first means MusicBrainz has filled in each `Album.mbid` before anything asks
+ * the Archive for a cover. The overlap is cheap in the other direction — the track-level steps
+ * are marker-driven, so Genius and Lyrics skip what the album pass already settled.
+ */
+export const ALBUM_TARGET = 'album:';
+export const ARTIST_TARGET = 'artist:';
+
+export function albumTarget(albumId: string): string {
+  return `${ALBUM_TARGET}${albumId}`;
+}
+
+export function artistTarget(artistId: string): string {
+  return `${ARTIST_TARGET}${artistId}`;
+}
+
+/**
+ * "2 albums and 1 artist", so the confirmation says what it is about to touch.
+ *
+ * Derived from the target list rather than passed alongside it, so the two cannot disagree —
+ * and it lives here rather than in the page because a module with JSX in it cannot be imported
+ * by a test under this runner.
+ */
+export function describeTargets(targets: string[]): string {
+  const albums = targets.filter((target) => target.indexOf(ALBUM_TARGET) === 0).length;
+  const artists = targets.length - albums;
+  const parts: string[] = [];
+  if (albums) {
+    parts.push(`${albums} album${albums === 1 ? '' : 's'}`);
+  }
+  if (artists) {
+    parts.push(`${artists} artist${artists === 1 ? '' : 's'}`);
+  }
+  return parts.join(' and ');
+}
+
+export function runAllForTargets(
+  targets: string[],
+  onProgress?: (progress: BatchProgress) => void,
+  stop?: () => boolean,
+): Promise<{done: number; failed: string[]}> {
+  const failed: string[] = [];
+  let done = 0;
+  return targets.reduce((chain, target, index) => chain.then(() => {
+    if (stop && stop()) {
+      return Promise.resolve();
+    }
+    const isAlbum = target.indexOf(ALBUM_TARGET) === 0;
+    const id = target.slice((isAlbum ? ALBUM_TARGET : ARTIST_TARGET).length);
+    const state = reduxStore.getState();
+    const entity = isAlbum ? getAlbumById(state, id) : getArtistById(state, id);
+    const name = entity ? entity.name : id;
+    const report = (step: string) => {
+      if (onProgress) {
+        onProgress({index: index + 1, name, step, total: targets.length});
+      }
+    };
+    const run = isAlbum ? runAllForAlbum(id, report) : runAllForArtist(id, report);
+    return run.then((stepsFailed) => {
+      done++;
+      stepsFailed.forEach((step) => {
+        if (!failed.includes(step)) {
+          failed.push(step);
+        }
+      });
+    });
+  }), Promise.resolve()).then(() => ({done, failed}));
+}
+
 /** The same over a list of artists, which also covers their albums and tracks. */
 export function runAllForArtists(
   artistIds: string[],

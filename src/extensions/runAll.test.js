@@ -41,3 +41,51 @@ describe('runAll artist step order', () => {
     expect(names.indexOf('MusicBrainz')).toBeLessThan(names.indexOf('Cover art'));
   });
 });
+
+describe('mixed album/artist targets', () => {
+  const {ALBUM_TARGET, ARTIST_TARGET, albumTarget, artistTarget} = require('./runAll');
+
+  it('tags each kind so one list can drive both runners', () => {
+    expect(albumTarget('al1')).toBe(`${ALBUM_TARGET}al1`);
+    expect(artistTarget('ar1')).toBe(`${ARTIST_TARGET}ar1`);
+  });
+
+  /**
+   * The ids are shortids, so an untagged list would be ambiguous — and the New Tracks sweep
+   * needs one list, because the button that drives it counts, captures and reports progress
+   * over exactly one.
+   */
+  it('keeps the two kinds distinguishable', () => {
+    expect(albumTarget('x')).not.toBe(artistTarget('x'));
+    expect(albumTarget('x').startsWith(ALBUM_TARGET)).toBe(true);
+    expect(artistTarget('x').startsWith(ARTIST_TARGET)).toBe(true);
+  });
+
+  it('round-trips an id containing the other prefix', () => {
+    const id = 'artist:weird';
+    expect(albumTarget(id).slice(ALBUM_TARGET.length)).toBe(id);
+  });
+});
+
+describe('describeTargets', () => {
+  const {albumTarget, artistTarget, describeTargets} = require('./runAll');
+
+  it('names both kinds', () => {
+    expect(describeTargets([albumTarget('a'), albumTarget('b'), artistTarget('c')]))
+      .toBe('2 albums and 1 artist');
+  });
+
+  it('singularises each independently', () => {
+    expect(describeTargets([albumTarget('a'), artistTarget('b'), artistTarget('c')]))
+      .toBe('1 album and 2 artists');
+  });
+
+  it('leaves out a kind that is not there', () => {
+    expect(describeTargets([albumTarget('a'), albumTarget('b')])).toBe('2 albums');
+    expect(describeTargets([artistTarget('a')])).toBe('1 artist');
+  });
+
+  it('is empty when there is nothing, which is when the button is disabled', () => {
+    expect(describeTargets([])).toBe('');
+  });
+});

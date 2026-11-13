@@ -8,3 +8,13 @@
   margin-right: 20px;
   margin-top: 5px;
 }
+
+/*
+ * Beside Save All rather than under the title. Both are actions on the whole batch, and the
+ * sweep's progress line is long enough that it needs the width of the header row.
+ */
+.newTracksRun {
+  float: right;
+  margin-right: 12px;
+  margin-top: 5px;
+}
