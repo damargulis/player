@@ -391,3 +391,29 @@ test('does not retry not-found responses', () => {
     throw err;
   });
 });
+
+describe('name matching folds accents', () => {
+  const {pickBestArtist} = require('./api');
+
+  /**
+   * The bug: `[^a-z0-9]` eats an accented letter rather than its accent, so "Sigur Rós" keyed
+   * as `sigurrs`. Symmetric while both sides are accented, but an iTunes library holding the
+   * unaccented spelling never matched. 14 artists here carry a non-ASCII letter.
+   */
+  it('matches an unaccented library name to an accented MusicBrainz one', () => {
+    const results = [{id: 'mb1', name: 'Sigur Rós', score: 100}];
+    expect(pickBestArtist(results, 'Sigur Ros')).toBeTruthy();
+    expect(pickBestArtist(results, 'Sigur Rós')).toBeTruthy();
+  });
+
+  it('matches the other way round too', () => {
+    expect(pickBestArtist([{id: 'mb1', name: 'Beyonce', score: 100}], 'Beyoncé')).toBeTruthy();
+    expect(pickBestArtist([{id: 'mb1', name: 'Blue Oyster Cult', score: 100}], 'Blue Öyster Cult')).toBeTruthy();
+  });
+
+  /** Folding must not collapse genuinely different artists into one. */
+  it('still refuses a different name', () => {
+    expect(pickBestArtist([{id: 'mb1', name: 'Sigur Rós', score: 100}], 'Sugar Ray')).toBeFalsy();
+    expect(pickBestArtist([{id: 'mb1', name: 'Pearl', score: 100}], 'Pearl Jam')).toBeFalsy();
+  });
+});

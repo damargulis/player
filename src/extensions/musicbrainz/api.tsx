@@ -1,5 +1,5 @@
 import {normalizeQuotes} from '../utils';
-import {formatGenre} from '../../utils';
+import {foldForSearch, formatGenre} from '../../utils';
 
 const API_BASE = 'https://musicbrainz.org/ws/2';
 export const COVER_ART_BASE = 'https://coverartarchive.org';
@@ -133,8 +133,20 @@ function escapeLucene(term: string): string {
   return term.replace(/([+\-&|!(){}[\]^"~*?:\\/])/g, '\\$1');
 }
 
+/**
+ * The key two names are compared on.
+ *
+ * Accents are **folded** before the strip, not stripped by it. Without that, `[^a-z0-9]` eats
+ * the accented letter itself: "Sigur Rós" keyed as `sigurrs`, "Beyoncé" as `beyonc` and "Mýa"
+ * as `ma`. That is symmetric while both sides are accented, but an iTunes library holding
+ * "Sigur Ros" against MusicBrainz's "Sigur Rós" gave `sigurros` against `sigurrs` and no
+ * match — and 14 artists here carry a non-ASCII letter.
+ *
+ * This is the same bug the games had (14 artists and 15 albums unguessable, fixed in
+ * `game-common.js`'s own `normalize`) and the fold is the one already used by every search box.
+ */
 function normalize(str: string): string {
-  return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return foldForSearch(str).replace(/[^a-z0-9]/g, '');
 }
 
 export function searchReleaseGroups(albumName: string, artistName?: string): Promise<ReleaseGroupResult[]> {

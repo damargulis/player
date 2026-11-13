@@ -16,7 +16,7 @@ function capitalize(word: string): string {
  * Radiohead. 14 artists and 15 albums in this library carry a non-ASCII letter, and the game
  * windows had to learn this lesson separately.
  */
-function foldForSearch(text: string): string {
+export function foldForSearch(text: string): string {
   return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036F]/g, '');
 }
 
