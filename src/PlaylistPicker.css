@@ -53,11 +53,6 @@
   padding: 1px 7px;
 }
 
-.playlistSectionBlurb {
-  color: var(--text-faint);
-  font-size: 11px;
-}
-
 .playlistRow {
   align-items: center;
   border-bottom: 1px solid var(--border);

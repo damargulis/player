@@ -59,8 +59,8 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps, State> {
             <SearchBar onSearch={(search: string) => this.setState({search})} />
           </div>
           <div className="playlistList">
-            {this.section('Manual', manual, 'Imported from iTunes or made here.')}
-            {this.section('Auto', auto, 'Built from the library and kept up to date.')}
+            {this.section('Manual', manual)}
+            {this.section('Auto', auto)}
             {!manual.length && !auto.length && (
               <div className="playlistEmpty">Nothing matches that.</div>
             )}
@@ -75,7 +75,7 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps, State> {
   }
 
   /** A heading and its rows, or nothing at all when a search has emptied it. */
-  private section(title: string, rows: Row[], blurb: string): JSX.Element {
+  private section(title: string, rows: Row[]): JSX.Element {
     if (!rows.length) {
       return <></>;
     }
@@ -84,7 +84,6 @@ class PlaylistPicker extends React.Component<PlaylistPickerProps, State> {
         <div className="playlistSectionHead">
           <h3>{title}</h3>
           <span className="playlistSectionCount">{rows.length}</span>
-          <span className="playlistSectionBlurb">{blurb}</span>
         </div>
         {rows.map((row, index) => this.row(row, `${title}-${index}`))}
       </div>
