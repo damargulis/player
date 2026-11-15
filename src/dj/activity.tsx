@@ -35,16 +35,30 @@ class DJActivity {
     };
   }
 
-  /** One line for the DJ, or '' when there is nothing notable to say. */
+  /**
+   * One line for the DJ about the room.
+   *
+   * It used to report only "last listener input 48m ago", which the DJ read as an empty room
+   * and wound the set down over — at a dinner party where every track was playing through to
+   * the end. The number only ever counted time since someone *typed or pressed something*, and
+   * saying so was the whole problem: silence in the chat is the normal state of a room where
+   * music is working.
+   *
+   * So whether the music is actually running leads, and the quiet is named for what it is.
+   */
   public describe(): string {
     const parts: string[] = [];
-    if (this.pausedSince !== undefined) {
-      parts.push(`Paused for ${humanDuration(Date.now() - this.pausedSince)}`);
-    }
+    const paused = this.pausedSince !== undefined;
+    parts.push(paused
+      ? `Playback paused for ${humanDuration(Date.now() - (this.pausedSince as number))}`
+      : 'Music is playing');
     if (this.lastInputAt !== undefined) {
-      parts.push(`last listener input ${humanDuration(Date.now() - this.lastInputAt)} ago`);
+      parts.push(`nobody has typed or touched the controls for ${humanDuration(Date.now() - this.lastInputAt)}`);
     } else {
-      parts.push('no listener input yet this session');
+      parts.push('nobody has typed or touched the controls yet this session');
+    }
+    if (!paused) {
+      parts.push('which is normal while a set is going well — it is not a sign of an empty room');
     }
     return parts.join(' · ');
   }
