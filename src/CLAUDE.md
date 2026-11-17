@@ -51,9 +51,9 @@ in "Skips" below.
 Phone skips come over the same protocol: `PlayTracker` keeps a second list, `/start-sync` sends
 `{v: 3, plays, skips, counts}`, and `syncedPlays.tsx` reads any numeric `v` as the structured
 shape and takes each field if present — so adding `skips` needed nothing of an older desktop
-beyond ignoring it. **The phone still applies a two-second floor (`PlayTracker.kt`, `MIN_HEARD_MS`) and the desktop
-no longer does**, so a phone skip and a desktop skip do not currently mean quite the same thing —
-the desktop dropped its floor after this was written. Bring the phone in line if it matters.
+beyond ignoring it. Neither side applies a minimum listening time, so a phone skip and a desktop skip mean the same
+thing. The phone had a two-second floor for a while after the desktop dropped its own; it is gone
+too, and an APK older than that still discards skips under two seconds.
 
 Deliberately **not** logged: pausing, seeking and volume are moment-to-moment controls rather
 than opinions about music, and would bury the events that mean something; the DJ's queue churn

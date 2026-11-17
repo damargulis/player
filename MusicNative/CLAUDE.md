@@ -54,9 +54,10 @@ recorded while a sync is in flight survives.
 A streamed play needs no special handling: `PlayTracker` keys by track id and never asks whether the
 file was local.
 
-**Known divergence:** `PlayTracker` still ignores skips under two seconds (`MIN_HEARD_MS = 2000`).
-The desktop dropped that floor and now counts every skip, so the two no longer mean quite the same
-thing. See `src/CLAUDE.md`.
+A skip is leaving a track that has not finished, however briefly it was heard — no minimum, the
+same rule as the desktop (`src/CLAUDE.md`). `handleNextTrack` is the only place it is recorded;
+`onCompletion` advances through `setTrack` directly, which is what keeps a natural finish from
+counting.
 
 ## Streaming
 

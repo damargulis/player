@@ -31,8 +31,6 @@ class PlayTracker(context: Context) {
         private const val LOG_KEY = "$appId-playlog"
         private const val SKIP_KEY = "$appId-skiplog"
         private const val LEGACY_PREFIX = "$appId-track-"
-        /** Under this the listener barely heard it: a mis-click rather than a verdict. */
-        private const val MIN_HEARD_MS = 2000
     }
 
     fun addPlay(track: TrackData) {
@@ -40,15 +38,13 @@ class PlayTracker(context: Context) {
     }
 
     /**
-     * Records a skip, if the track was given a fair hearing.
+     * Records a skip: leaving a track that has not finished, however briefly it was heard.
      *
-     * The desktop counts a skip the same way and with the same two-second floor, so a phone
-     * skip and a desktop skip mean the same thing. `heardMs` is how far in the player was.
+     * No minimum listening time, matching the desktop (src/skips.tsx). A two-second floor used to
+     * discard every quick rejection, and once the desktop dropped it the two no longer meant the
+     * same thing — a phone skip at one second vanished while a desktop one counted.
      */
-    fun addSkip(track: TrackData, heardMs: Int) {
-        if (heardMs < MIN_HEARD_MS) {
-            return
-        }
+    fun addSkip(track: TrackData) {
         append(SKIP_KEY, track.track.id)
     }
 
