@@ -4,7 +4,6 @@ import AlbumEditor from './AlbumEditor';
 import './AlbumPage.css';
 import {removeAlbumArt} from './artRemoval';
 import ArtZoom from './ArtZoom';
-import CoverArtLabel from './CoverArtLabel';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import LikeButton from './LikeButton';
 import Links from './Links';
@@ -70,6 +69,8 @@ interface AlbumPageState {
   zooming: boolean;
   /** The extension currently running over this album, when the Run-all button is working. */
   runningStep?: string;
+  /** Set while the cover-art button alone is working. */
+  gettingCoverArt?: boolean;
   runReport?: string;
 }
 
@@ -142,9 +143,6 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
               entityType="release-group"
               onRun={() => this.runMusicBrainz()}
             />
-            {/* only when there is nothing to click: the resolution and the Run button live in
-                the zoom now, where the size is what makes them worth pressing */}
-            {!file && <CoverArtLabel onRun={() => this.runCoverArt()} />}
           </div>
           <div className="albumPageControls" >
             <button onClick={() => this.playAlbum()} className="playAlbum button-primary" >Play Album</button>
@@ -158,6 +156,18 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
               title={`Run every extension for this album: ${stepNames().join(', ')}`}
             >
               {this.state.runningStep ? `Running ${this.state.runningStep}…` : 'Run All Extensions'}
+            </button>
+            {/* Its own button rather than a "Cover art: none" row. The resolution lives in the
+                zoom, where the picture can be seen; this is the action, and it belongs with the
+                other actions. Always offered, because re-fetching is worth having even when
+                there is already a cover. */}
+            <button
+              className="editAlbum"
+              disabled={this.state.gettingCoverArt}
+              onClick={() => this.getCoverArt()}
+              title="Fetch the largest cover the Cover Art Archive has for this album"
+            >
+              {this.state.gettingCoverArt ? 'Getting cover art…' : 'Get Cover Art'}
             </button>
             {this.state.runReport && <div className="runReport">{this.state.runReport}</div>}
             <button onClick={() => this.editAlbum()} className="editAlbum" >Edit Album</button>
@@ -204,6 +214,19 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
    */
   private removeArt(): void {
     this.props.updateAlbum(this.props.album.id, removeAlbumArt(reduxStore.getState(), this.props.album));
+  }
+
+  /**
+   * The cover-art extension for this album alone, with its outcome where the other run reports
+   * go — a failed fetch used to vanish, since the only caller dropped the promise.
+   */
+  private getCoverArt(): void {
+    this.setState({gettingCoverArt: true, runReport: undefined});
+    this.runCoverArt().then(() => {
+      this.setState({gettingCoverArt: false});
+    }, (err: Error) => {
+      this.setState({gettingCoverArt: false, runReport: `Cover art failed: ${err.message}`});
+    });
   }
 
   private runCoverArt(): Promise<void> {

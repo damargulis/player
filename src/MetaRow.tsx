@@ -29,11 +29,11 @@ interface State {
 /**
  * One "label: value" row on an album or artist page, optionally with a Run button.
  *
- * There were four of these — WikiLabel, MusicBrainzLabel, CoverArtLabel and an artist-picture
- * row since removed — each with its own copy of the row markup, the link-opening and the Run
+ * There were four of these — WikiLabel, MusicBrainzLabel and the cover-art and artist-picture
+ * rows since removed — each with its own copy of the row markup, the link-opening and the Run
  * button, and only one of the four had learnt to show a pending state or report a failed run.
- * The rows differ in what they put in the value, which is what their wrappers still do; they do
- * not differ in how a row behaves.
+ * The two that remain differ in what they put in the value, which is what their wrappers do;
+ * they do not differ in how a row behaves.
  */
 export default class MetaRow extends React.Component<OwnProps, State> {
   constructor(props: OwnProps) {
