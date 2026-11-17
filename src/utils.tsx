@@ -21,6 +21,17 @@ export function foldForSearch(text: string): string {
 }
 
 /**
+ * The key two artist or album names are compared on: case and accents folded, punctuation gone.
+ *
+ * Folded *before* the strip, or `[^a-z0-9]` eats the accented letter itself and "Sigur Rós" keys
+ * as `sigurrs`. Shared by MusicBrainz matching and the concert tracker so they agree on what
+ * counts as the same name.
+ */
+export function nameKey(text: string): string {
+  return foldForSearch(text).replace(/[^a-z0-9]/g, '');
+}
+
+/**
  * Whether `text` contains `query`, ignoring case and accents.
  *
  * One rule for every search box. The album, artist and track lists each had their own copy of

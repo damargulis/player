@@ -4,8 +4,14 @@ import {localDayKey} from '../utils';
 
 // JamBase Data API. The Developer tier is free for non-commercial use but allows only 1000
 // calls a month, so everything here is built around one cheap location sweep rather than a
-// lookup per artist: expandExternalIdentifiers puts a MusicBrainz id on every performer, which
-// is what lets us match exactly against the library instead of guessing from names.
+// lookup per artist, and performers are matched to the library afterwards by name.
+//
+// It used to ask for `expandExternalIdentifiers`, which put a MusicBrainz id on every performer
+// and let the match be exact. JamBase moved that parameter to its paid Startup plan in November
+// 2026, and from then every sweep failed outright — the page kept showing a cache two weeks old.
+// Dropping the parameter alone would have been worse: the matching keyed only on those ids, so
+// a sweep would have "succeeded" and found nothing. Name matching, and its guard for names short
+// enough to collide, is in store.tsx.
 
 const BASE_URL = 'https://api.data.jambase.com/v3';
 const KEY_NAME = 'JAMBASE_API_KEY';
@@ -30,14 +36,10 @@ export class ConcertApiError extends Error {
   }
 }
 
-interface ExternalIdentifier {
-  source?: string;
-  identifier?: string[];
-}
-
 interface Performer {
   name?: string;
-  'x-externalIdentifiers'?: ExternalIdentifier[];
+  /** JamBase's own genre slugs: `indie`, `rock`, `hip-hop-rap`, `rhythm-and-blues-soul`, `edm`. */
+  genre?: string[];
 }
 
 interface EventLocation {
@@ -64,10 +66,16 @@ interface EventsResponse {
   events?: RawEvent[];
 }
 
-/** An event plus the MusicBrainz ids of everyone on the bill, before library matching. */
+/** One name on the bill, with what JamBase says they play. */
+export interface FetchedPerformer {
+  name: string;
+  genres: string[];
+}
+
+/** An event plus everyone on the bill, before library matching. */
 export interface FetchedEvent {
   concert: Omit<Concert, 'artistIds'>;
-  mbids: string[];
+  performers: FetchedPerformer[];
 }
 
 export interface SweepResult {
@@ -86,16 +94,10 @@ function iso(date: Date): string {
   return localDayKey(date);
 }
 
-function mbidsOf(performers: Performer[]): string[] {
-  const out: string[] = [];
-  performers.forEach((performer) => {
-    (performer['x-externalIdentifiers'] || []).forEach((ext) => {
-      if (ext.source === 'musicbrainz') {
-        (ext.identifier || []).forEach((id) => out.push(String(id).toLowerCase()));
-      }
-    });
-  });
-  return out;
+function performersOf(performers: Performer[]): FetchedPerformer[] {
+  return performers
+    .filter((performer) => performer.name)
+    .map((performer) => ({genres: performer.genre || [], name: performer.name as string}));
 }
 
 function toConcert(raw: RawEvent): Omit<Concert, 'artistIds'> | undefined {
@@ -268,7 +270,7 @@ export async function sweep(
   const base = `${BASE_URL}/events?geoLatitude=${location.lat}&geoLongitude=${location.lon}` +
     `&geoRadiusAmount=${location.radiusMiles}&geoRadiusUnits=mi` +
     `&eventDateFrom=${iso(from)}&eventDateTo=${iso(to)}` +
-    `&perPage=${PAGE_SIZE}&expandExternalIdentifiers=true`;
+    `&perPage=${PAGE_SIZE}`;
 
   const events: FetchedEvent[] = [];
   let calls = 0;
@@ -286,9 +288,9 @@ export async function sweep(
     }
     (body.events || []).forEach((raw) => {
       const concert = toConcert(raw);
-      const mbids = mbidsOf(raw.performer || []);
-      if (concert && mbids.length) {
-        events.push({concert, mbids});
+      const performers = performersOf(raw.performer || []);
+      if (concert && performers.length) {
+        events.push({concert, performers});
       }
     });
     page++;

@@ -1,58 +1,124 @@
-import {artistsByMbid, budgetRemaining, concertsForArtists, findUnseen, isStale, matchConcerts, isUpcoming, matchesFilter, REFRESH_INTERVAL_MS, saveCache, upcomingConcerts} from './store';
+import {
+  artistsByName, budgetRemaining, concertsForArtists, findUnseen, isStale, isUpcoming, matchConcerts,
+  matchesFilter, REFRESH_INTERVAL_MS, saveCache, shareAGenre, upcomingConcerts,
+} from './store';
 import {DEFAULT_LOCATION, emptyCache, milesBetween, MONTHLY_CALL_BUDGET} from './types';
 
-function ev(id, date, mbids, venue = 'Venue') {
-  return {concert: {id, date, name: 'Show', venue, city: 'New York', region: 'NY'}, mbids};
+/** A JamBase event; performers are `[name, genres]` pairs, or a bare name with no genres. */
+function ev(id, date, performers, venue = 'Venue') {
+  return {
+    concert: {id, date, name: 'Show', venue, city: 'New York', region: 'NY'},
+    performers: performers.map((p) => (Array.isArray(p) ? {name: p[0], genres: p[1]} : {name: p, genres: []})),
+  };
 }
 
 const artists = [
-  {id: 'ar1', name: 'Mac DeMarco', mbid: 'AAAA-1111'},
-  {id: 'ar2', name: 'Pixies', mbid: 'bbbb-2222'},
-  {id: 'ar3', name: 'Unknown To JamBase', mbid: undefined},
+  {id: 'ar1', name: 'Mac DeMarco', genres: ['Indie Rock']},
+  {id: 'ar2', name: 'Pixies', genres: ['Alternative Rock']},
+  {id: 'ar3', name: 'Air', genres: ['Electronic', 'Downtempo']},
+  {id: 'ar4', name: 'Bob', genres: ['Folk']},
+  {id: 'ar5', name: 'Sigur Rós', genres: ['Post-Rock']},
 ];
 
-test('artists are keyed by lowercased musicbrainz id', () => {
-  expect(artistsByMbid(artists)).toStrictEqual({'aaaa-1111': 'ar1', 'bbbb-2222': 'ar2'});
+const byName = () => artistsByName(artists);
+
+/**
+ * JamBase moved the MusicBrainz ids behind a paid plan, so performers are matched by name. These
+ * pin the two halves of that trade: names that are clearly the same artist must match, and short
+ * names that could be anyone must not match on the name alone.
+ */
+describe('matching performers to the library by name', () => {
+  it('keeps only shows featuring a library artist', () => {
+    const matched = matchConcerts(
+      [ev('e1', '2026-11-01', ['Mac DeMarco']), ev('e2', '2026-11-02', ['Somebody Else'])],
+      byName(),
+    );
+    expect(matched.map((c) => c.id)).toStrictEqual(['e1']);
+    expect(matched[0].artistIds).toStrictEqual(['ar1']);
+  });
+
+  it('ignores case, punctuation and accents', () => {
+    expect(matchConcerts([ev('e1', '2026-11-01', ['mac demarco'])], byName())).toHaveLength(1);
+    expect(matchConcerts([ev('e2', '2026-11-01', ['Sigur Ros'])], byName())).toHaveLength(1);
+  });
+
+  /** The exact folded name, never part of one. */
+  it('does not match a name that merely starts the same', () => {
+    expect(matchConcerts([ev('e1', '2026-11-01', ['Pixies Tribute Night'])], byName())).toHaveLength(0);
+  });
+
+  /** "Air" at a venue is probably the band; with a genre in common it is believed. */
+  it('lets a short name through when the genres agree', () => {
+    expect(matchConcerts([ev('e1', '2026-11-01', [['Air', ['edm']]])], byName())).toHaveLength(1);
+  });
+
+  /** "Bob" at a bar is rarely the Bob in the library. */
+  it('refuses a short name whose genres do not agree', () => {
+    expect(matchConcerts([ev('e1', '2026-11-01', [['Bob', ['jazz']]])], byName())).toHaveLength(0);
+  });
+
+  it('refuses a short name when the performer has no genres to check', () => {
+    expect(matchConcerts([ev('e1', '2026-11-01', ['Bob'])], byName())).toHaveLength(0);
+  });
+
+  it('does not need genres for a longer name', () => {
+    expect(matchConcerts([ev('e1', '2026-11-01', [['Pixies', []]])], byName())).toHaveLength(1);
+  });
+
+  it('collapses a bill with several library artists into one show', () => {
+    const matched = matchConcerts(
+      [ev('e1', '2026-11-01', ['Mac DeMarco', 'Pixies', 'Somebody Else'])],
+      byName(),
+    );
+    expect(matched).toHaveLength(1);
+    expect(matched[0].artistIds.sort()).toStrictEqual(['ar1', 'ar2']);
+  });
+
+  it('merges the same event arriving twice rather than duplicating it', () => {
+    const matched = matchConcerts(
+      [ev('e1', '2026-11-01', ['Mac DeMarco']), ev('e1', '2026-11-01', ['Pixies'])],
+      byName(),
+    );
+    expect(matched).toHaveLength(1);
+    expect(matched[0].artistIds.sort()).toStrictEqual(['ar1', 'ar2']);
+  });
+
+  it('returns shows in date order', () => {
+    const matched = matchConcerts(
+      [ev('e2', '2026-12-05', ['Mac DeMarco']), ev('e1', '2026-11-01', ['Pixies'])],
+      byName(),
+    );
+    expect(matched.map((c) => c.id)).toStrictEqual(['e1', 'e2']);
+  });
+
+  it('attaches every library artist that shares a name', () => {
+    const twins = artistsByName([
+      {genres: ['Rock'], id: 'x1', name: 'Nirvana'},
+      {genres: ['Rock'], id: 'x2', name: 'Nirvana'},
+    ]);
+    expect(matchConcerts([ev('e1', '2026-11-01', ['Nirvana'])], twins)[0].artistIds.sort())
+      .toStrictEqual(['x1', 'x2']);
+  });
 });
 
-test('only shows featuring a library artist are kept', () => {
-  const matched = matchConcerts(
-    [ev('e1', '2026-11-01', ['aaaa-1111']), ev('e2', '2026-11-02', ['zzzz-9999'])],
-    artistsByMbid(artists),
-  );
-  expect(matched.map((c) => c.id)).toStrictEqual(['e1']);
-  expect(matched[0].artistIds).toStrictEqual(['ar1']);
-});
+describe('shareAGenre', () => {
+  it('matches on a shared word', () => {
+    expect(shareAGenre(['rock'], ['Alternative Rock'])).toBe(true);
+  });
 
-test('matching is case-insensitive on the musicbrainz id', () => {
-  const matched = matchConcerts([ev('e1', '2026-11-01', ['AAAA-1111'])], artistsByMbid(artists));
-  expect(matched).toHaveLength(1);
-});
+  it("understands JamBase's slugs", () => {
+    expect(shareAGenre(['hip-hop-rap'], ['Hip Hop'])).toBe(true);
+    expect(shareAGenre(['edm'], ['Electronic'])).toBe(true);
+    expect(shareAGenre(['rhythm-and-blues-soul'], ['Soul'])).toBe(true);
+  });
 
-test('a bill with several of my artists collapses to one show', () => {
-  const matched = matchConcerts(
-    [ev('e1', '2026-11-01', ['aaaa-1111', 'bbbb-2222', 'zzzz-9999'])],
-    artistsByMbid(artists),
-  );
-  expect(matched).toHaveLength(1);
-  expect(matched[0].artistIds.sort()).toStrictEqual(['ar1', 'ar2']);
-});
+  it('does not match on filler words', () => {
+    expect(shareAGenre(['rhythm-and-blues-soul'], ['Drum and Bass'])).toBe(false);
+  });
 
-test('the same event arriving twice merges rather than duplicating', () => {
-  const matched = matchConcerts(
-    [ev('e1', '2026-11-01', ['aaaa-1111']), ev('e1', '2026-11-01', ['bbbb-2222'])],
-    artistsByMbid(artists),
-  );
-  expect(matched).toHaveLength(1);
-  expect(matched[0].artistIds.sort()).toStrictEqual(['ar1', 'ar2']);
-});
-
-test('shows come back in date order', () => {
-  const matched = matchConcerts(
-    [ev('e2', '2026-12-05', ['aaaa-1111']), ev('e1', '2026-11-01', ['bbbb-2222'])],
-    artistsByMbid(artists),
-  );
-  expect(matched.map((c) => c.id)).toStrictEqual(['e1', 'e2']);
+  it('is false with nothing to compare', () => {
+    expect(shareAGenre([], ['Rock'])).toBe(false);
+  });
 });
 
 test('a fresh cache is stale, and budget starts whole', () => {

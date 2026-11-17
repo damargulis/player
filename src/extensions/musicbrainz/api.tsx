@@ -1,5 +1,5 @@
 import {normalizeQuotes} from '../utils';
-import {foldForSearch, formatGenre} from '../../utils';
+import {formatGenre, nameKey} from '../../utils';
 
 const API_BASE = 'https://musicbrainz.org/ws/2';
 export const COVER_ART_BASE = 'https://coverartarchive.org';
@@ -146,7 +146,7 @@ function escapeLucene(term: string): string {
  * `game-common.js`'s own `normalize`) and the fold is the one already used by every search box.
  */
 function normalize(str: string): string {
-  return foldForSearch(str).replace(/[^a-z0-9]/g, '');
+  return nameKey(str);
 }
 
 export function searchReleaseGroups(albumName: string, artistName?: string): Promise<ReleaseGroupResult[]> {

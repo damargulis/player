@@ -13,6 +13,7 @@ import {
   isUpcoming,
   loadCache,
   markSeen,
+  MatchableArtist,
   matchesFilter,
   refreshConcerts,
 } from './concerts/store';
@@ -40,6 +41,7 @@ function dotSize(plays: number): number {
 
 interface StateProps {
   artists: Artist[];
+  matchable: MatchableArtist[];
   /** Total plays per artist id, used to rank what matters. */
   playsByArtist: Record<string, number>;
   /** Artist ids with a track played in the last 90 days. */
@@ -561,7 +563,7 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
 
   private async refresh(force: boolean): Promise<void> {
     this.setState({loading: true, progress: undefined});
-    const cache = await refreshConcerts(this.props.artists, {
+    const cache = await refreshConcerts(this.props.matchable, {
       force,
       location: this.state.cache.location,
       onProgress: (page, total) => {
@@ -607,6 +609,8 @@ const RECENT_DAYS = 90;
 
 interface ArtistRollup {
   artists: Artist[];
+  /** The same artists with genre names attached, which is what the concert matcher compares. */
+  matchable: MatchableArtist[];
   playsByArtist: Record<string, number>;
   recentArtistIds: string[];
   favoriteArtistIds: string[];
@@ -641,9 +645,16 @@ const rollupOf = memoize((library: LibraryState, store: RootState): ArtistRollup
       }
     });
   });
+  const artists = Object.values(library.artists);
   return {
-    artists: Object.values(library.artists),
+    artists,
     favoriteArtistIds: Object.keys(favorite),
+    matchable: artists.map((artist) => ({
+      genres: (artist.genreIds || []).map((id) => library.genres[id] && library.genres[id].name)
+        .filter(Boolean) as string[],
+      id: artist.id,
+      name: artist.name,
+    })),
     playsByArtist,
     recentArtistIds: Object.keys(recent),
   };

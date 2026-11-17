@@ -1,5 +1,5 @@
 import {Artist} from '../redux/actionTypes';
-import {FetchedEvent, sweep} from './api';
+import {FetchedEvent, FetchedPerformer, sweep} from './api';
 import {DATA_DIR} from '../constants';
 import fs from 'fs';
 import {
@@ -10,7 +10,7 @@ import {
   emptyCache,
   MONTHLY_CALL_BUDGET,
 } from './types';
-import {localDate} from '../utils';
+import {foldForSearch, localDate, nameKey} from '../utils';
 
 /**
  * Concerts live in their own file rather than in library.json. They expire, they churn on every
@@ -156,31 +156,95 @@ export function concertsForArtists(artistIds: string[]): Concert[] {
   return out.sort((a, b) => localDate(a.date).getTime() - localDate(b.date).getTime());
 }
 
-/** Artists keyed by MusicBrainz id, which is how JamBase performers are matched. */
-export function artistsByMbid(artists: Artist[]): Record<string, string> {
-  const map: Record<string, string> = {};
+/** What matching needs to know about a library artist. Built by the page, which has the genres. */
+export interface MatchableArtist {
+  id: string;
+  name: string;
+  /** Genre names, e.g. "Indie Rock". */
+  genres: string[];
+}
+
+/**
+ * Folded names at or under this length are short enough to collide with an unrelated act — a
+ * JamBase "Bob" or "44" at a bar is rarely the artist in the library — so they also need a genre
+ * in common. 70 artists here are that short; the rest match on the name alone.
+ */
+export const SHORT_NAME = 4;
+
+/**
+ * JamBase's own genre slugs, widened to the words a library genre would use for the same thing.
+ * Word overlap does most of the work ("rock" meets "Alternative Rock"); this is for the slugs that
+ * share no word with their equivalent.
+ */
+const GENRE_ALIASES: Record<string, string[]> = {
+  edm: ['electronic', 'electronica', 'dance', 'house', 'techno'],
+  jamband: ['jam'],
+  rap: ['hiphop'],
+};
+
+/** Every word in a set of genre names, folded, plus the aliases of each. */
+function genreWords(genres: string[]): Set<string> {
+  const words = new Set<string>();
+  genres.forEach((genre) => {
+    foldForSearch(genre).split(/[^a-z0-9]+/).filter((word) => word && word !== 'and' && word !== 'music')
+      .forEach((word) => {
+        words.add(word);
+        (GENRE_ALIASES[word] || []).forEach((alias) => words.add(alias));
+      });
+    // "hip-hop-rap" and "Hip Hop" both reduce to this once the separators go
+    words.add(nameKey(genre));
+  });
+  return words;
+}
+
+export function shareAGenre(one: string[], two: string[]): boolean {
+  const words = genreWords(one);
+  return Array.from(genreWords(two)).some((word) => words.has(word));
+}
+
+/** Library artists by folded name. A list, because a few names here belong to more than one. */
+export function artistsByName(artists: MatchableArtist[]): Record<string, MatchableArtist[]> {
+  const map: Record<string, MatchableArtist[]> = {};
   artists.forEach((artist) => {
-    if (artist.mbid) {
-      map[artist.mbid.toLowerCase()] = artist.id;
+    const key = nameKey(artist.name);
+    if (key) {
+      (map[key] = map[key] || []).push(artist);
     }
   });
   return map;
 }
 
 /**
- * Keeps only shows featuring someone in the library. Matching is on MusicBrainz id, so there is
- * no chance of confusing two bands that share a name.
+ * Whether a performer on a bill is this library artist.
+ *
+ * The exact folded name, never a partial one — "Pearl" must not become "Pearl Jam". And for a name
+ * short enough to collide, a genre in common as well. This is the cost of matching on names at
+ * all: it used to be exact on MusicBrainz id, which JamBase now only supplies on a paid plan.
  */
-export function matchConcerts(events: FetchedEvent[], byMbid: Record<string, string>): Concert[] {
+export function performerMatches(performer: FetchedPerformer, artist: MatchableArtist): boolean {
+  if (nameKey(performer.name) !== nameKey(artist.name)) {
+    return false;
+  }
+  if (nameKey(artist.name).length > SHORT_NAME) {
+    return true;
+  }
+  return shareAGenre(performer.genres, artist.genres);
+}
+
+/** Keeps only shows featuring someone in the library. */
+export function matchConcerts(
+  events: FetchedEvent[],
+  byName: Record<string, MatchableArtist[]>,
+): Concert[] {
   const matched: Record<string, Concert> = {};
-  events.forEach(({concert, mbids}) => {
+  events.forEach(({concert, performers}) => {
     const artistIds: string[] = [];
-    mbids.forEach((mbid) => {
-      // the api client lowercases these, but don't depend on the caller having done it
-      const artistId = byMbid[String(mbid).toLowerCase()];
-      if (artistId && artistIds.indexOf(artistId) < 0) {
-        artistIds.push(artistId);
-      }
+    performers.forEach((performer) => {
+      (byName[nameKey(performer.name)] || []).forEach((artist) => {
+        if (performerMatches(performer, artist) && artistIds.indexOf(artist.id) < 0) {
+          artistIds.push(artist.id);
+        }
+      });
     });
     if (!artistIds.length) {
       return;
@@ -255,7 +319,10 @@ export interface RefreshOptions {
  * Re-sweeps and re-matches, writing the result to disk. Returns the cache unchanged when it is
  * still fresh or the monthly budget is spent, so callers can always just ask.
  */
-export async function refreshConcerts(artists: Artist[], options: RefreshOptions = {}): Promise<ConcertCache> {
+export async function refreshConcerts(
+  artists: MatchableArtist[],
+  options: RefreshOptions = {},
+): Promise<ConcertCache> {
   const cache = loadCache();
   const location = options.location || cache.location;
   const locationChanged = JSON.stringify(location) !== JSON.stringify(cache.location);
@@ -272,7 +339,7 @@ export async function refreshConcerts(artists: Artist[], options: RefreshOptions
   }
   try {
     const result = await sweep(location, options.onProgress);
-    const concerts = matchConcerts(result.events, artistsByMbid(artists));
+    const concerts = matchConcerts(result.events, artistsByName(artists));
     const next: ConcertCache = {
       concerts,
       error: undefined,
