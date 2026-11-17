@@ -417,3 +417,71 @@ describe('name matching folds accents', () => {
     expect(pickBestArtist([{id: 'mb1', name: 'Pearl', score: 100}], 'Pearl Jam')).toBeFalsy();
   });
 });
+
+describe('matching the original, not a live album or a reissue', () => {
+  const {pickBestReleaseGroup, unexplainedTypes} = require('./api');
+  const rg = (id, extra) => Object.assign({
+    'artist-credit': [{name: 'Eagles'}], id, 'primary-type': 'Album', score: 100, title: 'Hotel California',
+  }, extra);
+
+  /** The case that started this: a 1992 live album, typed primary "Album", listed first. */
+  it('prefers the studio album over a live one with the same title', () => {
+    const results = [
+      rg('live', {'first-release-date': '1992', 'secondary-types': ['Live']}),
+      rg('studio', {'first-release-date': '1976-12-08'}),
+    ];
+    expect(pickBestReleaseGroup(results, 'Hotel California', ['Eagles']).id).toBe('studio');
+  });
+
+  it('prefers the earliest when both are plain studio albums', () => {
+    const results = [rg('later', {'first-release-date': '2007'}), rg('first', {'first-release-date': '1976'})];
+    expect(pickBestReleaseGroup(results, 'Hotel California', ['Eagles']).id).toBe('first');
+  });
+
+  it('prefers an album over a single', () => {
+    const results = [rg('single', {'first-release-date': '1976', 'primary-type': 'Single'}), rg('album', {})];
+    expect(pickBestReleaseGroup(results, 'Hotel California', ['Eagles']).id).toBe('album');
+  });
+
+  /** Unless the album's own name says it is a live record. */
+  it('takes a live album when the name asks for one', () => {
+    const results = [
+      rg('studio', {'first-release-date': '1970', title: 'Live at Leeds'}),
+      rg('live', {'first-release-date': '1970', 'secondary-types': ['Live'], title: 'Live at Leeds'}),
+    ];
+    // both qualify; the live one is not penalised, and with equal dates either is acceptable
+    expect(unexplainedTypes(['Live'], 'Live at Leeds')).toEqual([]);
+    expect(['studio', 'live']).toContain(pickBestReleaseGroup(results, 'Live at Leeds', ['Eagles']).id);
+  });
+
+  it('explains a compilation only by a name that sounds like one', () => {
+    expect(unexplainedTypes(['Compilation'], 'Greatest Hits')).toEqual([]);
+    expect(unexplainedTypes(['Compilation'], 'Hotel California')).toEqual(['Compilation']);
+  });
+
+  it('treats an unknown secondary type as unexplained', () => {
+    expect(unexplainedTypes(['Audiobook'], 'Anything')).toEqual(['Audiobook']);
+    expect(unexplainedTypes(undefined, 'Anything')).toEqual([]);
+  });
+});
+
+describe('what a recording says about a track', () => {
+  const {recordingUpdate} = require('./api');
+
+  it('takes the year the recording first came out', () => {
+    expect(recordingUpdate({'first-release-date': '2000-10-24', 'genres': [], 'id': 'r'}).year).toBe(2000);
+    expect(recordingUpdate({'first-release-date': '1976', 'id': 'r'}).year).toBe(1976);
+  });
+
+  /** No date means no claim: leave the library's year alone. */
+  it('says nothing about the year when MusicBrainz has none', () => {
+    expect(recordingUpdate({'first-release-date': '', 'id': 'r'}).year).toBeUndefined();
+    expect(recordingUpdate(undefined)).toEqual({genres: []});
+  });
+
+  /** Recordings often carry eight or nine; the same top-five-by-votes cut as an album's. */
+  it('keeps the five most-voted genres', () => {
+    const genres = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((name, i) => ({count: i + 1, name}));
+    expect(recordingUpdate({genres, id: 'r'}).genres).toEqual(['G', 'F', 'E', 'D', 'C']);
+  });
+});

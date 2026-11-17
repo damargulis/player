@@ -1,5 +1,6 @@
 import {Album, AlbumInfo, Track} from '../../redux/actionTypes';
 import {
+  browseRecordings,
   browseReleases,
   COVER_ART_BASE,
   fetchWithRetry,
@@ -10,15 +11,18 @@ import {
   lookupReleaseGroup,
   matchTracklist,
   pickBestReleaseGroup,
+  recordingUpdate,
+  ReleaseGroupLookup,
   ReleaseTrack,
   searchReleaseGroups,
+  unexplainedTypes,
 } from './api';
 import {writeIfBigger} from '../artFile';
 import {DATA_DIR} from '../../constants';
 import {addError, ExtensionError, MetaSource, recordYear, removeError, setError} from '../errors';
 import fs from 'fs';
 import {applyGenres} from '../genreSources';
-import {getArtistsByIds, getTracksByIds} from '../../redux/selectors';
+import {getArtistsByIds, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 
@@ -75,14 +79,52 @@ function verifyTracks(store: RootState, album: Album): Promise<void> {
       setTrackWarnings(track, releaseTracks[index]);
     });
     removeError(album, ExtensionError.TRACK);
+    // The tracklist has just been matched one-to-one, so this is the moment each local track is
+    // known to be a particular recording. One more request gets every recording's genres and
+    // first release date; a failure here costs only that, never the album's other results.
+    return browseRecordings(match.release.id).then((recordings) => {
+      refTracks.forEach((track, index) => {
+        const recording = releaseTracks[index] && releaseTracks[index].recording;
+        const {genres, year} = recordingUpdate(recording ? recordings[recording.id] : undefined);
+        // only replace what a source actually supplied, as for albums
+        if (genres.length) {
+          track.genreIds = getGenreIds(store, genres);
+        }
+        if (year) {
+          track.year = year;
+        }
+      });
+    }, () => undefined);
   }).catch(() => {
     addError(album, ExtensionError.TRACK);
   });
 }
 
-function modifyAlbum(store: RootState, album: Album): Promise<void> {
+function modifyAlbum(store: RootState, album: Album, rematched: boolean = false): Promise<void> {
   return lookupReleaseGroup(album.mbid as string).then((lookup) => {
     removeError(album, ExtensionError.LOOKUP);
+    // An album matched before the picker learnt to prefer originals may still be pointing at a
+    // live album or a compilation that shares its title — "Hotel California" was on a 1992 live
+    // record. The lookup already says what kind of release this is, so check it here and, once,
+    // look again. A better match moves the album; finding none leaves it where it was.
+    if (!rematched && unexplainedTypes(lookup['secondary-types'], album.name).length) {
+      return searchForReleaseGroup(store, album).then((better) => {
+        if (better && better !== album.mbid) {
+          album.mbid = better;
+          return modifyAlbum(store, album, true);
+        }
+        return carryOn(store, album, lookup);
+      }, () => carryOn(store, album, lookup));
+    }
+    return carryOn(store, album, lookup);
+  }).catch(() => {
+    addError(album, ExtensionError.LOOKUP);
+  });
+}
+
+/** Everything a release-group lookup feeds: year, genres, the Wikipedia page, tracks and art. */
+function carryOn(store: RootState, album: Album, lookup: ReleaseGroupLookup): Promise<void> {
+  {
     // As for artists: MusicBrainz knows the Wikipedia page, so the wiki extension does not
     // have to guess ten urls from the album title. Fewer albums are reachable than artists —
     // a sampled 35% of the 152 with an mbid and no page — but it costs no extra request.
@@ -109,9 +151,7 @@ function modifyAlbum(store: RootState, album: Album): Promise<void> {
         .catch(() => undefined)
         .then(() => setError(album, ExtensionError.ALBUM_ART, !album.albumArtFile));
     });
-  }).catch(() => {
-    addError(album, ExtensionError.LOOKUP);
-  });
+  }
 }
 
 function recordNoMatch(album: Album): void {

@@ -20,6 +20,8 @@ export interface ReleaseGroupResult {
   'score': number;
   'title': string;
   'primary-type'?: string;
+  /** "Live", "Compilation", "Remix", "Soundtrack"… — empty for an ordinary studio album. */
+  'secondary-types'?: string[];
   'first-release-date'?: string;
   'artist-credit'?: ArtistCredit[];
 }
@@ -31,6 +33,7 @@ export interface GenreResult {
 
 export interface ReleaseGroupLookup {
   'first-release-date'?: string;
+  'secondary-types'?: string[];
   'genres'?: GenreResult[];
   'relations'?: UrlRelation[];
 }
@@ -60,6 +63,54 @@ export interface ReleaseTrack {
   'title': string;
   'position': number;
   'artist-credit'?: ArtistCreditPart[];
+  /** Present with `inc=recordings`; the key into `browseRecordings`. */
+  'recording'?: {id: string};
+}
+
+export interface RecordingResult {
+  'id': string;
+  'genres'?: GenreResult[];
+  /** "1976-12-08", "1976" or "" — the earliest release of this recording anywhere. */
+  'first-release-date'?: string;
+}
+
+/**
+ * Every recording on a release, with its genres, keyed by recording id. One request per album.
+ *
+ * Keyed rather than returned in order because this endpoint does not promise track order; the
+ * caller maps each local track to its recording through the release's own tracklist.
+ */
+export function browseRecordings(releaseId: string): Promise<Record<string, RecordingResult>> {
+  const url = `${API_BASE}/recording?release=${releaseId}&inc=genres&fmt=json&limit=100`;
+  return apiFetch(url).then((data: {recordings?: RecordingResult[]}) => {
+    const byId = {} as Record<string, RecordingResult>;
+    (data.recordings || []).forEach((recording) => {
+      byId[recording.id] = recording;
+    });
+    return byId;
+  });
+}
+
+/**
+ * What a recording says about one track: its genres and the year it first came out.
+ *
+ * Per song rather than per album. Tracks inherit genres from the iTunes import, and their years
+ * from whatever pressing was ripped — "Hybrid Theory" sits in the library as 2023, the
+ * anniversary reissue, with its songs from 2000. A recording's `first-release-date` is the
+ * earliest release of that recording anywhere, so a remaster that reuses the original recording
+ * reports the original year. Its one quirk: a lead single released before its album reports the
+ * single's year, which is when the song did come out.
+ *
+ * Probed before building: about 90% of recordings on a sample of albums here carry genres,
+ * compilations being the exception. Genres go through the same top-five-by-votes cut as an
+ * album's, since a recording often carries eight or nine.
+ */
+export function recordingUpdate(recording?: RecordingResult): {genres: string[]; year?: number} {
+  if (!recording) {
+    return {genres: []};
+  }
+  const year = parseInt((recording['first-release-date'] || '').slice(0, 4), 10);
+  return {genres: getGenreNames(recording.genres), year: year > 0 ? year : undefined};
 }
 
 export interface Media {
@@ -400,7 +451,44 @@ export function pickBestReleaseGroup(
       candidates = byArtist;
     }
   }
-  return candidates.find((result) => result['primary-type'] === 'Album') || candidates[0];
+  // The original, not a live album, a compilation or a later pressing, unless the album's own
+  // name says that is what it is. "Hotel California" was matched to a 1992 *live* album, which
+  // MusicBrainz types as primary "Album" — the old rule took the first such result, so it won —
+  // and the library has said 1992 ever since. Exact title matching already handles a reissue the
+  // library *does* name: "Hybrid Theory (20th Anniversary Edition)" only matches a group titled so.
+  return candidates.slice().sort((one, two) => rank(one, albumName) - rank(two, albumName) ||
+    (one['first-release-date'] || '9999').localeCompare(two['first-release-date'] || '9999'))[0];
+}
+
+/**
+ * The kinds of release an album's own name can ask for.
+ *
+ * A secondary type is only acceptable when the library album says so in its name — "Live at
+ * Leeds", "Greatest Hits", "… (Remixes)". Anything else is treated as a sign the match is a
+ * different record that happens to share the title.
+ */
+const NAME_ALLOWS: Record<string, RegExp> = {
+  'Compilation': /\b(greatest|best of|hits|collection|anthology|essential|compilation|singles)\b/i,
+  'DJ-mix': /\b(dj|mix)\b/i,
+  'Demo': /\bdemos?\b/i,
+  'Live': /\b(live|concert|unplugged|in concert|sessions?)\b/i,
+  'Mixtape/Street': /\b(mixtape|tape)\b/i,
+  'Remix': /\b(remix(es)?|remixed|reworked)\b/i,
+  'Soundtrack': /\b(soundtrack|o\.?s\.?t|motion picture|score)\b/i,
+};
+
+/** Secondary types the album's name does not account for. */
+export function unexplainedTypes(types: string[] | undefined, albumName: string): string[] {
+  return (types || []).filter((type) => {
+    const allows = NAME_ALLOWS[type];
+    return !allows || !allows.test(albumName);
+  });
+}
+
+/** Lower is better: a studio album first, then the fewest unexplained secondary types. */
+function rank(result: ReleaseGroupResult, albumName: string): number {
+  const notAlbum = result['primary-type'] === 'Album' ? 0 : 10;
+  return notAlbum + unexplainedTypes(result['secondary-types'], albumName).length;
 }
 
 /** Picks the artist result whose name exactly matches, if any. */

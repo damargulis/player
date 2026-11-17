@@ -193,3 +193,23 @@ the next MusicBrainz run re-matching the same wrong artist; there is no "this ma
 
 The art zoom's "largest the Archive has" note shows only when `coverArt.maxPx < coverArt.target`.
 At the target it is untrue — CAA scaled down a bigger original — and it showed on 1,192 albums.
+
+## Which release group, and per-track genres and years
+
+**Album year is the original release's, track year is the song's.** They may differ in the library,
+and that is fine; each should match its own thing on MusicBrainz.
+
+- `pickBestReleaseGroup` ranks exact-title candidates: a primary-type Album first, then fewest
+  *unexplained* secondary types (`unexplainedTypes` — Live, Compilation, Remix… are only fine when
+  the album's own name asks for them, "Live at Leeds", "Greatest Hits"), then the earliest
+  `first-release-date`. It used to take the first primary-type Album, which put "Hotel
+  California" on a 1992 **live** record and the library has said 1992 since. A reissue the library
+  *does* name ("… (20th Anniversary Edition)") still matches its own group through exact titles.
+- An album already matched to a group with unexplained secondary types is **re-searched once**
+  during a MusicBrainz run and moved if a better group exists. This also overrides an mbid set by
+  hand in the editor if the album's name does not justify it.
+- After the tracklist matches one-to-one, `browseRecordings` (one request per album) gives every
+  recording's genres and `first-release-date`, and `recordingUpdate` turns them into a track's
+  genres (top five by votes) and year. Only what a source supplies replaces anything. ~90% of
+  recordings on a sampled set carry genres; compilations are the exception. This adds one
+  rate-limited request per album to every MusicBrainz run.
