@@ -89,3 +89,36 @@ describe('describeTargets', () => {
     expect(describeTargets([])).toBe('');
   });
 });
+
+describe('an import run does not sweep the same tracks twice', () => {
+  const {artistMetaStepNames, artistStepNames, stepNames} = require('./runAll');
+
+  /**
+   * The album pass already does Genius and Lyrics over the album's tracks, and the full artist
+   * pass does them over *all* of the artist's — so importing an album ran both over the tracks
+   * that had just been done. On an artist already in the library it would also sweep their whole
+   * back catalogue, which is not what importing one album asks for. So the mixed run gives
+   * artists their own two steps only.
+   */
+  it('the artist-level pair is just the artist itself', () => {
+    expect(artistMetaStepNames()).toEqual(['MusicBrainz', 'Wikipedia']);
+  });
+
+  it('carries none of the track-level or per-album work', () => {
+    expect(artistMetaStepNames()).not.toContain('Genius');
+    expect(artistMetaStepNames()).not.toContain('Lyrics');
+    expect(artistMetaStepNames()).not.toContain('Cover art');
+  });
+
+  /** It is the head of the full list, not a separate hand-maintained copy of the first two. */
+  it('is the start of the full artist run', () => {
+    expect(artistStepNames().slice(0, artistMetaStepNames().length)).toEqual(artistMetaStepNames());
+  });
+
+  /** The overlap this avoids, stated so the reason survives. */
+  it('is needed because the album pass covers the tracks itself', () => {
+    expect(stepNames()).toContain('Genius');
+    expect(stepNames()).toContain('Lyrics');
+    expect(artistStepNames()).toContain('Genius');
+  });
+});

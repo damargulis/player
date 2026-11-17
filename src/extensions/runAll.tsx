@@ -64,8 +64,19 @@ export function stepNames(): string[] {
  * their albums and all of their tracks — which for the biggest artist here is 253 tracks, so
  * the caller has to be honest with the listener about the size before starting.
  */
-const ARTIST_STEPS: Array<{name: string;
-  run(artist: Artist, extensionId: string): PromiseLike<unknown>; }> = [
+interface ArtistStep {
+  name: string;
+  run(artist: Artist, extensionId: string): PromiseLike<unknown>;
+}
+
+/**
+ * The steps that are about the artist itself, rather than everything underneath them.
+ *
+ * Kept separate because a run that also covers the artist's albums does not need the artist
+ * pass to sweep their tracks again: the New Tracks import ran Genius and Lyrics twice over the
+ * same tracks, once for the album and once for the artist who made it.
+ */
+const ARTIST_META_STEPS: ArtistStep[] = [
   {
     name: 'MusicBrainz',
     run: (artist, id) => runMusicBrainzExtension(/* albumIds= */ [], [artist.id],
@@ -75,6 +86,10 @@ const ARTIST_STEPS: Array<{name: string;
     name: 'Wikipedia',
     run: (artist, id) => runWikiExtension(/* albumIds= */ [], [artist.id], reduxStore.getState(), id),
   },
+];
+
+const ARTIST_STEPS: ArtistStep[] = [
+  ...ARTIST_META_STEPS,
   {
     name: 'Cover art',
     run: (artist, id) => runCoverArtExtension(reduxStore.getState(), artist.albumIds, id),
@@ -93,6 +108,11 @@ export function artistStepNames(): string[] {
   return ARTIST_STEPS.map((step) => step.name);
 }
 
+/** Exported for the tests: the steps a mixed album/artist run gives an artist. */
+export function artistMetaStepNames(): string[] {
+  return ARTIST_META_STEPS.map((step) => step.name);
+}
+
 /**
  * Runs each extension in turn, dispatching its delta before the next starts.
  *
@@ -102,17 +122,34 @@ export function artistStepNames(): string[] {
  * A step that throws does not stop the rest: these are five unrelated services, and Genius
  * being rate-limited is no reason to skip the lyrics. Failures are collected and returned.
  */
+/**
+ * A monitor window shared by everything in one batch.
+ *
+ * A new `extensionId` is what opens a window, and `runSteps` used to mint one per entity — so a
+ * sweep over two albums and two artists opened four windows, and the album picker's "Run
+ * extensions (50)" would have opened fifty. `group-done` is what puts the Done button up, so
+ * only the batch may send it: one per entity offered to close a window with four entities still
+ * to go.
+ */
+export interface SharedRun {
+  extensionId: string;
+  /** Names the entity in the section heading, so one window across many stays readable. */
+  label: string;
+}
+
 function runSteps<T>(
   steps: Array<{name: string; run(entity: T, extensionId: string): PromiseLike<unknown>}>,
   lookup: () => T | undefined,
   onStep?: (name: string) => void,
+  shared?: SharedRun,
 ): Promise<string[]> {
   const failed: string[] = [];
-  // One id for the whole run, so the five extensions report into one monitor window instead
-  // of opening five. `group` tells the monitor how many summaries to expect before it offers
-  // the Done button.
-  const extensionId = shortid.generate();
-  ipcRenderer.send('extension-update', {extensionId, steps: steps.length, type: 'group'});
+  // One id for the whole run, so the extensions report into one monitor window instead of
+  // opening one each. `group` suppresses the per-step Done button.
+  const extensionId = shared ? shared.extensionId : shortid.generate();
+  if (!shared) {
+    ipcRenderer.send('extension-update', {extensionId, steps: steps.length, type: 'group'});
+  }
   return steps.reduce((chain, step, index) => chain.then(() => {
     // read the entity fresh: an earlier step may have given it the id this one needs
     const entity = lookup();
@@ -124,7 +161,9 @@ function runSteps<T>(
     }
     ipcRenderer.send('extension-update', {
       extensionId,
-      msg: `${step.name} (${index + 1} of ${steps.length})`,
+      msg: shared
+        ? `${shared.label} — ${step.name} (${index + 1} of ${steps.length})`
+        : `${step.name} (${index + 1} of ${steps.length})`,
       type: 'section',
     });
     return Promise.resolve(step.run(entity, extensionId)).then((updates) => {
@@ -136,6 +175,10 @@ function runSteps<T>(
       failed.push(step.name);
     });
   }), Promise.resolve()).then(() => {
+    if (shared) {
+      // the batch sends one group-done when every entity is through; see SharedRun
+      return failed;
+    }
     // Sent whatever happened: a step that threw never sends its own summary, so counting
     // summaries would leave the window with no Done button at all.
     ipcRenderer.send('extension-update', {
@@ -150,18 +193,42 @@ function runSteps<T>(
   });
 }
 
+/** Opens the one window a batch reports into. */
+export function startSharedRun(): string {
+  const extensionId = shortid.generate();
+  ipcRenderer.send('extension-update', {extensionId, type: 'group'});
+  return extensionId;
+}
+
+/** Closes it off, whatever happened — the only thing that puts the Done button up. */
+export function finishSharedRun(extensionId: string, done: number, total: number, failed: string[]): void {
+  const stopped = done < total ? ' (stopped early)' : '';
+  ipcRenderer.send('extension-update', {
+    extensionId,
+    failed: failed.length > 0,
+    msg: failed.length
+      ? `<b>Finished ${done} of ${total}${stopped}.</b> ${failed.join(' and ')} failed somewhere; ` +
+        're-running retries them.'
+      : `<b>Finished ${done} of ${total}${stopped}.</b>`,
+    type: 'group-done',
+  });
+}
+
 export default function runAllForAlbum(
   albumId: string,
   onStep?: (name: string) => void,
+  shared?: SharedRun,
 ): Promise<string[]> {
-  return runSteps(STEPS, () => getAlbumById(reduxStore.getState(), albumId), onStep);
+  return runSteps(STEPS, () => getAlbumById(reduxStore.getState(), albumId), onStep, shared);
 }
 
 export function runAllForArtist(
   artistId: string,
   onStep?: (name: string) => void,
+  shared?: SharedRun,
+  steps: ArtistStep[] = ARTIST_STEPS,
 ): Promise<string[]> {
-  return runSteps(ARTIST_STEPS, () => getArtistById(reduxStore.getState(), artistId), onStep);
+  return runSteps(steps, () => getArtistById(reduxStore.getState(), artistId), onStep, shared);
 }
 
 export interface BatchProgress {
@@ -183,34 +250,6 @@ export interface BatchProgress {
  * `stop` is checked between albums rather than between steps: abandoning mid-album would leave
  * it with an mbid and no cover art, which looks like a bug rather than a cancellation.
  */
-export function runAllForAlbums(
-  albumIds: string[],
-  onProgress?: (progress: BatchProgress) => void,
-  stop?: () => boolean,
-): Promise<{done: number; failed: string[]}> {
-  const failed: string[] = [];
-  let done = 0;
-  return albumIds.reduce((chain, albumId, index) => chain.then(() => {
-    if (stop && stop()) {
-      return Promise.resolve();
-    }
-    const album = getAlbumById(reduxStore.getState(), albumId);
-    const name = album ? album.name : albumId;
-    return runAllForAlbum(albumId, (step) => {
-      if (onProgress) {
-        onProgress({index: index + 1, name, step, total: albumIds.length});
-      }
-    }).then((stepsFailed) => {
-      done++;
-      stepsFailed.forEach((step) => {
-        if (!failed.includes(step)) {
-          failed.push(step);
-        }
-      });
-    });
-  }), Promise.resolve()).then(() => ({done, failed}));
-}
-
 /**
  * A mixed run over albums and artists, described as `album:<id>` / `artist:<id>`.
  *
@@ -255,29 +294,34 @@ export function describeTargets(targets: string[]): string {
   return parts.join(' and ');
 }
 
-export function runAllForTargets(
-  targets: string[],
+/**
+ * Runs `each` over every item, reporting into one monitor window.
+ *
+ * The window is the reason this is shared rather than three near-identical loops: a batch owns
+ * it, and only the batch may finish it. Stopping is checked between items rather than between
+ * steps — abandoning mid-album leaves it with an mbid and no cover art, which reads as a bug
+ * rather than a cancellation.
+ */
+function runBatch<T>(
+  items: T[],
+  nameOf: (item: T) => string,
+  each: (item: T, onStep: (step: string) => void, shared: SharedRun) => Promise<string[]>,
   onProgress?: (progress: BatchProgress) => void,
   stop?: () => boolean,
 ): Promise<{done: number; failed: string[]}> {
   const failed: string[] = [];
   let done = 0;
-  return targets.reduce((chain, target, index) => chain.then(() => {
+  const extensionId = startSharedRun();
+  return items.reduce((chain, item, index) => chain.then(() => {
     if (stop && stop()) {
       return Promise.resolve();
     }
-    const isAlbum = target.indexOf(ALBUM_TARGET) === 0;
-    const id = target.slice((isAlbum ? ALBUM_TARGET : ARTIST_TARGET).length);
-    const state = reduxStore.getState();
-    const entity = isAlbum ? getAlbumById(state, id) : getArtistById(state, id);
-    const name = entity ? entity.name : id;
-    const report = (step: string) => {
+    const name = nameOf(item);
+    return each(item, (step) => {
       if (onProgress) {
-        onProgress({index: index + 1, name, step, total: targets.length});
+        onProgress({index: index + 1, name, step, total: items.length});
       }
-    };
-    const run = isAlbum ? runAllForAlbum(id, report) : runAllForArtist(id, report);
-    return run.then((stepsFailed) => {
+    }, {extensionId, label: name}).then((stepsFailed) => {
       done++;
       stepsFailed.forEach((step) => {
         if (!failed.includes(step)) {
@@ -285,7 +329,21 @@ export function runAllForTargets(
         }
       });
     });
-  }), Promise.resolve()).then(() => ({done, failed}));
+  }), Promise.resolve()).then(() => {
+    finishSharedRun(extensionId, done, items.length, failed);
+    return {done, failed};
+  });
+}
+
+export function runAllForAlbums(
+  albumIds: string[],
+  onProgress?: (progress: BatchProgress) => void,
+  stop?: () => boolean,
+): Promise<{done: number; failed: string[]}> {
+  return runBatch(albumIds, (albumId) => {
+    const album = getAlbumById(reduxStore.getState(), albumId);
+    return album ? album.name : albumId;
+  }, (albumId, onStep, shared) => runAllForAlbum(albumId, onStep, shared), onProgress, stop);
 }
 
 /** The same over a list of artists, which also covers their albums and tracks. */
@@ -294,25 +352,33 @@ export function runAllForArtists(
   onProgress?: (progress: BatchProgress) => void,
   stop?: () => boolean,
 ): Promise<{done: number; failed: string[]}> {
-  const failed: string[] = [];
-  let done = 0;
-  return artistIds.reduce((chain, artistId, index) => chain.then(() => {
-    if (stop && stop()) {
-      return Promise.resolve();
-    }
+  return runBatch(artistIds, (artistId) => {
     const artist = getArtistById(reduxStore.getState(), artistId);
-    const name = artist ? artist.name : artistId;
-    return runAllForArtist(artistId, (step) => {
-      if (onProgress) {
-        onProgress({index: index + 1, name, step, total: artistIds.length});
-      }
-    }).then((stepsFailed) => {
-      done++;
-      stepsFailed.forEach((step) => {
-        if (!failed.includes(step)) {
-          failed.push(step);
-        }
-      });
-    });
-  }), Promise.resolve()).then(() => ({done, failed}));
+    return artist ? artist.name : artistId;
+  }, (artistId, onStep, shared) => runAllForArtist(artistId, onStep, shared), onProgress, stop);
+}
+
+export function runAllForTargets(
+  targets: string[],
+  onProgress?: (progress: BatchProgress) => void,
+  stop?: () => boolean,
+): Promise<{done: number; failed: string[]}> {
+  return runBatch(targets, (target) => {
+    const isAlbum = target.indexOf(ALBUM_TARGET) === 0;
+    const id = target.slice((isAlbum ? ALBUM_TARGET : ARTIST_TARGET).length);
+    const state = reduxStore.getState();
+    const entity = isAlbum ? getAlbumById(state, id) : getArtistById(state, id);
+    return entity ? entity.name : id;
+  }, (target, onStep, shared) => {
+    const isAlbum = target.indexOf(ALBUM_TARGET) === 0;
+    const id = target.slice((isAlbum ? ALBUM_TARGET : ARTIST_TARGET).length);
+    // Artists contribute only their own metadata here. The albums in the same batch already
+    // cover their cover art and their tracks, so the full artist pass ran Genius and Lyrics a
+    // second time over the very tracks that had just been done — and on an artist already in
+    // the library it would sweep their whole back catalogue, which is not what importing an
+    // album asks for.
+    return isAlbum
+      ? runAllForAlbum(id, onStep, shared)
+      : runAllForArtist(id, onStep, shared, ARTIST_META_STEPS);
+  }, onProgress, stop);
 }
