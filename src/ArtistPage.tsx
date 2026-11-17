@@ -4,7 +4,6 @@ import AlbumPicker from './AlbumPicker';
 import ArtistConcerts from './ArtistConcerts';
 import ArtistEditor from './ArtistEditor';
 import './ArtistPage.css';
-import ArtistPicLabel from './ArtistPicLabel';
 import {removeArtistArt} from './artRemoval';
 import ArtZoom from './ArtZoom';
 import runWikiExtension from './extensions/wiki/main';
@@ -113,7 +112,10 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
               <div>{this.props.artist.name}</div>
               <div>{this.props.artist.genreIds.map((genreId) => this.props.getGenreById(genreId).name).join(', ')}</div>
               <WikiLabel wikiPage={this.props.artist.wikiPage} onRun={() => this.runWiki()} />
-              <ArtistPicLabel artist={this.props.artist} />
+              {/* The picture's resolution used to be a row here. It is in the zoom now, which
+                  is the only place the picture can actually be looked at — and unlike the
+                  album's cover-art row there was no Run button to keep, since nothing fetches
+                  artist pictures on its own. */}
               <MusicBrainzLabel
                 mbid={this.props.artist.mbid}
                 entityType="artist"
