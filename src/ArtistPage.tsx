@@ -8,7 +8,7 @@ import {removeArtistArt} from './artRemoval';
 import ArtZoom from './ArtZoom';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
-import {boundTo, memoize} from './redux/memo';
+import {boundTo, libraryMemo} from './redux/memo';
 import defaultArtist from './resources/missing_artist.png';
 import MusicBrainzLabel from './MusicBrainzLabel';
 import NavigationBar from './NavigationBar';
@@ -236,26 +236,27 @@ class ArtistPage extends React.Component<ArtistPageProps, ArtistPageState> {
   }
 }
 
-const albumsOf = memoize((library: object, store: RootState, artist: Artist) =>
-  getAlbumsByIds(store, artist.albumIds));
-const artistTracksOf = memoize((library: object, store: RootState, artist: Artist) =>
-  getTracksByIds(store, artist.trackIds));
 const runWikiForArtists = (store: RootState, artistIds: string[]) =>
   runWikiExtension(/* albumIds= */ [], artistIds, store);
 const runMusicBrainzForArtists = (store: RootState, artistIds: string[]) =>
   runMusicBrainzExtension(/* albumIds= */ [], artistIds, store);
 
-function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
-  const library = store.library;
-  const artist = getArtistById(store, ownProps.artistId);
-  return {
-    albums: albumsOf(library, store, artist),
-    artist,
-    getGenreById: boundTo(library, store, getGenreById),
-    runMusicBrainzExtension: boundTo(library, store, runMusicBrainzForArtists),
-    runWikiExtension: boundTo(library, store, runWikiForArtists),
-    tracks: artistTracksOf(library, store, artist),
+/** Per-instance caches keyed on the library; see AlbumPage's factory for why. */
+function makeMapStateToProps(): (store: RootState, ownProps: OwnProps) => StateProps {
+  const albumsOf = libraryMemo(getAlbumsByIds);
+  const artistTracksOf = libraryMemo(getTracksByIds);
+  return (store: RootState, ownProps: OwnProps): StateProps => {
+    const library = store.library;
+    const artist = getArtistById(store, ownProps.artistId);
+    return {
+      albums: albumsOf(store, artist.albumIds),
+      artist,
+      getGenreById: boundTo(library, store, getGenreById),
+      runMusicBrainzExtension: boundTo(library, store, runMusicBrainzForArtists),
+      runWikiExtension: boundTo(library, store, runWikiForArtists),
+      tracks: artistTracksOf(store, artist.trackIds),
+    };
   };
 }
 
-export default connect(mapStateToProps, {deleteArtist, updateArtist, updateLibrary})(ArtistPage);
+export default connect(makeMapStateToProps, {deleteArtist, updateArtist, updateLibrary})(ArtistPage);

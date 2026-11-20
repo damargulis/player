@@ -6,6 +6,7 @@ import './AlbumInfo.css';
 import ArtImg from './ArtImg';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import {libraryMemo, NONE} from './redux/memo';
 import defaultAlbum from './resources/missing_album.png';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
@@ -174,11 +175,17 @@ class AlbumInfo extends React.Component<AlbumInfoProps, AlbumInfoState> {
 
 }
 
-function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
-  return {
-    artists: ownProps.album ? getArtistsByIds(store, ownProps.album.artistIds) : [],
-    warnings: getWarningsFromAlbum(store, ownProps.album),
-  };
+/**
+ * Per grid cell, keyed on the library. Each cell built fresh arrays on every action, so ~30 visible
+ * cells re-rendered four times a second through playback.
+ */
+function makeMapStateToProps(): (store: RootState, ownProps: OwnProps) => StateProps {
+  const artistsOf = libraryMemo(getArtistsByIds);
+  const warningsOf = libraryMemo(getWarningsFromAlbum);
+  return (store: RootState, ownProps: OwnProps): StateProps => ({
+    artists: ownProps.album ? artistsOf(store, ownProps.album.artistIds) : NONE,
+    warnings: warningsOf(store, ownProps.album),
+  });
 }
 
-export default connect(mapStateToProps, {setPlaylist, updateAlbum})(AlbumInfo);
+export default connect(makeMapStateToProps, {setPlaylist, updateAlbum})(AlbumInfo);

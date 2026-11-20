@@ -1,4 +1,5 @@
 import {Playlist, Track} from './redux/actionTypes';
+import {libraryMemo} from './redux/memo';
 import NavigationBar from './NavigationBar';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -54,10 +55,12 @@ class PlaylistPage extends React.Component<PlaylistPageProps> {
   }
 }
 
-function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
-  return {
-    tracks: getTracksByIds(store, ownProps.playlist.trackIds),
-  };
+/** Per instance and keyed on the library: a fresh array per action re-sorted the list four times a second. */
+function makeMapStateToProps(): (store: RootState, ownProps: OwnProps) => StateProps {
+  const tracksOf = libraryMemo(getTracksByIds);
+  return (store: RootState, ownProps: OwnProps): StateProps => ({
+    tracks: tracksOf(store, ownProps.playlist.trackIds),
+  });
 }
 
-export default connect(mapStateToProps)(PlaylistPage);
+export default connect(makeMapStateToProps)(PlaylistPage);

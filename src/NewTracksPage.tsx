@@ -1,5 +1,6 @@
 import {saveNewTracks} from './redux/actions';
 import {Track} from './redux/actionTypes';
+import {libraryMemo} from './redux/memo';
 import './NewTracksPage.css';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -63,10 +64,10 @@ class NewTracksPage extends React.Component<NewTracksPageProps> {
   }
 }
 
-function mapStateToProps(state: RootState): StateProps {
-  return {
-    newTracks: getNewTracks(state),
-  };
+/** Keyed on the library, not the root state, so playback does not rebuild the list. */
+function makeMapStateToProps(): (state: RootState) => StateProps {
+  const newTracksOf = libraryMemo(getNewTracks);
+  return (state: RootState): StateProps => ({newTracks: newTracksOf(state)});
 }
 
-export default connect(mapStateToProps, {saveNewTracks})(NewTracksPage);
+export default connect(makeMapStateToProps, {saveNewTracks})(NewTracksPage);

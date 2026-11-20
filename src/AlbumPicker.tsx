@@ -193,18 +193,20 @@ class AlbumPicker extends React.Component<AlbumPickerProps, AlbumPickerState> {
  * immutable state. The filter is 0.34ms over 2,176 albums and returned a new array every
  * action, so it cost the work *and* defeated the shallow compare that would have skipped it.
  */
-const albumsForGenres = memoize((albums: Album[], genres: string[]) => albums.filter((album) => {
+function filterByGenres(albums: Album[], genres: string[]): Album[] {
   if (!genres.length) {
-    return true;
+    return albums;
   }
-  return album.genreIds.some((id) => genres.includes(id));
-}));
-
-function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
-  return {
-    albumsToShow: albumsForGenres(ownProps.albums, getSelectedGenres(store)),
-    getArtistsByIds: boundTo(store.library, store, getArtistsByIds),
-  };
+  return albums.filter((album) => album.genreIds.some((id) => genres.includes(id)));
 }
 
-export default connect(mapStateToProps)(AlbumPicker);
+/** Each mounted grid gets its own filter cache; a shared slot thrashed between them (see TrackPicker). */
+function makeMapStateToProps(): (store: RootState, ownProps: OwnProps) => StateProps {
+  const albumsForGenres = memoize(filterByGenres);
+  return (store: RootState, ownProps: OwnProps): StateProps => ({
+    albumsToShow: albumsForGenres(ownProps.albums, getSelectedGenres(store)),
+    getArtistsByIds: boundTo(store.library, store, getArtistsByIds),
+  });
+}
+
+export default connect(makeMapStateToProps)(AlbumPicker);

@@ -1,5 +1,6 @@
 import {Artist} from './redux/actionTypes';
 import ArtImg from './ArtImg';
+import {libraryMemo, NONE} from './redux/memo';
 import defaultArtist from './resources/missing_artist.png';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -100,10 +101,12 @@ class ArtistInfo extends React.Component<ArtistInfoProps, ArtistInfoState> {
   }
 }
 
-function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
-  return {
-    artFiles: ownProps.artist ? getArtFilesByArtist(state, ownProps.artist) : [],
-  };
+/** Per grid cell, keyed on the library; see AlbumInfo. */
+function makeMapStateToProps(): (state: RootState, ownProps: OwnProps) => StateProps {
+  const artFilesOf = libraryMemo(getArtFilesByArtist);
+  return (state: RootState, ownProps: OwnProps): StateProps => ({
+    artFiles: ownProps.artist ? artFilesOf(state, ownProps.artist) : NONE,
+  });
 }
 
-export default connect(mapStateToProps)(ArtistInfo);
+export default connect(makeMapStateToProps)(ArtistInfo);

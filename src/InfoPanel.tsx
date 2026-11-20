@@ -2,6 +2,7 @@ import {Album, Artist, Track} from './redux/actionTypes';
 import ConcertBadge from './ConcertBadge';
 import {ipcRenderer} from 'electron';
 import Links from './Links';
+import {libraryMemo, NONE} from './redux/memo';
 import defaultAlbum from './resources/missing_album.png';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -75,15 +76,21 @@ class InfoPanel extends React.Component<InfoPanelProps> {
 
 }
 
-function mapStateToProps(state: RootState): StateProps {
-  const track = getCurrentTrack(state);
-  const albums = track ? getAlbumsByIds(state, track.albumIds) : [];
-  const artists = track ? getArtistsByIds(state, track.artistIds) : [];
-  return {
-    albums,
-    artists,
-    track,
+/**
+ * Both the header and the mini player render one of these, and each built fresh album and artist
+ * arrays on every action — so both re-rendered four times a second through playback.
+ */
+function makeMapStateToProps(): (state: RootState) => StateProps {
+  const albumsOf = libraryMemo(getAlbumsByIds);
+  const artistsOf = libraryMemo(getArtistsByIds);
+  return (state: RootState): StateProps => {
+    const track = getCurrentTrack(state);
+    return {
+      albums: track ? albumsOf(state, track.albumIds) : NONE,
+      artists: track ? artistsOf(state, track.artistIds) : NONE,
+      track,
+    };
   };
 }
 
-export default connect(mapStateToProps)(InfoPanel);
+export default connect(makeMapStateToProps)(InfoPanel);

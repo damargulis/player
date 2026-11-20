@@ -83,3 +83,34 @@ export function memoize<A extends unknown[], R>(fn: (...args: A) => R): (...args
 export function resetBindings(slice: object): void {
   bySlice.delete(slice);
 }
+
+/**
+ * A selector cached on the **library slice** and its other arguments — never on the root state.
+ *
+ * `memoize(fn)` over `(state, ...)` can never hit, because the root state is a new object on every
+ * action, `timeupdate` included; and a module-level `memoize` is one slot shared by every mounted
+ * copy of a component, so an album page and the track list (both mounted, see MaxWindow's scene
+ * stack) evicted each other on every call. Make one of these **per component instance** — in a
+ * `connect` factory (`connect(() => { const sel = libraryMemo(...); return (state) => ... })`) —
+ * and only for a selector that reads nothing but `state.library`, the same rule as `boundTo`.
+ */
+export function libraryMemo<A extends unknown[], R>(
+  fn: (state: RootState, ...args: A) => R,
+): (state: RootState, ...args: A) => R {
+  let lastLibrary: object | undefined;
+  let lastArgs: A | undefined;
+  let lastResult: R;
+  return (state: RootState, ...args: A): R => {
+    if (lastArgs && state.library === lastLibrary && lastArgs.length === args.length &&
+        lastArgs.every((arg, index) => arg === args[index])) {
+      return lastResult;
+    }
+    lastLibrary = state.library;
+    lastArgs = args;
+    lastResult = fn(state, ...args);
+    return lastResult;
+  };
+}
+
+/** One shared empty list, so "nothing" is the same value on every call. */
+export const NONE: never[] = [];

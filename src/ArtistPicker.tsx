@@ -141,18 +141,19 @@ class ArtistPicker extends React.Component<ArtistPickerProps, ArtistPickerState>
 }
 
 /** As in AlbumPicker: the filter both cost work and defeated the compare that would skip it. */
-const artistsForGenres = memoize((artists: Artist[], genres: string[]) =>
-  artists.filter((artist) => {
-    if (!genres.length) {
-      return true;
-    }
-    return artist.genreIds.some((id) => genres.includes(id));
-  }));
-
-function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
-  return {
-    artistsToShow: artistsForGenres(ownProps.artists, getSelectedGenres(store)),
-  };
+function filterByGenres(artists: Artist[], genres: string[]): Artist[] {
+  if (!genres.length) {
+    return artists;
+  }
+  return artists.filter((artist) => artist.genreIds.some((id) => genres.includes(id)));
 }
 
-export default connect(mapStateToProps)(ArtistPicker);
+/** Each mounted grid gets its own filter cache; a shared slot thrashed between them (see TrackPicker). */
+function makeMapStateToProps(): (store: RootState, ownProps: OwnProps) => StateProps {
+  const artistsForGenres = memoize(filterByGenres);
+  return (store: RootState, ownProps: OwnProps): StateProps => ({
+    artistsToShow: artistsForGenres(ownProps.artists, getSelectedGenres(store)),
+  });
+}
+
+export default connect(makeMapStateToProps)(ArtistPicker);
