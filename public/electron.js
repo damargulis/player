@@ -18,6 +18,9 @@ const path = require("path");
 const defaultMenu = require("electron-default-menu");
 const fs = require("fs");
 const os = require("os");
+const {externalEffectsAllowed} = require("./devSafety");
+const {fileUrlToPath} = require("./filePaths");
+const lanGuard = require("./lanGuard");
 const systemVolumeControl = require("./systemVolume");
 const watchdog = require("./watchdog");
 const windowSize = require("./windowSize");
@@ -147,9 +150,26 @@ ipcMain.on("extension-close", (evt, arg) => {
   extensionsRunning[arg.extensionId] = null;
 });
 
-/** Forward event to reset the library from main to the App. */
+/**
+ * Asks, then forwards the reset to the App. It replaces the whole library with a fresh iTunes
+ * import — every play count, skip, favourite and extension result since — so one stray click on a
+ * menu item must not be enough. The App snapshots the current library into backups/ first.
+ */
 function resetLibrary() {
-  extEvt.reply("reset-library");
+  dialog.showMessageBox(mainWindow, {
+    buttons: ["Cancel", "Reset Library"],
+    cancelId: 0,
+    defaultId: 0,
+    detail: "This replaces the library with a fresh import from an iTunes export. Play counts, " +
+      "skips, favourites and everything the extensions have found since will be lost. A copy of " +
+      "the current library is saved in the backups folder first.",
+    message: "Reset the library from iTunes?",
+    type: "warning",
+  }).then(({response}) => {
+    if (response === 1 && extEvt) {
+      extEvt.reply("reset-library");
+    }
+  });
 }
 
 /**
@@ -421,6 +441,10 @@ function copyPhoneLink() {
 
 app.on("ready", () => {
   createWindow();
+  // a dev copy would take these from the installed app while it ran (see devSafety.js)
+  if (!externalEffectsAllowed("shortcuts", isDev)) {
+    return;
+  }
   // TODO: media keys dont work ... :(
   globalShortcut.register("CommandOrControl+0", () => {
     extEvt.reply("nextTrack");
@@ -449,7 +473,9 @@ const expressPort = isDev ? 4444 : 4443;
 const express = require("express");
 const expressApp = express();
 const http = require("http").createServer(expressApp);
-const io = require("socket.io")(http);
+// The origin check replaces socket.io's default, which accepts any site, and refuses JSONP
+// polling. See lanGuard.js.
+const io = require("socket.io")(http, {allowRequest: lanGuard.allowSocketRequest});
 
 let lastState = null;
 let lastDjState = null;
@@ -474,6 +500,12 @@ io.on("connection", (socket) => {
   }
 
   socket.on("action", (action) => {
+    // Only what the clients actually send: the renderer also listens for "reset-library",
+    // "run-extension", "dj-run-tool" and more, none of which a LAN device should reach. Dropped
+    // silently, so a new client action that is missing from the allowlist simply does nothing.
+    if (!lanGuard.isRemoteAction(action)) {
+      return;
+    }
     if (action.type === "set-system-volume") {
       // The clients send the level as a bare number, matching the existing setVolume action.
       systemVolumeControl.setSystemVolume(action.data);
@@ -483,7 +515,9 @@ io.on("connection", (socket) => {
       systemVolumeControl.setSystemMuted(action.data);
       return;
     }
-    extEvt.reply(action.type, action.data);
+    if (extEvt) {
+      extEvt.reply(action.type, action.data);
+    }
   });
 });
 
@@ -560,12 +594,43 @@ expressApp.post("/dj/tool", express.json(), (req, res) => {
   extEvt.reply("dj-run-tool", {id, name: req.body.name, input: req.body.input || {}});
 });
 
-expressApp.get("/start-sync", (req, res) => {
+/**
+ * Applies a phone's plays and answers with the playlists it should hold. Parses before listening:
+ * a malformed request used to leave its listener registered, and the next good sync's reply then
+ * went to that stale response — which threw, and the good request was never answered.
+ */
+function startSync(res, plays) {
+  if (!extEvt) {
+    res.status(503).end();
+    return;
+  }
   ipcMain.once("synced-playlists", (evt, data) => {
     res.send(JSON.stringify(data));
   });
-  const plays = JSON.parse(decodeURIComponent(req.query.plays));
   extEvt.reply("get-synced-playlists", plays);
+}
+
+// The play log in the body: in the query string it outgrows the server's 16KB header limit after a
+// few hundred plays, and every sync after that fails. The desktop drops events it has already
+// logged, so a phone resending what was never acknowledged cannot double-count.
+expressApp.post("/start-sync", express.json({limit: "10mb"}), (req, res) => {
+  if (!req.body || typeof req.body !== "object") {
+    res.status(400).end();
+    return;
+  }
+  startSync(res, req.body);
+});
+
+// What phone builds before the POST send.
+expressApp.get("/start-sync", (req, res) => {
+  let plays;
+  try {
+    plays = JSON.parse(decodeURIComponent(req.query.plays || "{}"));
+  } catch (err) {
+    res.status(400).end();
+    return;
+  }
+  startSync(res, plays);
 });
 
 expressApp.get("/get-artist-data/:artistId", (req, res) => {
@@ -591,21 +656,25 @@ expressApp.get("/get-track-data/:trackId", (req, res) => {
 
 expressApp.get("/get-track/:trackId", (req, res) => {
   ipcMain.once("get-track-" + req.params.trackId, (evt, data) => {
-    const fileName = data.filePath;
-    const pathName = decodeURI(fileName.slice(7));
-    res.sendFile(pathName);
+    // an id the library no longer has (deleted on the desktop since the phone synced) answers
+    // undefined; reading a field off that threw in the main process and left the phone waiting
+    if (!data || !data.filePath) {
+      res.status(404).end();
+      return;
+    }
+    res.sendFile(fileUrlToPath(data.filePath));
   });
   extEvt.reply("get-track", req.params.trackId);
 });
 
 expressApp.get("/get-artist-pic/:artistId", (req, res) => {
   ipcMain.once("get-artist-" + req.params.artistId, (evt, data) => {
-    const fileName = data.artFile;
+    const fileName = data && data.artFile;
     if (fileName) {
       // artist art is stored as a plain absolute path, but strip a
       // file:// prefix in case old library entries carry one
       const pathName = fileName.startsWith("file://")
-        ? decodeURI(fileName.slice(7))
+        ? fileUrlToPath(fileName)
         : path.resolve(fileName);
       res.sendFile(pathName);
     } else {
@@ -617,12 +686,13 @@ expressApp.get("/get-artist-pic/:artistId", (req, res) => {
 
 expressApp.get("/get-album-art/:albumId", (req, res) => {
   ipcMain.once("get-album-" + req.params.albumId, (evt, data) => {
-    const fileName = data.albumArtFile;
+    const fileName = data && data.albumArtFile;
     if (fileName) {
-      const pathName = path.resolve(fileName);
-      res.sendFile(pathName);
+      res.sendFile(path.resolve(fileName));
+    } else {
+      // it used to send nothing, so the phone's request hung until it timed out
+      res.status(404).end();
     }
-    // TODO: else send error?
   });
   extEvt.reply("get-album", req.params.albumId);
 });
@@ -709,8 +779,10 @@ function advertiseFallback() {
   require("bonjour")().publish({name: "MyMusic", type: "mymusic", port: expressPort});
 }
 
-advertise();
-
-// legacy advertisement for old mobile builds that browse _http._tcp
-const bonjour = require("bonjour")();
-bonjour.publish({name: "MyMusic", type: "http", port: expressPort});
+// Not from a dev copy: the phone would find it as "MyMusic", sync its plays into the dev library
+// and clear them from the phone (see devSafety.js). Reach a dev copy by IP when testing.
+if (externalEffectsAllowed("bonjour", isDev)) {
+  advertise();
+  // legacy advertisement for old mobile builds that browse _http._tcp
+  require("bonjour")().publish({name: "MyMusic", type: "http", port: expressPort});
+}

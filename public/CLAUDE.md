@@ -2,8 +2,36 @@
 
 Everything here loads without a build step: `electron.js` is the **main process** (plain JS, not
 compiled from `src/`), and the `.html` pages are standalone windows loaded over `file://`. Plain
-modules beside `electron.js` (`watchdog.js`, `windowSize.js`, `systemVolume.js`) are pulled out of it
+modules beside `electron.js` (`watchdog.js`, `windowSize.js`, `systemVolume.js`, `lanGuard.js`, `devSafety.js`) are pulled out of it
 so their logic can be tested — `electron.js` itself has top-level side effects and is not.
+
+## What the LAN may do (`lanGuard.js`)
+
+The Express + socket.io server answers anyone on the network, unauthenticated. The socket's
+`action` events used to be forwarded to the renderer **whatever their type**, and the renderer
+listens for much more than the phone sends: `reset-library` deleted the whole data directory —
+library, backups, play log, DJ memories, lyrics, the backup key — and `run-extension` and
+`dj-run-tool` start API sweeps and write DJ memory. socket.io 2.3 also accepts every Origin by
+default, so a web page in a browser on the laptop could reach it through localhost.
+
+`isRemoteAction` is now an **allowlist** of exactly what the phone, the DJ web page and
+BareController send; anything else is dropped silently. **A new client action needs
+an entry there**, or it silently does nothing. `allowSocketRequest` replaces socket.io's origin
+check: no Origin (native clients, same-origin polls) is allowed; otherwise the Origin's hostname
+must be localhost, a private IPv4 literal or a `.local` name. It compares hostnames rather than
+ports because a DNS-rebound page keeps its own domain in the Origin, and it refuses `"null"`,
+which socket.io's own check reads as "no Origin" although a sandboxed iframe on any site sends it.
+JSONP polling (`j=`) is refused: engine.io checks only the handshake, and a `<script>` tag on any
+site could make one with no Origin, read the session id from the JSONP reply, and post actions on
+it unchecked. engine.io 3.4 has no switch for JSONP — `jsonp: false` was tried, and a live request
+showed it still answering `___eio[0](…)`.
+
+The HTTP routes are still unauthenticated — anyone on the network can download tracks or drive
+`/dj/tool`. A pairing token in the phone and `/dj` links is the real fix and has not been built.
+
+The menu's **Reset from iTunes** asks first. The renderer copies `library.json` into `backups/`
+(`snapshotLibraryFile`), imports, and replaces the library only if the import produced tracks;
+nothing in the data directory is deleted, so art from the old library is left orphaned on disk.
 
 ## The watchdog (`watchdog.js`)
 
