@@ -2,6 +2,7 @@ import {addToPlaylist, deleteTrack, setPlaylist, updateLibrary, updateTrack} fro
 import {Album, Artist, LibraryInfo, Playlist, Track, TrackInfo} from './redux/actionTypes';
 import {remote} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
+import {logPlays} from './eventLog';
 import ExternalLink from './ExternalLink';
 import favoriteImg from './resources/favorite.png';
 import LyricsOverlay from './LyricsOverlay';
@@ -20,6 +21,8 @@ import {RootState} from './redux/store';
 import '../node_modules/react-virtualized/styles.css';
 import TrackEditor from './TrackEditor';
 import './TrackPicker.css';
+import runMusicBrainzTrackExtension from './extensions/musicbrainz/tracks';
+import {describeTracks, resolveSelection} from './trackSelection';
 import {matchesSearch, toTime} from './utils';
 
 // see: http://reactcommunity.org/react-modal/accessibility/#app-element
@@ -48,6 +51,7 @@ interface StateProps {
   getAlbumsByIds(ids: string[]): Album[];
   getGenresByIds(ids: string[]): string[];
   runGeniusExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
+  runMusicBrainzExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
   runLyricsExtension(trackIds: string[]): PromiseLike<LibraryInfo>;
 }
 
@@ -141,6 +145,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
                 <Column dataKey="favorite" width={15} cellRenderer={this.favoriteRenderer}/>
                 <Column dataKey="genius" width={10} cellRenderer={this.geniusRenderer}/>
                 <Column dataKey="lyrics" width={10} cellRenderer={this.lyricsRenderer}/>
+                <Column dataKey="musicbrainz" width={14} cellRenderer={this.musicBrainzRenderer}/>
                 <Column dataKey="duration" label="Time" width={50} />
                 <Column dataKey="artists" label="Artists" width={150} />
                 <Column dataKey="albums" label="Albums" width={150} />
@@ -162,6 +167,11 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private geniusRenderer({cellData}: {cellData?: string}): JSX.Element {
     return (<ExternalLink text="G" link={cellData}/>);
+  }
+
+  /** The track's MusicBrainz recording, once an album run has matched it. */
+  private musicBrainzRenderer({cellData}: {cellData?: string}): JSX.Element {
+    return (<ExternalLink text="M" link={cellData && `https://musicbrainz.org/recording/${cellData}`}/>);
   }
 
   /** Solid when the stored lyrics carry timestamps, dimmed when they are plain text only. */
@@ -288,6 +298,7 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
       year: track.year,
       playing: track.id === this.props.currentlyPlayingId,
       genius: track.genius && track.genius.page,
+      musicbrainz: track.mbid,
       // the id rides along so the L can open the right file on click
       lyrics: track.lyrics && !track.lyrics.instrumental
         ? {id: track.id, synced: track.lyrics.synced}
@@ -364,20 +375,38 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
 
   private favorite(): void {
     const year = new Date().getFullYear();
-    this.state.selected.forEach((id) => {
-      const track = this.state.tracks[id];
-      if (track.favorites.indexOf(year) < 0) {
-        const favorites = [...track.favorites, year];
-        this.props.updateTrack(track.id, {favorites});
-      }
-    });
+    const added = resolveSelection(this.state.tracks, this.state.selected)
+      .filter((track) => track.favorites.indexOf(year) < 0);
+    added.forEach((track) => this.props.updateTrack(track.id, {favorites: [...track.favorites, year]}));
+    logPlays(added.map((track) => ({
+      at: Date.now(),
+      id: track.id,
+      source: 'desktop' as 'desktop',
+      subject: 'track' as 'track',
+      type: 'favorite' as 'favorite',
+    })));
   }
 
   private deleteTracks(): void {
-    this.state.selected.forEach((id) => {
-      const track = this.state.tracks[id];
-      this.props.deleteTrack(track);
+    const tracks = resolveSelection(this.state.tracks, this.state.selected);
+    if (!tracks.length) {
+      return;
+    }
+    const plural = tracks.length > 1;
+    const response = remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+      buttons: ['Cancel', plural ? `Delete ${tracks.length} Tracks` : 'Delete Track'],
+      cancelId: 0,
+      defaultId: 0,
+      detail: `${describeTracks(tracks)}. This removes ${plural ? 'them' : 'it'} from the library, along ` +
+        `with ${plural ? 'their' : 'its'} play counts; the ${plural ? 'files stay' : 'file stays'} on disk.`,
+      message: plural ? `Delete ${tracks.length} tracks?` : 'Delete this track?',
+      type: 'warning',
     });
+    if (response !== 1) {
+      return;
+    }
+    this.setState({selected: []});
+    tracks.forEach((track) => this.props.deleteTrack(track));
   }
 
   private doRowRightClick({index}: {index: number}): void {
@@ -402,6 +431,17 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
     });
   }
 
+  /**
+   * MusicBrainz for the selected tracks: each one's saved recording is looked up directly. Tracks
+   * whose album has never matched have no recording yet; the summary says so.
+   */
+  private runMusicBrainz(): void {
+    const trackIds = resolveSelection(this.state.tracks, this.state.selected).map((track) => track.id);
+    this.props.runMusicBrainzExtension(trackIds).then((updates) => {
+      this.props.updateLibrary(updates);
+    });
+  }
+
   private doRowRightClickNext(index: number): void {
     const menu = new remote.Menu();
     menu.append(new remote.MenuItem({label: 'Edit Info', click: this.edit.bind(this)}));
@@ -414,6 +454,8 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
       label: 'Genius', click: this.runGenius.bind(this),
     }, {
       label: 'Lyrics', click: this.runLyrics.bind(this),
+    }, {
+      label: 'MusicBrainz', click: this.runMusicBrainz.bind(this),
     }]}));
     menu.append(new remote.MenuItem({label: `Delete Track${this.state.selected.length > 1 ? 's' : ''}`,
       click: this.deleteTracks.bind(this)}));
@@ -498,12 +540,12 @@ class TrackPicker extends React.Component<TrackPickerProps, TrackPickerState> {
  * redux action, returning a new array that then defeated the compare which would have skipped
  * the re-render it caused.
  */
-const tracksForGenres = memoize((tracks: Track[], genres: string[]) => tracks.filter((track) => {
+function filterByGenres(tracks: Track[], genres: string[]): Track[] {
   if (!genres.length) {
-    return true;
+    return tracks;
   }
-  return track.genreIds.some((id) => genres.includes(id));
-}));
+  return tracks.filter((track) => track.genreIds.some((id) => genres.includes(id)));
+}
 
 /** Named at module level so its identity is stable enough to be a cache key. */
 const genreNames = (store: RootState, ids: string[]): string[] =>
@@ -512,7 +554,18 @@ const genreNames = (store: RootState, ids: string[]): string[] =>
 /** `Object.values` of the playlists; keyed on the playlists themselves, not the whole store. */
 const playlistsOf = memoize((playlists: Record<string, Playlist>) => Object.values(playlists));
 
-function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
+/**
+ * A factory so each mounted list has its own genre-filter cache. It used to be one module-level
+ * slot: with the Tracks page and an album page both mounted (MaxWindow keeps the scene stack), the
+ * two lists evicted each other on every action and the hidden 21k-track list re-sorted each time.
+ */
+function makeMapStateToProps(): (store: RootState, ownProps: OwnProps) => StateProps {
+  const tracksForGenres = memoize(filterByGenres);
+  return (store: RootState, ownProps: OwnProps): StateProps => mapStateToProps(store, ownProps, tracksForGenres);
+}
+
+function mapStateToProps(store: RootState, ownProps: OwnProps,
+                         tracksForGenres: typeof filterByGenres): StateProps {
   const library = store.library;
   return {
     currentlyPlayingId: getCurrentTrackId(store),
@@ -521,9 +574,11 @@ function mapStateToProps(store: RootState, ownProps: OwnProps): StateProps {
     getGenresByIds: boundTo(library, store, genreNames),
     playlists: playlistsOf(library.playlists),
     runGeniusExtension: boundTo(library, store, runGeniusExtension),
+    runMusicBrainzExtension: boundTo(library, store, runMusicBrainzTrackExtension),
     runLyricsExtension: boundTo(library, store, runLyricsExtension),
     tracksToShow: tracksForGenres(ownProps.tracks, getSelectedGenres(store)),
   };
 }
 
-export default connect(mapStateToProps, {setPlaylist, updateLibrary, updateTrack, addToPlaylist, deleteTrack})(TrackPicker);
+export default connect(makeMapStateToProps,
+  {setPlaylist, updateLibrary, updateTrack, addToPlaylist, deleteTrack})(TrackPicker);

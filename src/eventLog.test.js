@@ -1,5 +1,5 @@
 import {bucketFor, bucketStart, dayOf, nextBucket, ofType, onlyPlays, parseEntry, playsByBucket,
-  playsByDay, playsByHour, playsByTrack, since, spanInDays} from "./eventLog";
+  playsByDay, playsByHour, playsByTrack, since, spanInDays, toggleFavorite} from "./eventLog";
 
 /**
  * The log is the listening history `Track.playDate` cannot be — that holds one date per song.
@@ -206,5 +206,21 @@ describe("bucketing a window", () => {
     const now = at(2026, 11, 10);
     expect(spanInDays([play(at(2026, 11, 8))], now)).toEqual(3);
     expect(spanInDays([], now)).toEqual(1);
+  });
+});
+
+/**
+ * Shared by the desktop heart and the phone's. The phone's used to toggle the year without logging
+ * anything, so its favourites never reached the Stats page.
+ */
+describe("toggleFavorite", () => {
+  it("adds this year as a favourite without touching the list it was given", () => {
+    const before = [2024];
+    expect(toggleFavorite(before, 2026)).toEqual({favorites: [2024, 2026], type: "favorite"});
+    expect(before).toEqual([2024]);
+  });
+
+  it("removes this year as an unfavourite, leaving other years", () => {
+    expect(toggleFavorite([2024, 2026], 2026)).toEqual({favorites: [2024], type: "unfavorite"});
   });
 });

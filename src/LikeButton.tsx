@@ -1,4 +1,4 @@
-import {EventSubject, logPlays} from './eventLog';
+import {EventSubject, logPlays, toggleFavorite} from './eventLog';
 import favoriteButton from './resources/favorite.png';
 import * as React from 'react';
 import {connect} from 'react-redux';
@@ -54,23 +54,9 @@ class LikeButton<T extends Likeable> extends React.Component<LikeButtonProps<T>>
     if (!this.props.item) {
       return;
     }
-    const favorites = this.props.item.favorites.slice();
-    const year = new Date().getFullYear();
-    const index = favorites.indexOf(year);
-    const adding = index === -1;
-    if (adding) {
-      favorites.push(year);
-    } else {
-      favorites.splice(index, 1);
-    }
-    this.props.update(this.props.item.id, {favorites: favorites});
-    logPlays([{
-      at: Date.now(),
-      id: this.props.item.id,
-      source: 'desktop',
-      subject: this.props.subject,
-      type: adding ? 'favorite' : 'unfavorite',
-    }]);
+    const {favorites, type} = toggleFavorite(this.props.item.favorites, new Date().getFullYear());
+    this.props.update(this.props.item.id, {favorites});
+    logPlays([{at: Date.now(), id: this.props.item.id, source: 'desktop', subject: this.props.subject, type}]);
   }
 }
 

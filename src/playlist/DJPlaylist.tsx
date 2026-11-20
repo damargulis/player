@@ -1,4 +1,5 @@
 import EmptyPlaylist from './EmptyPlaylist';
+import {keepKnown, SavedDJQueue} from './savedQueue';
 
 /** How the queue last moved, so the DJ can tell a track skip from a whole-album rejection. */
 /** Marks a queue move as the DJ's own rather than a listener's. */
@@ -29,6 +30,7 @@ export interface QueueEntry {
  * next and can be rewritten at any time without touching the current track.
  */
 export default class DJPlaylist extends EmptyPlaylist {
+
   private history: QueueEntry[];
   private upcoming: QueueEntry[];
   private current: number;
@@ -43,6 +45,18 @@ export default class DJPlaylist extends EmptyPlaylist {
     this.history = [];
     this.upcoming = seedTrackId ? [{id: seedTrackId}] : [];
     this.current = -1;
+  }
+  /** Undefined when the track that was playing no longer exists. */
+  public static fromSaved(saved: SavedDJQueue, exists: (id: string) => boolean): DJPlaylist | undefined {
+    const {items, index} = keepKnown(saved.history, saved.current, (entry) => entry.id, exists);
+    if (index < 0) {
+      return undefined;
+    }
+    const playlist = new DJPlaylist();
+    playlist.history = items;
+    playlist.current = index;
+    playlist.upcoming = saved.upcoming.filter((entry) => exists(entry.id));
+    return playlist;
   }
 
   /**
@@ -189,6 +203,18 @@ export default class DJPlaylist extends EmptyPlaylist {
    * *leading* duplicate is dropped, so deliberately re-queueing something later still works.
    */
   /** Describes the last queue rewrite, for diagnosing a queue that empties unexpectedly. */
+  public save(): SavedDJQueue | undefined {
+    if (this.current < 0) {
+      return undefined;
+    }
+    return {
+      current: this.current,
+      history: this.history.map((entry) => Object.assign({}, entry)),
+      kind: 'dj',
+      upcoming: this.upcoming.map((entry) => Object.assign({}, entry)),
+    };
+  }
+
   public lastWrite(): {at: number; size: number} {
     return {at: this.lastWriteAt, size: this.lastWriteSize};
   }

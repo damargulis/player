@@ -70,7 +70,7 @@ class ControlPanel extends React.Component<ControlPanelProps, ControlPanelState>
         <input
           alt="previous track"
           className="control-button"
-          disabled={!this.props.hasPrevTrack}
+          disabled={!this.props.currentTrack}
           onClick={this.props.prevTrack}
           src={prevTrackImg}
           type="image"

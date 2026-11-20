@@ -1,4 +1,6 @@
-import {countsByTrack, latestPlayedAt, ofType, parseSyncedPlays} from "./syncedPlays";
+import {
+  countsByTrack, latestPlayedAt, notYetApplied, ofType, parseSyncedPlays, syncedTrackUpdates,
+} from "./syncedPlays";
 
 /**
  * Two wire shapes have to work at once. The original is a bare `{trackId: count}` map — all a
@@ -104,5 +106,74 @@ describe("skips over the wire", () => {
   /** The bare count map predates both and can only mean plays. */
   it("still treats the original map as plays", () => {
     expect(parseSyncedPlays({abc: 2})).toEqual([{count: 2, id: "abc", type: "play"}]);
+  });
+});
+
+/**
+ * A sync used to dispatch one updateTrack per track, and every mutating action saves the whole
+ * library — five seconds of frozen window for 150 tracks. It is one delta now, which means the
+ * play and skip halves for a track have to be merged rather than the second overwriting the first.
+ */
+describe("syncedTrackUpdates", () => {
+  const library = {
+    t1: {id: "t1", playCount: 10, skipCount: 2, playDate: new Date(1000)},
+    t2: {id: "t2", playCount: 0, skipCount: 0, playDate: undefined},
+  };
+  const getTrack = (id) => library[id];
+
+  it("folds every track into one delta, plays and skips together", () => {
+    const events = parseSyncedPlays({
+      plays: [{i: "t1", t: 5000}, {i: "t1", t: 7000}, {i: "t2", t: 6000}],
+      skips: [{i: "t1", t: 8000}],
+      v: 3,
+    });
+    const updates = syncedTrackUpdates(events, getTrack, 9000);
+    expect(Object.keys(updates).sort()).toEqual(["t1", "t2"]);
+    expect(updates.t1).toEqual({playCount: 12, playDate: new Date(7000), skipCount: 3});
+    expect(updates.t2).toEqual({playCount: 1, playDate: new Date(6000)});
+  });
+
+  it("never rewinds playDate and leaves unknown tracks out", () => {
+    const events = parseSyncedPlays({
+      plays: [{i: "t1", t: 500}, {i: "gone", t: 600}],
+      skips: [{i: "gone", t: 700}],
+      v: 3,
+    });
+    const updates = syncedTrackUpdates(events, getTrack, 9000);
+    expect(Object.keys(updates)).toEqual(["t1"]);
+    expect(updates.t1.playDate).toEqual(new Date(1000));
+  });
+
+  it("gives an untimed play the sync moment", () => {
+    const updates = syncedTrackUpdates(parseSyncedPlays({t2: 2}), getTrack, 9000);
+    expect(updates.t2).toEqual({playCount: 2, playDate: new Date(9000)});
+  });
+});
+
+/**
+ * The phone resends everything a sync did not acknowledge, so a reply lost after the desktop had
+ * applied the plays brings them back a second time. The log is what says they were applied.
+ */
+describe("notYetApplied", () => {
+  const log = [
+    {type: "play", id: "t1", at: 5000, source: "phone", estimated: false},
+    {type: "skip", id: "t2", at: 6000, source: "phone", estimated: false},
+    {type: "play", id: "t3", at: 7000, source: "desktop", estimated: false},
+    {type: "play", id: "t4", at: 8000, source: "phone", estimated: true},
+  ];
+
+  it("drops phone events the log already holds, by track, type and moment", () => {
+    const events = parseSyncedPlays({
+      plays: [{i: "t1", t: 5000}, {i: "t1", t: 5001}, {i: "t2", t: 6000}],
+      skips: [{i: "t2", t: 6000}],
+      v: 3,
+    });
+    expect(notYetApplied(events, log).map((e) => `${e.type} ${e.id} ${e.at}`))
+      .toEqual(["play t1 5001", "play t2 6000"]);
+  });
+
+  it("does not match desktop plays or estimated stamps, and always passes untimed counts", () => {
+    const events = parseSyncedPlays({counts: {t9: 2}, plays: [{i: "t3", t: 7000}, {i: "t4", t: 8000}], v: 3});
+    expect(notYetApplied(events, log)).toHaveLength(3);
   });
 });

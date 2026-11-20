@@ -10,7 +10,7 @@ import Links from './Links';
 import runWikiExtension from './extensions/wiki/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
 import runCoverArtExtension from './extensions/coverart/main';
-import {boundTo, memoize} from './redux/memo';
+import {boundTo, libraryMemo} from './redux/memo';
 import defaultAlbum from './resources/missing_album.png';
 import MusicBrainzLabel from './MusicBrainzLabel';
 import NavigationBar from './NavigationBar';
@@ -25,6 +25,7 @@ import {
 import shortid from 'shortid';
 import reduxStore, {RootState} from './redux/store';
 import TrackPicker from './TrackPicker';
+import {planWarningAcceptance} from './trackWarnings';
 import {getImgSrc, toTime} from './utils';
 import WikiLabel from './WikiLabel';
 
@@ -277,36 +278,14 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
   }
 
   private acceptTrackWarnings(): void {
-    const newArtistNamesToId = new Map();
-    this.props.warnings.forEach((warning, index) => {
-      if (Object.keys(warning).length === 0) {
-        return;
-      }
-      const featuredArtists = (warning.featuring || []).map((artistName) => {
-        const artist = this.props.getArtistByName(artistName);
-        if (artist) {
-          return artist.id;
-        }
-        if (newArtistNamesToId.has(artistName)) {
-          return newArtistNamesToId.get(artistName);
-        }
-        const newId = shortid.generate();
-        newArtistNamesToId.set(artistName, newId);
-        this.props.updateArtist(newId, {
-          name: artistName,
-          genreIds: [],
-          albumIds: [],
-          errors: [],
-          trackIds: [this.props.album.trackIds[index]],
-        });
-        return newId;
-      });
-      this.props.updateTrack(this.props.album.trackIds[index], {
-        ...warning,
-        warning: undefined,
-        artistIds: [...this.props.album.artistIds, ...featuredArtists],
-      });
+    const plan = planWarningAcceptance(this.props.album.trackIds, this.props.warnings,
+      (id) => this.props.getTrackById(id), (name) => this.props.getArtistByName(name), () => shortid.generate());
+    // artists first: creating one with its trackIds also credits it on those tracks
+    plan.newArtists.forEach((artist) => {
+      this.props.updateArtist(artist.id, {albumIds: [], errors: [], genreIds: [], name: artist.name,
+        trackIds: artist.trackIds});
     });
+    plan.trackUpdates.forEach(({id, info}) => this.props.updateTrack(id, info));
   }
 
   private getWarnings(): JSX.Element | undefined {
@@ -400,35 +379,39 @@ class AlbumPage extends React.Component<AlbumPageProps, AlbumPageState> {
 }
 
 /** Each returns a new array, so both are memoised on the library and the album they read. */
-const artistsOf = memoize((library: object, state: RootState, album: Album) =>
-  getArtistsByIds(state, album.artistIds));
-const tracksOf = memoize((library: object, state: RootState, album: Album) =>
-  getTracksByIds(state, album.trackIds));
-const warningsOf = memoize((library: object, state: RootState, album: Album) =>
-  getWarningsFromAlbum(state, album));
 /** Wrapped so the extension runners have the (state, ids) shape `boundTo` caches. */
 const runWikiForAlbums = (state: RootState, albumIds: string[]) =>
   runWikiExtension(albumIds, /* artistIds= */ [], state);
 const runMusicBrainzForAlbums = (state: RootState, albumIds: string[]) =>
   runMusicBrainzExtension(albumIds, /* artistIds= */ [], state);
 
-function mapStateToProps(state: RootState, ownProps: OwnProps): StateProps {
-  const library = state.library;
-  const album = getAlbumById(state, ownProps.albumId);
-  return {
-    album,
-    artists: artistsOf(library, state, album),
-    getArtistByName: boundTo(library, state, getArtistByName),
-    getGenreById: boundTo(library, state, getGenreById),
-    getTrackById: boundTo(library, state, getTrackById),
-    getTracksByIds: boundTo(library, state, getTracksByIds),
-    runCoverArtExtension: boundTo(library, state, runCoverArtExtension),
-    runMusicBrainzExtension: boundTo(library, state, runMusicBrainzForAlbums),
-    runWikiExtension: boundTo(library, state, runWikiForAlbums),
-    tracks: tracksOf(library, state, album),
-    warnings: warningsOf(library, state, album),
+/**
+ * A factory, so each mounted page has its own caches: they used to be module-level and keyed on
+ * the root state, which changes on every action, so they never hit — the page re-rendered and
+ * re-sorted its tracks about four times a second through playback.
+ */
+function makeMapStateToProps(): (state: RootState, ownProps: OwnProps) => StateProps {
+  const artistsOf = libraryMemo(getArtistsByIds);
+  const tracksOf = libraryMemo(getTracksByIds);
+  const warningsOf = libraryMemo(getWarningsFromAlbum);
+  return (state: RootState, ownProps: OwnProps): StateProps => {
+    const library = state.library;
+    const album = getAlbumById(state, ownProps.albumId);
+    return {
+      album,
+      artists: artistsOf(state, album.artistIds),
+      getArtistByName: boundTo(library, state, getArtistByName),
+      getGenreById: boundTo(library, state, getGenreById),
+      getTrackById: boundTo(library, state, getTrackById),
+      getTracksByIds: boundTo(library, state, getTracksByIds),
+      runCoverArtExtension: boundTo(library, state, runCoverArtExtension),
+      runMusicBrainzExtension: boundTo(library, state, runMusicBrainzForAlbums),
+      runWikiExtension: boundTo(library, state, runWikiForAlbums),
+      tracks: tracksOf(state, album.trackIds),
+      warnings: warningsOf(state, album),
+    };
   };
 }
 
-export default connect(mapStateToProps,
+export default connect(makeMapStateToProps,
   {deleteAlbum, setPlaylist, updateAlbum, updateArtist, updateLibrary, updateTrack})(AlbumPage);

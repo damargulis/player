@@ -239,27 +239,41 @@ function parseItunesFile(file: string): ItunesData {
 /**
  * Gets the album art from an mp3 file. Saves the the art into its own file and
  * returns a promise with the file path.
+ *
+ * Always settles: `Promise.all` over every album waits on it, so a single moved or unreadable file
+ * that never resolved used to hang the whole import — and this library has 55 of them.
  */
 function getAlbumArt(filePath: string): Promise<string | undefined> {
   return new Promise((resolve) => {
-    filePath = decodeURI(filePath.slice(7)).replace('%23', '#');
+    let localPath: string;
     try {
-      const readStream = fs.createReadStream(filePath);
-      mm(readStream, (err: Error | undefined, data: {picture: Array<{data: Buffer}>}) => {
-        const id = shortid.generate();
-        if (err) {
+      // decodeURIComponent, not decodeURI: decodeURI leaves reserved escapes such as %23 ("#")
+      // encoded, which is what the old one-off replace('%23', '#') was patching for one "#" only
+      localPath = decodeURIComponent(filePath.replace(/^file:\/\//, ''));
+    } catch (err) {
+      resolve(undefined);
+      return;
+    }
+    try {
+      const readStream = fs.createReadStream(localPath);
+      readStream.on('error', () => resolve(undefined));
+      mm(readStream, (err: Error | undefined, data?: {picture?: Array<{data: Buffer}>}) => {
+        readStream.close();
+        const picture = !err && data && data.picture && data.picture[0];
+        if (!picture || !picture.data) {
+          resolve(undefined);
           return;
         }
-        if (data.picture[0] && data.picture[0].data) {
-          fs.writeFileSync(`${DATA_DIR}/${id}.png`, data.picture[0].data);
-        } else {
-          resolve();
+        const artPath = `${DATA_DIR}/${shortid.generate()}.png`;
+        try {
+          fs.writeFileSync(artPath, picture.data);
+          resolve(artPath);
+        } catch (writeErr) {
+          resolve(undefined);
         }
-        readStream.close();
-        resolve(`${DATA_DIR}/${id}.png`);
       });
     } catch (err) {
-      resolve();
+      resolve(undefined);
     }
   });
 }

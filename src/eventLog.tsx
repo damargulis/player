@@ -98,6 +98,20 @@ export interface NewPlay {
 }
 
 /**
+ * Toggles this year in a favourites list, and says which event that is. `favorites` is a list of
+ * *years*, so un-favouriting leaves no trace in the library; the log entry is the only record.
+ * Shared by the desktop heart and the phone's, which used to toggle without logging anything.
+ */
+export function toggleFavorite(favorites: number[], year: number):
+    {favorites: number[]; type: 'favorite' | 'unfavorite'} {
+  const index = favorites.indexOf(year);
+  if (index === -1) {
+    return {favorites: favorites.concat([year]), type: 'favorite'};
+  }
+  return {favorites: favorites.filter((_, i) => i !== index), type: 'unfavorite'};
+}
+
+/**
  * Appends plays.
  *
  * Synchronous on purpose. These are tens of bytes and happen once every few minutes, so the

@@ -1,3 +1,6 @@
+import {Track, TrackInfo} from './redux/actionTypes';
+import {PlayEntry} from './eventLog';
+
 /**
  * Reading the `plays=` payload a phone sends with `/start-sync`.
  *
@@ -99,4 +102,61 @@ export function latestPlayedAt(plays: SyncedPlay[], trackId: string): number | u
   return plays
     .filter((play) => play.id === trackId && play.at !== undefined)
     .reduce((latest, play) => Math.max(latest, play.at as number), 0) || undefined;
+}
+
+/**
+ * Every track change one phone sync makes, as a single delta for `updateLibrary`.
+ *
+ * It used to be one `updateTrack` per track, and the library reducer stringifies and saves the
+ * whole ~13MB library on every mutating action — ~30ms each, so a sync touching 150 tracks froze
+ * the window for about five seconds. One delta is one save. Plays and skips for the same track
+ * are merged here, since the second dispatch used to read the first one's result.
+ */
+export function syncedTrackUpdates(
+  events: SyncedPlay[],
+  getTrack: (id: string) => Track | undefined,
+  syncedAt: number,
+): Record<string, TrackInfo> {
+  const updates: Record<string, TrackInfo> = {};
+  const plays = ofType(events, 'play');
+  const playCounts = countsByTrack(plays);
+  Object.keys(playCounts).forEach((trackId) => {
+    const track = getTrack(trackId);
+    if (!track) {
+      return;
+    }
+    const playedAt = latestPlayedAt(plays, trackId);
+    updates[trackId] = {
+      playCount: track.playCount + playCounts[trackId],
+      // only move playDate forward: an old sync arriving late must not rewind it
+      playDate: new Date(Math.max(playedAt || syncedAt, track.playDate ? track.playDate.getTime() : 0)),
+    };
+  });
+  // the phone counts a skip the same way the desktop does, so they mean the same thing
+  const skipCounts = countsByTrack(ofType(events, 'skip'));
+  Object.keys(skipCounts).forEach((trackId) => {
+    const track = getTrack(trackId);
+    if (track) {
+      updates[trackId] = {...updates[trackId], skipCount: (track.skipCount || 0) + skipCounts[trackId]};
+    }
+  });
+  return updates;
+}
+
+/**
+ * Drops the timed events this desktop has already applied, judged against its own play log.
+ *
+ * The phone keeps everything until a sync is acknowledged, so a sync whose reply was lost after
+ * the desktop applied it is sent again. The log already holds each applied phone event with the
+ * phone's own timestamp, so the same track, type and moment is the same event — no batch ids.
+ * Untimed counts from old phone builds carry nothing to compare and always pass.
+ */
+export function notYetApplied(events: SyncedPlay[], log: PlayEntry[]): SyncedPlay[] {
+  const seen = new Set<string>();
+  log.forEach((entry) => {
+    if (entry.source === 'phone' && !entry.estimated && (entry.type === 'play' || entry.type === 'skip')) {
+      seen.add(`${entry.type}|${entry.id}|${entry.at}`);
+    }
+  });
+  return events.filter((event) => event.at === undefined || !seen.has(`${event.type}|${event.id}|${event.at}`));
 }

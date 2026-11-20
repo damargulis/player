@@ -15,8 +15,14 @@ export function getAlbumById(store: RootState, albumId: string): Album {
   return store.library.albums[albumId];
 }
 
+/**
+ * Skips ids the library does not have. One dangling reference — a track crediting an artist that
+ * was lost — used to put `undefined` into every list built from it, and the album page, the
+ * artist page and the track list all crashed on it. Tracks are deliberately not filtered: their
+ * lists are positional (`getWarningsFromAlbum`, the tracklist match).
+ */
 export function getAlbumsByIds(store: RootState, albumIds: string[]): Album[] {
-  return albumIds.map((id) => getAlbumById(store, id));
+  return albumIds.map((id) => getAlbumById(store, id)).filter((album): album is Album => !!album);
 }
 
 export function getAllAlbums(store: RootState): Album[] {
@@ -39,8 +45,9 @@ export function getArtistById(store: RootState, artistId: string): Artist {
   return store.library.artists[artistId];
 }
 
+/** Skips ids the library does not have; see getAlbumsByIds. */
 export function getArtistsByIds(store: RootState, artistIds: string[]): Artist[] {
-  return artistIds.map((id) => getArtistById(store, id));
+  return artistIds.map((id) => getArtistById(store, id)).filter((artist): artist is Artist => !!artist);
 }
 
 export function getGenres(store: RootState): Genre[] {

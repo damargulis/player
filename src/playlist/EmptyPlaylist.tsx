@@ -1,4 +1,6 @@
 
+import {SavedQueue} from './savedQueue';
+
 export default class EmptyPlaylist {
   public getCurrentTrack(): string | undefined {
     return undefined;
@@ -35,5 +37,10 @@ export default class EmptyPlaylist {
    */
   public getUpcoming(): string[] {
     return [];
+  }
+
+  /** What `queue.json` should hold for this queue; nothing for a queue with nothing in it. */
+  public save(): SavedQueue | undefined {
+    return undefined;
   }
 }

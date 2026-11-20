@@ -27,6 +27,7 @@ const track = {
   genreIds: ['genre-1'],
   id: 'track-1',
   lyrics: {errors: [], fetchedAt: 1700000000000, instrumental: false, synced: true},
+  mbid: 'f6dc0978-4e35-41c5-a653-f8b78765da51',
   name: 'Song',
   playCount: 12,
   playDate: new Date('2024-01-01T00:00:00.000Z'),

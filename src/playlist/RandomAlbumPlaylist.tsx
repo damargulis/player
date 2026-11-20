@@ -1,7 +1,9 @@
 import {Album} from '../redux/actionTypes';
 import EmptyPlaylist from './EmptyPlaylist';
+import {keepKnown, SavedAlbumQueue} from './savedQueue';
 
 export default class RandomAlbumPlaylist extends EmptyPlaylist {
+
   private playlist: Album[];
   private currentAlbum: number;
   private currentTrack: number;
@@ -13,6 +15,23 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
     this.currentAlbum = -1;
     this.currentTrack = -1;
     this.albums = albums;
+  }
+  /**
+   * Rebuilds a saved shuffle against the library as it is now. Undefined when the album that was
+   * playing no longer exists, and the caller starts a fresh shuffle instead.
+   */
+  public static fromSaved(saved: SavedAlbumQueue, albums: Record<string, Album>): RandomAlbumPlaylist | undefined {
+    const {items, index} = keepKnown(saved.albumIds, saved.currentAlbum, (id) => id,
+      (id) => !!albums[id] && albums[id].trackIds.length > 0);
+    if (index < 0) {
+      return undefined;
+    }
+    const playlist = new RandomAlbumPlaylist(Object.values(albums));
+    playlist.playlist = items.map((id) => albums[id]);
+    playlist.currentAlbum = index;
+    const trackIndex = saved.currentTrackId ? playlist.playlist[index].trackIds.indexOf(saved.currentTrackId) : -1;
+    playlist.currentTrack = Math.max(0, trackIndex);
+    return playlist;
   }
 
   public getCurrentAlbum(): Album {
@@ -82,6 +101,18 @@ export default class RandomAlbumPlaylist extends EmptyPlaylist {
       return [];
     }
     return album.trackIds.slice(this.currentTrack + 1);
+  }
+
+  public save(): SavedAlbumQueue | undefined {
+    if (!this.getCurrentAlbum()) {
+      return undefined;
+    }
+    return {
+      albumIds: this.playlist.map((album) => album.id),
+      currentAlbum: this.currentAlbum,
+      currentTrackId: this.getCurrentTrack(),
+      kind: 'album',
+    };
   }
 
   public addAlbum(album: Album): void {

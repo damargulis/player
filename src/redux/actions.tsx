@@ -17,6 +17,7 @@ import {
   PREV_ALBUM,
   PREV_TRACK,
   RESET_LIBRARY,
+  RESTORE_PLAYBACK,
   SAVE_NEW_TRACKS,
   SET_GENRES,
   SET_PLAYLIST,
@@ -33,7 +34,8 @@ import {
 import EmptyPlaylist from '../playlist/EmptyPlaylist';
 import fs from 'fs';
 import mm from 'musicmetadata';
-import {noteAlbumSkip, noteRewind} from '../skips';
+import {noteAlbumSkip, noteRewind, takeRewind} from '../skips';
+import {RootState} from './store';
 
 export const updateTime = (time: number) => ({
   payload: {time},
@@ -76,9 +78,37 @@ export const nextAlbum = () => (noteAlbumSkip(), {
 
 // Going back is not a skip, and these two creators are the single funnel for every route that
 // does it — the transport buttons, Cmd+8 and either phone. See skips.tsx.
-export const prevTrack = () => (noteRewind(), {
-  type: PREV_TRACK,
-});
+/** Past this far into a track, Previous restarts it rather than going back. */
+export const RESTART_AFTER_SECONDS = 3;
+
+/** The usual player rule; also what Previous does with nothing behind it to go back to. */
+export function shouldRestart(time: number, hasPrevious: boolean): boolean {
+  return time > RESTART_AFTER_SECONDS || !hasPrevious;
+}
+
+/**
+ * Previous: restart the track when it is more than a few seconds in, otherwise go back one.
+ *
+ * A thunk because the decision needs the playing position. Restarting changes no track, so it
+ * sets no rewind marker — and going back clears the marker again if the track did not change in
+ * the end, because an unconsumed marker swallowed the next real skip. Every route goes through
+ * here: the button, Cmd+8, the phone, and the media keys.
+ */
+export const prevTrack = () => (dispatch: (action: object) => void, getState: () => RootState) => {
+  const {currentlyPlayingId, playlist, time} = getState().currentlyPlaying;
+  if (currentlyPlayingId === undefined) {
+    return;
+  }
+  if (shouldRestart(time, playlist.hasPrevTrack())) {
+    dispatch(setTime(0));
+    return;
+  }
+  noteRewind();
+  dispatch({type: PREV_TRACK});
+  if (getState().currentlyPlaying.currentlyPlayingId === currentlyPlayingId) {
+    takeRewind();
+  }
+};
 
 export const prevAlbum = () => (noteRewind(), {
   type: PREV_ALBUM,
@@ -90,6 +120,11 @@ export const playPause = () => ({
 
 export const djQueueUpdated = () => ({
   type: DJ_QUEUE_UPDATED,
+});
+
+export const restorePlayback = (playlist: EmptyPlaylist, time: number) => ({
+  payload: {playlist, time},
+  type: RESTORE_PLAYBACK,
 });
 
 export const setTime = (time: number) => ({

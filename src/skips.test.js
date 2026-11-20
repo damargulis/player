@@ -59,8 +59,17 @@ describe("the backwards action creators mark a rewind", () => {
 
   beforeEach(() => takeRewind());
 
-  it("prevTrack marks it", () => {
-    actions.prevTrack();
+  // a thunk now, since a track more than three seconds in is restarted rather than left;
+  // prevTrack.test.js covers the restart and the no-change cases
+  it("prevTrack marks it when it actually goes back", () => {
+    let id = "b";
+    const state = () => ({currentlyPlaying: {currentlyPlayingId: id, playlist: {hasPrevTrack: () => true},
+      time: 0}});
+    actions.prevTrack()((action) => {
+      if (action.type === "PREV_TRACK") {
+        id = "a";
+      }
+    }, state);
     expect(takeRewind()).toBe(true);
   });
 
@@ -77,7 +86,6 @@ describe("the backwards action creators mark a rewind", () => {
   });
 
   it("still returns the action it always did", () => {
-    expect(actions.prevTrack().type).toBe("PREV_TRACK");
     expect(actions.prevAlbum().type).toBe("PREV_ALBUM");
   });
 });

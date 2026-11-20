@@ -2,7 +2,6 @@ import {Album, Artist, Genre, LibraryState, Track} from '../redux/actionTypes';
 import {DATA_DIR} from '../constants';
 import {ExtensionError, migrateLegacyErrors, withError, withSourceErrors} from '../extensions/errors';
 import fs from 'fs';
-import path from 'path';
 
 /**
  * Genre names that are plainly not genres.
@@ -44,6 +43,16 @@ function dropJunkGenres(libraryData: LibraryState): Record<string, Genre> {
 }
 
 /**
+ * The id an entity was saved under. The key is what everything else refers to it by; the stored
+ * `id` field only repeats it. An entity saved without that field (an artist created from a track
+ * hint before the reducer set it) used to be re-keyed to "undefined" here, which disconnected it
+ * from every track crediting it and broke each page listing those tracks.
+ */
+function savedId(key: string, entity: {id?: string}): string {
+  return entity.id || key;
+}
+
+/**
  * Loads a library from a given file.
  */
 export function loadLibrary(libraryFile: string): Promise<LibraryState> {
@@ -56,9 +65,10 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
       try {
         const libraryData = JSON.parse(data.toString()) as LibraryState;
         return resolve({
-          albums: Object.values(libraryData.albums).reduce((map: Record<string, Album>, albumData: Album) => {
-            map[albumData.id] = {
-            id: albumData.id,
+          albums: Object.entries(libraryData.albums).reduce((map: Record<string, Album>, [key, albumData]) => {
+            const id = savedId(key, albumData);
+            map[id] = {
+            id,
             // ALBUM_ART says "this album has no art", so it is derived from whether it has a
             // file rather than trusted from storage — 257 albums here were flagged despite
             // having art, and 34 without any were not flagged at all.
@@ -85,9 +95,10 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             return map;
           }, {} as Record<string, Album>),
 
-          artists: Object.values(libraryData.artists).reduce((map: Record<string, Artist>, artistData: Artist) => {
-          map[artistData.id] = {
-            id: artistData.id,
+          artists: Object.entries(libraryData.artists).reduce((map: Record<string, Artist>, [key, artistData]) => {
+          const id = savedId(key, artistData);
+          map[id] = {
+            id,
             name: artistData.name,
             albumIds: artistData.albumIds,
             artFile: artistData.artFile,
@@ -104,9 +115,10 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
           };
           return map;
           }, {} as Record<string, Artist>),
-          tracks: Object.values(libraryData.tracks).reduce((map: Record<string, Track>, trackData: Track) => {
-        map[trackData.id] = {
-            id: trackData.id,
+          tracks: Object.entries(libraryData.tracks).reduce((map: Record<string, Track>, [key, trackData]) => {
+        const id = savedId(key, trackData);
+        map[id] = {
+            id,
             duration: trackData.duration,
             playCount: trackData.playCount,
             playDate: new Date(trackData.playDate),
@@ -126,6 +138,7 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
             // restart silently erased 18,949 lyrics markers while leaving the .lrc files on
             // disk. `libraryRoundTrip.test.js` now fails if any field is left out again.
             lyrics: trackData.lyrics,
+            mbid: trackData.mbid,
             warning: trackData.warning,
         };
         return map;
@@ -142,27 +155,20 @@ export function loadLibrary(libraryFile: string): Promise<LibraryState> {
 }
 
 /**
- * Deletes a directory and all its contents.
+ * Copies library.json into backups/ under the same `<ms>.json` name the daily backups use, so
+ * any restore that reads those finds it and pruning treats it like the rest. Returns the copy's
+ * path, or undefined when there is no library to copy.
  */
-function deleteRecursive(filepath: string): void {
-  if (!fs.existsSync(filepath)) {
-    return;
+export function snapshotLibraryFile(): string | undefined {
+  const source = `${DATA_DIR}/library.json`;
+  if (!fs.existsSync(source)) {
+    return undefined;
   }
-  fs.readdirSync(filepath).forEach((file: string) => {
-    const curPath = path.join(filepath, file);
-    if (fs.lstatSync(curPath).isDirectory()) {
-      deleteRecursive(curPath);
-    } else {
-      fs.unlinkSync(curPath);
-    }
-  });
-  fs.rmdirSync(filepath);
-}
-
-/** Deletes the data directory. */
-export function deleteLibrary(): Promise<void> {
-  return new Promise((resolve) => {
-    deleteRecursive(DATA_DIR);
-    resolve();
-  });
+  const backups = `${DATA_DIR}/backups`;
+  if (!fs.existsSync(backups)) {
+    fs.mkdirSync(backups);
+  }
+  const target = `${backups}/${Date.now()}.json`;
+  fs.copyFileSync(source, target);
+  return target;
 }

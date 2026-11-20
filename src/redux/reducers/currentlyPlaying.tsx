@@ -8,6 +8,7 @@ import {
   PLAY_PAUSE,
   PREV_ALBUM,
   PREV_TRACK,
+  RESTORE_PLAYBACK,
   SET_PLAYLIST,
   SET_TIME,
   SWAP_PLAYLIST,
@@ -40,6 +41,16 @@ const currentlyPlaying = (state = initialState, action: CurrentlyPlayingActionTy
     case CHANGE_VOLUME: {
       return Object.assign({}, state, {
         volume: action.payload.volume,
+      });
+    }
+    case RESTORE_PLAYBACK: {
+      // paused: a launch must never start the music on its own
+      return Object.assign({}, state, {
+        currentlyPlayingId: action.payload.playlist.getCurrentTrack(),
+        isPlaying: false,
+        playlist: action.payload.playlist,
+        setTime: action.payload.time,
+        time: action.payload.time,
       });
     }
     case SET_PLAYLIST: {

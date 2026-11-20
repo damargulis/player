@@ -29,7 +29,9 @@ called "v", and an empty sync is the common case. `counts` carries whatever a pr
 build was still holding: those have no time to give, so they are stamped with the sync moment
 and marked `est`, which keeps them out of the by-hour chart (they would pile a day onto the
 hour the phone came home) while still counting toward days and totals. A sync only ever moves
-`playDate` forward, so a late sync cannot rewind it. `PlayTracker` also now clears **exactly
+`playDate` forward, so a late sync cannot rewind it. The whole sync is applied as **one** `updateLibrary` delta
+(`syncedTrackUpdates`): it was one `updateTrack` per track, and every mutating action saves the
+whole library, so 150 synced tracks froze the window for about five seconds. `PlayTracker` also now clears **exactly
 what it sent** rather than the whole preferences file, so a play recorded while a sync is in
 flight is no longer thrown away.
 
@@ -149,3 +151,24 @@ The audio element has an `error` listener: a file that will not load names the t
 notice, and advances the queue. There was none before, and `play()`'s rejection was swallowed, so a
 moved file — 55 of them exist — stopped playback dead with nothing on screen. A *deadlocked*
 renderer produces no `error` event at all; that case is the watchdog's, in `public/CLAUDE.md`.
+
+## Previous, and the queue across restarts
+
+**Previous restarts a track more than three seconds in** (`shouldRestart` in `redux/actions.tsx`)
+and only goes back within the first three seconds — or restarts when there is nothing behind.
+`prevTrack` is a thunk because it needs the position; every route goes through it. Restarting sets
+no rewind marker, and going back clears the marker again when the track did not change in the end:
+an unconsumed marker used to swallow the next real skip.
+
+**The queue survives a restart.** `playlist/queueStore.tsx` writes `DATA_DIR/queue.json` when the
+track, the queue or play/pause changes, at most every 10s for the position alone, and
+synchronously on quit; each playlist class has `save()` and a static `fromSaved()`
+(`playlist/savedQueue.tsx` has the shapes). Everything is saved **by id** and rebuilt against the
+library at launch, so deleted tracks and empty albums drop out, and a queue whose current track is
+gone starts a fresh shuffle instead. It comes back **paused** at the saved position
+(`RESTORE_PLAYBACK`) — a launch never starts the music. Saving starts only after the restore, and
+an unstarted queue saves nothing, so a launch cannot clobber the file. A restored DJ queue is a DJ
+queue: when it runs low the DJ is asked to refill it as usual, with a fresh conversation, since
+the conversation itself is not saved. The phone does the same for its own player
+(`MusicNative/CLAUDE.md`).
+

@@ -391,3 +391,8 @@
   line-height: 1.5;
   margin: -4px 0 16px 2px;
 }
+
+/* A backup that is overdue or failing; these used to fail silently. */
+.backupWarn td {
+  color: var(--warning, #d29922);
+}

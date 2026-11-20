@@ -1,8 +1,11 @@
 import {Album, Artist, Genre, Track} from './redux/actionTypes';
+import {loadState} from './backup/cloudBackup';
 import * as log from './eventLog';
+import {loadMusicState} from './backup/musicBackup';
 import * as React from 'react';
 import {connect} from 'react-redux';
 import './StatsPage.css';
+import {backupStatus} from './backup/status';
 import {RootState} from './redux/store';
 
 interface OwnProps {
@@ -200,6 +203,27 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
             follow the range chips now, which is where everything derived from listening
             belongs — a visible range selector that some charts ignored was worse than none. */}
         {this.renderCoverage()}
+        {this.renderBackups()}
+      </div>
+    );
+  }
+
+  /** Read on each render: two tiny files, and a stale answer here is the thing being fixed. */
+  private renderBackups(): JSX.Element {
+    const lines = backupStatus(loadState(), loadMusicState());
+    return (
+      <div className="statsCoverage">
+        <h3>Offsite backups</h3>
+        <table className="coverageTable">
+          <tbody>
+            {lines.map((line) => (
+              <tr key={line.label} className={line.warn ? 'backupWarn' : undefined}>
+                <td className="coverageName">{line.warn ? `⚠ ${line.label}` : line.label}</td>
+                <td>{line.text}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -229,6 +253,9 @@ class StatsPage extends React.Component<StatsPageProps, StatsPageState> {
         albums.length, 'albums'],
       ['MusicBrainz — artists', artists.filter((artist) => artist.mbid).length,
         artists.length, 'artists'],
+      // a recording id is saved when the album's tracklist matches, so this trails album coverage
+      ['MusicBrainz — tracks', tracks.filter((track) => track.mbid).length,
+        tracks.length, 'tracks'],
       // Counted from the stored marker rather than by measuring 2,176 files on every render:
       // the extension writes what the Archive could supply, and absent means never asked.
       ['Cover art — full size', albums.filter((album) => album.coverArt).length,

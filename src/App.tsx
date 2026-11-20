@@ -1,5 +1,5 @@
 import {changeVolume, createBackup, nextAlbum, nextTrack, playPause, prevAlbum, prevTrack,
-  resetLibrary, setPlaylist, updateAlbum, updateLibrary, updateTime, updateTrack} from './redux/actions';
+  resetLibrary, restorePlayback, setPlaylist, updateAlbum, updateLibrary, updateTime, updateTrack} from './redux/actions';
 import {Album, AlbumInfo, Artist, Genre, LibraryInfo, LibraryState, Playlist, Track,
   TrackInfo} from './redux/actionTypes';
 import djActivity from './dj/activity';
@@ -8,18 +8,18 @@ import {publishCatalog} from './backup/catalog';
 import {runCloudBackup} from './backup/cloudBackup';
 import {djClue} from './dj/clue';
 import {BACKUP_TIME, DATA_DIR} from './constants';
-import {logPlays} from './eventLog';
+import {logPlays, readPlaysCached, toggleFavorite} from './eventLog';
 import {setPlaybackState, setTransportHandlers, updateNowPlaying} from './mediaSession';
 import {MUSIC_BACKUP_START_DELAY, runMusicBackup} from './backup/musicBackup';
 import {noteNaturalFinish, recordAlbumSkip, recordTrackChange} from './skips';
-import {countsByTrack, latestPlayedAt, ofType, parseSyncedPlays} from './syncedPlays';
+import {notYetApplied, parseSyncedPlays, syncedTrackUpdates} from './syncedPlays';
 
 /** How often at most to push the DJ transcript to the mobile app while a reply streams. */
 const DJ_STATE_THROTTLE = 200;
 import {ipcRenderer} from 'electron';
 import EmptyPlaylist from './playlist/EmptyPlaylist';
 import {createLibrary} from './library/itunes';
-import {deleteLibrary, loadLibrary} from './library/main';
+import {loadLibrary, snapshotLibraryFile} from './library/main';
 import runWikiExtension from './extensions/wiki/main';
 import runGeniusExtension from './extensions/genius/main';
 import runCoverArtExtension from './extensions/coverart/main';
@@ -27,6 +27,7 @@ import runLyricsExtension from './extensions/lyrics/main';
 import runMusicBrainzExtension from './extensions/musicbrainz/main';
 import MaxWindow from './MaxWindow';
 import MiniWindow from './MiniWindow';
+import {loadSavedPlayback, persistQueue, restorePlaylist} from './playlist/queueStore';
 import RandomAlbumPlaylist from './playlist/RandomAlbumPlaylist';
 import * as React from 'react';
 import {connect} from 'react-redux';
@@ -47,7 +48,7 @@ import {
   getVolume,
 } from './redux/selectors';
 import djSession, {MCP_TOOLS, OWNER} from './dj/session';
-import {RootState} from './redux/store';
+import reduxStore, {RootState} from './redux/store';
 import {noteQueueActor} from './dj/tools';
 
 /** Remote clients may name the person who pressed the button; the desktop and Android don't. */
@@ -90,6 +91,7 @@ interface DispatchProps {
   prevAlbum(): void;
   prevTrack(): void;
   setPlaylist(playlist: EmptyPlaylist, play: boolean): void;
+  restorePlayback(playlist: EmptyPlaylist, time: number): void;
   playPause(): void;
   nextAlbum(): void;
   updateAlbum(id: string, info: AlbumInfo): void;
@@ -111,6 +113,7 @@ class App extends React.Component<AppProps, AppState> {
   private audio: HTMLAudioElement;
   private djStateTimer?: number;
   private backupTimer?: number;
+  private stopQueuePersistence?: () => void;
 
   /**
    * The file currently loaded into the audio element.
@@ -174,15 +177,10 @@ class App extends React.Component<AppProps, AppState> {
       if (!this.props.track) {
         return;
       }
-      const favorites = this.props.track.favorites.slice();
-      const year = new Date().getFullYear();
-      const index = favorites.indexOf(year);
-      if (index === -1) {
-        favorites.push(year);
-      } else {
-        favorites.splice(index, 1);
-      }
+      const {favorites, type} = toggleFavorite(this.props.track.favorites, new Date().getFullYear());
       this.props.updateTrack(this.props.track.id, {favorites});
+      // the phone's heart is the same opinion as the desktop's, so it goes in the log the same way
+      logPlays([{at: Date.now(), id: this.props.track.id, source: 'phone', subject: 'track', type}]);
       this.sendControllerUpdate();
     });
     ipcRenderer.on('setTime', (evt, data) => {
@@ -195,32 +193,12 @@ class App extends React.Component<AppProps, AppState> {
       // The phone now sends a timestamp per play; a pre-timestamp build still sends a bare
       // {trackId: count} map, which parseSyncedPlays reads too.
       const syncedAt = Date.now();
-      const events = parseSyncedPlays(payload);
-      const plays = ofType(events, 'play');
-      const playCounts = countsByTrack(plays);
-      Object.keys(playCounts).forEach((trackId) => {
-        const track = this.props.getTrackById(trackId);
-        if (!track) {
-          return;
-        }
-        const playedAt = latestPlayedAt(plays, trackId);
-        this.props.updateTrack(track.id, {
-          playCount: track.playCount + playCounts[trackId],
-          // only move playDate forward: an old sync arriving late must not rewind it
-          playDate: new Date(Math.max(playedAt || syncedAt,
-            track.playDate ? track.playDate.getTime() : 0)),
-        });
-      });
-      // the phone counts a skip the same way the desktop does, so they mean the same thing
-      const skipCounts = countsByTrack(ofType(events, 'skip'));
-      Object.keys(skipCounts).forEach((trackId) => {
-        const track = this.props.getTrackById(trackId);
-        if (track) {
-          this.props.updateTrack(track.id, {
-            skipCount: (track.skipCount || 0) + skipCounts[trackId],
-          });
-        }
-      });
+      // a sync whose reply was lost is resent whole; anything already logged was already applied
+      const events = notYetApplied(parseSyncedPlays(payload), readPlaysCached());
+      const tracks = syncedTrackUpdates(events, (id) => this.props.getTrackById(id), syncedAt);
+      if (Object.keys(tracks).length) {
+        this.props.updateLibrary({tracks});
+      }
       logPlays(events.map((event) => ({
         at: event.at || syncedAt,
         count: event.count,
@@ -366,22 +344,40 @@ class App extends React.Component<AppProps, AppState> {
         break;
       }
     });
+    // Only the main process's confirmed menu item sends this; the LAN socket cannot (lanGuard.js).
+    // It used to delete the whole data directory before importing — backups, the play log, DJ
+    // memories, lyrics and the backup key with it — and an import that then failed left nothing.
+    // Now the current library is copied aside first and only replaced by an import that worked.
     ipcRenderer.on('reset-library', () => {
-      deleteLibrary().then(() => {
-        createLibrary().then((library: LibraryState) => {
-          this.props.resetLibrary(library);
-          const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
-          this.props.setPlaylist(playlist, /* play= */ false);
-          alert('Library uploaded');
-        });
+      const snapshot = snapshotLibraryFile();
+      createLibrary().then((library: LibraryState) => {
+        if (!Object.keys(library.tracks).length) {
+          alert('Nothing was imported, so the library was left as it was.');
+          return;
+        }
+        this.props.resetLibrary(library);
+        const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
+        this.props.setPlaylist(playlist, /* play= */ false);
+        alert(snapshot ? `Library imported. The previous library was saved to ${snapshot}.` : 'Library imported.');
+      }).catch((err: Error) => {
+        alert(`The import failed, so the library was left as it was: ${err.message}`);
       });
     });
     ipcRenderer.send('extension-ready');
 
     loadLibrary(`${DATA_DIR}/library.json`).then((library: LibraryState) => {
-      const playlist = new RandomAlbumPlaylist(Object.values(library.albums));
       this.props.updateLibrary(library);
-      this.props.setPlaylist(playlist, /* play= */ false);
+      // back to the queue and spot of the last session, paused; a fresh shuffle if there is none
+      // or what was playing has since been deleted
+      const saved = loadSavedPlayback();
+      const restored = restorePlaylist(saved, library);
+      if (restored && saved) {
+        this.props.restorePlayback(restored, saved.time);
+      } else {
+        this.props.setPlaylist(new RandomAlbumPlaylist(Object.values(library.albums)), /* play= */ false);
+      }
+      // only from here: before the restore there is nothing worth saving over the file
+      this.stopQueuePersistence = persistQueue(reduxStore);
     }).catch((err: NodeJS.ErrnoException) => {
       if (err && err.code !== 'ENOENT') {
         // The library exists but could not be read - a locked file, a permissions problem, a
@@ -480,6 +476,9 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
 
   componentWillUnmount(): void {
     clearInterval(this.backupTimer);
+    if (this.stopQueuePersistence) {
+      this.stopQueuePersistence();
+    }
   }
 
   public componentDidUpdate(prevProps: AppProps): void {
@@ -674,30 +673,41 @@ Nothing has been changed. Restart the app to try again; backups are in ${DATA_DI
 
 }
 
+/**
+ * App's lookups and extension runners, made once. They were closures built inside
+ * `mapStateToProps`, so every action — `timeupdate` included, four a second — produced thirteen new
+ * functions, `connect` could never bail out, and App re-rendered and re-ran `componentDidUpdate`
+ * through all of playback. They are called from IPC handlers rather than while rendering, so
+ * they read the live store when called, which is also never stale.
+ */
+const live = () => reduxStore.getState();
+const lookups = {
+  getAlbumsByIds: (albumIds: string[]) => getAlbumsByIds(live(), albumIds),
+  getAllAlbumIds: () => getAllAlbumIds(live()),
+  getAllArtistIds: () => getAllArtistIds(live()),
+  getAllTrackIds: () => getAllTrackIds(live()),
+  getArtistsByIds: (artistIds: string[]) => getArtistsByIds(live(), artistIds),
+  getGenresByIds: (genreIds: string[]) => getGenresByIds(live(), genreIds),
+  getSyncedPlaylists: () => getSyncedPlaylists(live()),
+  getTrackById: (trackId: string) => getTrackById(live(), trackId),
+  runCoverArtExtension: (albumIds: string[]) => runCoverArtExtension(live(), albumIds),
+  runGeniusExtension: (trackIds: string[]) => runGeniusExtension(live(), trackIds),
+  runLyricsExtension: (trackIds: string[]) => runLyricsExtension(live(), trackIds),
+  runMusicBrainzExtension: (albumIds: string[], artistIds: string[]) =>
+    runMusicBrainzExtension(albumIds, artistIds, live()),
+  runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, live()),
+};
+
 function mapStateToProps(store: RootState): StateProps {
-  const track = getCurrentTrack(store);
   return {
+    ...lookups,
     playing: getIsPlaying(store),
-    runWikiExtension: (albumIds: string[], artistIds: string[]) => runWikiExtension(albumIds, artistIds, store),
-    runGeniusExtension: (trackIds: string[]) => runGeniusExtension(store, trackIds),
-    runCoverArtExtension: (albumIds: string[]) => runCoverArtExtension(store, albumIds),
-    runLyricsExtension: (trackIds: string[]) => runLyricsExtension(store, trackIds),
-    runMusicBrainzExtension: (albumIds: string[], artistIds: string[]) =>
-      runMusicBrainzExtension(albumIds, artistIds, store),
     queueVersion: getQueueVersion(store),
     setTime: getSetTime(store),
-    track,
+    track: getCurrentTrack(store),
     volume: getVolume(store),
-    getSyncedPlaylists: () => getSyncedPlaylists(store),
-    getAllArtistIds: () => getAllArtistIds(store),
-    getAllAlbumIds: () => getAllAlbumIds(store),
-    getAllTrackIds: () => getAllTrackIds(store),
-    getArtistsByIds: (artistIds) => getArtistsByIds(store, artistIds),
-    getAlbumsByIds: (albumIds) => getAlbumsByIds(store, albumIds),
-    getGenresByIds: (genreIds) => getGenresByIds(store, genreIds),
-    getTrackById: (trackId) => getTrackById(store, trackId),
   };
 }
 
 export default connect(mapStateToProps, {changeVolume, updateTime, playPause, updateLibrary, resetLibrary, nextTrack,
-  prevAlbum, prevTrack, setPlaylist, updateAlbum, updateTrack, nextAlbum, createBackup})(App);
+  prevAlbum, prevTrack, restorePlayback, setPlaylist, updateAlbum, updateTrack, nextAlbum, createBackup})(App);

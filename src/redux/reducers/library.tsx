@@ -168,6 +168,12 @@ function tracks(state: Record<string, Track>, action: LibraryActionTypes): Recor
     }
     case UPDATE_TRACK: {
       const track = state[action.payload.id];
+      // Tracks are only ever created by an import. An update for an id the library does not have
+      // — the track playing when it was deleted, which then recorded a skip — used to create a
+      // stray entity with no id, name or genres that broke every list it appeared in.
+      if (!track) {
+        return state;
+      }
       return Object.assign({}, state, {
         [action.payload.id]: {
           ...track,
@@ -339,10 +345,14 @@ function artists(state: Record<string, Artist>, action: LibraryActionTypes): Rec
     }
     case UPDATE_ARTIST: {
       const artist = state[action.payload.id];
+      // An update for a new id is how an artist is created (a featured artist accepted from a
+      // track hint), and the entity has to carry its own id: without it every membership sync
+      // dropped the artist's tracks, its page broke, and the next load re-keyed it to "undefined".
       return Object.assign({}, state, {
         [action.payload.id]: {
           ...artist,
           ...action.payload.info,
+          id: action.payload.id,
         },
       });
     }
@@ -464,10 +474,12 @@ function albums(state: Record<string, Album>, action: LibraryActionTypes): Recor
     }
     case UPDATE_ALBUM: {
       const album = state[action.payload.id];
+      // as for artists: an update for a new id creates the album, which must carry its id
       return Object.assign({}, state, {
         [action.payload.id]: {
           ...album,
           ...action.payload.info,
+          id: action.payload.id,
         },
       });
     }
