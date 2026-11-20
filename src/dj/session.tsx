@@ -5,11 +5,15 @@ import {
   createMessage,
   DJApiError,
   getApiKey,
+  isTransient,
   MessageParam,
+  MessageResponse,
+  RETRY_DELAYS_MS,
   ToolDefinition,
   ToolResultBlock,
   ToolUseBlock,
 } from './api';
+import {IS_TEST} from '../constants';
 import DJPlaylist, {DJ_ACTOR} from '../playlist/DJPlaylist';
 import {getMemoryStore, MCP_MEMORY_TOOL} from './memory';
 import {DJ_NAME, OWNER} from './owner';
@@ -59,9 +63,6 @@ export interface DJSessionState {
 const MAX_TOOL_ROUNDS = 30;
 /** Ask the DJ for more when this few tracks remain queued. */
 const LOW_WATER_MARK = 2;
-/** Turns older than this get their tool results blanked to keep the context small. */
-const KEEP_TOOL_RESULT_TURNS = 2;
-const ELIDED = '[earlier tool output elided]';
 const MEMORY_TOOL_NAME = 'memory';
 /** The API path gets Anthropic's native memory tool; the MCP path gets the same backend as a plain tool. */
 const NATIVE_MEMORY_TOOL: ToolDefinition = {type: 'memory_20250818', name: MEMORY_TOOL_NAME};
@@ -75,10 +76,10 @@ const WEB_SEARCH_TOOL: ToolDefinition = {max_uses: 5, name: 'web_search', type: 
  * sandbox time for what web fetch itself is free to do.
  *
  * `max_content_tokens` is not a nicety. A `web_fetch_tool_result` lives in the assistant
- * message and `elideOldToolResults` only blanks our own `tool_result` blocks, so a fetched page
- * is re-sent on every later round of the session; an average page is ~2.5k tokens and a big
- * documentation page ~25k. The tool can only fetch a URL that already appeared in the
- * conversation, so it cannot wander off after one of its own invention.
+ * message, and whether server-side context editing (`CONTEXT_MANAGEMENT` in api.tsx) ever
+ * clears one is undocumented, so assume a fetched page is re-sent on every later round; an
+ * average page is ~2.5k tokens and a big documentation page ~25k. The tool can only fetch a URL
+ * that already appeared in the conversation, so it cannot wander off after one of its own invention.
  */
 const WEB_FETCH_TOOL: ToolDefinition = {
   max_content_tokens: 12000,
@@ -90,8 +91,32 @@ export const API_TOOLS: ToolDefinition[] =
   ([NATIVE_MEMORY_TOOL, WEB_SEARCH_TOOL, WEB_FETCH_TOOL] as ToolDefinition[]).concat(DJ_TOOLS);
 export const MCP_TOOLS = DJ_TOOLS.concat([MCP_MEMORY_TOOL]);
 
+/**
+ * Never throws. Every `tool_use` must be answered by a `tool_result` in the next message, or every
+ * later request in the session is rejected — so a tool that throws is reported to the DJ as an
+ * error result instead of escaping into the turn's catch.
+ */
 function runTool(name: string, input: Record<string, unknown>): ToolOutcome {
-  return name === MEMORY_TOOL_NAME ? getMemoryStore().execute(input) : executeTool(name, input);
+  try {
+    return name === MEMORY_TOOL_NAME ? getMemoryStore().execute(input) : executeTool(name, input);
+  } catch (err) {
+    return {content: `The ${name} tool failed: ${err instanceof Error ? err.message : String(err)}`, isError: true};
+  }
+}
+
+/**
+ * Answers for tool calls in a reply that was cut off (`max_tokens`). The last call's input is
+ * incomplete — `readStream` falls back to `{}` — and acting on a truncated `set_queue` would wipe
+ * the queue, so none of them is run; each still gets its result, which is what keeps the history
+ * valid, and the DJ is told to try again.
+ */
+export function cutOffResults(toolUses: ToolUseBlock[]): ToolResultBlock[] {
+  return toolUses.map((use) => ({
+    content: 'Your reply was cut off before this tool call was complete, so nothing was run. Make the call again.',
+    is_error: true,
+    tool_use_id: use.id,
+    type: 'tool_result' as 'tool_result',
+  }));
 }
 
 export const SYSTEM_PROMPT = `You are the DJ for a personal music library inside a desktop music player. You go by ${DJ_NAME}, which is the name on your messages in the transcript, so expect to be called that. The listener chats with you in a small side panel; you control what plays by editing a queue with tools.
@@ -419,12 +444,24 @@ class DJSession {
     });
   }
 
+  /** Context editing is invisible otherwise; a Verbose line says when it cleared and how much. */
+  private noteContextEdits(response: MessageResponse): void {
+    const edits = (response.context_management && response.context_management.applied_edits) || [];
+    edits.forEach((edit) => {
+      if (edit.cleared_tool_uses) {
+        this.addEntry('tool', `Cleared ${edit.cleared_tool_uses} old tool results from what the DJ sees ` +
+          `(${(edit.cleared_input_tokens || 0).toLocaleString()} tokens)`, '(server-side context editing)');
+      }
+    });
+  }
+
   /** Puts an API failure in the transcript, and in front of the listener when they need to act. */
   private reportFailure(err: unknown): void {
     if (err instanceof DJApiError) {
       this.addEntry('error', `${err.headline()} (HTTP ${err.status}${err.errorType ? ` ${err.errorType}` : ''})`,
         err.message);
-      if (err.needsAttention()) {
+      // never under test: an alert blocks the renderer the whole suite runs in
+      if (err.needsAttention() && !IS_TEST) {
         alert(`${err.headline()}\n\n${err.message}`);
       }
       return;
@@ -488,7 +525,8 @@ class DJSession {
     } else {
       this.addEntry('user', text, undefined, speaker);
     }
-    this.elideOldToolResults();
+    const turnStart = this.messages.length;
+    const feedback = {events: this.playbackEvents.slice(), skips: this.recentSkips};
     this.messages.push({
       content: [{type: 'text', text: this.buildUserText(text, automatic, speaker)}],
       role: 'user',
@@ -498,15 +536,10 @@ class DJSession {
       for (let round = 0; round < MAX_TOOL_ROUNDS && !finished; round++) {
         this.streamEntryId = undefined;
         this.thinkingBuffer = '';
-        const response = await createMessage(
-          {messages: this.messages, system: SYSTEM_PROMPT, tools: API_TOOLS},
-          {
-            onText: (delta) => this.appendReply(delta),
-            onThinking: (delta) => this.appendThinking(delta),
-          },
-        );
+        const response = await this.requestWithRetry();
         this.messages.push({content: response.content, role: 'assistant'});
         this.recordVerbose(response.content);
+        this.noteContextEdits(response);
         const reply = textOf(response.content);
         if (response.stop_reason === 'refusal') {
           const explanation = (response.stop_details && response.stop_details.explanation) || 'no reason given';
@@ -517,8 +550,14 @@ class DJSession {
           // A server-side tool (web search) ran long; send the turn back to continue it.
           continue;
         }
+        const toolUses = response.content.filter((b) => b.type === 'tool_use') as ToolUseBlock[];
+        if (response.stop_reason === 'max_tokens' && toolUses.length) {
+          // a call left unanswered would make every later request in the session fail
+          this.addEntry('status', 'The DJ was cut off mid-way through a tool call; asking it to try again.');
+          this.messages.push({content: cutOffResults(toolUses), role: 'user'});
+          continue;
+        }
         if (response.stop_reason === 'tool_use') {
-          const toolUses = response.content.filter((b) => b.type === 'tool_use') as ToolUseBlock[];
           this.setNote(describeToolRun(toolUses.map((use) => use.name)));
           const results: ToolResultBlock[] = toolUses.map((use) => {
             const input = use.input || {};
@@ -545,32 +584,47 @@ class DJSession {
         this.addEntry('status', `The DJ stopped after ${MAX_TOOL_ROUNDS} tool rounds.`);
       }
     } catch (err) {
-      // Drop the dangling user turn so the next message starts clean.
-      const last = this.messages[this.messages.length - 1];
-      if (last && last.role === 'user') {
-        this.messages.pop();
-      }
+      // Roll the whole turn back, not just its last message. A failure after a tool round left
+      // the DJ's tool_use with no answer once the tool_result message was popped, and the API
+      // rejects every later request over that — the session was dead until "New session".
+      // Whatever the tools already did to the queue stands; the conversation just forgets the turn.
+      this.messages.splice(turnStart);
+      // buildUserText consumed the playback feedback; the DJ never saw it, so give it back
+      this.playbackEvents = feedback.events.concat(this.playbackEvents);
+      this.recentSkips += feedback.skips;
       this.reportFailure(err);
     }
     startIfIdle();
   }
 
-  /** Blank out tool results from older turns; the queue state they described is stale anyway. */
-  private elideOldToolResults(): void {
-    let userTurnsSeen = 0;
-    for (let i = this.messages.length - 1; i >= 0; i--) {
-      const msg = this.messages[i];
-      if (msg.role !== 'user') {
-        continue;
-      }
-      const isToolResult = msg.content.some((b) => b.type === 'tool_result');
-      if (!isToolResult) {
-        userTurnsSeen++;
-        continue;
-      }
-      if (userTurnsSeen >= KEEP_TOOL_RESULT_TURNS) {
-        msg.content = msg.content.map((b) => (b.type === 'tool_result' && b.content !== ELIDED ?
-          Object.assign({}, b, {content: ELIDED}) : b));
+  /**
+   * One request, retried through rate limits, overloads, 5xx and dropped connections. A failed
+   * attempt never reached the history, so retrying needs nothing undone there — only the half a
+   * reply it may already have streamed into the transcript, which the next attempt replaces.
+   */
+  private async requestWithRetry(): Promise<MessageResponse> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await createMessage(
+          {messages: this.messages, system: SYSTEM_PROMPT, tools: API_TOOLS},
+          {
+            onText: (delta) => this.appendReply(delta),
+            onThinking: (delta) => this.appendThinking(delta),
+          },
+        );
+      } catch (err) {
+        if (!isTransient(err) || attempt >= RETRY_DELAYS_MS.length) {
+          throw err;
+        }
+        if (this.streamEntryId !== undefined) {
+          const partial = this.streamEntryId;
+          this.entries = this.entries.filter((entry) => entry.id !== partial);
+          this.streamEntryId = undefined;
+        }
+        this.thinkingBuffer = '';
+        const delay = RETRY_DELAYS_MS[attempt];
+        this.setNote(`The API is busy — trying again in ${Math.round(delay / 1000)}s…`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }

@@ -38,9 +38,9 @@ tell when it is being addressed.
 The API path offers `web_search` and `web_fetch`; the MCP path relies on Claude Code's own.
 `web_fetch` is the **basic `web_fetch_20250910`** on purpose — the later versions filter pages by
 running code, which brings nested code-execution blocks into a stream `readStream` assembles by hand
-and bills sandbox time for what fetch does free. `max_content_tokens: 12000` is load-bearing:
-`elideOldToolResults` only blanks our own `tool_result` blocks, so a fetched page sits in the
-assistant message and is re-sent on every later round of the session. The tool can only fetch URLs
+and bills sandbox time for what fetch does free. `max_content_tokens: 12000` is load-bearing: a fetched page sits in the assistant message, and
+whether context editing (below) ever clears a server tool's result is undocumented, so assume it
+is re-sent on every later round of the session. The tool can only fetch URLs
 already in the conversation, and the prompt tells the DJ a page is text to read, not instructions.
 
 ## What the DJ knows about time
@@ -58,3 +58,40 @@ the real fix; it was deliberately deferred until arcs like that become something
 Removing tracks from the queue by hand is recorded as a **skip** of each; dropping a whole album is
 one **album** skip. Both happen in `noteListenerRemoval`. The DJ's own `remove_from_queue` records
 nothing. The rules, and why albums are counted against the album, are in `src/CLAUDE.md`.
+
+## When a request fails
+
+Every `tool_use` must be answered by a `tool_result` in the next message, or the API rejects every
+later request. A failure partway through a turn used to break that — the catch popped only the
+last message, leaving the DJ's call unanswered — and the session stayed dead until "New session".
+
+- **Transient failures are retried** inside `requestWithRetry` (`RETRY_DELAYS_MS`, 2s/5s/15s):
+  429, 5xx including a mid-stream `overloaded_error`, and a dropped connection (`isTransient` in
+  `api.tsx`). A failed attempt never reached the history, so nothing is undone except the half a
+  reply it may have streamed into the transcript.
+- **A final failure rolls the whole turn back** to where it started, and gives back the playback
+  feedback `buildUserText` consumed. Whatever tools already did to the queue stands.
+- **A reply cut off by `max_tokens` mid tool call** gets error results for its calls, none of
+  them run — the last call's input is truncated, and a partial `set_queue` would wipe the queue.
+- **`runTool` never throws**; a throwing tool becomes an error result.
+- `reportFailure` checks `IS_TEST` before alerting. It did not, and a test reaching a 5xx hung the
+  suite on the dialog.
+
+`src/dj/sessionRecovery.test.js` drives the real session against a stubbed `fetch`.
+
+## Keeping the context small: server-side context editing
+
+Every request carries `context_management` with a `clear_tool_uses_20250919` edit
+(`CONTEXT_MANAGEMENT` in `api.tsx`, beta header `context-management-2025-06-27`): once the input
+passes **80k tokens**, the API hides all but the **6** newest tool results from the model behind a
+placeholder, removing at least **20k** at a time, and never the `memory` tool's. The client keeps
+sending the full, unchanged history; the API edits only what the model sees.
+
+It replaced `elideOldToolResults`, which blanked our own tool results older than two user turns
+**before every turn**. Rewriting turns already sent rebuilt the prompt cache from the first
+rewritten message every turn, and edited turns that carry thinking, which the API checks. Context
+editing clears rarely and in big steps (`clear_at_least`), so the cache is rebuilt only then, and
+server-side edits never invalidate thinking. `sessionRecovery.test.js` pins that earlier turns are
+re-sent exactly as first sent. A clear shows as a Verbose `tool` line. Verified against the API's
+free `count_tokens` endpoint, which takes the same block: a synthetic 12-turn session went from
+175,106 input tokens to 88,790.

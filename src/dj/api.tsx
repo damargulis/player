@@ -98,9 +98,17 @@ export type ToolDefinition = Tool | AnthropicTool;
 
 export type StopReason = 'end_turn' | 'tool_use' | 'max_tokens' | 'stop_sequence' | 'pause_turn' | 'refusal';
 
+export interface AppliedEdit {
+  type: string;
+  cleared_tool_uses?: number;
+  cleared_input_tokens?: number;
+}
+
 export interface MessageResponse {
   id: string;
   content: ContentBlock[];
+  /** What server-side context editing removed from what the model saw this request, if anything. */
+  context_management?: {applied_edits: AppliedEdit[]};
   stop_reason: StopReason;
   stop_details?: {
     type: string;
@@ -157,6 +165,8 @@ interface StreamEvent {
     stop_details?: MessageResponse['stop_details'];
   };
   usage?: MessageResponse['usage'];
+  /** On the final `message_delta`, when context editing removed anything. */
+  context_management?: MessageResponse['context_management'];
   error?: {type: string; message: string};
 }
 
@@ -209,12 +219,48 @@ export class DJApiError extends Error {
   }
 }
 
+/** Waits between attempts at one request; the length is the number of retries. */
+export const RETRY_DELAYS_MS = [2000, 5000, 15000];
+
+/**
+ * Worth trying the same request again: a rate limit, an overload (529, or an `overloaded_error`
+ * mid-stream, which arrives as a 502), any other 5xx, or the network dropping (fetch rejects with a
+ * TypeError). A bad key, spent credits or a malformed request will fail identically every time.
+ */
+export function isTransient(err: unknown): boolean {
+  if (err instanceof DJApiError) {
+    return err.status === 429 || (err.status >= 500 && err.errorType !== 'empty_body');
+  }
+  return err instanceof TypeError;
+}
+
 /**
  * One round-trip to the Messages API, streamed. The system prompt and the final message get
  * cache breakpoints so a long DJ conversation mostly reads from cache; `handlers` receive
  * thinking and text deltas as they arrive, and the assembled result is the same shape a
  * non-streamed call would return, so the tool loop doesn't care which was used.
  */
+export const CONTEXT_MANAGEMENT_BETA = 'context-management-2025-06-27';
+
+/**
+ * Server-side context editing, which replaced `elideOldToolResults`. The client keeps sending the
+ * whole history unchanged and the API hides old tool results from the model behind a placeholder.
+ * Our own trimming rewrote turns already sent, before every turn: the cached prefix was rebuilt
+ * from the first rewritten message each time, and it edited turns that carry thinking. This only
+ * clears once the context is genuinely large, and `clear_at_least` makes each clear — each cache
+ * rebuild — remove enough to be worth it. The memory tool is kept visible; the API also warns the
+ * model to save what matters to memory before a clear.
+ */
+export const CONTEXT_MANAGEMENT = {
+  edits: [{
+    clear_at_least: {type: 'input_tokens', value: 20000},
+    exclude_tools: ['memory'],
+    keep: {type: 'tool_uses', value: 6},
+    trigger: {type: 'input_tokens', value: 80000},
+    type: 'clear_tool_uses_20250919',
+  }],
+};
+
 export async function createMessage(
   params: CreateMessageParams,
   handlers: StreamHandlers = {},
@@ -233,6 +279,7 @@ export async function createMessage(
     return Object.assign({}, msg, {content});
   });
   const body = {
+    context_management: CONTEXT_MANAGEMENT,
     max_tokens: params.maxTokens || 16000,
     stream: true,
     messages,
@@ -246,6 +293,7 @@ export async function createMessage(
   const res = await fetch(API_URL, {
     body: JSON.stringify(body),
     headers: {
+      'anthropic-beta': CONTEXT_MANAGEMENT_BETA,
       'anthropic-version': API_VERSION,
       'content-type': 'application/json',
       'x-api-key': apiKey,
@@ -284,6 +332,7 @@ async function readStream(body: ReadableStream<Uint8Array>, handlers: StreamHand
   let stopReason: StopReason = 'end_turn';
   let stopDetails: MessageResponse['stop_details'];
   let usage: MessageResponse['usage'] = {input_tokens: 0, output_tokens: 0};
+  let contextManagement: MessageResponse['context_management'];
 
   const handleEvent = (event: StreamEvent): void => {
     const index = event.index === undefined ? 0 : event.index;
@@ -342,6 +391,9 @@ async function readStream(body: ReadableStream<Uint8Array>, handlers: StreamHand
       if (event.usage) {
         usage = Object.assign({}, usage, event.usage);
       }
+      if (event.context_management) {
+        contextManagement = event.context_management;
+      }
       return;
     case 'error':
       throw new DJApiError(502, event.error ? event.error.message : 'The stream failed.',
@@ -371,6 +423,7 @@ async function readStream(body: ReadableStream<Uint8Array>, handlers: StreamHand
 
   return {
     content: blocks.filter(Boolean) as unknown as ContentBlock[],
+    context_management: contextManagement,
     id,
     stop_details: stopDetails,
     stop_reason: stopReason,
