@@ -1,6 +1,7 @@
 import {Artist} from '../redux/actionTypes';
 import {FetchedEvent, FetchedPerformer, sweep} from './api';
 import {DATA_DIR} from '../constants';
+import {externalEffectsAllowed} from '../devSafety';
 import fs from 'fs';
 import {
   Concert,
@@ -327,6 +328,11 @@ export async function refreshConcerts(
   const location = options.location || cache.location;
   const locationChanged = JSON.stringify(location) !== JSON.stringify(cache.location);
   if (!options.force && !locationChanged && !isStale(cache)) {
+    return cache;
+  }
+  // only an automatic refresh is gated: pressing Refresh or choosing a city is intentional, but a
+  // dev copy opening the tab spent ~21 of the month's 1,000 calls on its own (see devSafety.tsx)
+  if (!options.force && !locationChanged && !externalEffectsAllowed('concerts')) {
     return cache;
   }
   if (budgetRemaining(cache) <= 0) {

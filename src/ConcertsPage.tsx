@@ -1,6 +1,7 @@
 import {Artist, LibraryState, Track} from './redux/actionTypes';
 import {setUnseenCount} from './concerts/alerts';
 import {apiKeyHelp, CityResult, getApiKey, locateByDevice, locateByIp, searchCities} from './concerts/api';
+import ConcertsMap from './concerts/ConcertsMap';
 import './ConcertsPage.css';
 import {boundTo, memoize} from './redux/memo';
 import React from 'react';
@@ -20,10 +21,11 @@ import {
 import {RootState} from './redux/store';
 import {Concert, ConcertCache, emptyCache, milesBetween} from './concerts/types';
 import {dayKey, localDate, localDayKey} from './utils';
+import {groupByVenue, Venue} from './concerts/venues';
 
 type Filter = ConcertFilter;
 type Sort = 'date' | 'plays';
-type View = 'list' | 'calendar';
+type View = 'list' | 'calendar' | 'map';
 
 /** Dot size scales with how much the listener plays the acts on the bill. */
 function dotSize(plays: number): number {
@@ -73,6 +75,8 @@ interface ConcertsPageState {
   /** First of the month the calendar is showing. */
   monthCursor: number;
   selectedDay?: string;
+  /** `Venue.key` of the pin last clicked on the map. */
+  selectedVenue?: string;
   cityQuery: string;
   cityResults: CityResult[];
   searching: boolean;
@@ -125,9 +129,9 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
       <div className="main concerts-page">
         {this.renderHeader()}
         {this.state.editing && this.renderLocationEditor()}
-        {this.state.view === 'calendar'
-          ? <div className="concerts-cal">{this.renderCalendar()}</div>
-          : <div className="concerts-list">{this.renderBody()}</div>}
+        {this.state.view === 'calendar' && <div className="concerts-cal">{this.renderCalendar()}</div>}
+        {this.state.view === 'map' && <div className="concerts-map">{this.renderMap()}</div>}
+        {this.state.view === 'list' && <div className="concerts-list">{this.renderBody()}</div>}
         <div className="concerts-footer">
           Concert data by <span className="link" onClick={() => this.openUrl('https://www.jambase.com/')}>JamBase</span>
           {this.state.cache.fetchedAt ? ` · updated ${this.ago(this.state.cache.fetchedAt)}` : ''}
@@ -145,36 +149,38 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
         <span className="concerts-title">Concerts</span>
         <span className="concerts-where">
           {`within ${location.radiusMiles} mi of ${location.label} · next ${location.windowDays} days`}
-          {this.state.highlighted.length > 0 && (
-            <button
-              className={`concerts-newcount${this.state.filter === 'new' ? ' on' : ''}`}
-              onClick={() => this.setState({filter: this.state.filter === 'new' ? 'all' : 'new'})}
-              title={this.state.filter === 'new'
-                ? 'Show everything again'
-                : 'Show only the newly announced shows'}
-            >
-              {`${this.state.highlighted.length} newly announced`}
-            </button>
-          )}
         </span>
-        <span className="concerts-filters">
-          {this.renderChip('all', 'All')}
-          {this.renderChip('favorites', 'Favorites')}
-          {this.renderChip('recent', 'Recently played')}
-        </span>
-        {this.state.view === 'list' && (
-          <span className="concerts-filters">
+        {/* Each group is one choice, shown as a joined segmented control so it reads as "pick one
+            of these" rather than a row of unrelated buttons. "New" is part of the filter: it used
+            to be a separate badge beside the location that silently replaced the chip choice. */}
+        {this.renderGroup('Show', (
+          <>
+            {this.renderChip('all', 'All')}
+            {this.renderChip('favorites', 'Favorites')}
+            {this.renderChip('recent', 'Recently played')}
+            {this.state.highlighted.length > 0 &&
+              this.renderChip('new', `New · ${this.state.highlighted.length}`, 'fresh')}
+          </>
+        ))}
+        {this.state.view === 'list' && this.renderGroup('Sort', (
+          <>
             {this.renderSort('date', 'By date')}
             {this.renderSort('plays', 'By plays')}
-          </span>
-        )}
-        <button onClick={() => this.toggleView()}>
-          {this.state.view === 'list' ? 'Calendar' : 'List'}
-        </button>
-        <button onClick={() => this.setState({editing: !this.state.editing})}>Where</button>
-        <button onClick={() => this.refresh(true)} disabled={loading || !getApiKey()}>
-          {loading ? (this.state.progress || 'Refreshing…') : 'Refresh'}
-        </button>
+          </>
+        ))}
+        {this.renderGroup('View', (
+          <>
+            {this.renderViewChip('list', 'List')}
+            {this.renderViewChip('calendar', 'Calendar')}
+            {this.renderViewChip('map', 'Map')}
+          </>
+        ))}
+        <span className="concerts-actions">
+          <button onClick={() => this.setState({editing: !this.state.editing})}>Where</button>
+          <button onClick={() => this.refresh(true)} disabled={loading || !getApiKey()}>
+            {loading ? (this.state.progress || 'Refreshing…') : 'Refresh'}
+          </button>
+        </span>
       </div>
     );
   }
@@ -294,21 +300,41 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
     );
   }
 
-  private toggleView(): void {
-    const view: View = this.state.view === 'list' ? 'calendar' : 'list';
+  private renderViewChip(view: View, label: string): JSX.Element {
+    return (
+      <button
+        className={`concerts-chip ${this.state.view === view ? 'on' : ''}`}
+        onClick={() => this.setView(view)}
+      >
+        {label}
+      </button>
+    );
+  }
+
+  private setView(view: View): void {
     // open the calendar on the first month that actually has something in it
     const first = this.visibleConcerts()[0];
     const monthCursor = view === 'calendar' && first
       ? startOfMonth(localDate(first.date)).getTime()
       : this.state.monthCursor;
-    this.setState({monthCursor, selectedDay: undefined, view});
+    this.setState({monthCursor, selectedDay: undefined, selectedVenue: undefined, view});
   }
 
-  private renderChip(filter: Filter, label: string): JSX.Element {
+  private renderGroup(label: string, options: JSX.Element): JSX.Element {
+    return (
+      <span className="concerts-group">
+        <span className="concerts-group-label">{label}</span>
+        <span className="concerts-segmented" role="group" aria-label={label}>{options}</span>
+      </span>
+    );
+  }
+
+  private renderChip(filter: Filter, label: string, extraClass: string = ''): JSX.Element {
     return (
       <button
-        className={`concerts-chip ${this.state.filter === filter ? 'on' : ''}`}
+        className={`concerts-chip ${extraClass} ${this.state.filter === filter ? 'on' : ''}`}
         onClick={() => this.setState({filter})}
+        title={filter === 'new' ? 'Only the shows announced since you last looked' : undefined}
       >
         {label}
       </button>
@@ -400,6 +426,53 @@ class ConcertsPage extends React.Component<ConcertsPageProps, ConcertsPageState>
         {this.renderSelectedDay(byDay)}
       </>
     );
+  }
+
+  private renderMap(): JSX.Element {
+    if (!getApiKey()) {
+      return <div className="concerts-empty">No JamBase API key found. {apiKeyHelp()}</div>;
+    }
+    const {venues, unplaced} = groupByVenue(this.visibleConcerts());
+    const selected = venues.find((venue) => venue.key === this.state.selectedVenue);
+    return (
+      <>
+        <ConcertsMap
+          location={this.state.cache.location}
+          venues={venues}
+          selectedKey={this.state.selectedVenue}
+          sizeOf={(venue) => dotSize(this.venuePlays(venue)) + 2}
+          isLoved={(venue) => venue.concerts.some((concert) => this.isLoved(concert))}
+          isNew={(venue) => venue.concerts.some((concert) => this.isNew(concert))}
+          describe={(venue) => [venue.name].concat(venue.concerts.map((concert) => {
+            const date = localDate(concert.date);
+            return `${MONTHS[date.getMonth()].slice(0, 3)} ${date.getDate()} · ${this.concertArtistNames(concert)}`;
+          }))}
+          onSelect={(selectedVenue) => this.setState({selectedVenue})}
+          openUrl={(url) => this.openUrl(url)}
+        />
+        <div className="cal-legend">
+          <span>
+            <span className="cal-dot loved" style={{height: 9, width: 9}} />
+            an artist you’ve favourited
+          </span>
+          <span>bigger means you play them more</span>
+          {unplaced > 0 && <span>{`${unplaced} ${unplaced === 1 ? 'show has' : 'shows have'} no location`}</span>}
+        </div>
+        {selected
+          ? (
+            <div className="cal-selected-list concerts-map-selected">
+              <div className="cal-selected-head">{selected.name}</div>
+              {selected.concerts.map((concert) => this.renderConcert(concert, localDate(concert.date)))}
+            </div>
+          )
+          : <div className="cal-legend">Pick a venue to see what’s on there.</div>}
+      </>
+    );
+  }
+
+  /** A venue's pin is as big as its biggest show, not the sum: ten bar gigs are not one arena. */
+  private venuePlays(venue: Venue): number {
+    return Math.max(0, ...venue.concerts.map((concert) => this.concertPlays(concert)));
   }
 
   private renderDay(key: string, day: number, concerts: Concert[], isToday: boolean): JSX.Element {

@@ -30,12 +30,6 @@
   min-width: 140px;
 }
 
-.concerts-filters {
-  flex: 0 0 auto;
-  display: flex;
-  gap: 6px;
-}
-
 .concerts-chip {
   font-size: 12px;
   padding: 4px 10px;
@@ -349,29 +343,171 @@
   vertical-align: 2px;
 }
 
-.concerts-newcount {
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent);
-  color: var(--accent-strong);
-  font-size: 11.5px;
-  /* It is a button now, but should still read as the badge it was. */
+.cal-day.fresh {
+  border-color: var(--accent);
+}
+
+.concerts-map {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.concerts-map-canvas {
+  flex: 1 1 auto;
+  min-height: 260px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.concerts-map-selected {
+  flex: 0 1 auto;
+  max-height: 40%;
+  overflow-y: auto;
+}
+
+/* OSM only draws light tiles; inverting and turning the hue back round keeps water blue-ish
+   and parks green-ish on a dark ground. */
+.concerts-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85) saturate(0.6);
+}
+
+/* Leaflet's own stylesheet assumes a light page. */
+.concerts-map .leaflet-container {
+  background: var(--bg-deep);
   font-family: inherit;
+}
+
+.concerts-map .leaflet-control-attribution {
+  background: rgba(12, 12, 16, 0.75);
+  color: var(--text-faint);
+}
+
+.concerts-map .leaflet-control-attribution a {
+  color: var(--text-dim);
+}
+
+.concerts-map .leaflet-bar a {
+  background: var(--surface);
+  border-bottom-color: var(--border);
+  color: var(--text);
+}
+
+.concerts-map .leaflet-bar a:hover {
+  background: var(--surface-hover);
+}
+
+/* SVG paths: CSS overrides the fill/stroke attributes Leaflet writes. */
+.concerts-map-radius {
+  fill: var(--accent);
+  fill-opacity: 0.04;
+  stroke: var(--accent);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.concerts-pin {
+  fill: var(--text-dim);
+  fill-opacity: 0.85;
+  stroke: var(--bg-deep);
+  stroke-width: 1.5;
   cursor: pointer;
 }
 
-.concerts-newcount:hover {
-  filter: brightness(1.15);
+.concerts-pin.loved {
+  fill: var(--accent-strong);
 }
 
-/* Filled while it is the active filter, so it is obvious the list is narrowed. */
-.concerts-newcount.on {
+.concerts-pin.fresh {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.concerts-pin.selected {
+  stroke: #fff;
+  stroke-width: 2.5;
+}
+
+.concerts-map-tip {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 11.5px;
+}
+
+.concerts-map-tip .head {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.concerts-map-tip.leaflet-tooltip-top:before {
+  border-top-color: var(--border-strong);
+}
+
+/* --- header: each set of mutually exclusive options is one segmented control --- */
+
+.concerts-group {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.concerts-group-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.concerts-segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* inside a group the chips lose their own pill and share the group's */
+.concerts-segmented .concerts-chip {
+  border: none;
+  border-radius: 0;
+  border-left: 1px solid var(--border-strong);
+}
+
+.concerts-segmented .concerts-chip:first-child {
+  border-left: none;
+}
+
+.concerts-segmented .concerts-chip:hover:not(.on) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.concerts-segmented .concerts-chip.on {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+/* "New" is a notification as well as an option, so it keeps the accent until chosen */
+.concerts-segmented .concerts-chip.fresh {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.concerts-segmented .concerts-chip.fresh.on {
   background: var(--accent);
   color: #fff;
 }
 
-.cal-day.fresh {
-  border-color: var(--accent);
+.concerts-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 6px;
 }
+
