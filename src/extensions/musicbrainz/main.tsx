@@ -1,18 +1,16 @@
 import {Album, AlbumInfo, Artist, ArtistInfo, LibraryInfo} from '../../redux/actionTypes';
 import modifyAlbum from './albums';
 import modifyArtist from './artists';
+import {runDelta, startRun} from '../delta';
 import {ipcRenderer} from 'electron';
 import PromisePool from 'es6-promise-pool';
-import {getAlbumsByIds, getArtistsByIds} from '../../redux/selectors';
+import {getAlbumsByIds, getArtistsByIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
 import {getPool} from '../utils';
 
 function plural<T>(array: T[]): string {
-  if (array.length === 1) {
-    return 's';
-  }
-  return '';
+  return array.length === 1 ? '' : 's';
 }
 
 function getAlbumsPool(store: RootState, albums: Album[], extId: string): PromisePool<AlbumInfo | void> {
@@ -53,8 +51,9 @@ export default function runMusicBrainzExtension(
   const artists = getArtistsByIds(store, artistIds);
   const albumPool = getAlbumsPool(store, albums, extId);
   const artistPool = getArtistPool(store, artists, extId);
-  const albumMap = albums.reduce((map, curr) => { map[curr.id] = curr; return map; }, {} as Record<string, Album>);
-  const artistMap = artists.reduce((map, curr) => { map[curr.id] = curr; return map; }, {} as Record<string, Artist>);
+  // the album runs also write their tracks' genres, years and name hints
+  const tracks = getTracksByIds(store, ([] as string[]).concat(...albums.map((album) => album.trackIds)));
+  const start = startRun(albums, artists, tracks, store.library.genres);
   return albumPool.start()
     .then(() => artistPool.start())
     .then(() => {
@@ -72,13 +71,5 @@ export default function runMusicBrainzExtension(
         type: 'done',
         extensionId: extId,
       });
-    }).then(() => {
-      return {
-        tracks: {...store.library.tracks},
-        albums: {...albumMap},
-        artists: {...artistMap},
-        genres: {...store.library.genres},
-        playlists: {...store.library.playlists},
-      };
-    });
+    }).then(() => runDelta(start, albums, artists, tracks, store.library.genres));
 }

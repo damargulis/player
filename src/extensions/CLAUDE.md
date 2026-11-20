@@ -105,7 +105,7 @@ timestamps), and 100% of most-played tracks (91% synced). A full sweep is ~2 req
 The `L` beside the Genius `G` in the track list opens `LyricsOverlay.tsx`, which reads the file
 on demand; it is dimmed when the stored lyrics have no timestamps. The Stats page shows
 per-extension coverage, with different denominators per row on purpose (Genius and Lyrics are
-per-track, Wikipedia and MusicBrainz per album+artist).
+per-track, Wikipedia and MusicBrainz per album and artist, plus a MusicBrainz row per track for saved recording ids).
 
 ## Errors: facts about the entity, and who stands behind them
 
@@ -213,3 +213,31 @@ and that is fine; each should match its own thing on MusicBrainz.
   genres (top five by votes) and year. Only what a source supplies replaces anything. ~90% of
   recordings on a sampled set carry genres; compilations are the exception. This adds one
   rate-limited request per album to every MusicBrainz run.
+- **Tracks are paired with the release by title, not position** (`pairTracks.tsx`, also used by
+  Wikipedia's `compareTracks`): exact folded title, then with a trailing qualifier dropped, then
+  position for whatever is left. `album.trackIds` is sorted by track number alone, so a two-disc
+  album runs d1t1, d2t1, d1t2… against a release listed disc by disc, and position gave half its
+  tracks another song's genres, year and name hint while the equal counts made it look right.
+- **The match saves each track's recording id** (`Track.mbid`, musicbrainz.org/recording/<id>,
+  the **M** link in the track list). The track list's **Extensions → MusicBrainz**
+  (`musicbrainz/tracks.tsx`) looks those recordings up directly — one request per track, no album
+  search — for genres and first-release year. A track with no recording id is skipped and counted:
+  the id is only learnt when its album's tracklist matches one-to-one, so the album has to be run
+  first, and tracks matched before ids were saved need their album run once more. A recording is
+  the song rather than one release of it, so a track on several albums, or on a compilation, gets
+  the year the song first came out, while the album keeps its own release year; on a compilation
+  they will usually differ, and that is intended. `applyRecording` is the one place a recording
+  is written onto a track, for both the album run and the track run.
+
+## What an extension run sends back
+
+**Only what it changed** (`delta.tsx`). MusicBrainz and Wikipedia modify entities in place and used
+to return whole objects — every track in the library, the playlists, every genre — as they were
+when the run *started*. The reducer spreads an update over the live entity, so a several-hour run
+rolled back everything done meanwhile: play counts and dates, skips, favourites, playlist edits,
+deleted tracks and removed art (both back again). `startRun` serialises the extension-owned fields
+(`ALBUM_FIELDS`, `ARTIST_FIELDS`, `TRACK_FIELDS`) of the entities a run is given, and `runDelta`
+returns just the fields that differ, plus genres created during the run. A field the extensions
+start writing must be added to those lists, or its changes are silently dropped — per-track genres
+were saved only *because* of the whole-library return, and would have vanished with it otherwise.
+Genius, Lyrics and Cover art already returned partial deltas.

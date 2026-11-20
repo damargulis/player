@@ -24,6 +24,7 @@ export const PLAY_PAUSE = 'PLAY_PAUSE';
 export const SET_TIME = 'SET_TIME';
 export const DJ_QUEUE_UPDATED = 'DJ_QUEUE_UPDATED';
 export const SWAP_PLAYLIST = 'SWAP_PLAYLIST';
+export const RESTORE_PLAYBACK = 'RESTORE_PLAYBACK';
 
 export interface Playlist {
   name: string;
@@ -112,6 +113,13 @@ export interface Track {
   };
   lyrics?: TrackLyrics;
   warning?: TrackWarning;
+  /**
+   * The MusicBrainz **recording** id (musicbrainz.org/recording/<id>). Saved when the album run
+   * matches the tracklist one-to-one; the track extension then looks the recording up directly
+   * for its genres and first-release year. A recording is the song, not one release of it, so its
+   * year is when the song first came out — not the year of whichever album this copy is on.
+   */
+  mbid?: string;
 }
 
 export interface Artist {
@@ -273,6 +281,15 @@ interface SetPlaylistAction {
   };
 }
 
+/** The queue saved at the last quit, loaded paused at the spot it was left. */
+interface RestorePlaybackAction {
+  type: typeof RESTORE_PLAYBACK;
+  payload: {
+    playlist: EmptyPlaylist;
+    time: number;
+  };
+}
+
 interface PlayPauseAction {
   type: typeof PLAY_PAUSE;
 }
@@ -379,7 +396,7 @@ interface AddToPlaylist {
 
 export type CurrentlyPlayingActionTypes = UpdateTimeAction | VolumeChangeAction | NextTrackAction | SetPlaylistAction
   | NextAlbumAction | PrevTrackAction | PrevAlbumAction | PlayPauseAction | SetTimeAction | DJQueueUpdatedAction
-  | SwapPlaylistAction;
+  | SwapPlaylistAction | RestorePlaybackAction;
 export type LibraryActionTypes = UpdateLibraryAction | UpdateAlbum | UpdateArtist | UpdateTrack | AddToPlaylist
   | ResetLibraryAction | UploadFile | SaveNewTracks | DeleteArtist | DeleteAlbum | CreateBackup | DeleteTrack;
 export type SettingsActionTypes = SetGenresAction;

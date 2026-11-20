@@ -4,6 +4,7 @@ import {BASE_URL} from './constants';
 import {addError, ExtensionError, MetaSource, recordYear, removeError, setError} from '../errors';
 import {applyGenres} from '../genreSources';
 import moment from 'moment';
+import {pairTracks} from '../pairTracks';
 import * as React from 'react';
 import {getArtistById, getTracksByIds} from '../../redux/selectors';
 import {RootState} from '../../redux/store';
@@ -120,12 +121,17 @@ export function compareTracks(store: RootState, album: Album, parsed: TracklistR
   }
   const refTracks = getTracksByIds(store, album.trackIds);
   const everything = [...parsed.main, ...parsed.alternate];
+  // by title, not position: a multi-disc album's local order is not the page's
+  const warnAll = (entries: TrackInfo[]) => {
+    const paired = pairTracks(refTracks, entries, (entry) => entry.name);
+    refTracks.forEach((track, index) => setTrackWarnings(track, paired[index] as TrackInfo));
+  };
   if (refTracks.length === parsed.main.length) {
-    refTracks.forEach((track, index) => setTrackWarnings(track, parsed.main[index]));
+    warnAll(parsed.main);
     removeError(album, ExtensionError.TRACK);
   } else if (refTracks.length === everything.length) {
     // every edition's tracks, which is what owning a deluxe reissue looks like
-    refTracks.forEach((track, index) => setTrackWarnings(track, everything[index]));
+    warnAll(everything);
     removeError(album, ExtensionError.TRACK);
   } else {
     addError(album, ExtensionError.TRACK);

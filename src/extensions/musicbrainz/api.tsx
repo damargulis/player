@@ -91,6 +91,11 @@ export function browseRecordings(releaseId: string): Promise<Record<string, Reco
   });
 }
 
+/** One recording by id, with its genres; `first-release-date` comes with every lookup. */
+export function lookupRecording(mbid: string): Promise<RecordingResult> {
+  return apiFetch(`${API_BASE}/recording/${mbid}?inc=genres&fmt=json`) as Promise<RecordingResult>;
+}
+
 /**
  * What a recording says about one track: its genres and the year it first came out.
  *

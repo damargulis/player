@@ -22,9 +22,11 @@ import {DATA_DIR} from '../../constants';
 import {addError, ExtensionError, MetaSource, recordYear, removeError, setError} from '../errors';
 import fs from 'fs';
 import {applyGenres} from '../genreSources';
+import {pairTracks} from '../pairTracks';
 import {getArtistsByIds, getGenreIds, getTracksByIds} from '../../redux/selectors';
 import shortid from 'shortid';
 import {RootState} from '../../redux/store';
+import {applyRecording} from './tracks';
 
 function searchForReleaseGroup(store: RootState, album: Album): Promise<string | undefined> {
   const artistNames = getArtistsByIds(store, album.artistIds).map((artist) => artist.name);
@@ -74,9 +76,16 @@ function verifyTracks(store: RootState, album: Album): Promise<void> {
       addError(album, ExtensionError.TRACK);
       return;
     }
-    const releaseTracks = getReleaseTracks(match.release);
+    // by title, not position: a multi-disc album's local order is not the release's
+    const paired = pairTracks(refTracks, getReleaseTracks(match.release), (entry) => entry.title);
     refTracks.forEach((track, index) => {
-      setTrackWarnings(track, releaseTracks[index]);
+      const entry = paired[index] as ReleaseTrack;
+      setTrackWarnings(track, entry);
+      // the one moment this track is known to be a particular recording; keep it, so the track
+      // extension can look the song up directly without matching the whole album again
+      if (entry && entry.recording) {
+        track.mbid = entry.recording.id;
+      }
     });
     removeError(album, ExtensionError.TRACK);
     // The tracklist has just been matched one-to-one, so this is the moment each local track is
@@ -84,14 +93,10 @@ function verifyTracks(store: RootState, album: Album): Promise<void> {
     // first release date; a failure here costs only that, never the album's other results.
     return browseRecordings(match.release.id).then((recordings) => {
       refTracks.forEach((track, index) => {
-        const recording = releaseTracks[index] && releaseTracks[index].recording;
-        const {genres, year} = recordingUpdate(recording ? recordings[recording.id] : undefined);
-        // only replace what a source actually supplied, as for albums
-        if (genres.length) {
-          track.genreIds = getGenreIds(store, genres);
-        }
-        if (year) {
-          track.year = year;
+        const entry = paired[index];
+        const recording = entry && entry.recording && recordings[entry.recording.id];
+        if (recording) {
+          applyRecording(store, track, recording);
         }
       });
     }, () => undefined);
