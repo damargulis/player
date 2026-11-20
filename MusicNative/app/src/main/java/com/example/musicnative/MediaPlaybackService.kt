@@ -15,6 +15,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.SystemClock
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -24,6 +25,8 @@ import java.io.File
 import kotlin.concurrent.thread
 
 const val NOTIFICATION_ID = 1
+/** How often the playing position is saved; track changes and pauses save immediately. */
+private const val POSITION_SAVE_INTERVAL_MS = 10_000L
 
 class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener, OnAudioFocusChangeListener {
     companion object {
@@ -46,11 +49,28 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     private var curPlaylist: Array<TrackData> = arrayOf()
     private lateinit var playCounter: PlayTracker
 
+    /**
+     * Set while a queue restored from QueueStore sits unprepared: the player holds nothing until
+     * play is pressed, so launching never plays and never fetches a stream URL that could
+     * expire before it is used. Doubles as the position to start from.
+     */
+    private var restoredPositionMs: Int? = null
+    /** Where the next prepared track should start; 0 for its beginning. */
+    private var pendingSeekMs = 0
+    private var restoring = false
+    private var playWhenRestored = false
+    /** The queue array last written to QueueStore, so the big write only follows a real change. */
+    private var savedQueue: Array<TrackData>? = null
+    private var lastPositionSaveAt = 0L
+
     private val progressHandler = Handler()
     private val progressRunnable = object : Runnable {
         override fun run() {
             publishPosition()
             if (isPlaying()) {
+                if (SystemClock.elapsedRealtime() - lastPositionSaveAt >= POSITION_SAVE_INTERVAL_MS) {
+                    persistPosition()
+                }
                 progressHandler.postDelayed(this, 500L)
             }
         }
@@ -60,8 +80,12 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
         super.onCreate()
         playCounter = PlayTracker(this)
         mMediaSession = MediaSessionCompat(this, "MusicService")
+        // Explicit, so a media button pressed after the process has died (a Bluetooth play
+        // press) reaches the manifest's MediaButtonReceiver, which restarts this service; the
+        // restored queue then answers it.
         val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
-        PendingIntent.getBroadcast(
+            .setClass(this, MediaButtonReceiver::class.java)
+        val mediaButtonPendingIntent = PendingIntent.getBroadcast(
             baseContext,
             0,
             mediaButtonIntent,
@@ -69,10 +93,104 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
         )
         val mediaSessionCallback = MediaSessionCallback(this)
         mMediaSession!!.setCallback(mediaSessionCallback)
+        mMediaSession!!.setMediaButtonReceiver(mediaButtonPendingIntent)
         mMediaSession!!.isActive = true
         notificationHelper = NotificationHelper.createInstance(context = this, mMediaSession!!)
         startForegroundAndNotify()
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        restoreSavedQueue()
+    }
+
+    /**
+     * Brings back the queue saved by the last run, paused.
+     *
+     * Loading the library and catalog is file I/O, so it runs off the main thread. A queue the
+     * user starts in the meantime wins; a play pressed in the meantime (the media button that
+     * cold-started us) is held and applied once the queue is back.
+     */
+    private fun restoreSavedQueue() {
+        restoring = true
+        thread {
+            val restored = try {
+                loadSavedQueue()
+            } catch (err: Exception) {
+                println("queue restore failed: $err")
+                null
+            }
+            progressHandler.post { applyRestoredQueue(restored) }
+        }
+    }
+
+    private fun loadSavedQueue(): Pair<RestoredQueue<TrackData>, Boolean>? {
+        val saved = QueueStore.load(applicationContext) ?: return null
+        // the library field, not load()'s return: load() reports failure for a library with no
+        // playlists even after parsing it
+        val data = Library.shared(applicationContext).library
+        if (StreamingClient.albums().isEmpty()) {
+            StreamingClient.loadCached(applicationContext)
+        }
+        // online = true keeps a cloud track whatever the connection is right now; setTrack
+        // re-resolves it by id when played, and skips it if there is still no internet
+        val merged = MergedLibrary(applicationContext, data.tracks, data.albums, data.artists, true)
+        val restored = restoreQueue(saved.ids, saved.position) { id ->
+            if (merged.isPlayable(id)) merged.resolve(id) else null
+        } ?: return null
+        return Pair(restored, saved.repeat)
+    }
+
+    private fun applyRestoredQueue(restored: Pair<RestoredQueue<TrackData>, Boolean>?) {
+        restoring = false
+        val resume = playWhenRestored
+        playWhenRestored = false
+        if (restored == null || mCurrIndex != null) {
+            return
+        }
+        val (queue, repeat) = restored
+        curPlaylist = queue.tracks.toTypedArray()
+        mCurrIndex = queue.index
+        mCurrTrack = curPlaylist[queue.index]
+        restoredPositionMs = queue.positionMs
+        PlaybackState.setRepeat(repeat)
+        // rewritten so tracks pruned as missing stay gone
+        persistState()
+        publishState()
+        updateMediaSession()
+        updateMediaSessionState()
+        if (resume) {
+            resumeTrack()
+        }
+    }
+
+    /** Saves the queue if it has changed since it was last saved, and always the position. */
+    private fun persistState() {
+        if (curPlaylist !== savedQueue) {
+            QueueStore.saveQueue(applicationContext, curPlaylist.map { it.track.id })
+            savedQueue = curPlaylist
+        }
+        persistPosition()
+    }
+
+    private fun persistPosition() {
+        lastPositionSaveAt = SystemClock.elapsedRealtime()
+        QueueStore.savePosition(
+            applicationContext,
+            mCurrIndex ?: 0,
+            mCurrTrack?.track?.id,
+            currentPositionMs(),
+            PlaybackState.repeatEnabled,
+        )
+    }
+
+    private fun currentPositionMs(): Int {
+        restoredPositionMs?.let { return it }
+        if (pendingSeekMs > 0) {
+            return pendingSeekMs
+        }
+        return try {
+            mPlayer?.currentPosition ?: 0
+        } catch (e: Exception) {
+            0
+        }
     }
 
     private fun startForegroundAndNotify() {
@@ -94,6 +212,9 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     override fun onDestroy() {
         super.onDestroy()
         progressHandler.removeCallbacksAndMessages(null)
+        if (mCurrIndex != null) {
+            persistState()
+        }
         mMediaSession?.isActive = false
         mMediaSession = null
     }
@@ -162,10 +283,12 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
      * thread and comes back to the player. A track started that way is a few hundred ms slower
      * to begin, which is the cost of not having synced it.
      */
-    private fun setTrack(trackIndex: Int) {
+    private fun setTrack(trackIndex: Int, startAtMs: Int = 0) {
         initMediaPlayerIfNeeded()
         mPlayer?.reset() ?: return
         if (trackIndex < 0 || trackIndex >= curPlaylist.size) return
+        restoredPositionMs = null
+        pendingSeekMs = startAtMs
         val track = curPlaylist[trackIndex]
         mCurrTrack = track
         mCurrIndex = trackIndex
@@ -225,6 +348,7 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     }
 
     private fun trackChanged() {
+        persistState()
         publishState()
         updateMediaSession()
         updateMediaSessionState()
@@ -242,12 +366,7 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     }
 
     private fun publishPosition() {
-        val position = try {
-            mPlayer?.currentPosition ?: 0
-        } catch (e: Exception) {
-            0
-        }
-        PlaybackState.positionMs.postValue(position)
+        PlaybackState.positionMs.postValue(currentPositionMs())
     }
 
     private fun startProgressUpdates() {
@@ -276,11 +395,7 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
 
     /** Reports position and actions so the lockscreen/notification seek bar works. */
     private fun updateMediaSessionState() {
-        val position = try {
-            (mPlayer?.currentPosition ?: 0).toLong()
-        } catch (e: Exception) {
-            0L
-        }
+        val position = currentPositionMs().toLong()
         val state = PlaybackStateCompat.Builder()
             .setActions(
                 PlaybackStateCompat.ACTION_PLAY or
@@ -314,6 +429,17 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     }
 
     fun resumeTrack() {
+        if (restoring) {
+            playWhenRestored = true
+            return
+        }
+        val restoredAt = restoredPositionMs
+        val index = mCurrIndex
+        if (restoredAt != null && index != null) {
+            // a restored queue is only prepared now; onPrepared starts it at the saved spot
+            setTrack(index, restoredAt)
+            return
+        }
         initMediaPlayerIfNeeded()
         if (mCurrTrack != null) {
             mPlayer!!.start()
@@ -327,9 +453,14 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
 
     fun pauseTrack() {
         initMediaPlayerIfNeeded()
-        try {
-            mPlayer!!.pause()
-        } catch (_: Exception) {
+        if (restoredPositionMs == null) {
+            try {
+                mPlayer!!.pause()
+            } catch (_: Exception) {
+            }
+        }
+        if (mCurrIndex != null) {
+            persistPosition()
         }
         publishState()
         updateMediaSessionState()
@@ -337,9 +468,16 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     }
 
     fun seekTo(positionMs: Int) {
-        try {
-            mPlayer?.seekTo(positionMs)
-        } catch (_: Exception) {
+        if (restoredPositionMs != null) {
+            restoredPositionMs = positionMs
+        } else {
+            try {
+                mPlayer?.seekTo(positionMs)
+            } catch (_: Exception) {
+            }
+        }
+        if (mCurrIndex != null) {
+            persistPosition()
         }
         publishPosition()
         updateMediaSessionState()
@@ -357,15 +495,16 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
         }
     }
 
+    /**
+     * Every route into "previous" - the in-app button, the notification, the lock screen and
+     * MediaSession, Bluetooth and headset buttons - ends here.
+     *
+     * Neither branch touches PlayTracker: a restart is not a skip and not a play, and only
+     * handleNextTrack records skips.
+     */
     fun handlePreviousTrack() {
         val index = mCurrIndex ?: return
-        val position = try {
-            mPlayer?.currentPosition ?: 0
-        } catch (e: Exception) {
-            0
-        }
-        // restart the current track unless we're near its start
-        if (position > 3000 || index == 0) {
+        if (shouldRestartOnPrevious(currentPositionMs(), index)) {
             seekTo(0)
         } else {
             setTrack(index - 1)
@@ -385,6 +524,7 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
         if (index + 1 >= curPlaylist.size) return
         val upcoming = curPlaylist.slice(index + 1 until curPlaylist.size).shuffled()
         curPlaylist = (curPlaylist.slice(0..index) + upcoming).toTypedArray()
+        persistState()
         publishState()
     }
 
@@ -419,6 +559,10 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
     }
 
     override fun onPrepared(mp: MediaPlayer) {
+        if (pendingSeekMs > 0) {
+            mp.seekTo(pendingSeekMs)
+            pendingSeekMs = 0
+        }
         mp.start()
         requestAudioFocus()
         startProgressUpdates()
@@ -439,6 +583,7 @@ class MediaPlaybackService : Service(), MediaPlayer.OnPreparedListener, MediaPla
             index + 1 < curPlaylist.size -> setTrack(index + 1)
             PlaybackState.repeatEnabled && curPlaylist.isNotEmpty() -> setTrack(0)
             else -> {
+                persistPosition()
                 publishState()
                 updateMediaSessionState()
                 startForegroundAndNotify()

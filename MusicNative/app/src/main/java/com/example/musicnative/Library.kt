@@ -102,6 +102,26 @@ class Library(private val context: Context) {
     var library: LibraryData
     val saveLock = ReentrantLock()
 
+    companion object {
+        @Volatile
+        private var instance: Library? = null
+
+        /**
+         * The process's one library, loaded on first use.
+         *
+         * Shared so a sync outliving its activity (see SyncManager) writes into the same maps
+         * the next activity shows, and so the playback service's queue restore does not parse
+         * library.json a second time.
+         */
+        fun shared(context: Context): Library =
+            instance ?: synchronized(this) {
+                instance ?: Library(context.applicationContext).also {
+                    it.load()
+                    instance = it
+                }
+            }
+    }
+
     init {
         this.library = LibraryData()
         println("constructor")

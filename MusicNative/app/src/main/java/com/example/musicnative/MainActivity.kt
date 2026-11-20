@@ -74,14 +74,11 @@ const val PLAY_PLAYLIST = "play_playlist"
 
 class MainActivity : AppCompatActivity() {
     private var library: Library? = null
-    private var syncHelper: SyncHelper2? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val syncState = MutableLiveData(Steps.READY)
-        val percentageState = MutableLiveData(0.0)
-        library = Library(baseContext)
-        library!!.load()
-        syncHelper = SyncHelper2(baseContext, library!!, syncState, percentageState, this)
+        // process-wide, so a sync that outlives this activity (rotation, back) lands in the
+        // maps the next one shows
+        library = Library.shared(applicationContext)
 
         val intent = Intent(baseContext, MediaPlaybackService::class.java)
         startService(intent)
@@ -96,10 +93,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         val onSync = {
-            lifecycleScope.launch {
-                syncHelper!!.startSync()
-            }
-            Unit
+            // not lifecycleScope: that cancelled the sync on every rotation
+            SyncManager.start(applicationContext, library!!)
         }
 
         val playPlaylist = {
@@ -135,8 +130,9 @@ class MainActivity : AppCompatActivity() {
                             albumsMutable = library!!.library.albums,
                             artistsMutable = library!!.library.artists,
                             playPlaylist = playPlaylist,
-                            syncStatusMutable = syncHelper!!.syncState,
-                            syncPercentMutable = syncHelper!!.percent,
+                            syncStatusMutable = SyncManager.syncState,
+                            syncPercentMutable = SyncManager.percent,
+                            syncFailureMutable = SyncManager.failure,
                             remoteState = ServerConnection.remoteState
                         )
                     }
@@ -168,6 +164,7 @@ fun MainApp(modifier: Modifier = Modifier,
             playPlaylist: (tracks: List<TrackData>) -> Unit,
             syncStatusMutable: LiveData<Steps>,
             syncPercentMutable: LiveData<Double>,
+            syncFailureMutable: LiveData<String?>,
             remoteState: LiveData<org.json.JSONObject>) {
     val navController = rememberNavController()
     val isConnected by connected.observeAsState(initial = false)
@@ -179,6 +176,7 @@ fun MainApp(modifier: Modifier = Modifier,
     val artists = remember {artistsMutable}
     val syncStatus by syncStatusMutable.observeAsState(initial = Steps.READY)
     val percentage by syncPercentMutable.observeAsState(initial = 0.0)
+    val syncFailure by syncFailureMutable.observeAsState(initial = null)
 
     val onNavigate = { screen: DownloadScreens ->
         navController.navigate(screen.name)
@@ -275,7 +273,8 @@ fun MainApp(modifier: Modifier = Modifier,
                         online = isOnline,
                         onSync = onSync,
                         syncStatus = syncStatus,
-                        percent = percentage
+                        percent = percentage,
+                        syncFailure = syncFailure,
                     )
                 }
                 composable(route = DownloadScreens.Playlists.name) {
@@ -379,6 +378,7 @@ private fun stepLabel(step: Steps): String {
         Steps.SYNCING_TRACKS -> "Syncing tracks"
         Steps.SYNCING_ALBUMS -> "Syncing albums"
         Steps.SYNCING_ARTISTS -> "Syncing artists"
+        Steps.FAILED -> "Sync failed"
     }
 }
 
@@ -387,7 +387,8 @@ fun MainOptions(
     onNavigate: (screen: DownloadScreens) -> Unit, connected: Boolean, online: Boolean,
     onSync: () -> Unit,
     syncStatus: Steps,
-    percent: Double
+    percent: Double,
+    syncFailure: String? = null,
 ) {
     Column(
         modifier = Modifier
@@ -483,7 +484,7 @@ fun MainOptions(
         }
         Spacer(modifier = Modifier.height(24.dp))
         if (connected) {
-            if (syncStatus != Steps.READY) {
+            if (syncStatus != Steps.READY && syncStatus != Steps.FAILED) {
                 Card(shape = RoundedCornerShape(14.dp), backgroundColor = com.example.musicnative.ui.theme.Surface, elevation = 0.dp) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -503,6 +504,14 @@ fun MainOptions(
                     }
                 }
             } else {
+                if (syncStatus == Steps.FAILED) {
+                    Text(
+                        "Sync failed: ${syncFailure ?: "unknown error"}",
+                        color = Warning,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 12.dp),
+                    )
+                }
                 PillButton("Sync Library", filled = true, modifier = Modifier.fillMaxWidth()) {
                     onSync()
                 }

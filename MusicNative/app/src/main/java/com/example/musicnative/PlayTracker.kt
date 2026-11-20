@@ -128,24 +128,29 @@ class PlayTracker(context: Context) {
     }
 
     /**
-     * The `plays=` query parameter.
+     * The `plays=` query parameter, for a desktop from before `POST /start-sync`.
      *
-     * Sends `{"v":3,"plays":[{"i":id,"t":ms}],"skips":[...],"counts":{id:n}}`. The desktop reads
-     * any numeric `v` as this structured shape and takes each field if present, so adding
-     * `skips` needs nothing of an older desktop beyond ignoring it. It still accepts the
-     * original bare `{id: count}` map, so an older phone against a newer desktop keeps syncing.
+     * No fallback to an empty payload on error: sending `{}` and then clearing what was
+     * "sent" would throw the plays away. An exception fails the sync and keeps them.
      */
-    fun getQueryString(sent: Pending): String {
-        return try {
-            val payload = mapOf(
-                "v" to 3,
-                "plays" to sent.plays.map { r -> mapOf("i" to r.id, "t" to r.at) },
-                "skips" to sent.skips.map { r -> mapOf("i" to r.id, "t" to r.at) },
-                "counts" to sent.legacy,
-            )
-            "plays=" + URLEncoder.encode(Gson().toJson(payload).toString(), "UTF-8")
-        } catch (err: Exception) {
-            "plays=" + URLEncoder.encode("{}", "UTF-8")
-        }
-    }
+    fun getQueryString(sent: Pending): String =
+        "plays=" + URLEncoder.encode(syncPayload(sent), "UTF-8")
+}
+
+/**
+ * What a sync sends: `{"v":3,"plays":[{"i":id,"t":ms}],"skips":[...],"counts":{id:n}}`, as the
+ * `POST /start-sync` body (or, to an older desktop, the `plays=` query parameter).
+ *
+ * The desktop reads any numeric `v` as this structured shape and takes each field if present,
+ * and still accepts the original bare `{id: count}` map, so old and new builds interoperate.
+ * It dedupes timed events against its own log, so resending anything unacknowledged is safe.
+ */
+fun syncPayload(sent: PlayTracker.Pending): String {
+    val payload = mapOf(
+        "v" to 3,
+        "plays" to sent.plays.map { r -> mapOf("i" to r.id, "t" to r.at) },
+        "skips" to sent.skips.map { r -> mapOf("i" to r.id, "t" to r.at) },
+        "counts" to sent.legacy,
+    )
+    return Gson().toJson(payload)
 }
