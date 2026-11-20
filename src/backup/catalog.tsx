@@ -1,5 +1,6 @@
 import {DATA_DIR} from '../constants';
 import crypto from 'crypto';
+import {externalEffectsAllowed} from '../devSafety';
 import fs from 'fs';
 import {isConfigured, uploadObject} from './gcs';
 import {loadManifest, Manifest, normalizeTrackPath, objectNameForTrack} from './musicBackup';
@@ -136,11 +137,14 @@ export function buildCatalog(
     if (!filePath) {
       return;
     }
-    const object = objectNameForTrack(filePath);
-    if (!manifest[object] || seen[object]) {
+    const mirror = objectNameForTrack(filePath);
+    const entry = manifest[mirror];
+    if (!entry || seen[mirror]) {
       return;
     }
-    seen[object] = true;
+    seen[mirror] = true;
+    // a re-ripped file's current bytes live in a versioned sibling, not the mirror name
+    const object = entry.object || mirror;
     const trackAlbumIds = track.albumIds || [];
     const trackArtistIds = track.artistIds || [];
     trackAlbumIds.forEach((albumId) => {
@@ -202,6 +206,10 @@ export interface CatalogOutcome {
  * leaving 365 near-identical objects in a bucket whose key cannot delete them.
  */
 export async function publishCatalog(options: {force?: boolean} = {}): Promise<CatalogOutcome> {
+  // a dev copy's catalog would replace what the phone streams from
+  if (!externalEffectsAllowed('backup')) {
+    return {ok: true, skipped: 'Off in development; set MYMUSIC_DEV_EFFECTS=backup to test it.'};
+  }
   if (!isConfigured()) {
     return {ok: false, skipped: 'Cloud backup is not set up.'};
   }

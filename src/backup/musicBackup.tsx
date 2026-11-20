@@ -1,8 +1,11 @@
+import {atomicSave} from '../library/atomicSave';
 import {DATA_DIR} from '../constants';
+import {externalEffectsAllowed} from '../devSafety';
 import fs from 'fs';
 import {GcsError, isConfigured, setupHelp, uploadObject} from './gcs';
 import os from 'os';
 import path from 'path';
+import {alreadyExists, objectFor} from './uploadRules';
 
 /**
  * Keeps the offsite copy of the actual audio files up to date.
@@ -64,6 +67,11 @@ const CONTENT_TYPES: Record<string, string> = {
 export interface ManifestEntry {
   size: number;
   already?: boolean;
+  /**
+   * The object holding the current bytes, when it is not the mirror name the entry is keyed by:
+   * a changed file goes to a versioned sibling, since the key cannot replace the original.
+   */
+  object?: string;
 }
 
 export type Manifest = Record<string, ManifestEntry>;
@@ -87,7 +95,7 @@ export function loadManifest(): Manifest {
 
 function saveManifest(manifest: Manifest): void {
   try {
-    fs.writeFileSync(MANIFEST_FILE(), JSON.stringify(manifest), 'utf8');
+    atomicSave(MANIFEST_FILE(), JSON.stringify(manifest)).catch(() => undefined);
   } catch (err) {
     // losing the bookkeeping only costs re-checking files that are already safely uploaded
   }
@@ -103,7 +111,7 @@ export function loadMusicState(): MusicBackupState {
 
 function saveMusicState(state: MusicBackupState): void {
   try {
-    fs.writeFileSync(STATE_FILE(), JSON.stringify(state), 'utf8');
+    atomicSave(STATE_FILE(), JSON.stringify(state)).catch(() => undefined);
   } catch (err) {
     // same: bookkeeping only
   }
@@ -151,7 +159,10 @@ export function trackPaths(): string[] {
 
 export interface PendingFile {
   path: string;
+  /** The mirror name, which keys the manifest. */
   name: string;
+  /** Where these bytes go: the mirror name, or a versioned sibling for a changed file. */
+  object: string;
   size: number;
 }
 
@@ -177,10 +188,21 @@ export async function pendingFiles(manifest: Manifest = loadManifest()): Promise
     }
     const done = manifest[name];
     if (!done || done.size !== size) {
-      out.push({name, path: p, size});
+      out.push({name, object: objectFor(name, size, done), path: p, size});
     }
   }
   return out;
+}
+
+function entryFor(file: PendingFile, already: boolean): ManifestEntry {
+  const entry: ManifestEntry = {size: file.size};
+  if (already) {
+    entry.already = true;
+  }
+  if (file.object !== file.name) {
+    entry.object = file.object;
+  }
+  return entry;
 }
 
 export interface MusicBackupOutcome {
@@ -204,6 +226,9 @@ export async function runMusicBackup(
   options: {force?: boolean} = {},
 ): Promise<MusicBackupOutcome> {
   const empty = {bytes: 0, failed: 0, pending: 0, uploaded: 0};
+  if (!externalEffectsAllowed('backup')) {
+    return Object.assign({}, empty, {ok: true, skipped: 'Off in development; set MYMUSIC_DEV_EFFECTS=backup.'});
+  }
   const state = loadMusicState();
   if (!isConfigured()) {
     return Object.assign({}, empty, {
@@ -248,6 +273,7 @@ export async function runMusicBackup(
   let failed = 0;
   let cursor = 0;
   let sinceCheckpoint = 0;
+  let firstError: string | undefined;
 
   const checkpoint = (): void => {
     sinceCheckpoint += 1;
@@ -264,20 +290,22 @@ export async function runMusicBackup(
       try {
         const type = CONTENT_TYPES[path.extname(file.path).toLowerCase()] ||
           'application/octet-stream';
-        await uploadObject(file.name, await fs.promises.readFile(file.path), type);
-        manifest[file.name] = {size: file.size};
+        await uploadObject(file.object, await fs.promises.readFile(file.path), type, {ifAbsent: true});
+        manifest[file.name] = entryFor(file, false);
         uploaded += 1;
         bytes += file.size;
         checkpoint();
       } catch (err) {
-        if (err instanceof GcsError && err.status === 403) {
-          // already in the bucket from a run whose manifest entry was lost; the key cannot
-          // replace an object, so a 403 here means the bytes are safe, not that we failed
-          manifest[file.name] = {already: true, size: file.size};
+        if (err instanceof GcsError && alreadyExists(err.status, err.body)) {
+          // already in the bucket from a run whose manifest entry was lost
+          manifest[file.name] = entryFor(file, true);
           uploaded += 1;
           checkpoint();
         } else {
+          // anything else — a revoked grant, billing, the network — is a failure, and the file
+          // stays pending for the next run
           failed += 1;
+          firstError = firstError || (err instanceof Error ? err.message : String(err));
         }
       }
     }
@@ -293,7 +321,7 @@ export async function runMusicBackup(
   const pending = totalPending - uploaded;
   saveMusicState({
     lastBytes: bytes,
-    lastError: failed ? `${failed} file(s) failed to upload.` : undefined,
+    lastError: failed ? `${failed} file(s) failed to upload: ${firstError}` : undefined,
     lastRunAt: now,
     // A run that hit a ceiling has not caught up, so it must not reset the fortnightly clock:
     // leaving it where it was means the daily timer picks the work up again tomorrow and keeps

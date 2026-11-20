@@ -31,6 +31,11 @@ describe('buildCatalog', () => {
     expect(catalog.count).toEqual(1);
   });
 
+  it('streams a re-ripped file from its versioned object, not the stale original', () => {
+    const [track] = buildCatalog(library, {[objFor('a.mp3')]: {object: 'music/Music/a~9.mp3', size: 9}}).tracks;
+    expect(track.object).toEqual('music/Music/a~9.mp3');
+  });
+
   it('lists nothing when nothing has been uploaded yet', () => {
     expect(buildCatalog(library, {}).tracks).toEqual([]);
   });

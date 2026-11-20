@@ -24,9 +24,12 @@ interface ServiceAccountKey {
 
 export class GcsError extends Error {
   public status: number;
-  constructor(status: number, message: string) {
+  /** The whole response body: whether a 403 is an overwrite refusal is only in its text. */
+  public body: string;
+  constructor(status: number, message: string, body: string = '') {
     super(message);
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -112,14 +115,17 @@ export interface UploadResult {
  */
 export async function uploadObject(
   objectName: string, contents: string | Buffer, contentType: string = 'application/json',
+  options: {ifAbsent?: boolean} = {},
 ): Promise<UploadResult> {
   const bucket = bucketName();
   const key = loadKey();
   if (!bucket || !key) {
     throw new GcsError(0, `Cloud backup is not set up. ${setupHelp()}`);
   }
+  // create-only: an existing object answers 412 rather than the generic overwrite 403
+  const createOnly = options.ifAbsent ? '&ifGenerationMatch=0' : '';
   const url = `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(bucket)}` +
-    `/o?uploadType=media&name=${encodeURIComponent(objectName)}`;
+    `/o?uploadType=media&name=${encodeURIComponent(objectName)}${createOnly}`;
   const res = await fetch(url, {
     body: contents,
     headers: {
@@ -130,7 +136,7 @@ export async function uploadObject(
   });
   const text = await res.text();
   if (!res.ok) {
-    throw new GcsError(res.status, `Upload of ${objectName} failed (${res.status}): ${text.slice(0, 200)}`);
+    throw new GcsError(res.status, `Upload of ${objectName} failed (${res.status}): ${text.slice(0, 200)}`, text);
   }
   const body = JSON.parse(text) as {name: string; size: string};
   return {name: body.name, size: Number(body.size)};

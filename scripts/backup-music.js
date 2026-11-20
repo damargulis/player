@@ -18,6 +18,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const {alreadyExists, objectFor} = require('../src/backup/uploadRules');
 
 const HOME = os.homedir();
 const DATA_DIR = `${HOME}/Library/Application Support/electron-react/data`;
@@ -116,22 +117,30 @@ async function uploadOne(file) {
   const done = manifest[name];
   if (done && done.size === stat.size) return {skipped: true, bytes: 0};
   if (DRY_RUN) return {uploaded: true, bytes: stat.size, dry: true};
+  // a changed file goes to a versioned sibling: the key cannot replace the original
+  const object = objectFor(name, stat.size, done);
+  const entry = (already) => Object.assign({size: stat.size}, already ? {already: true} : {},
+    object !== name ? {object} : {});
 
   const type = CONTENT_TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream';
   const url = `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(BUCKET)}` +
-    `/o?uploadType=media&name=${encodeURIComponent(name)}`;
+    `/o?uploadType=media&name=${encodeURIComponent(object)}&ifGenerationMatch=0`;
   const res = await fetch(url, {
     method: 'POST', body: fs.readFileSync(file),
     headers: {Authorization: `Bearer ${await accessToken()}`, 'Content-Type': type},
   });
-  if (res.status === 403) {
-    // already there from an earlier run whose manifest entry was lost; the key cannot replace
-    manifest[name] = {size: stat.size, already: true};
-    dirty = true;
-    return {skipped: true, bytes: 0};
+  if (!res.ok) {
+    const body = await res.text();
+    if (alreadyExists(res.status, body)) {
+      // already there from an earlier run whose manifest entry was lost. Only that: any other
+      // 403 (a revoked grant, billing) is a real failure, and used to be recorded as success.
+      manifest[name] = entry(true);
+      dirty = true;
+      return {skipped: true, bytes: 0};
+    }
+    throw new Error(`${res.status} ${body.slice(0, 160)}`);
   }
-  if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 160)}`);
-  manifest[name] = {size: stat.size};
+  manifest[name] = entry(false);
   dirty = true;
   return {uploaded: true, bytes: stat.size};
 }

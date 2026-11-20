@@ -109,6 +109,14 @@ describe('pendingFiles', () => {
     expect(pending.map((p) => p.path)).toEqual([trackFile]);
   });
 
+  it('sends a changed file to a versioned sibling, since the key cannot replace the original', async () => {
+    const name = objectNameForTrack(trackFile);
+    const [first] = await pendingFiles({});
+    expect(first.object).toEqual(name);
+    const [changed] = await pendingFiles({[name]: {size: 999}});
+    expect(changed.object).toEqual(name.replace(/\.mp3$/, '~5.mp3'));
+  });
+
   it('honours a 403-derived entry, which means the bytes are already in the bucket', async () => {
     const pending = await pendingFiles({
       [objectNameForTrack(trackFile)]: {already: true, size: 5},

@@ -1,7 +1,10 @@
+import {atomicSave} from '../library/atomicSave';
 import {DATA_DIR} from '../constants';
+import {externalEffectsAllowed} from '../devSafety';
 import fs from 'fs';
-import {isConfigured, setupHelp, uploadObject} from './gcs';
+import {GcsError, isConfigured, setupHelp, uploadObject} from './gcs';
 import {getMemoryStore} from '../dj/memory';
+import {alreadyExists} from './uploadRules';
 
 /**
  * Offsite copy of the parts of this app that cannot be rebuilt.
@@ -24,6 +27,19 @@ export interface CloudBackupState {
   lastObject?: string;
   lastTrackCount?: number;
   lastError?: string;
+  /** `YYYY-MM` of the newest monthly snapshot uploaded. */
+  lastMonthly?: string;
+}
+
+/**
+ * Where the monthly snapshots go. The bucket's 180-day expiry rule is scoped to the prefixes
+ * `library/` and `dj-memories/`, so a third prefix is outside it without touching the bucket.
+ * Without these, backups that quietly stopped for six months would let every snapshot age out.
+ */
+export const MONTHLY_PREFIX = 'library-monthly';
+
+export function monthKey(when: Date): string {
+  return `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export function loadState(): CloudBackupState {
@@ -36,7 +52,7 @@ export function loadState(): CloudBackupState {
 
 function saveState(state: CloudBackupState): void {
   try {
-    fs.writeFileSync(STATE_FILE(), JSON.stringify(state), 'utf8');
+    atomicSave(STATE_FILE(), JSON.stringify(state)).catch(() => undefined);
   } catch (err) {
     // losing the bookkeeping only costs us an extra upload
   }
@@ -107,6 +123,10 @@ export interface BackupOutcome {
 
 /** Runs a backup if one is due. Never throws; the caller is a timer. */
 export async function runCloudBackup(options: {force?: boolean} = {}): Promise<BackupOutcome> {
+  // a dev copy uploaded its own library to the real bucket; see devSafety.tsx
+  if (!externalEffectsAllowed('backup')) {
+    return {ok: true, skipped: 'Off in development; set MYMUSIC_DEV_EFFECTS=backup to test it.'};
+  }
   const state = loadState();
   if (!isConfigured()) {
     return {ok: false, skipped: `Cloud backup is not set up. ${setupHelp()}`};
@@ -122,6 +142,24 @@ export async function runCloudBackup(options: {force?: boolean} = {}): Promise<B
     await uploadObject(libraryObject, library.contents);
     uploaded.push(libraryObject);
 
+    let lastMonthly = state.lastMonthly;
+    const month = monthKey(now);
+    if (lastMonthly !== month) {
+      // timestamped, with "one a month" kept by `lastMonthly`: a bare `<month>.json` let the first
+      // writer of the month own the name for good, and a dev copy's library took November's
+      const monthlyObject = `${MONTHLY_PREFIX}/${month}_${now.toISOString().replace(/[:.]/g, '-')}.json`;
+      try {
+        await uploadObject(monthlyObject, library.contents, 'application/json', {ifAbsent: true});
+        uploaded.push(monthlyObject);
+      } catch (err) {
+        // this month's is already there; anything else fails the run like any upload would
+        if (!(err instanceof GcsError && alreadyExists(err.status, err.body))) {
+          throw err;
+        }
+      }
+      lastMonthly = month;
+    }
+
     const memories = readMemoriesForBackup();
     if (memories) {
       const memoryObject = objectNameFor('dj-memories', now);
@@ -130,6 +168,7 @@ export async function runCloudBackup(options: {force?: boolean} = {}): Promise<B
     }
     saveState({
       lastError: undefined,
+      lastMonthly,
       lastObject: libraryObject,
       lastRunAt: now.getTime(),
       lastSuccessAt: now.getTime(),
